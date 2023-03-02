@@ -42,7 +42,8 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-
+      - name: Write github to known_hosts
+        run: ssh-keyscan -t rsa github.com | tee github-key-temp | ssh-keygen -lf -
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
