@@ -1,4 +1,4 @@
-name: Dart CI analyze and test
+name: Publish
 
 on:
   push:
@@ -57,3 +57,34 @@ jobs:
 
       - name: Run tests
         run: dart test --reporter expanded --exclude-tags "remote_fetch" --platform=vm
+
+  publish:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        # platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@v1.5.1
+        with:
+          credentialJson: ${{ secrets.CREDENTIALS_JSON }}
+          skipTests: true
+          dry_run: true
+          force: true

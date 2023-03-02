@@ -1,7 +1,6 @@
 name: git2dart
-description: A sample command-line application.
-version: 1.0.0
-publish_to: none
+description: Dart bindings to libgit2, provides ability to use libgit2 library in Dart and Flutter.
+version: 0.0.1
 
 environment:
   sdk: ">=2.19.2 <3.0.0"
@@ -9,11 +8,17 @@ environment:
 dependencies:
   equatable: ^2.0.5
   ffi: ^2.0.1
-  git2dart_binaries: ^0.0.8
+  git2dart_binaries: ^0.0.9
   meta: ^1.9.0
   path: ^1.8.1
 
 dev_dependencies:
-  ffigen: ^7.2.6
   lints: ^2.0.0
   test: ^1.20.0
+
+flutter:
+  plugin:
+    platforms:
+      linux:
+      windows:
+        pluginClass: Git2DartPlugin
