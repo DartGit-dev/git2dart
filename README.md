@@ -6,7 +6,7 @@ git2dart package provides ability to use [libgit2](https://github.com/libgit2/li
 
 This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 
-Currently supported platforms are 64-bit  Windows on both Flutter and Dart VM. Linux, MacOS in future.
+Currently supported platforms are 64-bit Windows, Linux, MacOS on both Flutter and Dart VM.
 
 - [Getting Started](#getting-started)
 - [Usage](#usage)
