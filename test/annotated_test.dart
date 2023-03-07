@@ -81,7 +81,7 @@ void main() {
       final annotated = AnnotatedCommit.fromFetchHead(
         repo: repo,
         branchName: 'master',
-        remoteUrl: 'git://github.com/SkinnyMind/git2dart.git',
+        remoteUrl: 'git://github.com/DartGit-dev/git2dart.git',
         oid: oid,
       );
 

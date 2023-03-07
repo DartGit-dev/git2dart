@@ -33,7 +33,7 @@ void main() {
   repoStatus(repo);
 
   // Commit changes.
-  commitChanges(repo);
+  commitChanges(repo, fileName);
 
   // View commit history.
   viewHistory(repo);
@@ -153,20 +153,17 @@ void repoStatus(Repository repo) {
 /// Commit changes.
 ///
 /// Similar to `git commit -m "initial commit"`
-void commitChanges(Repository repo) {
+void commitChanges(Repository repo, String fileName) {
   final signature = repo.defaultSignature;
   const commitMessage = 'initial commit\n';
 
   repo.index.write();
 
-  final oid = Commit.create(
-    repo: repo,
-    updateRef: 'HEAD',
-    author: signature,
-    committer: signature,
-    message: commitMessage,
-    tree: Tree.lookup(repo: repo, oid: repo.index.writeTree()),
-    parents: [], // root commit doesn't have parents
+  final oid = repo.createCommitOnHead(
+    [fileName],
+    signature,
+    signature,
+    commitMessage,
   );
 
   stdout.writeln(

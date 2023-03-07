@@ -13,3 +13,9 @@
 ## 0.0.4
 
 - Update dependencies
+
+## 0.0.5
+
+- Update dependencies
+- Add repository extensions headCommit and createCommitOnHead
+- Fix links to repo

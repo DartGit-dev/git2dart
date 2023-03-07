@@ -5,7 +5,7 @@
 	logallrefupdates = true
 	editor = vim
 [remote "origin"]
-	url = git://github.com/SkinnyMind/git2dart.git
+	url = git://github.com/DartGit-dev/git2dart.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin

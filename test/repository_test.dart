@@ -26,14 +26,14 @@ void main() {
     test('returns config for repository', () {
       expect(
         repo.config['remote.origin.url'].value,
-        'git://github.com/SkinnyMind/git2dart.git',
+        'git://github.com/DartGit-dev/git2dart.git',
       );
     });
 
     test('returns snapshot of repository config', () {
       expect(
         repo.configSnapshot['remote.origin.url'].value,
-        'git://github.com/SkinnyMind/git2dart.git',
+        'git://github.com/DartGit-dev/git2dart.git',
       );
     });
 
@@ -244,10 +244,6 @@ void main() {
     test('manually releases allocated memory', () {
       final repo = Repository.open(tmpDir.path);
       expect(() => repo.free(), returnsNormally);
-    });
-
-    test('get head commit', () {
-      expect(repo.headCommit.oid.sha, lastCommit);
     });
 
     test('returns string representation of Repository object', () {

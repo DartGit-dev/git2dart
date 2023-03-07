@@ -10,7 +10,7 @@ void main() {
   late Repository repo;
   late Directory tmpDir;
   const remoteName = 'origin';
-  const remoteUrl = 'git://github.com/SkinnyMind/git2dart.git';
+  const remoteUrl = 'git://github.com/DartGit-dev/git2dart.git';
 
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
