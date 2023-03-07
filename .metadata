@@ -7,7 +7,7 @@ version:
   revision: 12cb4eb7a009f52b347b62ade7cb4854b926af72
   channel: stable
 
-project_type: app
+project_type: package
 
 # Tracks metadata for the flutter migrate command
 migration:
@@ -26,5 +26,5 @@ migration:
   #
   # Files that are not part of the templates will be ignored by default.
   unmanaged_files:
-    - 'lib/main.dart'
-    - 'ios/Runner.xcodeproj/project.pbxproj'
+    - "lib/git2dart.dart"
+    - "ios/Runner.xcodeproj/project.pbxproj"

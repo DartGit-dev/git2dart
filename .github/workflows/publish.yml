@@ -2,9 +2,9 @@ name: Publish
 
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
-    # branches: [main]
+    # tags:
+    #   - "v[0-9]+.[0-9]+.[0-9]+*"
+    branches: [main]
   # pull_request:
   #   branches: [main]
   workflow_dispatch:
@@ -79,9 +79,9 @@ jobs:
         run: flutter pub get
 
       - name: Publish
-        uses: k-paxian/dart-package-publisher@v1.5.1
+        uses: k-paxian/dart-package-publisher@master
         with:
           credentialJson: ${{ secrets.CREDENTIALS_JSON }}
           skipTests: true
-          dry_run: true
-          force: true
+          suppressBuildRunner: true
+          flutter: true
