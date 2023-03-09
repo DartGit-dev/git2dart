@@ -19,3 +19,8 @@
 - Update dependencies
 - Add repository extensions headCommit and createCommitOnHead
 - Fix links to repo
+
+## 0.0.6
+
+- README fix
+- macos tests
