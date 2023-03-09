@@ -1,10 +1,10 @@
 # git2dart
 
-**Dart bindings to libgit2**
+## Dart bindings to libgit2
 
 git2dart package provides ability to use [libgit2](https://github.com/libgit2/libgit2) in Dart/Flutter.
 
-This is a hardfork of [git2dart](https://github.com/DartGit-dev/git2dart)
+This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 
 Currently supported platforms are 64-bit Windows, Linux, MacOS on both Flutter and Dart VM.
 
@@ -50,19 +50,6 @@ print(Libgit2.version);
 **Note**: The following steps only required if you are using package in Dart application (Flutter application will have libgit2 library bundled automatically when you build for release).
 
 After adding the package as dependency you should run:
-
-<!-- ```shell
-dart run git2dart:setup
-```
-
-That'll copy the prebuilt libgit2 library for your platform into `.dart_tool/libgit2/<platform>/` which you'll need to add to the same folder as your executable after compilation.
-
-If you upgrade the version of git2dart package in your dependencies you should run the following commands to have the latest libgit2 library for your platform to provide with your application:
-
-```shell
-dart run git2dart:setup clean
-dart run git2dart:setup
-``` -->
 
 ## Usage
 
@@ -665,7 +652,7 @@ Fork git2dart, improve git2dart, send a pull request.
 
 ### Troubleshooting
 
-#### Linux:
+#### Linux
 
 If you are developing on Linux using non-Debian based distrib you might encounter these errors:
 
@@ -680,31 +667,20 @@ To fix these errors create symlinks:
 sudo ln -s /usr/lib64/libpcre.so /usr/lib64/libpcre.so.3
 sudo ln -s /usr/lib64/libpcreposix.so /usr/lib64/libpcreposix.so.3
 ```
-<!-- 
-#### Windows:
-
-If you are developing on Windows you might encounter:
-
-- Failed to load dynamic library: error code 126
-
-That happens because libgit2 dynamic library bundled with git2dart package is precompiled with ssh support, and it fails to find the `libssh2.dll`.
-
-To fix that error you should [build](https://github.com/libssh2/libssh2/blob/master/docs/INSTALL_CMAKE.md) libssh2, and place resulting `libssh2.dll` somewhere in system path (e.g. "Windows\System32").  -->
-
 
 ### Running Tests
 
 To run all tests and generate coverage report make sure to have activated packages and [lcov](https://github.com/linux-test-project/lcov) installed:
 
 ```sh
-$ dart pub global activate coverage
+dart pub global activate coverage
 ```
 
 And run:
 
 ```sh
-$ ./coverage.sh
-$ open coverage/index.html
+./coverage.sh
+open coverage/index.html
 ```
 
 ---
