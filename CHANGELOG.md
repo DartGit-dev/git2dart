@@ -24,3 +24,7 @@
 
 - README fix
 - macos tests
+
+## 0.1.0
+
+- dart 3
