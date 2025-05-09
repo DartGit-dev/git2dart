@@ -226,17 +226,18 @@ int length(Pointer<git_diff> diff) => libgit2.git_diff_num_deltas(diff);
 
 /// Merge one diff into another.
 ///
-/// This merges items from the "from" list into the "onto" list. The resulting
-/// diff will have all items that appear in either list. If an item appears in
-/// both lists, then it will be "merged" to appear as if the old version was
-/// from the "onto" list and the new version is from the "from" list (with the
-/// exception that if the item has a pending DELETE in the middle, then it will
-/// show as deleted).
+/// This modifies the first diff to include the changes from the second diff.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void merge({
-  required Pointer<git_diff> ontoPointer,
-  required Pointer<git_diff> fromPointer,
+  required Pointer<git_diff> diffPointer,
+  required Pointer<git_diff> fromDiffPointer,
 }) {
-  libgit2.git_diff_merge(ontoPointer, fromPointer);
+  final error = libgit2.git_diff_merge(diffPointer, fromDiffPointer);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
 /// Read the contents of a git patch file into a git diff object. The returned
@@ -274,26 +275,9 @@ Pointer<git_diff> parse(String content) {
 /// Throws a [LibGit2Error] if error occured.
 void findSimilar({
   required Pointer<git_diff> diffPointer,
-  required int flags,
-  required int renameThreshold,
-  required int copyThreshold,
-  required int renameFromRewriteThreshold,
-  required int breakRewriteThreshold,
-  required int renameLimit,
+  required Pointer<git_diff_find_options> options,
 }) {
-  final opts = calloc<git_diff_find_options>();
-  libgit2.git_diff_find_options_init(opts, GIT_DIFF_FIND_OPTIONS_VERSION);
-
-  opts.ref.flags = flags;
-  opts.ref.rename_threshold = renameThreshold;
-  opts.ref.copy_threshold = copyThreshold;
-  opts.ref.rename_from_rewrite_threshold = renameFromRewriteThreshold;
-  opts.ref.break_rewrite_threshold = breakRewriteThreshold;
-  opts.ref.rename_limit = renameLimit;
-
-  final error = libgit2.git_diff_find_similar(diffPointer, opts);
-
-  calloc.free(opts);
+  final error = libgit2.git_diff_find_similar(diffPointer, options);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -337,7 +321,7 @@ Pointer<git_diff_delta> getDeltaByIndex({
 /// output such as 'A' for added, 'D' for deleted, 'M' for modified, etc. This
 /// function converts a [GitDelta] value into these letters for your own
 /// purposes. [GitDelta.untracked] will return a space (i.e. ' ').
-String statusChar(int status) {
+String statusChar(git_delta_t status) {
   return String.fromCharCode(libgit2.git_diff_status_char(status));
 }
 
@@ -377,7 +361,7 @@ int statsFilesChanged(Pointer<git_diff_stats> stats) =>
 /// Throws a [LibGit2Error] if error occured.
 String statsPrint({
   required Pointer<git_diff_stats> statsPointer,
-  required int format,
+  required git_diff_stats_format_t format,
   required int width,
 }) {
   final out = calloc<git_buf>();
@@ -400,9 +384,10 @@ String addToBuf(Pointer<git_diff> diff) {
   final out = calloc<git_buf>();
   libgit2.git_diff_to_buf(out, diff, git_diff_format_t.GIT_DIFF_FORMAT_PATCH);
 
-  final result = out.ref.ptr == nullptr
-      ? ''
-      : out.ref.ptr.toDartString(length: out.ref.size);
+  final result =
+      out.ref.ptr == nullptr
+          ? ''
+          : out.ref.ptr.toDartString(length: out.ref.size);
 
   libgit2.git_buf_dispose(out);
   calloc.free(out);
@@ -436,13 +421,13 @@ bool apply({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_diff> diffPointer,
   int? hunkIndex,
-  required int location,
+  required git_apply_location_t location,
   bool check = false,
 }) {
   final opts = calloc<git_apply_options>();
   libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
   if (check) {
-    opts.ref.flags |= git_apply_flags_t.GIT_APPLY_CHECK;
+    opts.ref.flags |= git_apply_flags_t.GIT_APPLY_CHECK.value;
   }
   Pointer<Int32> payload = nullptr;
   if (hunkIndex != null) {
@@ -529,4 +514,28 @@ Pointer<git_diff_options> _diffOptionsInit({
   opts.ref.context_lines = contextLines;
   opts.ref.interhunk_lines = interhunkLines;
   return opts;
+}
+
+/// Format a patch into an email.
+///
+/// The returned string must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+String formatEmail({
+  required Pointer<git_diff> diffPointer,
+  required Pointer<git_diff_format_email_options> options,
+}) {
+  final out = calloc<git_buf>();
+  final error = libgit2.git_diff_format_email(out, diffPointer, options);
+
+  final result = out.ref.ptr.toDartString(length: out.ref.size);
+
+  libgit2.git_buf_dispose(out);
+  calloc.free(out);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
 }

@@ -26,7 +26,7 @@ String string(Pointer<git_refspec> refspec) {
 }
 
 /// Get the refspec's direction.
-int direction(Pointer<git_refspec> refspec) =>
+git_direction direction(Pointer<git_refspec> refspec) =>
     libgit2.git_refspec_direction(refspec);
 
 /// Check if a refspec's source descriptor matches a reference.

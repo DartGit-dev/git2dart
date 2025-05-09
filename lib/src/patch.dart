@@ -239,7 +239,7 @@ class Patch extends Equatable {
 
       final intHeader = <int>[
         for (var i = 0; i < hunkPointer.ref.header_len; i++)
-          hunkPointer.ref.header[i]
+          hunkPointer.ref.header[i],
       ];
 
       hunks.add(
@@ -355,7 +355,7 @@ class DiffHunk extends Equatable {
         newStart,
         newLines,
         header,
-        lines
+        lines,
       ];
 }
 

@@ -1,5 +1,5 @@
 /// Dart bindings to libgit2.
-library git2dart;
+library;
 
 export 'src/annotated.dart';
 export 'src/blame.dart';

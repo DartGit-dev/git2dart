@@ -128,10 +128,7 @@ Pointer<git_describe_options> _initOpts({
   bool? showCommitOidAsFallback,
 }) {
   final opts = calloc<git_describe_options>();
-  libgit2.git_describe_options_init(
-    opts,
-    GIT_DESCRIBE_OPTIONS_VERSION,
-  );
+  libgit2.git_describe_options_init(opts, GIT_DESCRIBE_OPTIONS_VERSION);
 
   if (maxCandidatesTags != null) {
     opts.ref.max_candidates_tags = maxCandidatesTags;
@@ -150,4 +147,28 @@ Pointer<git_describe_options> _initOpts({
   }
 
   return opts;
+}
+
+/// Format a describe result into a string.
+///
+/// The returned string must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+String formatString({
+  required Pointer<git_describe_result> resultPointer,
+  required Pointer<git_describe_format_options> options,
+}) {
+  final out = calloc<git_buf>();
+  final error = libgit2.git_describe_format(out, resultPointer, options);
+
+  final result = out.ref.ptr.toDartString(length: out.ref.size);
+
+  libgit2.git_buf_dispose(out);
+  calloc.free(out);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
 }

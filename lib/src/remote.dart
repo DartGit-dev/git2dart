@@ -220,7 +220,7 @@ class Remote extends Equatable {
           name: ref['name']! as String,
           oid: ref['oid']! as Oid,
           symRef: ref['symref']! as String,
-        )
+        ),
     ];
   }
 

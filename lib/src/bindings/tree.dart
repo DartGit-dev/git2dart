@@ -110,7 +110,7 @@ String entryName(Pointer<git_tree_entry> entry) =>
     libgit2.git_tree_entry_name(entry).toDartString();
 
 /// Get the UNIX file attributes of a tree entry.
-int entryFilemode(Pointer<git_tree_entry> entry) =>
+git_filemode_t entryFilemode(Pointer<git_tree_entry> entry) =>
     libgit2.git_tree_entry_filemode(entry);
 
 /// Free a user-owned tree entry.

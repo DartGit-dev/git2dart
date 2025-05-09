@@ -62,28 +62,23 @@ Pointer<git_blame> file({
   }
 }
 
-/// Get blame data for a file that has been modified in memory. The [reference]
-/// parameter is a pre-calculated blame for the in-odb history of the file.
-/// This means that once a file blame is completed (which can be expensive),
-/// updating the buffer blame is very fast.
-///
-/// Lines that differ between the buffer and the committed version are marked
-/// as having a zero OID for their finalCommitOid.
+/// Get blame data for a file that has been modified in memory.
 ///
 /// The returned blame must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_blame> buffer({
-  required Pointer<git_blame> reference,
   required String buffer,
+  required int bufferLen,
+  Pointer<git_blame>? ref,
 }) {
   final out = calloc<Pointer<git_blame>>();
   final bufferC = buffer.toChar();
   final error = libgit2.git_blame_buffer(
     out,
-    reference,
+    ref ?? nullptr,
     bufferC,
-    buffer.length,
+    bufferLen,
   );
 
   final result = out.value;
@@ -103,34 +98,37 @@ int hunkCount(Pointer<git_blame> blame) {
   return libgit2.git_blame_get_hunk_count(blame);
 }
 
-/// Gets the blame hunk at the given index.
+/// Get the hunk that contains the given line number.
 ///
-/// Throws [RangeError] if index out of range.
-Pointer<git_blame_hunk> getHunkByIndex({
+/// The returned hunk is owned by the blame and must not be freed.
+///
+/// Throws [ArgumentError] if the line number is out of bounds.
+Pointer<git_blame_hunk> getHunkByline({
+  required Pointer<git_blame> blamePointer,
+  required int lineno,
+}) {
+  final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineno);
+
+  if (result == nullptr) {
+    throw ArgumentError('Line number out of bounds');
+  } else {
+    return result;
+  }
+}
+
+/// Get the hunk at the given index.
+///
+/// The returned hunk is owned by the blame and must not be freed.
+///
+/// Throws [RangeError] if the index is out of bounds.
+Pointer<git_blame_hunk> getHunkByindex({
   required Pointer<git_blame> blamePointer,
   required int index,
 }) {
   final result = libgit2.git_blame_get_hunk_byindex(blamePointer, index);
 
   if (result == nullptr) {
-    throw RangeError('$index is out of bounds');
-  } else {
-    return result;
-  }
-}
-
-/// Gets the hunk that relates to the given line number (1-based) in the newest
-/// commit.
-///
-/// Throws [RangeError] if [lineNumber] is out of range.
-Pointer<git_blame_hunk> getHunkByLine({
-  required Pointer<git_blame> blamePointer,
-  required int lineNumber,
-}) {
-  final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineNumber);
-
-  if (result == nullptr) {
-    throw RangeError('$lineNumber is out of bounds');
+    throw RangeError('Index out of bounds');
   } else {
     return result;
   }

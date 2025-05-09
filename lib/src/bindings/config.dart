@@ -276,45 +276,6 @@ List<String> multivarValues({
   return entries;
 }
 
-/// Set the value of a multivar config variable in the config file with the
-/// highest level (usually the local one).
-///
-/// The [regexp] is applied case-sensitively on the value.
-void setMultivar({
-  required Pointer<git_config> configPointer,
-  required String variable,
-  required String regexp,
-  required String value,
-}) {
-  final nameC = variable.toChar();
-  final regexpC = regexp.toChar();
-  final valueC = value.toChar();
-
-  libgit2.git_config_set_multivar(configPointer, nameC, regexpC, valueC);
-
-  calloc.free(nameC);
-  calloc.free(regexpC);
-  calloc.free(valueC);
-}
-
-/// Deletes one or several values from a multivar in the config file
-/// with the highest level (usually the local one).
-///
-/// The [regexp] is applied case-sensitively on the value.
-void deleteMultivar({
-  required Pointer<git_config> configPointer,
-  required String variable,
-  required String regexp,
-}) {
-  final nameC = variable.toChar();
-  final regexpC = regexp.toChar();
-
-  libgit2.git_config_delete_multivar(configPointer, nameC, regexpC);
-
-  calloc.free(nameC);
-  calloc.free(regexpC);
-}
-
 /// Free the configuration and its associated memory and files.
 void free(Pointer<git_config> cfg) => libgit2.git_config_free(cfg);
 
@@ -325,3 +286,110 @@ void freeEntry(Pointer<git_config_entry> entry) =>
 /// Free a config iterator.
 void freeIterator(Pointer<git_config_iterator> iter) =>
     libgit2.git_config_iterator_free(iter);
+
+/// Get a string value from a config.
+///
+/// The returned string must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+String getStringBuf({
+  required Pointer<git_config> configPointer,
+  required String name,
+}) {
+  final out = calloc<git_buf>();
+  final nameC = name.toChar();
+  final error = libgit2.git_config_get_string_buf(out, configPointer, nameC);
+
+  final result = out.ref.ptr.toDartString(length: out.ref.size);
+
+  libgit2.git_buf_dispose(out);
+  calloc.free(out);
+  calloc.free(nameC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Set a multivar in the local config file.
+///
+/// The [regexp] is a regular expression to indicate which values to replace.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void setMultivar({
+  required Pointer<git_config> configPointer,
+  required String name,
+  required String regexp,
+  required String value,
+}) {
+  final nameC = name.toChar();
+  final regexpC = regexp.toChar();
+  final valueC = value.toChar();
+  final error = libgit2.git_config_set_multivar(
+    configPointer,
+    nameC,
+    regexpC,
+    valueC,
+  );
+
+  calloc.free(nameC);
+  calloc.free(regexpC);
+  calloc.free(valueC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Delete a multivar from the local config file.
+///
+/// The [regexp] is a regular expression to indicate which values to delete.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void deleteMultivar({
+  required Pointer<git_config> configPointer,
+  required String name,
+  required String regexp,
+}) {
+  final nameC = name.toChar();
+  final regexpC = regexp.toChar();
+  final error = libgit2.git_config_delete_multivar(
+    configPointer,
+    nameC,
+    regexpC,
+  );
+
+  calloc.free(nameC);
+  calloc.free(regexpC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Iterate over all the config variables matching a regular expression.
+///
+/// The callback will be called for each variable that matches the regexp.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void foreachMatch({
+  required Pointer<git_config> configPointer,
+  required String regexp,
+  required int Function(Pointer<git_config_entry>, Pointer<Void>) callback,
+}) {
+  final regexpC = regexp.toChar();
+  final error = libgit2.git_config_foreach_match(
+    configPointer,
+    regexpC,
+    Pointer.fromFunction(callback, 0),
+    nullptr,
+  );
+
+  calloc.free(regexpC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}

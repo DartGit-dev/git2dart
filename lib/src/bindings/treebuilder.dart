@@ -80,7 +80,7 @@ void add({
   required Pointer<git_treebuilder> builderPointer,
   required String filename,
   required Pointer<git_oid> oidPointer,
-  required int filemode,
+  required git_filemode_t filemode,
 }) {
   final filenameC = filename.toChar();
   final error = libgit2.git_treebuilder_insert(

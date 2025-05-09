@@ -39,7 +39,7 @@ class Tree extends Equatable {
     final entryCount = bindings.entryCount(_treePointer);
     return <TreeEntry>[
       for (var i = 0; i < entryCount; i++)
-        TreeEntry(bindings.getByIndex(treePointer: _treePointer, index: i))
+        TreeEntry(bindings.getByIndex(treePointer: _treePointer, index: i)),
     ];
   }
 

@@ -87,7 +87,7 @@ void main() {
       expect(
         repo.status,
         {
-          'conflict_file': {GitStatus.conflicted}
+          'conflict_file': {GitStatus.conflicted},
         },
       );
 
@@ -103,7 +103,7 @@ void main() {
       expect(
         repo.status,
         {
-          'conflict_file': {GitStatus.indexModified}
+          'conflict_file': {GitStatus.indexModified},
         },
       );
     });

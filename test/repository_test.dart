@@ -155,7 +155,7 @@ void main() {
         repo.status,
         {
           'file': {GitStatus.indexDeleted, GitStatus.wtNew},
-          'new_file.txt': {GitStatus.indexNew}
+          'new_file.txt': {GitStatus.indexNew},
         },
       );
     });

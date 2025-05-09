@@ -313,7 +313,7 @@ class Commit extends Equatable {
     final parentCount = bindings.parentCount(_commitPointer);
     return <Oid>[
       for (var i = 0; i < parentCount; i++)
-        Oid(bindings.parentId(commitPointer: _commitPointer, position: i))
+        Oid(bindings.parentId(commitPointer: _commitPointer, position: i)),
     ];
   }
 

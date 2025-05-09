@@ -26,10 +26,8 @@ int _listCb(
 List<String> list(Pointer<git_repository> repo) {
   const except = -1;
   final callback = Pointer.fromFunction<
-      Int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)>(
-    _listCb,
-    except,
-  );
+    Int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)
+  >(_listCb, except);
 
   libgit2.git_submodule_foreach(repo, callback, nullptr);
 
@@ -230,7 +228,7 @@ void addFinalize(Pointer<git_submodule> submodule) {
 int status({
   required Pointer<git_repository> repoPointer,
   required String name,
-  required int ignore,
+  required git_submodule_ignore_t ignore,
 }) {
   final out = calloc<UnsignedInt>();
   final nameC = name.toChar();
@@ -357,7 +355,7 @@ Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) {
 }
 
 /// Get the ignore rule that will be used for the submodule.
-int ignore(Pointer<git_submodule> submodule) {
+git_submodule_ignore_t ignore(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_ignore(submodule);
 }
 
@@ -367,7 +365,7 @@ int ignore(Pointer<git_submodule> submodule) {
 void setIgnore({
   required Pointer<git_repository> repoPointer,
   required String name,
-  required int ignore,
+  required git_submodule_ignore_t ignore,
 }) {
   final nameC = name.toChar();
   libgit2.git_submodule_set_ignore(repoPointer, nameC, ignore);
@@ -377,7 +375,7 @@ void setIgnore({
 /// Get the update rule that will be used for the submodule.
 ///
 /// This value controls the behavior of the `git submodule update` command.
-int updateRule(Pointer<git_submodule> submodule) {
+git_submodule_update_t updateRule(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_update_strategy(submodule);
 }
 
@@ -387,7 +385,7 @@ int updateRule(Pointer<git_submodule> submodule) {
 void setUpdateRule({
   required Pointer<git_repository> repoPointer,
   required String name,
-  required int update,
+  required git_submodule_update_t update,
 }) {
   final nameC = name.toChar();
   libgit2.git_submodule_set_update(repoPointer, nameC, update);
@@ -407,3 +405,40 @@ Pointer<git_repository> owner(Pointer<git_submodule> submodule) {
 /// Release a submodule.
 void free(Pointer<git_submodule> submodule) =>
     libgit2.git_submodule_free(submodule);
+
+/// Iterate over all submodules of a repository.
+///
+/// The callback will be called for each submodule.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void foreach({
+  required Pointer<git_repository> repoPointer,
+  required int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)
+  callback,
+}) {
+  final error = libgit2.git_submodule_foreach(
+    repoPointer,
+    Pointer.fromFunction(callback, 0),
+    nullptr,
+  );
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Set the update rule for the submodule.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void setUpdate({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required git_submodule_update_t update,
+}) {
+  final nameC = name.toChar();
+  final error = libgit2.git_submodule_set_update(repoPointer, nameC, update);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}

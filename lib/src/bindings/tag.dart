@@ -17,7 +17,7 @@ List<String> list(Pointer<git_repository> repo) {
     throw LibGit2Error(libgit2.git_error_last());
   } else {
     final result = <String>[
-      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
 
     calloc.free(out);
@@ -70,7 +70,8 @@ Pointer<git_object> target(Pointer<git_tag> tag) {
 }
 
 /// Get the type of a tag's tagged object.
-int targetType(Pointer<git_tag> tag) => libgit2.git_tag_target_type(tag);
+git_object_t targetType(Pointer<git_tag> tag) =>
+    libgit2.git_tag_target_type(tag);
 
 /// Get the OID of the tagged object of a tag.
 Pointer<git_oid> targetOid(Pointer<git_tag> tag) =>

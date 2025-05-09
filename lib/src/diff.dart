@@ -288,7 +288,7 @@ class Diff extends Equatable {
     final length = bindings.length(_diffPointer);
     return <DiffDelta>[
       for (var i = 0; i < length; i++)
-        DiffDelta(bindings.getDeltaByIndex(diffPointer: _diffPointer, index: i))
+        DiffDelta(bindings.getDeltaByIndex(diffPointer: _diffPointer, index: i)),
     ];
   }
 
@@ -296,7 +296,7 @@ class Diff extends Equatable {
   List<Patch> get patches {
     final length = bindings.length(_diffPointer);
     return <Patch>[
-      for (var i = 0; i < length; i++) Patch.fromDiff(diff: this, index: i)
+      for (var i = 0; i < length; i++) Patch.fromDiff(diff: this, index: i),
     ];
   }
 

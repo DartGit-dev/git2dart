@@ -80,7 +80,7 @@ class Stash extends Equatable {
     bool reinstateIndex = false,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,
@@ -131,7 +131,7 @@ class Stash extends Equatable {
     bool reinstateIndex = false,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,

@@ -53,7 +53,7 @@ class Rebase {
       for (var i = 0; i < operationsCount; i++)
         RebaseOperation._(
           bindings.getOperationByIndex(rebase: _rebasePointer, index: i),
-        )
+        ),
     ];
   }
 

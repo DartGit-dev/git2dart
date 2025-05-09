@@ -21,7 +21,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 void reset({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_object> targetPointer,
-  required int resetType,
+  required git_reset_t resetType,
   int? strategy,
   String? checkoutDirectory,
   List<String>? pathspec,

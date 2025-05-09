@@ -156,7 +156,7 @@ void main() {
         mergeFlags: {GitMergeFlag.noRecursive, GitMergeFlag.skipREUC},
         mergeFileFlags: {
           GitMergeFileFlag.ignoreWhitespace,
-          GitMergeFileFlag.styleZdiff3
+          GitMergeFileFlag.styleZdiff3,
         },
         checkoutStrategy: {
           GitCheckout.force,
@@ -199,7 +199,7 @@ void main() {
         mergeFlags: {GitMergeFlag.noRecursive, GitMergeFlag.skipREUC},
         mergeFileFlags: {
           GitMergeFileFlag.ignoreWhitespace,
-          GitMergeFileFlag.styleZdiff3
+          GitMergeFileFlag.styleZdiff3,
         },
       );
       expect(revertIndex.find('dir/dir_file.txt'), false);

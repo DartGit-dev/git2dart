@@ -107,25 +107,33 @@ void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
   libgit2.git_worktree_prune(worktreePointer, opts);
 }
 
-/// List names of linked working trees.
+/// List all working trees in the repository.
 ///
-/// Throws a [LibGit2Error] if error occured.
-List<String> list(Pointer<git_repository> repo) {
+/// The returned list must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
   final out = calloc<git_strarray>();
   final error = libgit2.git_worktree_list(out, repo);
 
   if (error < 0) {
     calloc.free(out);
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    final result = <String>[
-      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
-    ];
-
-    calloc.free(out);
-
-    return result;
   }
+
+  final result = <Pointer<git_worktree>>[];
+  for (var i = 0; i < out.ref.count; i++) {
+    final worktree = calloc<Pointer<git_worktree>>();
+    final name = out.ref.strings[i].toDartString();
+    final nameC = name.toChar();
+    libgit2.git_worktree_lookup(worktree, repo, nameC);
+    result.add(worktree.value);
+    calloc.free(worktree);
+    calloc.free(nameC);
+  }
+
+  calloc.free(out);
+  return result;
 }
 
 /// Retrieve the name of the worktree.
@@ -147,10 +155,26 @@ bool isLocked(Pointer<git_worktree> wt) {
 }
 
 /// Lock worktree if not already locked.
-void lock(Pointer<git_worktree> wt) => libgit2.git_worktree_lock(wt, nullptr);
+///
+/// Throws a [LibGit2Error] if error occurred.
+void lock(Pointer<git_worktree> worktree) {
+  final error = libgit2.git_worktree_lock(worktree, nullptr);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
 
 /// Unlock a locked worktree.
-void unlock(Pointer<git_worktree> wt) => libgit2.git_worktree_unlock(wt);
+///
+/// Throws a [LibGit2Error] if error occurred.
+void unlock(Pointer<git_worktree> worktree) {
+  final error = libgit2.git_worktree_unlock(worktree);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
 
 /// Check if worktree is valid.
 ///
@@ -158,6 +182,17 @@ void unlock(Pointer<git_worktree> wt) => libgit2.git_worktree_unlock(wt);
 /// parent repository and the linked working copy to be present.
 bool isValid(Pointer<git_worktree> wt) {
   return libgit2.git_worktree_validate(wt) == 0 || false;
+}
+
+/// Validate worktree configuration.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void validate(Pointer<git_worktree> worktree) {
+  final error = libgit2.git_worktree_validate(worktree);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
 /// Free a previously allocated worktree.

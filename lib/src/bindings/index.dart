@@ -280,43 +280,41 @@ void addFromBuffer({
 
 /// Add or update index entries matching files in the working directory.
 ///
-/// This method will fail in bare index instances.
+/// The [pathspec] is a list of file paths to add/update.
 ///
-/// The [pathspec] is a list of file names or shell glob patterns that will be
-/// matched against files in the repository's working directory. Each file that
-/// matches will be added to the index (either updating an existing entry or
-/// adding a new entry).
-///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void addAll({
   required Pointer<git_index> indexPointer,
   required List<String> pathspec,
   required int flags,
+  required int Function(
+    Pointer<Char> path,
+    Pointer<Char> matchedPathspec,
+    Pointer<Void> payload,
+  )
+  callback,
 }) {
-  final pathspecC = calloc<git_strarray>();
-  final pathPointers = pathspec.map((e) => e.toChar()).toList();
-  final strArray = calloc<Pointer<Char>>(pathspec.length);
-
+  final pathspecC = pathspec.map((p) => p.toChar()).toList();
+  final pathspecArray = calloc<git_strarray>();
+  pathspecArray.ref.count = pathspec.length;
+  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
   for (var i = 0; i < pathspec.length; i++) {
-    strArray[i] = pathPointers[i];
+    pathspecArray.ref.strings[i] = pathspecC[i];
   }
-
-  pathspecC.ref.strings = strArray;
-  pathspecC.ref.count = pathspec.length;
 
   final error = libgit2.git_index_add_all(
     indexPointer,
-    pathspecC,
+    pathspecArray,
     flags,
-    nullptr,
+    Pointer.fromFunction(callback, 0),
     nullptr,
   );
 
-  calloc.free(pathspecC);
-  for (final p in pathPointers) {
-    calloc.free(p);
+  for (var i = 0; i < pathspec.length; i++) {
+    calloc.free(pathspecC[i]);
   }
-  calloc.free(strArray);
+  calloc.free(pathspecArray.ref.strings);
+  calloc.free(pathspecArray);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -325,41 +323,39 @@ void addAll({
 
 /// Update all index entries to match the working directory.
 ///
-/// This method will fail in bare index instances.
+/// The [pathspec] is a list of file paths to update.
 ///
-/// This scans the existing index entries and synchronizes them with the
-/// working directory, deleting them if the corresponding working directory
-/// file no longer exists otherwise updating the information (including adding
-/// the latest version of file to the ODB if needed).
-///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void updateAll({
   required Pointer<git_index> indexPointer,
   required List<String> pathspec,
+  required int Function(
+    Pointer<Char> path,
+    Pointer<Char> matchedPathspec,
+    Pointer<Void> payload,
+  )
+  callback,
 }) {
-  final pathspecC = calloc<git_strarray>();
-  final pathPointers = pathspec.map((e) => e.toChar()).toList();
-  final strArray = calloc<Pointer<Char>>(pathspec.length);
-
+  final pathspecC = pathspec.map((p) => p.toChar()).toList();
+  final pathspecArray = calloc<git_strarray>();
+  pathspecArray.ref.count = pathspec.length;
+  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
   for (var i = 0; i < pathspec.length; i++) {
-    strArray[i] = pathPointers[i];
+    pathspecArray.ref.strings[i] = pathspecC[i];
   }
-
-  pathspecC.ref.strings = strArray;
-  pathspecC.ref.count = pathspec.length;
 
   final error = libgit2.git_index_update_all(
     indexPointer,
-    pathspecC,
-    nullptr,
+    pathspecArray,
+    Pointer.fromFunction(callback, 0),
     nullptr,
   );
 
-  calloc.free(pathspecC);
-  for (final p in pathPointers) {
-    calloc.free(p);
+  for (var i = 0; i < pathspec.length; i++) {
+    calloc.free(pathspecC[i]);
   }
-  calloc.free(strArray);
+  calloc.free(pathspecArray.ref.strings);
+  calloc.free(pathspecArray);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -400,28 +396,44 @@ void removeDirectory({
 }
 
 /// Remove all matching index entries.
+///
+/// The [pathspec] is a list of file paths to remove.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void removeAll({
   required Pointer<git_index> indexPointer,
   required List<String> pathspec,
+  required int Function(
+    Pointer<Char> path,
+    Pointer<Char> matchedPathspec,
+    Pointer<Void> payload,
+  )
+  callback,
 }) {
-  final pathspecC = calloc<git_strarray>();
-  final pathPointers = pathspec.map((e) => e.toChar()).toList();
-  final strArray = calloc<Pointer<Char>>(pathspec.length);
+  final pathspecC = pathspec.map((p) => p.toChar()).toList();
+  final pathspecArray = calloc<git_strarray>();
+  pathspecArray.ref.count = pathspec.length;
+  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
+  for (var i = 0; i < pathspec.length; i++) {
+    pathspecArray.ref.strings[i] = pathspecC[i];
+  }
+
+  final error = libgit2.git_index_remove_all(
+    indexPointer,
+    pathspecArray,
+    Pointer.fromFunction(callback, 0),
+    nullptr,
+  );
 
   for (var i = 0; i < pathspec.length; i++) {
-    strArray[i] = pathPointers[i];
+    calloc.free(pathspecC[i]);
   }
+  calloc.free(pathspecArray.ref.strings);
+  calloc.free(pathspecArray);
 
-  pathspecC.ref.strings = strArray;
-  pathspecC.ref.count = pathspec.length;
-
-  libgit2.git_index_remove_all(indexPointer, pathspecC, nullptr, nullptr);
-
-  calloc.free(pathspecC);
-  for (final p in pathPointers) {
-    calloc.free(p);
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
   }
-  calloc.free(strArray);
 }
 
 /// Determine if the index contains entries representing file conflicts.
@@ -532,3 +544,17 @@ void conflictCleanup(Pointer<git_index> index) {
 
 /// Free an existing index object.
 void free(Pointer<git_index> index) => libgit2.git_index_free(index);
+
+/// Find the first position of any entries which point to given path in the index.
+///
+/// Returns the index of the first matching entry, or -1 if not found.
+int findPrefix({
+  required Pointer<Size> size,
+  required Pointer<git_index> indexPointer,
+  required String prefix,
+}) {
+  final prefixC = prefix.toChar();
+  final result = libgit2.git_index_find_prefix(size, indexPointer, prefixC);
+  calloc.free(prefixC);
+  return result;
+}

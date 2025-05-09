@@ -2,10 +2,11 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/error.dart';
+import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Get the object type of an object.
-int type(Pointer<git_object> obj) => libgit2.git_object_type(obj);
+git_object_t type(Pointer<git_object> obj) => libgit2.git_object_type(obj);
 
 /// Lookup a reference to one of the objects in a repository. The returned
 /// reference must be freed with [free].
@@ -18,7 +19,7 @@ int type(Pointer<git_object> obj) => libgit2.git_object_type(obj);
 Pointer<git_object> lookup({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> oidPointer,
-  required int type,
+  required git_object_t type,
 }) {
   final out = calloc<Pointer<git_object>>();
   final error = libgit2.git_object_lookup(out, repoPointer, oidPointer, type);
@@ -41,3 +42,63 @@ Pointer<git_object> lookup({
 /// not be freed after this library call, depending on how aggressive is the
 /// caching mechanism used by the repository.
 void free(Pointer<git_object> object) => libgit2.git_object_free(object);
+
+/// Recursively peel an object until an object of the specified type is met.
+///
+/// The returned object must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_object> peel({
+  required Pointer<git_object> objectPointer,
+  required git_object_t targetType,
+}) {
+  final out = calloc<Pointer<git_object>>();
+  final error = libgit2.git_object_peel(out, objectPointer, targetType);
+
+  final result = out.value;
+
+  calloc.free(out);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Get a short abbreviated OID string for the object.
+///
+/// This starts at the "core.abbrev" length (default 7 characters) and
+/// iteratively extends to a longer string if that length is ambiguous.
+/// The returned string will be unique in the repository.
+///
+/// Throws a [LibGit2Error] if error occurred.
+String shortId({required Pointer<git_object> objectPointer}) {
+  final out = calloc<git_buf>();
+  final error = libgit2.git_object_short_id(out, objectPointer);
+
+  final result = out.ref.ptr.toDartString(length: out.ref.size);
+
+  libgit2.git_buf_dispose(out);
+  calloc.free(out);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Convert a string object type to its corresponding type.
+git_object_t string2type(String type) {
+  final typeC = type.toChar();
+  final result = libgit2.git_object_string2type(typeC);
+  calloc.free(typeC);
+  return result;
+}
+
+/// Convert an object type to its corresponding string representation.
+String type2string(git_object_t type) {
+  final result = libgit2.git_object_type2string(type);
+  return result.toDartString();
+}

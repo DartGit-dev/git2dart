@@ -461,7 +461,7 @@ Total 69 (delta 0), reused 1 (delta 0), pack-reused 68
           {
             'refname': 'refs/tags/blob',
             'oldSha': '0' * 40,
-            'newSha': '55a1a760df4b86a02094a904dfa511deb5655905'
+            'newSha': '55a1a760df4b86a02094a904dfa511deb5655905',
           },
           {
             'refname': 'refs/tags/commit_tree',

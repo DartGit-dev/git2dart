@@ -80,10 +80,7 @@ bool exists({
 var _objects = <Oid>[];
 
 /// The callback to call for each object.
-int _forEachCb(
-  Pointer<git_oid> oid,
-  Pointer<Void> payload,
-) {
+int _forEachCb(Pointer<git_oid> oid, Pointer<Void> payload) {
   _objects.add(Oid(oid_bindings.copy(oid)));
   return 0;
 }
@@ -95,9 +92,9 @@ List<Oid> objects(Pointer<git_odb> odb) {
   const except = -1;
   final cb =
       Pointer.fromFunction<Int Function(Pointer<git_oid>, Pointer<Void>)>(
-    _forEachCb,
-    except,
-  );
+        _forEachCb,
+        except,
+      );
   final error = libgit2.git_odb_foreach(odb, cb, nullptr);
 
   if (error < 0) {
@@ -143,7 +140,7 @@ Pointer<git_oid> objectId(Pointer<git_odb_object> object) {
 }
 
 /// Return the type of an ODB object.
-int objectType(Pointer<git_odb_object> object) {
+git_object_t objectType(Pointer<git_odb_object> object) {
   return libgit2.git_odb_object_type(object);
 }
 
@@ -168,7 +165,7 @@ int objectSize(Pointer<git_odb_object> object) {
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> write({
   required Pointer<git_odb> odbPointer,
-  required int type,
+  required git_object_t type,
   required String data,
 }) {
   final stream = calloc<Pointer<git_odb_stream>>();

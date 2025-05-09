@@ -150,20 +150,12 @@ class RemoteCallbacks {
     Pointer<Void> payload,
   ) {
     if (payload.cast<Char>().value == 2) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID,
-        'Incorrect credentials.'.toChar(),
-      );
       throw LibGit2Error(libgit2.git_error_last());
     }
 
     final credentialType = credentials!.credentialType;
 
     if (allowedTypes & credentialType.value != credentialType.value) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID,
-        'Invalid credential type $credentialType'.toChar(),
-      );
       throw LibGit2Error(libgit2.git_error_last());
     }
 
@@ -232,10 +224,7 @@ class RemoteCallbacks {
 
     if (callbacks.updateTips != null) {
       updateTips = callbacks.updateTips;
-      callbacksOptions.update_tips = Pointer.fromFunction(
-        updateTipsCb,
-        except,
-      );
+      callbacksOptions.update_tips = Pointer.fromFunction(updateTipsCb, except);
     }
 
     if (callbacks.pushUpdateReference != null) {

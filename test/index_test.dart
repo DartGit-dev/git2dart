@@ -160,7 +160,7 @@ void main() {
 
         index.addFromBuffer(entry: index['file'], buffer: 'updated');
         expect(repo.status, {
-          'file': {GitStatus.indexModified, GitStatus.wtModified}
+          'file': {GitStatus.indexModified, GitStatus.wtModified},
         });
       });
 

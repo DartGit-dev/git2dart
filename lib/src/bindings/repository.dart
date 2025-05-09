@@ -39,10 +39,7 @@ Pointer<git_repository> open(String path) {
 ///
 /// The method will automatically detect if the repository is bare (if there is
 /// a repository).
-String discover({
-  required String startPath,
-  String? ceilingDirs,
-}) {
+String discover({required String startPath, String? ceilingDirs}) {
   final out = calloc<git_buf>();
   final startPathC = startPath.toChar();
   final ceilingDirsC = ceilingDirs?.toChar() ?? nullptr;
@@ -472,53 +469,55 @@ Pointer<git_refdb> refdb(Pointer<git_repository> repo) {
   }
 }
 
-/// Make the repository HEAD point to the specified reference.
+/// Make the repository HEAD point to the specified commit.
 ///
-/// If the provided reference points to a Tree or a Blob, the HEAD is unaltered.
+/// This will detach the HEAD if it's not already detached.
 ///
-/// If the provided reference points to a branch, the HEAD will point to that
-/// branch, staying attached, or become attached if it isn't yet.
-///
-/// If the branch doesn't exist yet, the HEAD will be attached to an unborn
-/// branch.
-///
-/// Otherwise, the HEAD will be detached and will directly point to the Commit.
-///
-/// Throws a [LibGit2Error] if error occured.
-void setHead({
+/// Throws a [LibGit2Error] if error occurred.
+void setHeadDetached({
   required Pointer<git_repository> repoPointer,
-  required String refname,
+  required Pointer<git_oid> oidPointer,
 }) {
-  final refnameC = refname.toChar();
-  final error = libgit2.git_repository_set_head(repoPointer, refnameC);
-
-  calloc.free(refnameC);
+  final error = libgit2.git_repository_set_head_detached(
+    repoPointer,
+    oidPointer,
+  );
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
   }
 }
 
-/// Make the repository HEAD directly point to the commit.
+/// Make the repository HEAD point to the specified annotated commit.
 ///
-/// If the provided committish cannot be found in the repository, the HEAD is
-/// unaltered.
+/// This will detach the HEAD if it's not already detached.
 ///
-/// If the provided commitish cannot be peeled into a commit, the HEAD is
-/// unaltered.
-///
-/// Otherwise, the HEAD will eventually be detached and will directly point to
-/// the peeled commit.
-///
-/// Throws a [LibGit2Error] if error occured.
-void setHeadDetached({
+/// Throws a [LibGit2Error] if error occurred.
+void setHeadDetachedFromAnnotated({
   required Pointer<git_repository> repoPointer,
-  required Pointer<git_oid> commitishPointer,
+  required Pointer<git_annotated_commit> commitPointer,
 }) {
-  final error = libgit2.git_repository_set_head_detached(
+  final error = libgit2.git_repository_set_head_detached_from_annotated(
     repoPointer,
-    commitishPointer,
+    commitPointer,
   );
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Get the repository's current state.
+int state(Pointer<git_repository> repo) => libgit2.git_repository_state(repo);
+
+/// Remove all the metadata associated with an ongoing command like merge,
+/// revert, cherry-pick, etc.
+///
+/// For example: MERGE_HEAD, MERGE_MSG, etc.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void stateCleanup(Pointer<git_repository> repo) {
+  final error = libgit2.git_repository_state_cleanup(repo);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -549,22 +548,6 @@ void setWorkdir({
   );
 
   calloc.free(workdirC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-}
-
-/// Determines the status of a git repository - ie, whether an operation
-/// (merge, cherry-pick, etc) is in progress.
-int state(Pointer<git_repository> repo) => libgit2.git_repository_state(repo);
-
-/// Remove all the metadata associated with an ongoing command like
-/// merge, revert, cherry-pick, etc. For example: MERGE_HEAD, MERGE_MSG, etc.
-///
-/// Throws a [LibGit2Error] if error occured.
-void stateCleanup(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_state_cleanup(repo);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());

@@ -14,7 +14,7 @@ List<String> list(Pointer<git_repository> repo) {
   libgit2.git_remote_list(out, repo);
 
   final result = <String>[
-    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
   ];
 
   calloc.free(out);
@@ -162,7 +162,7 @@ List<String> rename({
     throw LibGit2Error(libgit2.git_error_last());
   } else {
     final result = <String>[
-      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
 
     calloc.free(out);
@@ -254,7 +254,7 @@ List<String> fetchRefspecs(Pointer<git_remote> remote) {
   libgit2.git_remote_get_fetch_refspecs(out, remote);
 
   final result = <String>[
-    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
   ];
 
   calloc.free(out);
@@ -268,7 +268,7 @@ List<String> pushRefspecs(Pointer<git_remote> remote) {
   libgit2.git_remote_get_push_refspecs(out, remote);
 
   final result = <String>[
-    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+    for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
   ];
 
   calloc.free(out);
@@ -331,7 +331,7 @@ void addPush({
 /// Throws a [LibGit2Error] if error occured.
 void connect({
   required Pointer<git_remote> remotePointer,
-  required int direction,
+  required git_direction direction,
   required Callbacks callbacks,
   String? proxyOption,
 }) {
@@ -391,9 +391,10 @@ List<Map<String, Object?>> lsRemotes(Pointer<git_remote> remote) {
     remote['loid'] = local ? Oid.fromRaw(out[0][i].ref.loid) : null;
     remote['name'] =
         out[0][i].ref.name == nullptr ? '' : out[0][i].ref.name.toDartString();
-    remote['symref'] = out[0][i].ref.symref_target == nullptr
-        ? ''
-        : out[0][i].ref.symref_target.toDartString();
+    remote['symref'] =
+        out[0][i].ref.symref_target == nullptr
+            ? ''
+            : out[0][i].ref.symref_target.toDartString();
     remote['oid'] = Oid.fromRaw(out[0][i].ref.oid);
 
     result.add(remote);
@@ -440,7 +441,7 @@ void fetch({
     callbacksOptions: opts.ref.callbacks,
     callbacks: callbacks,
   );
-  opts.ref.prune = prune;
+  opts.ref.pruneAsInt = prune;
   opts.ref.proxy_opts = proxyOptions.ref;
 
   final error = libgit2.git_remote_fetch(
@@ -522,26 +523,38 @@ void disconnect(Pointer<git_remote> remote) =>
 
 /// Prune tracking refs that are no longer present on remote.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void prune({
   required Pointer<git_remote> remotePointer,
-  required Callbacks callbacks,
+  required Pointer<git_remote_callbacks> flags,
 }) {
-  final callbacksOptions = calloc<git_remote_callbacks>();
-  libgit2.git_remote_init_callbacks(
-    callbacksOptions,
-    GIT_REMOTE_CALLBACKS_VERSION,
-  );
+  final error = libgit2.git_remote_prune(remotePointer, flags);
 
-  RemoteCallbacks.plug(
-    callbacksOptions: callbacksOptions.ref,
-    callbacks: callbacks,
-  );
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
 
-  final error = libgit2.git_remote_prune(remotePointer, callbacksOptions);
+/// Prune tracking refs that are no longer present on remote.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void pruneRefs({required Pointer<git_remote> remotePointer}) {
+  final error = libgit2.git_remote_prune_refs(remotePointer);
 
-  calloc.free(callbacksOptions);
-  RemoteCallbacks.reset();
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Check if the remote is connected.
+bool connected(Pointer<git_remote> remote) =>
+    libgit2.git_remote_connected(remote) == 1;
+
+/// Stop the remote's current operation.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void stop(Pointer<git_remote> remote) {
+  final error = libgit2.git_remote_stop(remote);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -560,11 +573,11 @@ Pointer<git_proxy_options> _proxyOptionsInit(String? proxyOption) {
   libgit2.git_proxy_options_init(proxyOptions, GIT_PROXY_OPTIONS_VERSION);
 
   if (proxyOption == null) {
-    proxyOptions.ref.type = git_proxy_t.GIT_PROXY_NONE;
+    proxyOptions.ref.typeAsInt = git_proxy_t.GIT_PROXY_NONE.value;
   } else if (proxyOption == 'auto') {
-    proxyOptions.ref.type = git_proxy_t.GIT_PROXY_AUTO;
+    proxyOptions.ref.typeAsInt = git_proxy_t.GIT_PROXY_AUTO.value;
   } else {
-    proxyOptions.ref.type = git_proxy_t.GIT_PROXY_SPECIFIED;
+    proxyOptions.ref.typeAsInt = git_proxy_t.GIT_PROXY_SPECIFIED.value;
     proxyOptions.ref.url = proxyOption.toChar();
   }
 

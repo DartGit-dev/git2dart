@@ -30,7 +30,7 @@ class Checkout {
     required Repository repo,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,
@@ -60,7 +60,7 @@ class Checkout {
     required Repository repo,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,
@@ -95,7 +95,7 @@ class Checkout {
     required String name,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,
@@ -140,7 +140,7 @@ class Checkout {
     required Commit commit,
     Set<GitCheckout> strategy = const {
       GitCheckout.safe,
-      GitCheckout.recreateMissing
+      GitCheckout.recreateMissing,
     },
     String? directory,
     List<String>? paths,

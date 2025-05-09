@@ -396,7 +396,7 @@ void revert({
 
   opts.ref.mainline = mainline;
 
-  if (mergeFavor != null) opts.ref.merge_opts.file_favor = mergeFavor;
+  if (mergeFavor != null) opts.ref.merge_opts.file_favorAsInt = mergeFavor;
   if (mergeFlags != null) opts.ref.merge_opts.flags = mergeFlags;
   if (mergeFileFlags != null) opts.ref.merge_opts.file_flags = mergeFileFlags;
 
@@ -450,7 +450,7 @@ Pointer<git_index> revertCommit({
   final opts = calloc<git_merge_options>();
   libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
 
-  if (mergeFavor != null) opts.ref.file_favor = mergeFavor;
+  if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;
   if (mergeFlags != null) opts.ref.flags = mergeFlags;
   if (mergeFileFlags != null) opts.ref.file_flags = mergeFileFlags;
 

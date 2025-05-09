@@ -125,7 +125,7 @@ void main() {
       expect(
         repo.status,
         {
-          'another_feature_file': {GitStatus.indexNew}
+          'another_feature_file': {GitStatus.indexNew},
         },
       );
     });
@@ -177,7 +177,7 @@ void main() {
       expect(
         repo.status,
         {
-          'another_feature_file': {GitStatus.indexNew}
+          'another_feature_file': {GitStatus.indexNew},
         },
       );
       // does not change HEAD

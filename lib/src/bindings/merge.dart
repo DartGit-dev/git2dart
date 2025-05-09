@@ -92,8 +92,8 @@ List<int> analysis({
   required Pointer<git_annotated_commit> theirHeadPointer,
   required int theirHeadsLen,
 }) {
-  final analysisOut = calloc<Int32>();
-  final preferenceOut = calloc<Int32>();
+  final analysisOut = calloc<UnsignedInt>();
+  final preferenceOut = calloc<UnsignedInt>();
   final theirHead = calloc<Pointer<git_annotated_commit>>();
   theirHead[0] = theirHeadPointer;
 
@@ -144,8 +144,8 @@ void merge({
   libgit2.git_checkout_options_init(checkoutOpts, GIT_CHECKOUT_OPTIONS_VERSION);
 
   checkoutOpts.ref.checkout_strategy =
-      git_checkout_strategy_t.GIT_CHECKOUT_SAFE |
-          git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING;
+      git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
+      git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
 
   libgit2.git_merge(
     repoPointer,
@@ -195,7 +195,7 @@ String mergeFile({
 
   final opts = calloc<git_merge_file_options>();
   libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
-  opts.ref.favor = favor;
+  opts.ref.favorAsInt = favor;
   opts.ref.flags = flags;
   if (ancestorLabel.isNotEmpty) {
     ancestorLabelC = ancestorLabel.toChar();
@@ -249,7 +249,7 @@ String mergeFileFromIndex({
   Pointer<Char> theirsLabelC = nullptr;
 
   libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
-  opts.ref.favor = favor;
+  opts.ref.favorAsInt = favor;
   opts.ref.flags = flags;
   if (ancestorLabel.isNotEmpty) {
     ancestorLabelC = ancestorLabel.toChar();
@@ -391,7 +391,7 @@ void cherryPick({
   libgit2.git_cherrypick_options_init(opts, GIT_CHERRYPICK_OPTIONS_VERSION);
 
   opts.ref.checkout_opts.checkout_strategy =
-      git_checkout_strategy_t.GIT_CHECKOUT_SAFE;
+      git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value;
 
   final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
 
@@ -410,7 +410,7 @@ Pointer<git_merge_options> _initMergeOptions({
   final opts = calloc<git_merge_options>();
   libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
 
-  opts.ref.file_favor = favor;
+  opts.ref.file_favorAsInt = favor;
   opts.ref.flags = mergeFlags;
   opts.ref.file_flags = fileFlags;
 
