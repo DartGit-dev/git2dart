@@ -13,6 +13,8 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 List<String> _pathsList = [];
 
 /// Function to be called with the name of each submodule.
+///
+/// Returns 0 on success, non-zero to abort iteration.
 int _listCb(
   Pointer<git_submodule> submodule,
   Pointer<Char> name,
@@ -23,6 +25,9 @@ int _listCb(
 }
 
 /// Returns a list with all tracked submodules paths of a repository.
+///
+/// This function queries the repository's configuration to find all submodules
+/// that have been defined and added to the working copy.
 List<String> list(Pointer<git_repository> repo) {
   const except = -1;
   final callback = Pointer.fromFunction<
@@ -40,9 +45,14 @@ List<String> list(Pointer<git_repository> repo) {
 /// be freed with [free].
 ///
 /// Given either the submodule name or path (they are usually the same), this
-/// returns a structure describing the submodule.
+/// returns a structure describing the submodule. The name is the name the
+/// submodule was added with (usually the path).
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// There are two valid ways to specify the submodule you wish to look up:
+/// - By name: the name with which the submodule was added to the working copy
+/// - By path: the path to the submodule's contents, relative to the repository root
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_submodule> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -67,10 +77,13 @@ Pointer<git_submodule> lookup({
 /// Copy submodule info into `.git/config` file.
 ///
 /// Just like `git submodule init`, this copies information about the
-/// submodule into `.git/config`.
+/// submodule into `.git/config`. You can run this command on a submodule
+/// that has already been initialized, to update the stored URL, for instance.
 ///
 /// By default, existing entries will not be overwritten, but setting
 /// [overwrite] to true forces them to be updated.
+///
+/// This is a legacy command: prefer using [update] with init flag set to true.
 void init({
   required Pointer<git_submodule> submodulePointer,
   bool overwrite = false,
@@ -79,17 +92,22 @@ void init({
   libgit2.git_submodule_init(submodulePointer, overwriteC);
 }
 
-/// Update a submodule. This will clone a missing submodule and checkout the
-/// subrepository to the commit specified in the index of the containing
-/// repository. If the submodule repository doesn't contain the target commit
-/// (e.g. because fetchRecurseSubmodules isn't set), then the submodule is
-/// fetched using the fetch options supplied in [callbacks].
+/// Update a submodule's working directory to the commit specified in the index
+/// of the containing repository.
 ///
 /// If the submodule is not initialized, setting [init] to true will initialize
-/// the submodule before updating. Otherwise, this will return an error if
-/// attempting to update an uninitialzed repository.
+/// it first. Otherwise, this will return an error if attempting to update an
+/// uninitialized repository.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// The submodule's repository will be cloned if it is missing and the remote
+/// will be fetched into if it doesn't contain the target commit. The callbacks
+/// provided in [callbacks] will be used for repository access and reporting
+/// progress.
+///
+/// After a successful update, the submodule's HEAD will be detached at the
+/// commit found in the index.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void update({
   required Pointer<git_submodule> submodulePointer,
   bool init = false,
@@ -119,12 +137,12 @@ void update({
 
 /// Open the repository for a submodule.
 ///
-/// This is a newly opened repository object. The caller is responsible for
-/// calling free on it when done. Multiple calls to this function will return
-/// distinct git repository objects. This will only work if the submodule is
-/// checked out into the working directory.
+/// This is a newly opened repository object that must be freed by the caller
+/// when done. Multiple calls to this function will return distinct repository
+/// objects. This will only work if the submodule is checked out into the
+/// working directory.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_repository> open(Pointer<git_submodule> submodule) {
   final out = calloc<Pointer<git_repository>>();
   final error = libgit2.git_submodule_open(out, submodule);
@@ -144,12 +162,20 @@ Pointer<git_repository> open(Pointer<git_submodule> submodule) {
 /// freed with [free].
 ///
 /// This does `git submodule add` up to the fetch and checkout of the submodule
-/// contents. It preps a new submodule, creates an entry in `.gitmodules` and
-/// creates an empty initialized repository either at the given path in the
-/// working directory or in `.git/modules` with a gitlink from the working
-/// directory to the new repo.
+/// contents. It:
+/// - Adds an entry to ".gitmodules" for the submodule
+/// - Creates an empty initialized repository either at the given path in the
+///   working directory or in ".git/modules" with a gitlink from the working
+///   directory to the new repo
+/// - Sets up the submodule's configuration in .git/config
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// You can then call [clone] to perform the clone step and [addFinalize] to
+/// complete the module addition.
+///
+/// The [useGitlink] parameter controls whether the gitlink repository should
+/// be used or if the repository should be created in the working directory.
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_submodule> addSetup({
   required Pointer<git_repository> repoPointer,
   required String url,
@@ -183,7 +209,11 @@ Pointer<git_submodule> addSetup({
 
 /// Perform the clone step for a newly created submodule.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// This is used after calling [addSetup] to do the clone step for adding
+/// a new submodule. The provided [callbacks] will be used for reporting clone
+/// progress and authentication if required.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void clone({
   required Pointer<git_submodule> submodule,
   required Callbacks callbacks,
@@ -213,18 +243,29 @@ void clone({
 
 /// Resolve the setup of a new git submodule.
 ///
-/// This should be called on a submodule once you have called add setup and done
-/// the clone of the submodule. This adds the `.gitmodules` file and the newly
-/// cloned submodule to the index to be ready to be committed (but doesn't
-/// actually do the commit).
+/// This should be called on a submodule once you have called [addSetup] and
+/// done the clone step with [clone]. This adds the `.gitmodules` file and the
+/// newly cloned submodule to the index to be ready to be committed.
+///
+/// If the gitmodules file or the newly cloned repo index entries exist in the
+/// index, they will be updated. If they don't exist, they will be added.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void addFinalize(Pointer<git_submodule> submodule) {
-  libgit2.git_submodule_add_finalize(submodule);
+  final error = libgit2.git_submodule_add_finalize(submodule);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
 /// Get the status for a submodule.
 ///
-/// This looks at a submodule and tries to determine the status. How deeply it
-/// examines the working directory to do this will depend on the [ignore] value.
+/// This looks at a submodule and tries to determine the status. How deeply
+/// it examines the working directory to do this will depend on the
+/// combination of [GitSubmoduleIgnore] values provided to [ignore].
+///
+/// Throws a [LibGit2Error] if error occurred.
 int status({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -232,58 +273,86 @@ int status({
 }) {
   final out = calloc<UnsignedInt>();
   final nameC = name.toChar();
-  libgit2.git_submodule_status(out, repoPointer, nameC, ignore);
+  final error = libgit2.git_submodule_status(out, repoPointer, nameC, ignore);
 
   final result = out.value;
 
   calloc.free(out);
   calloc.free(nameC);
 
-  return result;
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
 }
 
-/// Copy submodule remote info into submodule repo.
+/// Get the ignore rule for a submodule.
 ///
-/// This copies the information about the submodules URL into the checked out
-/// submodule config, acting like `git submodule sync`. This is useful if you
-/// have altered the URL for the submodule (or it has been altered by a fetch
-/// of upstream changes) and you need to update your local repo.
-void sync(Pointer<git_submodule> submodule) =>
-    libgit2.git_submodule_sync(submodule);
+/// Returns the ignore rule that will be used for the submodule.
+git_submodule_ignore_t ignoreRule(Pointer<git_submodule> submodule) {
+  return libgit2.git_submodule_ignore(submodule);
+}
 
-/// Reread submodule info from config, index, and HEAD.
+/// Set the ignore rule for a submodule.
 ///
-/// Call this to reread cached submodule information for this submodule if you
-/// have reason to believe that it has changed.
-///
-/// Set [force] to true to reload even if the data doesn't seem out of date.
-void reload({
-  required Pointer<git_submodule> submodulePointer,
-  bool force = false,
+/// This does not affect any currently-loaded instances.
+void setIgnoreRule({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required git_submodule_ignore_t ignore,
 }) {
-  final forceC = force ? 1 : 0;
-  libgit2.git_submodule_reload(submodulePointer, forceC);
+  final nameC = name.toChar();
+  final error = libgit2.git_submodule_set_ignore(repoPointer, nameC, ignore);
+
+  calloc.free(nameC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
-/// Get the name of submodule.
+/// Get the update rule for a submodule.
+///
+/// Returns the update rule that will be used for the submodule.
+git_submodule_update_t updateRule(Pointer<git_submodule> submodule) {
+  return libgit2.git_submodule_update_strategy(submodule);
+}
+
+/// Set the update rule for a submodule.
+///
+/// This setting won't affect any existing instances.
+void setUpdateRule({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required git_submodule_update_t update,
+}) {
+  final nameC = name.toChar();
+  final error = libgit2.git_submodule_set_update(repoPointer, nameC, update);
+
+  calloc.free(nameC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Get the name of a submodule.
 String name(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_name(submodule).toDartString();
 }
 
-/// Get the path to the submodule.
-///
-/// The path is almost always the same as the submodule name, but the two
-/// are actually not required to match.
+/// Get the path of a submodule.
 String path(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_path(submodule).toDartString();
 }
 
-/// Get the URL for the submodule.
+/// Get the URL of a submodule.
 String url(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_url(submodule).toDartString();
 }
 
-/// Set the URL for the submodule in the configuration.
+/// Set the URL for a submodule.
 ///
 /// After calling this, you may wish to call [sync] to write the changes to
 /// the checked out submodule repository.
@@ -294,20 +363,22 @@ void setUrl({
 }) {
   final nameC = name.toChar();
   final urlC = url.toChar();
-
-  libgit2.git_submodule_set_url(repoPointer, nameC, urlC);
+  final error = libgit2.git_submodule_set_url(repoPointer, nameC, urlC);
 
   calloc.free(nameC);
   calloc.free(urlC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
-/// Get the branch for the submodule.
+/// Get the branch of a submodule.
 String branch(Pointer<git_submodule> submodule) {
-  final result = libgit2.git_submodule_branch(submodule);
-  return result == nullptr ? '' : result.toDartString();
+  return libgit2.git_submodule_branch(submodule).toDartString();
 }
 
-/// Set the branch for the submodule in the configuration.
+/// Set the branch for a submodule.
 ///
 /// After calling this, you may wish to call [sync] to write the changes to
 /// the checked out submodule repository.
@@ -318,127 +389,75 @@ void setBranch({
 }) {
   final nameC = name.toChar();
   final branchC = branch.toChar();
-
-  libgit2.git_submodule_set_branch(repoPointer, nameC, branchC);
+  final error = libgit2.git_submodule_set_branch(repoPointer, nameC, branchC);
 
   calloc.free(nameC);
   calloc.free(branchC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
-/// Get the OID for the submodule in the current HEAD tree.
+/// Get the OID of the submodule in the current HEAD tree.
 ///
-/// Returns null if submodule is not in the HEAD.
+/// Returns null if the submodule is not in the HEAD.
 Pointer<git_oid>? headId(Pointer<git_submodule> submodule) {
-  final result = libgit2.git_submodule_head_id(submodule);
-  return result == nullptr ? null : result;
+  return libgit2.git_submodule_head_id(submodule);
 }
 
-/// Get the OID for the submodule in the index.
+/// Get the OID of the submodule in the index.
 ///
-/// Returns null if submodule is not in index.
+/// Returns null if the submodule is not in the index.
 Pointer<git_oid>? indexId(Pointer<git_submodule> submodule) {
-  final result = libgit2.git_submodule_index_id(submodule);
-  return result == nullptr ? null : result;
+  return libgit2.git_submodule_index_id(submodule);
 }
 
-/// Get the OID for the submodule in the current working directory.
+/// Get the OID of the submodule in the current working directory.
 ///
-/// This returns the OID that corresponds to looking up `HEAD` in the checked
-/// out submodule. If there are pending changes in the index or anything else,
-/// this won't notice that. You should call [status] for a more complete
-/// picture about the state of the working directory.
-///
-/// Returns null if submodule is not checked out.
+/// Returns null if the submodule is not checked out.
 Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) {
-  final result = libgit2.git_submodule_wd_id(submodule);
-  return result == nullptr ? null : result;
+  return libgit2.git_submodule_wd_id(submodule);
 }
 
-/// Get the ignore rule that will be used for the submodule.
-git_submodule_ignore_t ignore(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_ignore(submodule);
-}
-
-/// Set the ignore rule for the submodule in the configuration.
-///
-/// This does not affect any currently-loaded instances.
-void setIgnore({
-  required Pointer<git_repository> repoPointer,
-  required String name,
-  required git_submodule_ignore_t ignore,
-}) {
-  final nameC = name.toChar();
-  libgit2.git_submodule_set_ignore(repoPointer, nameC, ignore);
-  calloc.free(nameC);
-}
-
-/// Get the update rule that will be used for the submodule.
-///
-/// This value controls the behavior of the `git submodule update` command.
-git_submodule_update_t updateRule(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_update_strategy(submodule);
-}
-
-/// Set the update rule for the submodule in the configuration.
-///
-/// This setting won't affect any existing instances.
-void setUpdateRule({
-  required Pointer<git_repository> repoPointer,
-  required String name,
-  required git_submodule_update_t update,
-}) {
-  final nameC = name.toChar();
-  libgit2.git_submodule_set_update(repoPointer, nameC, update);
-  calloc.free(nameC);
-}
-
-/// Get the containing repository for a submodule.
-///
-/// This returns a pointer to the repository that contains the submodule.
-/// This is a just a reference to the repository that was passed to the original
-/// [lookup] call, so if that repository has been freed, then this may be a
-/// dangling reference.
+/// Get the repository that owns this submodule.
 Pointer<git_repository> owner(Pointer<git_submodule> submodule) {
   return libgit2.git_submodule_owner(submodule);
 }
 
-/// Release a submodule.
-void free(Pointer<git_submodule> submodule) =>
-    libgit2.git_submodule_free(submodule);
-
-/// Iterate over all submodules of a repository.
+/// Sync a submodule.
 ///
-/// The callback will be called for each submodule.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void foreach({
-  required Pointer<git_repository> repoPointer,
-  required int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)
-  callback,
-}) {
-  final error = libgit2.git_submodule_foreach(
-    repoPointer,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
-  );
+/// This copies the information about the submodules URL into the checked out
+/// submodule config, acting like `git submodule sync`. This is useful if you
+/// have altered the URL for the submodule (or it has been altered by a fetch
+/// of upstream changes) and you need to update your local repo.
+void sync({required Pointer<git_submodule> submodulePointer}) {
+  final error = libgit2.git_submodule_sync(submodulePointer);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
   }
 }
 
-/// Set the update rule for the submodule.
+/// Reread submodule info from config, index, and HEAD.
 ///
-/// Throws a [LibGit2Error] if error occurred.
-void setUpdate({
-  required Pointer<git_repository> repoPointer,
-  required String name,
-  required git_submodule_update_t update,
+/// Call this to reread cached submodule information for this submodule if
+/// you have reason to believe that it has changed.
+///
+/// Set [force] to true to reload even if the data doesn't seem out of date.
+void reload({
+  required Pointer<git_submodule> submodulePointer,
+  bool force = false,
 }) {
-  final nameC = name.toChar();
-  final error = libgit2.git_submodule_set_update(repoPointer, nameC, update);
+  final forceC = force ? 1 : 0;
+  final error = libgit2.git_submodule_reload(submodulePointer, forceC);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
   }
+}
+
+/// Free a submodule.
+void free(Pointer<git_submodule> submodule) {
+  libgit2.git_submodule_free(submodule);
 }

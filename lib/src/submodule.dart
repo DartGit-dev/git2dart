@@ -11,12 +11,9 @@ class Submodule extends Equatable {
   /// Lookups submodule information by [name] or path (they are usually the
   /// same).
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Submodule.lookup({required Repository repo, required String name}) {
-    _submodulePointer = bindings.lookup(
-      repoPointer: repo.pointer,
-      name: name,
-    );
+    _submodulePointer = bindings.lookup(repoPointer: repo.pointer, name: name);
     _finalizer.attach(this, _submodulePointer, detach: this);
   }
 
@@ -32,7 +29,7 @@ class Submodule extends Equatable {
   /// [callbacks] is the combination of callback functions from [Callbacks]
   /// object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Submodule.add({
     required Repository repo,
     required String url,
@@ -65,7 +62,7 @@ class Submodule extends Equatable {
   /// By default, existing entries will not be overwritten, but setting
   /// [overwrite] to true forces them to be updated.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static void init({
     required Repository repo,
     required String name,
@@ -89,9 +86,9 @@ class Submodule extends Equatable {
   ///
   /// If the submodule is not initialized, setting [init] to true will
   /// initialize the submodule before updating. Otherwise, this will return an
-  /// error if attempting to update an uninitialzed repository.
+  /// error if attempting to update an uninitialized repository.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static void update({
     required Repository repo,
     required String name,
@@ -123,7 +120,7 @@ class Submodule extends Equatable {
   /// This will only work if the submodule is checked out into the working
   /// directory.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Repository open() {
     return Repository(bindings.open(_submodulePointer));
   }
@@ -132,14 +129,14 @@ class Submodule extends Equatable {
   ///
   /// This looks at a submodule and tries to determine the status. How deeply
   /// it examines the working directory to do this will depend on the
-  /// combination of [GitSubmoduleIgnore] values provided to [ignore] .
+  /// combination of [GitSubmoduleIgnore] values provided to [ignore].
   Set<GitSubmoduleStatus> status({
     GitSubmoduleIgnore ignore = GitSubmoduleIgnore.unspecified,
   }) {
     final resultInt = bindings.status(
       repoPointer: bindings.owner(_submodulePointer),
       name: name,
-      ignore: ignore.value,
+      ignore: git_submodule_ignore_t.fromValue(ignore.value),
     );
 
     return GitSubmoduleStatus.values
@@ -153,7 +150,7 @@ class Submodule extends Equatable {
   /// submodule config, acting like `git submodule sync`. This is useful if you
   /// have altered the URL for the submodule (or it has been altered by a fetch
   /// of upstream changes) and you need to update your local repo.
-  void sync() => bindings.sync(_submodulePointer);
+  void sync() => bindings.sync(submodulePointer: _submodulePointer);
 
   /// Rereads submodule info from config, index, and HEAD.
   ///
@@ -231,25 +228,28 @@ class Submodule extends Equatable {
   }
 
   /// Ignore rule that will be used for the submodule.
-  GitSubmoduleIgnore get ignore {
-    final ruleInt = bindings.ignore(_submodulePointer);
-    return GitSubmoduleIgnore.values.firstWhere((e) => ruleInt == e.value);
+  GitSubmoduleIgnore get ignoreRule {
+    final rule = bindings.ignoreRule(_submodulePointer);
+    return GitSubmoduleIgnore.values.firstWhere((e) => e.value == rule);
   }
 
   /// Sets the ignore rule for the submodule in the configuration.
   ///
   /// This does not affect any currently-loaded instances.
-  set ignore(GitSubmoduleIgnore ignore) {
-    final repo = bindings.owner(_submodulePointer);
-    bindings.setIgnore(repoPointer: repo, name: name, ignore: ignore.value);
+  set ignoreRule(GitSubmoduleIgnore ignore) {
+    bindings.setIgnoreRule(
+      repoPointer: bindings.owner(_submodulePointer),
+      name: name,
+      ignore: git_submodule_ignore_t.fromValue(ignore.value),
+    );
   }
 
   /// Update rule that will be used for the submodule.
   ///
   /// This value controls the behavior of the `git submodule update` command.
   GitSubmoduleUpdate get updateRule {
-    final ruleInt = bindings.updateRule(_submodulePointer);
-    return GitSubmoduleUpdate.values.firstWhere((e) => ruleInt == e.value);
+    final rule = bindings.updateRule(_submodulePointer);
+    return GitSubmoduleUpdate.values.firstWhere((e) => e.value == rule);
   }
 
   /// Sets the update rule for the submodule in the configuration.
@@ -259,7 +259,7 @@ class Submodule extends Equatable {
     bindings.setUpdateRule(
       repoPointer: bindings.owner(_submodulePointer),
       name: name,
-      update: rule.value,
+      update: git_submodule_update_t.fromValue(rule.value),
     );
   }
 
@@ -273,21 +273,21 @@ class Submodule extends Equatable {
   String toString() {
     return 'Submodule{name: $name, path: $path, url: $url, branch: $branch, '
         'headOid: $headOid, indexOid: $indexOid, workdirOid: $workdirOid, '
-        'ignore: $ignore, updateRule: $updateRule}';
+        'ignoreRule: $ignoreRule, updateRule: $updateRule}';
   }
 
   @override
   List<Object?> get props => [
-        name,
-        path,
-        url,
-        branch,
-        headOid,
-        indexOid,
-        workdirOid,
-        ignore,
-        updateRule,
-      ];
+    name,
+    path,
+    url,
+    branch,
+    headOid,
+    indexOid,
+    workdirOid,
+    ignoreRule,
+    updateRule,
+  ];
 }
 
 // coverage:ignore-start

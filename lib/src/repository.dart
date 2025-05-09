@@ -172,10 +172,7 @@ class Repository extends Equatable {
   /// The method will automatically detect if the repository is bare (if there
   /// is a repository).
   static String discover({required String startPath, String? ceilingDirs}) {
-    return bindings.discover(
-      startPath: startPath,
-      ceilingDirs: ceilingDirs,
-    );
+    return bindings.discover(startPath: startPath, ceilingDirs: ceilingDirs);
   }
 
   /// Returns [Oid] object if it can be found in the ODB of repository with
@@ -214,10 +211,7 @@ class Repository extends Equatable {
   ///
   /// Pass null to unset.
   void setNamespace(String? namespace) {
-    bindings.setNamespace(
-      repoPointer: _repoPointer,
-      namespace: namespace,
-    );
+    bindings.setNamespace(repoPointer: _repoPointer, namespace: namespace);
   }
 
   /// Whether repository is a bare repository.
@@ -290,11 +284,7 @@ class Repository extends Equatable {
   /// Pass null to unset. When unset, the identity will be taken from the
   /// repository's configuration.
   void setIdentity({required String? name, required String? email}) {
-    bindings.setIdentity(
-      repoPointer: _repoPointer,
-      name: name,
-      email: email,
-    );
+    bindings.setIdentity(repoPointer: _repoPointer, name: name, email: email);
   }
 
   /// Configured identity to use for reflogs.
@@ -365,7 +355,7 @@ class Repository extends Equatable {
   void setWorkdir({required String path, bool updateGitlink = false}) {
     bindings.setWorkdir(
       repoPointer: _repoPointer,
-      path: path,
+      workdir: path,
       updateGitlink: updateGitlink,
     );
   }
@@ -420,7 +410,7 @@ class Repository extends Equatable {
   /// List with all the tags names in the repository.
   ///
   /// Throws a [LibGit2Error] if error occured.
-  List<String> get tags => Tag.list(this);
+  List<String> get tags => Tag.list(repo: this);
 
   /// List of all branches that can be found in a repository.
   ///
@@ -497,21 +487,24 @@ class Repository extends Equatable {
       );
 
       if (entry.ref.head_to_index != nullptr) {
-        path = entry.ref.head_to_index.ref.old_file.path
-            .cast<Utf8>()
-            .toDartString();
+        path =
+            entry.ref.head_to_index.ref.old_file.path
+                .cast<Utf8>()
+                .toDartString();
       } else {
-        path = entry.ref.index_to_workdir.ref.old_file.path
-            .cast<Utf8>()
-            .toDartString();
+        path =
+            entry.ref.index_to_workdir.ref.old_file.path
+                .cast<Utf8>()
+                .toDartString();
       }
 
       // Skipping GitStatus.current because entry that is in the list can't be
       // without changes but `&` on `0` value falsly adds it to the set of flags
-      result[path] = GitStatus.values
-          .skip(1)
-          .where((e) => entry.ref.status & e.value == e.value)
-          .toSet();
+      result[path] =
+          GitStatus.values
+              .skip(1)
+              .where((e) => (entry.ref.status.value & e.value) != 0)
+              .toSet();
     }
 
     status_bindings.listFree(list);
@@ -576,13 +569,13 @@ class Repository extends Equatable {
     final object = object_bindings.lookup(
       repoPointer: _repoPointer,
       oidPointer: oid.pointer,
-      type: GitObject.any.value,
+      type: git_object_t.fromValue(GitObject.any.value),
     );
 
     reset_bindings.reset(
       repoPointer: _repoPointer,
       targetPointer: object,
-      resetType: resetType.value,
+      resetType: git_reset_t.fromValue(resetType.value),
       strategy: strategy?.fold(0, (acc, e) => acc! | e.value),
       checkoutDirectory: checkoutDirectory,
       pathspec: pathspec,
@@ -606,7 +599,7 @@ class Repository extends Equatable {
       object = object_bindings.lookup(
         repoPointer: _repoPointer,
         oidPointer: oid.pointer,
-        type: GitObject.commit.value,
+        type: git_object_t.fromValue(GitObject.commit.value),
       );
     }
 
@@ -646,10 +639,7 @@ class Repository extends Equatable {
   /// [local] is the commit oid for local.
   ///
   /// [upstream] is the commit oid for upstream.
-  List<int> aheadBehind({
-    required Oid local,
-    required Oid upstream,
-  }) {
+  List<int> aheadBehind({required Oid local, required Oid upstream}) {
     return graph_bindings.aheadBehind(
       repoPointer: _repoPointer,
       localPointer: local.pointer,

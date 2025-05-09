@@ -7,6 +7,12 @@ import 'package:git2dart/src/bindings/patch.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git patch, which contains the differences between two versions
+/// of a file or between two files.
+///
+/// A patch consists of one or more hunks, where each hunk represents a contiguous
+/// section of changes. Each hunk contains multiple lines, which can be additions,
+/// deletions, or context lines.
 @immutable
 class Patch extends Equatable {
   /// Initializes a new instance of [Patch] class from provided
@@ -162,6 +168,8 @@ class Patch extends Equatable {
   /// Line counts of each type in a patch.
   ///
   /// This helps imitate a `diff --numstat` type of output.
+  /// Returns a [PatchStats] object containing counts of context lines,
+  /// insertions, and deletions.
   PatchStats get stats {
     final result = bindings.lineStats(_patchPointer);
 
@@ -174,6 +182,7 @@ class Patch extends Equatable {
 
   /// Content of a patch as a single diff text.
   ///
+  /// Returns the complete patch text in unified diff format.
   /// Throws a [LibGit2Error] if error occured.
   String get text => bindings.text(_patchPointer);
 
@@ -202,9 +211,14 @@ class Patch extends Equatable {
   }
 
   /// Delta associated with a patch.
+  ///
+  /// Returns a [DiffDelta] object containing information about the files being compared.
   DiffDelta get delta => DiffDelta(bindings.delta(_patchPointer));
 
   /// List of hunks in a patch.
+  ///
+  /// Returns a list of [DiffHunk] objects, each representing a contiguous section
+  /// of changes in the patch.
   List<DiffHunk> get hunks {
     final length = bindings.numHunks(_patchPointer);
     final hunks = <DiffHunk>[];
@@ -230,9 +244,9 @@ class Patch extends Equatable {
             newLineNumber: linePointer.ref.new_lineno,
             numLines: linePointer.ref.num_lines,
             contentOffset: linePointer.ref.content_offset,
-            content: linePointer.ref.content
-                .cast<Utf8>()
-                .toDartString(length: linePointer.ref.content_len),
+            content: linePointer.ref.content.cast<Utf8>().toDartString(
+              length: linePointer.ref.content_len,
+            ),
           ),
         );
       }
@@ -260,6 +274,10 @@ class Patch extends Equatable {
   }
 
   /// Releases memory allocated for patch object.
+  ///
+  /// This method should be called when the patch is no longer needed to free
+  /// the associated memory. The finalizer will automatically call this method
+  /// when the patch object is garbage collected.
   void free() {
     bindings.free(_patchPointer);
     _finalizer.detach(this);
@@ -279,6 +297,9 @@ final _finalizer = Finalizer<Pointer<git_patch>>(
 // coverage:ignore-end
 
 /// Line counts of each type in a patch.
+///
+/// This class provides statistics about the number of different types of lines
+/// in a patch, similar to the output of `git diff --numstat`.
 class PatchStats {
   const PatchStats._({
     required this.context,
@@ -286,13 +307,13 @@ class PatchStats {
     required this.deletions,
   });
 
-  /// Count of context lines.
+  /// Count of context lines (unchanged lines shown for context).
   final int context;
 
-  /// Count of insertion lines.
+  /// Count of insertion lines (lines added in the new version).
   final int insertions;
 
-  /// Count of deletion lines.
+  /// Count of deletion lines (lines removed from the old version).
   final int deletions;
 
   @override
@@ -302,6 +323,10 @@ class PatchStats {
   }
 }
 
+/// A class representing a hunk in a patch.
+///
+/// A hunk is a contiguous section of changes in a patch, containing multiple
+/// lines that were added, removed, or unchanged.
 @immutable
 class DiffHunk extends Equatable {
   const DiffHunk._({
@@ -333,7 +358,7 @@ class DiffHunk extends Equatable {
   /// Number of lines in 'new file'.
   final int newLines;
 
-  /// Header of a hunk.
+  /// Header of a hunk, typically showing the line ranges.
   final String header;
 
   /// List of lines in a hunk of a patch.
@@ -348,17 +373,21 @@ class DiffHunk extends Equatable {
 
   @override
   List<Object?> get props => [
-        linesCount,
-        index,
-        oldStart,
-        oldLines,
-        newStart,
-        newLines,
-        header,
-        lines,
-      ];
+    linesCount,
+    index,
+    oldStart,
+    oldLines,
+    newStart,
+    newLines,
+    header,
+    lines,
+  ];
 }
 
+/// A class representing a single line in a patch hunk.
+///
+/// Each line in a patch can be an addition, deletion, or context line,
+/// and contains information about its position in both the old and new versions.
 @immutable
 class DiffLine extends Equatable {
   const DiffLine._({
@@ -370,7 +399,7 @@ class DiffLine extends Equatable {
     required this.content,
   });
 
-  /// Type of the line.
+  /// Type of the line (addition, deletion, or context).
   final GitDiffLine origin;
 
   /// Line number in old file or -1 for added line.
@@ -397,11 +426,11 @@ class DiffLine extends Equatable {
 
   @override
   List<Object?> get props => [
-        origin,
-        oldLineNumber,
-        newLineNumber,
-        numLines,
-        contentOffset,
-        content,
-      ];
+    origin,
+    oldLineNumber,
+    newLineNumber,
+    numLines,
+    contentOffset,
+    content,
+  ];
 }

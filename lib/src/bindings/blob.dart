@@ -5,10 +5,11 @@ import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
-/// Lookup a blob object from a repository. The returned blob must be freed
-/// with [free].
+/// Lookup a blob object from a repository by its [oid].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// The returned blob must be freed with [free] when no longer needed.
+///
+/// Throws a [LibGit2Error] if the blob cannot be found or if an error occurs.
 Pointer<git_blob> lookup({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> oidPointer,
@@ -27,7 +28,7 @@ Pointer<git_blob> lookup({
   }
 }
 
-/// Get the id of a blob.
+/// Get the [Oid] of a blob.
 Pointer<git_oid> id(Pointer<git_blob> blob) => libgit2.git_blob_id(blob);
 
 /// Determine if the blob content is most certainly binary or not.
@@ -40,6 +41,8 @@ bool isBinary(Pointer<git_blob> blob) {
 }
 
 /// Get a read-only buffer with the raw content of a blob.
+///
+/// Returns the raw content as a UTF-8 string.
 String content(Pointer<git_blob> blob) {
   return libgit2.git_blob_rawcontent(blob).cast<Utf8>().toDartString();
 }
@@ -49,7 +52,10 @@ int size(Pointer<git_blob> blob) => libgit2.git_blob_rawsize(blob);
 
 /// Write content of a string buffer to the ODB as a blob.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Creates a new blob from the provided [buffer] content and writes it to the
+/// Object Database.
+///
+/// Throws a [LibGit2Error] if an error occurs during creation.
 Pointer<git_oid> create({
   required Pointer<git_repository> repoPointer,
   required String buffer,
@@ -77,7 +83,9 @@ Pointer<git_oid> create({
 /// Read a file from the working folder of a repository and write it to the
 /// Object Database as a loose blob.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// The [relativePath] should be relative to the working directory.
+///
+/// Throws a [LibGit2Error] if the file cannot be read or if an error occurs.
 Pointer<git_oid> createFromWorkdir({
   required Pointer<git_repository> repoPointer,
   required String relativePath,
@@ -103,7 +111,9 @@ Pointer<git_oid> createFromWorkdir({
 /// Read a file from the filesystem and write its content to the Object
 /// Database as a loose blob.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// The [path] should be an absolute path to the file.
+///
+/// Throws a [LibGit2Error] if the file cannot be read or if an error occurs.
 Pointer<git_oid> createFromDisk({
   required Pointer<git_repository> repoPointer,
   required String path,
@@ -122,8 +132,9 @@ Pointer<git_oid> createFromDisk({
   }
 }
 
-/// Create an in-memory copy of a blob. The returned copy must be freed with
-/// [free].
+/// Create an in-memory copy of a blob.
+///
+/// The returned copy must be freed with [free] when no longer needed.
 Pointer<git_blob> duplicate(Pointer<git_blob> source) {
   final out = calloc<Pointer<git_blob>>();
   libgit2.git_blob_dup(out, source);
@@ -141,7 +152,12 @@ Pointer<git_blob> duplicate(Pointer<git_blob> source) {
 /// other types of changes depending on the file attributes set for the blob
 /// and the content detected in it.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [asPath] is path used for file attribute lookups.
+/// [flags] is a combination of [GitBlobFilter] flags to use for filtering.
+/// [attributesCommit] is the commit to load attributes from, when
+/// [GitBlobFilter.attributesFromCommit] is provided in [flags].
+///
+/// Throws a [LibGit2Error] if an error occurs during filtering.
 String filterContent({
   required Pointer<git_blob> blobPointer,
   required String asPath,
@@ -176,5 +192,7 @@ String filterContent({
   }
 }
 
-/// Close an open blob to release memory.
+/// Free the memory allocated for a blob object.
+///
+/// This should be called when the blob is no longer needed to prevent memory leaks.
 void free(Pointer<git_blob> blob) => libgit2.git_blob_free(blob);

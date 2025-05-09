@@ -7,18 +7,31 @@ import 'package:git2dart/src/bindings/tag.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git tag object.
+///
+/// This class provides methods to interact with Git tags, including creating,
+/// modifying, and retrieving tag information. It wraps the libgit2 tag
+/// functionality in a more Dart-friendly way.
 @immutable
 class Tag extends Equatable {
   /// Initializes a new instance of [Tag] class from provided pointer to
   /// tag object in memory.
   ///
-  /// Note: For internal use. Use [Tag.lookup] instead.
+  /// This constructor is for internal use only. Use [Tag.lookup] instead
+  /// to create tag instances.
+  ///
+  /// [tagPointer] is a pointer to the underlying libgit2 tag object.
   @internal
   Tag(this._tagPointer) {
     _finalizer.attach(this, _tagPointer, detach: this);
   }
 
-  /// Lookups tag object for provided [oid] in a [repo]sitory.
+  /// Creates a new tag instance by looking up a tag object in the repository.
+  ///
+  /// [repo] is the repository to search in.
+  /// [oid] is the object ID of the tag to look up.
+  ///
+  /// Throws a [LibGit2Error] if the tag cannot be found or if an error occurs.
   Tag.lookup({required Repository repo, required Oid oid}) {
     _tagPointer = bindings.lookup(
       repoPointer: repo.pointer,
@@ -27,41 +40,58 @@ class Tag extends Equatable {
     _finalizer.attach(this, _tagPointer, detach: this);
   }
 
-  /// Pointer to memory address for allocated tag object.
   late final Pointer<git_tag> _tagPointer;
 
-  /// Creates a new annotated tag in the repository for provided [target]
-  /// object.
+  /// Gets the pointer to the underlying libgit2 tag object.
   ///
-  /// A new reference will also be created in the `/refs/tags` folder pointing
-  /// to this tag object. If [force] is true and a reference already exists
-  /// with the given name, it'll be replaced.
+  /// This is for internal use only.
+  @internal
+  Pointer<git_tag> get pointer => _tagPointer;
+
+  /// Gets the [Oid] of the tag.
+  Oid get oid => Oid(bindings.id(_tagPointer));
+
+  /// Gets the name of the tag.
+  String get name => bindings.name(_tagPointer);
+
+  /// Gets the message of the tag.
+  String get message => bindings.message(_tagPointer);
+
+  /// Gets the tagger (author) of the tag.
+  Signature get tagger => Signature(bindings.tagger(_tagPointer));
+
+  /// Gets the type of the tagged object.
+  GitObject get targetType {
+    final type = bindings.targetType(_tagPointer);
+    return GitObject.fromValue(type.value);
+  }
+
+  /// Gets the [Oid] of the tagged object.
+  Oid get targetOid => Oid(bindings.targetOid(_tagPointer));
+
+  /// Gets the tagged object.
   ///
-  /// The [tagName] will be checked for validity. You must avoid the characters
-  /// '~', '^', ':', '\', '?', '[', and '*', and the sequences ".." and "@{" which have
-  /// special meaning to revparse.
+  /// Returns a [GitObject] representing the tagged object.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  GitObject get target {
+    final type = bindings.targetType(_tagPointer);
+    return GitObject.fromValue(type.value);
+  }
+
+  /// Creates a new annotated tag in the repository.
   ///
   /// [repo] is the repository where to store the tag.
+  /// [tagName] is the name for the new tag.
+  /// [target] is the object ID to tag.
+  /// [targetType] specifies the type of object being tagged (commit, tree, blob, etc).
+  /// [tagger] is the signature of the person creating the tag.
+  /// [message] is the message/description for the tag.
+  /// [force] if true, existing tag with same name will be overwritten.
   ///
-  /// [tagName] is the name for the tag. This name is validated for
-  /// consistency. It should also not conflict with an already existing tag
-  /// name.
+  /// Returns the [Oid] of the newly created tag.
   ///
-  /// [target] is the object to which this tag points. This object must belong
-  /// to the given [repo].
-  ///
-  /// [targetType] is one of the [GitObject] basic types: commit, tree, blob or
-  /// tag.
-  ///
-  /// [tagger] is the signature of the tagger for this tag, and of the tagging
-  /// time.
-  ///
-  /// [message] is the full message for this tag.
-  ///
-  /// [force] determines whether existing reference with the same [tagName]
-  /// should be replaced.
-  ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if an error occurs during tag creation.
   static Oid createAnnotated({
     required Repository repo,
     required String tagName,
@@ -74,7 +104,7 @@ class Tag extends Equatable {
     final object = object_bindings.lookup(
       repoPointer: repo.pointer,
       oidPointer: target.pointer,
-      type: targetType.value,
+      type: git_object_t.fromValue(targetType.value),
     );
 
     final result = bindings.createAnnotated(
@@ -91,34 +121,19 @@ class Tag extends Equatable {
     return Oid(result);
   }
 
-  /// Creates a new lightweight tag in the repository for provided [target]
-  /// object.
-  ///
-  /// A new reference will also be created in the `/refs/tags` folder pointing
-  /// to this tag object. If [force] is true and a reference already exists
-  /// with the given name, it'll be replaced.
-  ///
-  /// The [tagName] will be checked for validity. You must avoid the characters
-  /// '~', '^', ':', '\', '?', '[', and '*', and the sequences ".." and "@{" which have
-  /// special meaning to revparse.
+  /// Creates a new lightweight tag in the repository.
   ///
   /// [repo] is the repository where to store the tag.
+  /// [tagName] is the name for the new tag.
+  /// [target] is the object to tag.
+  /// [targetType] specifies the type of object being tagged (commit, tree, blob, etc).
+
+  /// [force] determines whether to force the tag creation if a tag with the same name already exists.
   ///
-  /// [tagName] is the name for the tag. This name is validated for
-  /// consistency. It should also not conflict with an already existing tag
-  /// name.
+  /// Returns the [Oid] of the newly created tag.
   ///
-  /// [target] is the object to which this tag points. This object must belong
-  /// to the given [repo].
-  ///
-  /// [targetType] is one of the [GitObject] basic types: commit, tree, blob or
-  /// tag.
-  ///
-  /// [force] determines whether existing reference with the same [tagName]
-  /// should be replaced.
-  ///
-  /// Throws a [LibGit2Error] if error occured.
-  static void createLightweight({
+  /// Throws a [LibGit2Error] if an error occurs during tag creation.
+  static Oid createLightweight({
     required Repository repo,
     required String tagName,
     required Oid target,
@@ -128,10 +143,10 @@ class Tag extends Equatable {
     final object = object_bindings.lookup(
       repoPointer: repo.pointer,
       oidPointer: target.pointer,
-      type: targetType.value,
+      type: git_object_t.fromValue(GitObject.any.value),
     );
 
-    bindings.createLightweight(
+    final result = bindings.createLightweight(
       repoPointer: repo.pointer,
       tagName: tagName,
       targetPointer: object,
@@ -139,80 +154,33 @@ class Tag extends Equatable {
     );
 
     object_bindings.free(object);
+
+    return Oid(result);
   }
 
-  /// Deletes an existing tag reference with provided [name] in a [repo]sitory.
+  /// Lists all tags in the repository.
   ///
-  /// The tag [name] will be checked for validity.
+  /// [repo] is the repository to list tags from.
   ///
-  /// Throws a [LibGit2Error] if error occured.
-  static void delete({required Repository repo, required String name}) {
-    bindings.delete(repoPointer: repo.pointer, tagName: name);
+  /// Returns a list of tag names.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  static List<String> list({required Repository repo}) =>
+      bindings.list(repo.pointer);
+
+  /// Deletes a tag from the repository.
+  ///
+  /// [repo] is the repository containing the tag.
+  /// [tagName] is the name of the tag to delete.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  static void delete({required Repository repo, required String tagName}) {
+    bindings.delete(repoPointer: repo.pointer, tagName: tagName);
   }
 
-  /// Returns a list with all the tags names in the repository.
+  /// Releases memory allocated for the tag object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
-  static List<String> list(Repository repo) {
-    return bindings.list(repo.pointer);
-  }
-
-  /// Tagged object (commit, tree, blob, tag) of a tag.
-  ///
-  /// This method performs a repository lookup for the given object and returns
-  /// it.
-  ///
-  /// Returned object should be explicitly downcasted to one of four of git
-  /// object types.
-  ///
-  /// ```dart
-  /// final commit = tag.target as Commit;
-  /// final tree = tag.target as Tree;
-  /// final blob = tag.target as Blob;
-  /// final tag = tag.target as Tag;
-  /// ```
-  ///
-  /// Throws a [LibGit2Error] if error occured.
-  Object get target {
-    final type = bindings.targetType(_tagPointer);
-    final object = bindings.target(_tagPointer);
-
-    if (type == GitObject.commit.value) {
-      return Commit(object.cast());
-    } else if (type == GitObject.tree.value) {
-      return Tree(object.cast());
-    } else if (type == GitObject.blob.value) {
-      return Blob(object.cast());
-    } else {
-      return Tag(object.cast());
-    }
-  }
-
-  /// The type of a tag's tagged object.
-  GitObject get targetType {
-    final type = bindings.targetType(_tagPointer);
-    return GitObject.values.firstWhere((e) => type & e.value == e.value);
-  }
-
-  /// [Oid] of the tagged object of a tag.
-  Oid get targetOid => Oid(bindings.targetOid(_tagPointer));
-
-  /// [Oid] of a tag.
-  Oid get oid => Oid(bindings.id(_tagPointer));
-
-  /// Name of a tag.
-  String get name => bindings.name(_tagPointer);
-
-  /// Message of a tag.
-  String get message => bindings.message(_tagPointer);
-
-  /// Tagger (author) of a tag if there is one.
-  Signature? get tagger {
-    final sigPointer = bindings.tagger(_tagPointer);
-    return sigPointer != nullptr ? Signature(sigPointer) : null;
-  }
-
-  /// Releases memory allocated for tag object.
+  /// This should be called when the tag object is no longer needed.
   void free() {
     bindings.free(_tagPointer);
     _finalizer.detach(this);
@@ -220,12 +188,11 @@ class Tag extends Equatable {
 
   @override
   String toString() {
-    return 'Tag{oid: $oid, name: $name, message: $message, target: $target, '
-        'tagger: $tagger}';
+    return 'Tag{oid: $oid, name: $name, message: $message, tagger: $tagger}';
   }
 
   @override
-  List<Object?> get props => [name];
+  List<Object?> get props => [oid];
 }
 
 // coverage:ignore-start

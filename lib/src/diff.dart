@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/diff.dart' as bindings;
 import 'package:git2dart/src/extensions.dart';
@@ -288,7 +289,9 @@ class Diff extends Equatable {
     final length = bindings.length(_diffPointer);
     return <DiffDelta>[
       for (var i = 0; i < length; i++)
-        DiffDelta(bindings.getDeltaByIndex(diffPointer: _diffPointer, index: i)),
+        DiffDelta(
+          bindings.getDeltaByIndex(diffPointer: _diffPointer, index: i),
+        ),
     ];
   }
 
@@ -310,10 +313,7 @@ class Diff extends Equatable {
 
   /// Merges one diff into another.
   void merge(Diff diff) {
-    bindings.merge(
-      ontoPointer: _diffPointer,
-      fromPointer: diff.pointer,
-    );
+    bindings.merge(diffPointer: _diffPointer, fromDiffPointer: diff.pointer);
   }
 
   /// Applies the diff to the [repo]sitory, making changes in the provided
@@ -336,7 +336,7 @@ class Diff extends Equatable {
       repoPointer: repo.pointer,
       diffPointer: _diffPointer,
       hunkIndex: hunkIndex,
-      location: location.value,
+      location: git_apply_location_t.fromValue(location.value),
     );
   }
 
@@ -357,7 +357,7 @@ class Diff extends Equatable {
       repoPointer: repo.pointer,
       diffPointer: _diffPointer,
       hunkIndex: hunkIndex,
-      location: location.value,
+      location: git_apply_location_t.fromValue(location.value),
       check: true,
     );
   }
@@ -425,15 +425,19 @@ class Diff extends Equatable {
     int breakRewriteThreshold = 60,
     int renameLimit = 200,
   }) {
-    bindings.findSimilar(
-      diffPointer: _diffPointer,
-      flags: flags.fold(0, (acc, e) => acc | e.value),
-      renameThreshold: renameThreshold,
-      copyThreshold: copyThreshold,
-      renameFromRewriteThreshold: renameFromRewriteThreshold,
-      breakRewriteThreshold: breakRewriteThreshold,
-      renameLimit: renameLimit,
-    );
+    final options = calloc<git_diff_find_options>();
+    libgit2.git_diff_find_options_init(options, GIT_DIFF_FIND_OPTIONS_VERSION);
+
+    options.ref.flags = flags.fold(0, (acc, e) => acc | e.value);
+    options.ref.rename_threshold = renameThreshold;
+    options.ref.copy_threshold = copyThreshold;
+    options.ref.rename_from_rewrite_threshold = renameFromRewriteThreshold;
+    options.ref.break_rewrite_threshold = breakRewriteThreshold;
+    options.ref.rename_limit = renameLimit;
+
+    bindings.findSimilar(diffPointer: _diffPointer, options: options);
+
+    calloc.free(options);
   }
 
   /// Calculates a stable patch [Oid] for the given patch by summing the hash
@@ -523,13 +527,13 @@ class DiffDelta extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        flags,
-        similarity,
-        numberOfFiles,
-        oldFile,
-        newFile,
-      ];
+    status,
+    flags,
+    similarity,
+    numberOfFiles,
+    oldFile,
+    newFile,
+  ];
 }
 
 /// Description of one side of a delta.
@@ -605,9 +609,12 @@ class DiffStats {
   ///
   /// Throws a [LibGit2Error] if error occured.
   String print({required Set<GitDiffStats> format, required int width}) {
+    final formatGit2 = git_diff_stats_format_t.fromValue(
+      format.fold(0, (acc, e) => acc | e.value),
+    );
     return bindings.statsPrint(
       statsPointer: _diffStatsPointer,
-      format: format.fold(0, (acc, e) => acc | e.value),
+      format: formatGit2,
       width: width,
     );
   }

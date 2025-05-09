@@ -183,10 +183,7 @@ class Reference extends Equatable {
   /// log.
   ///
   /// Throws a [LibGit2Error] if error occured.
-  static void ensureLog({
-    required Repository repo,
-    required String refName,
-  }) {
+  static void ensureLog({required Repository repo, required String refName}) {
     bindings.ensureLog(repoPointer: repo.pointer, refName: refName);
   }
 
@@ -200,10 +197,7 @@ class Reference extends Equatable {
   /// See [createSymbolic] for rules about valid names.
   ///
   /// Throws a [LibGit2Error] if error occured.
-  static Oid nameToId({
-    required Repository repo,
-    required String refName,
-  }) {
+  static Oid nameToId({required Repository repo, required String refName}) {
     final res = bindings.nameToId(repoPointer: repo.pointer, refName: refName);
     return Oid(res);
   }
@@ -247,7 +241,10 @@ class Reference extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occured.
   Object peel([GitObject type = GitObject.any]) {
-    final object = bindings.peel(refPointer: _refPointer, type: type.value);
+    final object = bindings.peel(
+      refPointer: _refPointer,
+      type: git_object_t.fromValue(type.value),
+    );
     final objectType = object_bindings.type(object);
 
     if (objectType == GitObject.commit.value) {

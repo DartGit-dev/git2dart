@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/index.dart' as bindings;
 import 'package:git2dart/src/extensions.dart';
@@ -36,7 +37,7 @@ class Index with IterableMixin<IndexEntry> {
   Pointer<git_index> get pointer => _indexPointer;
 
   /// Full path to the index file on disk.
-  String get path => bindings.path(_indexPointer);
+  String? get path => bindings.getPath(_indexPointer);
 
   /// Index capabilities flags.
   Set<GitIndexCapability> get capabilities {
@@ -60,10 +61,7 @@ class Index with IterableMixin<IndexEntry> {
   IndexEntry operator [](Object value) {
     if (value is int) {
       return IndexEntry(
-        bindings.getByIndex(
-          indexPointer: _indexPointer,
-          position: value,
-        ),
+        bindings.getByIndex(indexPointer: _indexPointer, position: value),
       );
     } else {
       return IndexEntry(
@@ -78,10 +76,7 @@ class Index with IterableMixin<IndexEntry> {
 
   /// Whether entry at provided [path] is in the git index or not.
   bool find(String path) {
-    return bindings.find(
-      indexPointer: _indexPointer,
-      path: path,
-    );
+    return bindings.findIndex(indexPointer: _indexPointer, path: path) >= 0;
   }
 
   /// Whether index contains entries representing file conflicts.
@@ -224,11 +219,30 @@ class Index with IterableMixin<IndexEntry> {
     List<String> pathspec, {
     Set<GitIndexAddOption> flags = const {GitIndexAddOption.defaults},
   }) {
+    final strArray = calloc<git_strarray>();
+    final strArrayPointers = pathspec.map((e) => e.toChar()).toList();
+    final strArrayStrings = calloc<Pointer<Char>>(pathspec.length);
+
+    for (var i = 0; i < pathspec.length; i++) {
+      strArrayStrings[i] = strArrayPointers[i];
+    }
+
+    strArray.ref.count = pathspec.length;
+    strArray.ref.strings = strArrayStrings;
+
     bindings.addAll(
       indexPointer: _indexPointer,
-      pathspec: pathspec,
+      pathspec: strArray,
       flags: flags.fold(0, (acc, e) => acc | e.value),
+      callback: Pointer.fromFunction(_matchedPathCb, 0),
+      payload: nullptr,
     );
+
+    for (final p in strArrayPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArrayStrings);
+    calloc.free(strArray);
   }
 
   /// Updates all index entries to match the working directory.
@@ -242,7 +256,29 @@ class Index with IterableMixin<IndexEntry> {
   ///
   /// Throws a [LibGit2Error] if error occured.
   void updateAll(List<String> pathspec) {
-    bindings.updateAll(indexPointer: _indexPointer, pathspec: pathspec);
+    final strArray = calloc<git_strarray>();
+    final strArrayPointers = pathspec.map((e) => e.toChar()).toList();
+    final strArrayStrings = calloc<Pointer<Char>>(pathspec.length);
+
+    for (var i = 0; i < pathspec.length; i++) {
+      strArrayStrings[i] = strArrayPointers[i];
+    }
+
+    strArray.ref.count = pathspec.length;
+    strArray.ref.strings = strArrayStrings;
+
+    bindings.updateAll(
+      indexPointer: _indexPointer,
+      pathspec: strArray,
+      callback: Pointer.fromFunction(_matchedPathCb, 0),
+      payload: nullptr,
+    );
+
+    for (final p in strArrayPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArrayStrings);
+    calloc.free(strArray);
   }
 
   /// Updates the contents of an existing index object in memory by reading
@@ -314,8 +350,31 @@ class Index with IterableMixin<IndexEntry> {
   /// to repository working directory.
   ///
   /// Throws a [LibGit2Error] if error occured.
-  void removeAll(List<String> path) =>
-      bindings.removeAll(indexPointer: _indexPointer, pathspec: path);
+  void removeAll(List<String> path) {
+    final strArray = calloc<git_strarray>();
+    final strArrayPointers = path.map((e) => e.toChar()).toList();
+    final strArrayStrings = calloc<Pointer<Char>>(path.length);
+
+    for (var i = 0; i < path.length; i++) {
+      strArrayStrings[i] = strArrayPointers[i];
+    }
+
+    strArray.ref.count = path.length;
+    strArray.ref.strings = strArrayStrings;
+
+    bindings.removeAll(
+      indexPointer: _indexPointer,
+      pathspec: strArray,
+      callback: Pointer.fromFunction(_matchedPathCb, 0),
+      payload: nullptr,
+    );
+
+    for (final p in strArrayPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArrayStrings);
+    calloc.free(strArray);
+  }
 
   /// Releases memory allocated for index object.
   void free() {
@@ -335,6 +394,14 @@ final _finalizer = Finalizer<Pointer<git_index>>(
   (pointer) => bindings.free(pointer),
 );
 // coverage:ignore-end
+
+int _matchedPathCb(
+  Pointer<Char> path,
+  Pointer<Char> matchedPathspec,
+  Pointer<Void> payload,
+) {
+  return 0;
+}
 
 @immutable
 class IndexEntry extends Equatable {
@@ -446,10 +513,7 @@ class _IndexIterator implements Iterator<IndexEntry> {
       return false;
     } else {
       _currentEntry = IndexEntry(
-        bindings.getByIndex(
-          indexPointer: _indexPointer,
-          position: _index,
-        ),
+        bindings.getByIndex(indexPointer: _indexPointer, position: _index),
       );
       _index++;
       return true;

@@ -1,27 +1,42 @@
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
-import 'package:git2dart/src/bindings/remote.dart' as bindings;
+import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
+import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git remote repository.
+///
+/// This class provides methods to interact with remote repositories, including
+/// fetching, pushing, and managing remote configuration.
 @immutable
 class Remote extends Equatable {
   /// Lookups remote with provided [name] in a [repo]sitory.
   ///
-  /// The [name] will be checked for validity.
+  /// The [name] will be checked for validity. If the remote doesn't exist,
+  /// a [LibGit2Error] will be thrown.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Remote.lookup({required Repository repo, required String name}) {
-    _remotePointer = bindings.lookup(repoPointer: repo.pointer, name: name);
+    _remotePointer = remote_bindings.lookup(
+      repoPointer: repo.pointer,
+      name: name,
+    );
     _finalizer.attach(this, _remotePointer, detach: this);
   }
 
   /// Adds remote with provided [name] and [url] to the [repo]sitory's
-  /// configuration with the default [fetch] refspec if none provided.
+  /// configuration.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// If [fetch] is provided, it will be used as the fetch refspec. Otherwise,
+  /// the default fetch refspec will be used.
+  ///
+  /// The [name] and [url] will be checked for validity.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   Remote.create({
     required Repository repo,
     required String name,
@@ -29,13 +44,13 @@ class Remote extends Equatable {
     String? fetch,
   }) {
     if (fetch == null) {
-      _remotePointer = bindings.create(
+      _remotePointer = remote_bindings.create(
         repoPointer: repo.pointer,
         name: name,
         url: url,
       );
     } else {
-      _remotePointer = bindings.createWithFetchSpec(
+      _remotePointer = remote_bindings.createWithFetchSpec(
         repoPointer: repo.pointer,
         name: name,
         url: url,
@@ -51,32 +66,32 @@ class Remote extends Equatable {
   /// Deletes an existing persisted remote with provided [name].
   ///
   /// All remote-tracking branches and configuration settings for the remote
-  /// will be removed.
+  /// will be removed. This operation cannot be undone.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static void delete({required Repository repo, required String name}) {
-    bindings.delete(repoPointer: repo.pointer, name: name);
+    remote_bindings.delete(repoPointer: repo.pointer, name: name);
   }
 
-  /// Renames remote with provided [oldName].
+  /// Renames remote with provided [oldName] to [newName].
   ///
   /// Returns list of non-default refspecs that cannot be renamed.
   ///
   /// All remote-tracking branches and configuration settings for the remote
-  /// are updated.
+  /// are updated to reflect the new name.
   ///
   /// The [newName] will be checked for validity.
   ///
   /// No loaded instances of a the remote with the old name will change their
   /// name or their list of refspecs.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static List<String> rename({
     required Repository repo,
     required String oldName,
     required String newName,
   }) {
-    return bindings.rename(
+    return remote_bindings.rename(
       repoPointer: repo.pointer,
       name: oldName,
       newName: newName,
@@ -84,8 +99,11 @@ class Remote extends Equatable {
   }
 
   /// Returns a list of the configured remotes for a [repo]sitory.
+  ///
+  /// This includes all remotes that have been added to the repository's
+  /// configuration, regardless of whether they are currently valid or accessible.
   static List<String> list(Repository repo) {
-    return bindings.list(repo.pointer);
+    return remote_bindings.list(repo.pointer);
   }
 
   /// Sets the [remote]'s [url] in the configuration.
@@ -93,17 +111,15 @@ class Remote extends Equatable {
   /// Remote objects already in memory will not be affected. This assumes the
   /// common case of a single-url remote and will otherwise return an error.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// The [url] will be checked for validity.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   static void setUrl({
     required Repository repo,
     required String remote,
     required String url,
   }) {
-    bindings.setUrl(
-      repoPointer: repo.pointer,
-      remote: remote,
-      url: url,
-    );
+    remote_bindings.setUrl(repoPointer: repo.pointer, remote: remote, url: url);
   }
 
   /// Sets the [remote]'s [url] for pushing in the configuration.
@@ -111,13 +127,15 @@ class Remote extends Equatable {
   /// Remote objects already in memory will not be affected. This assumes the
   /// common case of a single-url remote and will otherwise return an error.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// The [url] will be checked for validity.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   static void setPushUrl({
     required Repository repo,
     required String remote,
     required String url,
   }) {
-    bindings.setPushUrl(
+    remote_bindings.setPushUrl(
       repoPointer: repo.pointer,
       remote: remote,
       url: url,
@@ -126,15 +144,17 @@ class Remote extends Equatable {
 
   /// Adds a fetch [refspec] to the [remote]'s configuration.
   ///
+  /// The [refspec] will be checked for validity.
+  ///
   /// No loaded remote instances will be affected.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static void addFetch({
     required Repository repo,
     required String remote,
     required String refspec,
   }) {
-    bindings.addFetch(
+    remote_bindings.addFetch(
       repoPointer: repo.pointer,
       remote: remote,
       refspec: refspec,
@@ -143,15 +163,17 @@ class Remote extends Equatable {
 
   /// Adds a push [refspec] to the [remote]'s configuration.
   ///
+  /// The [refspec] will be checked for validity.
+  ///
   /// No loaded remote instances will be affected.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static void addPush({
     required Repository repo,
     required String remote,
     required String refspec,
   }) {
-    bindings.addPush(
+    remote_bindings.addPush(
       repoPointer: repo.pointer,
       remote: remote,
       refspec: refspec,
@@ -159,23 +181,33 @@ class Remote extends Equatable {
   }
 
   /// Remote's name.
-  String get name => bindings.name(_remotePointer);
+  ///
+  /// Returns the name of the remote or an empty string if the remote is anonymous.
+  String get name => remote_bindings.name(_remotePointer);
 
   /// Remote's url.
-  String get url => bindings.url(_remotePointer);
+  ///
+  /// Returns the URL of the remote repository.
+  String get url => remote_bindings.url(_remotePointer);
 
   /// Remote's url for pushing.
   ///
   /// Returns empty string if no special url for pushing is set.
-  String get pushUrl => bindings.pushUrl(_remotePointer);
+  String get pushUrl => remote_bindings.pushUrl(_remotePointer);
 
   /// Number of refspecs for a remote.
-  int get refspecCount => bindings.refspecCount(_remotePointer);
+  ///
+  /// This includes both fetch and push refspecs.
+  int get refspecCount => remote_bindings.refspecCount(_remotePointer);
 
   /// [Refspec] object from the remote at provided position.
+  ///
+  /// The [index] must be between 0 and [refspecCount] - 1.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   Refspec getRefspec(int index) {
     return Refspec(
-      bindings.getRefspec(
+      remote_bindings.getRefspec(
         remotePointer: _remotePointer,
         position: index,
       ),
@@ -183,13 +215,21 @@ class Remote extends Equatable {
   }
 
   /// List of fetch refspecs.
-  List<String> get fetchRefspecs => bindings.fetchRefspecs(_remotePointer);
+  ///
+  /// Returns all refspecs that are used for fetching from the remote.
+  List<String> get fetchRefspecs =>
+      remote_bindings.fetchRefspecs(_remotePointer);
 
   /// List of push refspecs.
-  List<String> get pushRefspecs => bindings.pushRefspecs(_remotePointer);
+  ///
+  /// Returns all refspecs that are used for pushing to the remote.
+  List<String> get pushRefspecs => remote_bindings.pushRefspecs(_remotePointer);
 
   /// Returns the remote repository's reference list and their associated
   /// commit ids.
+  ///
+  /// This method connects to the remote repository and retrieves a list of
+  /// all references (branches, tags, etc.) that are available on the remote.
   ///
   /// [proxy] can be 'auto' to try to auto-detect the proxy from the git
   /// configuration or some specified url. By default connection isn't done
@@ -198,19 +238,19 @@ class Remote extends Equatable {
   /// [callbacks] is the combination of callback functions from [Callbacks]
   /// object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   List<RemoteReference> ls({
     String? proxy,
     Callbacks callbacks = const Callbacks(),
   }) {
-    bindings.connect(
+    remote_bindings.connect(
       remotePointer: _remotePointer,
-      direction: GitDirection.fetch.value,
+      direction: git_direction.fromValue(GitDirection.fetch.value),
       callbacks: callbacks,
       proxyOption: proxy,
     );
-    final refs = bindings.lsRemotes(_remotePointer);
-    bindings.disconnect(_remotePointer);
+    final refs = remote_bindings.lsRemotes(_remotePointer);
+    remote_bindings.disconnect(_remotePointer);
 
     return <RemoteReference>[
       for (final ref in refs)
@@ -225,6 +265,9 @@ class Remote extends Equatable {
   }
 
   /// Downloads new data and updates tips.
+  ///
+  /// This method connects to the remote repository, downloads any new data,
+  /// and updates the local repository's remote-tracking branches.
   ///
   /// [refspecs] is the list of refspecs to use for this fetch. Defaults to the
   /// base refspecs.
@@ -241,7 +284,7 @@ class Remote extends Equatable {
   /// [callbacks] is the combination of callback functions from [Callbacks]
   /// object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   TransferProgress fetch({
     List<String> refspecs = const [],
     String? reflogMessage,
@@ -249,7 +292,7 @@ class Remote extends Equatable {
     String? proxy,
     Callbacks callbacks = const Callbacks(),
   }) {
-    bindings.fetch(
+    remote_bindings.fetch(
       remotePointer: _remotePointer,
       refspecs: refspecs,
       prune: prune.value,
@@ -257,10 +300,13 @@ class Remote extends Equatable {
       reflogMessage: reflogMessage,
       proxyOption: proxy,
     );
-    return TransferProgress(bindings.stats(_remotePointer));
+    return TransferProgress(remote_bindings.stats(_remotePointer));
   }
 
   /// Performs a push.
+  ///
+  /// This method connects to the remote repository and pushes the specified
+  /// references to it.
   ///
   /// [refspecs] is the list of refspecs to use for pushing. Defaults to the
   /// configured refspecs.
@@ -272,13 +318,13 @@ class Remote extends Equatable {
   /// [callbacks] is the combination of callback functions from [Callbacks]
   /// object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   void push({
     List<String> refspecs = const [],
     String? proxy,
     Callbacks callbacks = const Callbacks(),
   }) {
-    bindings.push(
+    remote_bindings.push(
       remotePointer: _remotePointer,
       refspecs: refspecs,
       callbacks: callbacks,
@@ -288,20 +334,32 @@ class Remote extends Equatable {
 
   /// Prunes tracking refs that are no longer present on remote.
   ///
+  /// This method removes any remote-tracking branches that no longer exist
+  /// on the remote repository.
+  ///
   /// [callbacks] is the combination of callback functions from [Callbacks]
   /// object.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   void prune([Callbacks callbacks = const Callbacks()]) {
-    bindings.prune(
-      remotePointer: _remotePointer,
+    final remoteCallbacks = malloc<git_remote_callbacks>();
+    remoteCallbacks.ref.version = 1;
+    RemoteCallbacks.plug(
+      callbacksOptions: remoteCallbacks.ref,
       callbacks: callbacks,
+    );
+    remote_bindings.prune(
+      remotePointer: _remotePointer,
+      flags: remoteCallbacks,
     );
   }
 
   /// Releases memory allocated for remote object.
+  ///
+  /// This method should be called when you are done with the remote object
+  /// to free the allocated memory.
   void free() {
-    bindings.free(_remotePointer);
+    remote_bindings.free(_remotePointer);
     _finalizer.detach(this);
   }
 
@@ -317,7 +375,7 @@ class Remote extends Equatable {
 
 // coverage:ignore-start
 final _finalizer = Finalizer<Pointer<git_remote>>(
-  (pointer) => bindings.free(pointer),
+  (pointer) => remote_bindings.free(pointer),
 );
 // coverage:ignore-end
 
@@ -364,10 +422,9 @@ class TransferProgress {
   }
 }
 
+/// Values used to override the remote creation and customization process
+/// during a repository clone operation.
 class RemoteCallback {
-  /// Values used to override the remote creation and customization process
-  /// during a repository clone operation.
-  ///
   /// Remote will have provided [name] and [url] with the default [fetch]
   /// refspec if none provided.
   const RemoteCallback({required this.name, required this.url, this.fetch});
@@ -382,6 +439,7 @@ class RemoteCallback {
   final String? fetch;
 }
 
+/// A class representing a reference in a remote repository.
 @immutable
 class RemoteReference extends Equatable {
   const RemoteReference._({

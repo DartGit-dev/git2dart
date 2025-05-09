@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Determine if a commit is the descendant of another commit.

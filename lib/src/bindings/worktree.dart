@@ -6,13 +6,20 @@ import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
-/// Add a new working tree. The returned worktree must be freed with [free].
+/// Creates a new working tree for the repository.
 ///
-/// Add a new working tree for the repository, that is create the required
-/// data structures inside the repository and check out the current HEAD at
-/// path.
+/// This function creates the required data structures inside the repository
+/// and checks out the current HEAD at the specified path.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [repoPointer] is the repository to add the worktree to.
+/// [name] is the name of the new worktree.
+/// [path] is the filesystem path where the worktree will be created.
+/// [refPointer] is an optional reference to checkout (if null, HEAD is used).
+///
+/// Returns a pointer to the newly created worktree. The returned worktree
+/// must be freed with [free].
+///
+/// Throws a [LibGit2Error] if an error occurs.
 Pointer<git_worktree> create({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -47,10 +54,15 @@ Pointer<git_worktree> create({
   }
 }
 
-/// Lookup a working tree by its name for a given repository. The returned
-/// worktree must be freed with [free].
+/// Looks up a working tree by its name in the given repository.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [repoPointer] is the repository containing the worktree.
+/// [name] is the name of the worktree to look up.
+///
+/// Returns a pointer to the found worktree. The returned worktree
+/// must be freed with [free].
+///
+/// Throws a [LibGit2Error] if an error occurs or if the worktree is not found.
 Pointer<git_worktree> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -71,13 +83,17 @@ Pointer<git_worktree> lookup({
   }
 }
 
-/// Check if the worktree prunable.
+/// Checks if a worktree is prunable.
 ///
 /// A worktree is not prunable in the following scenarios:
-/// - the worktree is linking to a valid on-disk worktree.
-/// - the worktree is locked.
+/// - The worktree is linking to a valid on-disk worktree
+/// - The worktree is locked
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [wt] is the worktree to check.
+///
+/// Returns true if the worktree is prunable, false otherwise.
+///
+/// Throws a [LibGit2Error] if an error occurs.
 bool isPrunable(Pointer<git_worktree> wt) {
   final opts = calloc<git_worktree_prune_options>();
   libgit2.git_worktree_prune_options_init(
@@ -92,9 +108,12 @@ bool isPrunable(Pointer<git_worktree> wt) {
   return result > 0 || false;
 }
 
-/// Prune working tree.
+/// Prunes a working tree by removing its git data structures from disk.
 ///
-/// Prune the working tree, that is remove the git data structures on disk.
+/// [worktreePointer] is the worktree to prune.
+/// [flags] is an optional combination of prune flags.
+///
+/// Throws a [LibGit2Error] if an error occurs.
 void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
   final opts = calloc<git_worktree_prune_options>();
   libgit2.git_worktree_prune_options_init(
@@ -104,14 +123,22 @@ void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
 
   if (flags != null) opts.ref.flags = flags;
 
-  libgit2.git_worktree_prune(worktreePointer, opts);
+  final error = libgit2.git_worktree_prune(worktreePointer, opts);
+  calloc.free(opts);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
-/// List all working trees in the repository.
+/// Lists all working trees in the repository.
 ///
-/// The returned list must be freed with [free].
+/// [repo] is the repository to list worktrees from.
 ///
-/// Throws a [LibGit2Error] if error occurred.
+/// Returns a list of pointers to worktrees. Each worktree in the returned list
+/// must be freed with [free].
+///
+/// Throws a [LibGit2Error] if an error occurs.
 List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
   final out = calloc<git_strarray>();
   final error = libgit2.git_worktree_list(out, repo);
@@ -126,7 +153,14 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
     final worktree = calloc<Pointer<git_worktree>>();
     final name = out.ref.strings[i].toDartString();
     final nameC = name.toChar();
-    libgit2.git_worktree_lookup(worktree, repo, nameC);
+    final lookupError = libgit2.git_worktree_lookup(worktree, repo, nameC);
+
+    if (lookupError < 0) {
+      calloc.free(worktree);
+      calloc.free(nameC);
+      continue;
+    }
+
     result.add(worktree.value);
     calloc.free(worktree);
     calloc.free(nameC);
@@ -136,38 +170,63 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
   return result;
 }
 
-/// Retrieve the name of the worktree.
+/// Gets the name of a worktree.
+///
+/// [wt] is the worktree to get the name from.
+///
+/// Returns the name of the worktree.
 String name(Pointer<git_worktree> wt) {
   return libgit2.git_worktree_name(wt).toDartString();
 }
 
-/// Retrieve the filesystem path for the worktree.
+/// Gets the filesystem path of a worktree.
+///
+/// [wt] is the worktree to get the path from.
+///
+/// Returns the filesystem path of the worktree.
 String path(Pointer<git_worktree> wt) {
   return libgit2.git_worktree_path(wt).toDartString();
 }
 
-/// Check if worktree is locked.
+/// Checks if a worktree is locked.
 ///
 /// A worktree may be locked if the linked working tree is stored on a portable
 /// device which is not available.
+///
+/// [wt] is the worktree to check.
+///
+/// Returns true if the worktree is locked, false otherwise.
 bool isLocked(Pointer<git_worktree> wt) {
-  return libgit2.git_worktree_is_locked(nullptr, wt) == 1 || false;
+  final reason = calloc<git_buf>();
+  final result = libgit2.git_worktree_is_locked(reason, wt) == 1 || false;
+  calloc.free(reason);
+  return result;
 }
 
-/// Lock worktree if not already locked.
+/// Locks a worktree if it is not already locked.
 ///
-/// Throws a [LibGit2Error] if error occurred.
-void lock(Pointer<git_worktree> worktree) {
-  final error = libgit2.git_worktree_lock(worktree, nullptr);
+/// [worktree] is the worktree to lock.
+/// [reason] is an optional reason for locking the worktree.
+///
+/// Throws a [LibGit2Error] if an error occurs.
+void lock(Pointer<git_worktree> worktree, [String? reason]) {
+  final reasonC = reason?.toChar() ?? nullptr;
+  final error = libgit2.git_worktree_lock(worktree, reasonC);
+
+  if (reasonC != nullptr) {
+    calloc.free(reasonC);
+  }
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
   }
 }
 
-/// Unlock a locked worktree.
+/// Unlocks a locked worktree.
 ///
-/// Throws a [LibGit2Error] if error occurred.
+/// [worktree] is the worktree to unlock.
+///
+/// Throws a [LibGit2Error] if an error occurs.
 void unlock(Pointer<git_worktree> worktree) {
   final error = libgit2.git_worktree_unlock(worktree);
 
@@ -176,17 +235,23 @@ void unlock(Pointer<git_worktree> worktree) {
   }
 }
 
-/// Check if worktree is valid.
+/// Checks if a worktree is valid.
 ///
 /// A valid worktree requires both the git data structures inside the linked
 /// parent repository and the linked working copy to be present.
+///
+/// [wt] is the worktree to validate.
+///
+/// Returns true if the worktree is valid, false otherwise.
 bool isValid(Pointer<git_worktree> wt) {
   return libgit2.git_worktree_validate(wt) == 0 || false;
 }
 
-/// Validate worktree configuration.
+/// Validates a worktree configuration.
 ///
-/// Throws a [LibGit2Error] if error occurred.
+/// [worktree] is the worktree to validate.
+///
+/// Throws a [LibGit2Error] if the worktree is invalid.
 void validate(Pointer<git_worktree> worktree) {
   final error = libgit2.git_worktree_validate(worktree);
 
@@ -195,5 +260,7 @@ void validate(Pointer<git_worktree> worktree) {
   }
 }
 
-/// Free a previously allocated worktree.
+/// Frees a previously allocated worktree.
+///
+/// [wt] is the worktree to free.
 void free(Pointer<git_worktree> wt) => libgit2.git_worktree_free(wt);

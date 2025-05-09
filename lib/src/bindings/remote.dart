@@ -8,7 +8,9 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
-/// Get a list of the configured remotes for a repo.
+/// Get a list of the configured remotes for a repository.
+///
+/// Returns a list of remote names that are configured in the repository.
 List<String> list(Pointer<git_repository> repo) {
   final out = calloc<git_strarray>();
   libgit2.git_remote_list(out, repo);
@@ -27,7 +29,7 @@ List<String> list(Pointer<git_repository> repo) {
 ///
 /// The name will be checked for validity.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_remote> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -48,10 +50,37 @@ Pointer<git_remote> lookup({
   }
 }
 
+/// Create a copy of an existing remote.
+///
+/// The returned remote must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_remote> dup(Pointer<git_remote> remote) {
+  final out = calloc<Pointer<git_remote>>();
+  final error = libgit2.git_remote_dup(out, remote);
+
+  final result = out.value;
+
+  calloc.free(out);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Get the repository that owns this remote.
+///
+/// Returns a pointer to the repository that owns this remote.
+Pointer<git_repository> owner(Pointer<git_remote> remote) {
+  return libgit2.git_remote_owner(remote);
+}
+
 /// Add a remote with the default fetch refspec to the repository's
 /// configuration. The returned remote must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_remote> create({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -75,34 +104,45 @@ Pointer<git_remote> create({
   }
 }
 
-/// Add a remote with the provided fetch refspec to the repository's
-/// configuration. The returned remote must be freed with [free].
+/// Create a remote without a name in a detached repository.
 ///
-/// Throws a [LibGit2Error] if error occured.
-Pointer<git_remote> createWithFetchSpec({
+/// The returned remote must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_remote> createAnonymous({
   required Pointer<git_repository> repoPointer,
-  required String name,
   required String url,
-  required String fetch,
 }) {
   final out = calloc<Pointer<git_remote>>();
-  final nameC = name.toChar();
   final urlC = url.toChar();
-  final fetchC = fetch.toChar();
-  final error = libgit2.git_remote_create_with_fetchspec(
-    out,
-    repoPointer,
-    nameC,
-    urlC,
-    fetchC,
-  );
+  final error = libgit2.git_remote_create_anonymous(out, repoPointer, urlC);
 
   final result = out.value;
 
   calloc.free(out);
-  calloc.free(nameC);
   calloc.free(urlC);
-  calloc.free(fetchC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Create a remote without a name in a detached repository.
+///
+/// The returned remote must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_remote> createDetached({required String url}) {
+  final out = calloc<Pointer<git_remote>>();
+  final urlC = url.toChar();
+  final error = libgit2.git_remote_create_detached(out, urlC);
+
+  final result = out.value;
+
+  calloc.free(out);
+  calloc.free(urlC);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -218,12 +258,16 @@ void setPushUrl({
 }
 
 /// Get the remote's name.
+///
+/// Returns the name of the remote or an empty string if the remote is anonymous.
 String name(Pointer<git_remote> remote) {
   final result = libgit2.git_remote_name(remote);
   return result == nullptr ? '' : result.toDartString();
 }
 
 /// Get the remote's url.
+///
+/// Returns the URL of the remote repository.
 String url(Pointer<git_remote> remote) {
   return libgit2.git_remote_url(remote).toDartString();
 }
@@ -328,7 +372,13 @@ void addPush({
 /// to a limitation of the git protocol (over TCP or SSH) which starts up a
 /// specific binary which can only do the one or the other.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [direction] specifies whether this connection will be used for fetching or pushing.
+/// [callbacks] provides callbacks for the remote connection.
+/// [proxyOption] can be 'auto' to try to auto-detect the proxy from the git
+/// configuration or some specified url. By default connection isn't done
+/// through proxy.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void connect({
   required Pointer<git_remote> remotePointer,
   required git_direction direction,
@@ -411,7 +461,16 @@ List<Map<String, Object?>> lsRemotes(Pointer<git_remote> remote) {
 /// Convenience function to connect to a remote, download the data, disconnect
 /// and update the remote-tracking branches.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [refspecs] is the list of refspecs to use for this fetch. Defaults to the
+/// base refspecs.
+/// [prune] determines whether to perform a prune after the fetch.
+/// [reflogMessage] is the message to insert into the reflogs. Default is "fetch".
+/// [proxyOption] can be 'auto' to try to auto-detect the proxy from the git
+/// configuration or some specified url. By default connection isn't done
+/// through proxy.
+/// [callbacks] provides callbacks for the fetch operation.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void fetch({
   required Pointer<git_remote> remotePointer,
   required List<String> refspecs,
@@ -468,7 +527,14 @@ void fetch({
 
 /// Perform a push.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// [refspecs] is the list of refspecs to use for pushing. Defaults to the
+/// configured refspecs.
+/// [proxyOption] can be 'auto' to try to auto-detect the proxy from the git
+/// configuration or some specified url. By default connection isn't done
+/// through proxy.
+/// [callbacks] provides callbacks for the push operation.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void push({
   required Pointer<git_remote> remotePointer,
   required List<String> refspecs,
@@ -568,6 +634,10 @@ void stop(Pointer<git_remote> remote) {
 void free(Pointer<git_remote> remote) => libgit2.git_remote_free(remote);
 
 /// Initializes git_proxy_options structure.
+///
+/// [proxyOption] can be 'auto' to try to auto-detect the proxy from the git
+/// configuration or some specified url. By default connection isn't done
+/// through proxy.
 Pointer<git_proxy_options> _proxyOptionsInit(String? proxyOption) {
   final proxyOptions = calloc<git_proxy_options>();
   libgit2.git_proxy_options_init(proxyOptions, GIT_PROXY_OPTIONS_VERSION);
@@ -582,4 +652,40 @@ Pointer<git_proxy_options> _proxyOptionsInit(String? proxyOption) {
   }
 
   return proxyOptions;
+}
+
+/// Add a remote with a custom fetch refspec to the repository's configuration.
+/// The returned remote must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_remote> createWithFetchSpec({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required String url,
+  required String fetch,
+}) {
+  final out = calloc<Pointer<git_remote>>();
+  final nameC = name.toChar();
+  final urlC = url.toChar();
+  final fetchC = fetch.toChar();
+  final error = libgit2.git_remote_create_with_fetchspec(
+    out,
+    repoPointer,
+    nameC,
+    urlC,
+    fetchC,
+  );
+
+  final result = out.value;
+
+  calloc.free(out);
+  calloc.free(nameC);
+  calloc.free(urlC);
+  calloc.free(fetchC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
 }

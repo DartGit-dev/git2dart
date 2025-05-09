@@ -43,7 +43,7 @@ void main() {
       expect(submodule.headOid?.sha, submoduleHeadSha);
       expect(submodule.indexOid?.sha, submoduleHeadSha);
       expect(submodule.workdirOid?.sha, null);
-      expect(submodule.ignore, GitSubmoduleIgnore.none);
+      expect(submodule.ignoreRule, GitSubmoduleIgnore.none);
       expect(submodule.updateRule, GitSubmoduleUpdate.checkout);
       expect(submodule.toString(), contains('Submodule{'));
     });
@@ -56,8 +56,11 @@ void main() {
     });
 
     test('inits and updates', () {
-      final submoduleFilePath =
-          p.join(repo.workdir, testSubmodule, 'master.txt');
+      final submoduleFilePath = p.join(
+        repo.workdir,
+        testSubmodule,
+        'master.txt',
+      );
       expect(File(submoduleFilePath).existsSync(), false);
 
       Submodule.init(repo: repo, name: testSubmodule);
@@ -100,11 +103,13 @@ void main() {
       );
     });
 
-    test('throws when trying to open repository for not initialized submodule',
-        () {
-      final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
-      expect(() => submodule.open(), throwsA(isA<LibGit2Error>()));
-    });
+    test(
+      'throws when trying to open repository for not initialized submodule',
+      () {
+        final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
+        expect(() => submodule.open(), throwsA(isA<LibGit2Error>()));
+      },
+    );
 
     test('adds submodule', () {
       final submodule = Submodule.add(
@@ -121,11 +126,8 @@ void main() {
 
     test('throws when trying to add submodule with wrong url', () {
       expect(
-        () => Submodule.add(
-          repo: repo,
-          url: 'https://wrong.url/',
-          path: 'test',
-        ),
+        () =>
+            Submodule.add(repo: repo, url: 'https://wrong.url/', path: 'test'),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -145,12 +147,12 @@ void main() {
       final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
       expect(submodule.url, submoduleUrl);
       expect(submodule.branch, '');
-      expect(submodule.ignore, GitSubmoduleIgnore.none);
+      expect(submodule.ignoreRule, GitSubmoduleIgnore.none);
       expect(submodule.updateRule, GitSubmoduleUpdate.checkout);
 
       submodule.url = 'updated';
       submodule.branch = 'updated';
-      submodule.ignore = GitSubmoduleIgnore.all;
+      submodule.ignoreRule = GitSubmoduleIgnore.all;
       submodule.updateRule = GitSubmoduleUpdate.rebase;
 
       final updatedSubmodule = Submodule.lookup(
@@ -159,7 +161,7 @@ void main() {
       );
       expect(updatedSubmodule.url, 'updated');
       expect(updatedSubmodule.branch, 'updated');
-      expect(updatedSubmodule.ignore, GitSubmoduleIgnore.all);
+      expect(updatedSubmodule.ignoreRule, GitSubmoduleIgnore.all);
       expect(updatedSubmodule.updateRule, GitSubmoduleUpdate.rebase);
     });
 
@@ -206,37 +208,28 @@ void main() {
 
     test('returns status for a submodule', () {
       final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
-      expect(
-        submodule.status(),
-        {
-          GitSubmoduleStatus.inHead,
-          GitSubmoduleStatus.inIndex,
-          GitSubmoduleStatus.inConfig,
-          GitSubmoduleStatus.workdirUninitialized,
-        },
-      );
+      expect(submodule.status(), {
+        GitSubmoduleStatus.inHead,
+        GitSubmoduleStatus.inIndex,
+        GitSubmoduleStatus.inConfig,
+        GitSubmoduleStatus.workdirUninitialized,
+      });
 
       Submodule.update(repo: repo, name: testSubmodule, init: true);
-      expect(
-        submodule.status(),
-        {
-          GitSubmoduleStatus.inHead,
-          GitSubmoduleStatus.inIndex,
-          GitSubmoduleStatus.inConfig,
-          GitSubmoduleStatus.inWorkdir,
-          GitSubmoduleStatus.workdirUntracked,
-        },
-      );
+      expect(submodule.status(), {
+        GitSubmoduleStatus.inHead,
+        GitSubmoduleStatus.inIndex,
+        GitSubmoduleStatus.inConfig,
+        GitSubmoduleStatus.inWorkdir,
+        GitSubmoduleStatus.workdirUntracked,
+      });
 
-      expect(
-        submodule.status(ignore: GitSubmoduleIgnore.all),
-        {
-          GitSubmoduleStatus.inHead,
-          GitSubmoduleStatus.inIndex,
-          GitSubmoduleStatus.inConfig,
-          GitSubmoduleStatus.inWorkdir,
-        },
-      );
+      expect(submodule.status(ignore: GitSubmoduleIgnore.all), {
+        GitSubmoduleStatus.inHead,
+        GitSubmoduleStatus.inIndex,
+        GitSubmoduleStatus.inConfig,
+        GitSubmoduleStatus.inWorkdir,
+      });
     });
 
     test('manually releases allocated memory', () {

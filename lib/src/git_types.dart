@@ -9,6 +9,7 @@ enum ReferenceType {
   /// A reference that points at another reference.
   symbolic(2),
 
+  /// All reference types.
   all(3);
 
   const ReferenceType(this.value);
@@ -17,11 +18,22 @@ enum ReferenceType {
 
 /// Valid modes for index and tree entries.
 enum GitFilemode {
+  /// File is unreadable.
   unreadable(0),
+
+  /// Directory (tree) entry.
   tree(16384),
+
+  /// Regular file (blob) entry.
   blob(33188),
+
+  /// Executable file (blob) entry.
   blobExecutable(33261),
+
+  /// Symbolic link entry.
   link(40960),
+
+  /// Submodule (commit) entry.
   commit(57344);
 
   const GitFilemode(this.value);
@@ -36,7 +48,7 @@ enum GitSort {
 
   /// Sort the repository contents in topological order (no parents before
   /// all of its children are shown); this sorting mode can be combined
-  /// with time sorting to produce `git`'s `--date-order``.
+  /// with time sorting to produce `git`'s `--date-order`.
   topological(1),
 
   /// Sort the repository contents by commit time;
@@ -79,6 +91,18 @@ enum GitObject {
 
   const GitObject(this.value);
   final int value;
+
+  static GitObject fromValue(int value) => switch (value) {
+    -2 => any,
+    -1 => invalid,
+    1 => commit,
+    2 => tree,
+    3 => blob,
+    4 => tag,
+    6 => offsetDelta,
+    7 => refDelta,
+    _ => throw ArgumentError('Unknown value for GitObject: $value'),
+  };
 }
 
 /// Revparse flags, indicate the intended behavior of the spec.
@@ -98,8 +122,13 @@ enum GitRevSpec {
 
 /// Basic type of any Git branch.
 enum GitBranch {
+  /// Local branch.
   local(1),
+
+  /// Remote branch.
   remote(2),
+
+  /// All branch types.
   all(3);
 
   const GitBranch(this.value);
@@ -109,25 +138,52 @@ enum GitBranch {
 /// Status flags for a single file.
 ///
 /// A combination of these values will be returned to indicate the status of
-/// a file.  Status compares the working directory, the index, and the
-/// current HEAD of the repository.  The `GitStatus.index` set of flags
+/// a file. Status compares the working directory, the index, and the
+/// current HEAD of the repository. The `GitStatus.index` set of flags
 /// represents the status of file in the index relative to the HEAD, and the
 /// `GitStatus.wt` set of flags represent the status of the file in the
 /// working directory relative to the index.
 enum GitStatus {
+  /// No changes.
   current(0),
+
+  /// New file in index.
   indexNew(1),
+
+  /// Modified file in index.
   indexModified(2),
+
+  /// Deleted file in index.
   indexDeleted(4),
+
+  /// Renamed file in index.
   indexRenamed(8),
+
+  /// Type changed file in index.
   indexTypeChange(16),
+
+  /// New file in working directory.
   wtNew(128),
+
+  /// Modified file in working directory.
   wtModified(256),
+
+  /// Deleted file in working directory.
   wtDeleted(512),
+
+  /// Type changed file in working directory.
   wtTypeChange(1024),
+
+  /// Renamed file in working directory.
   wtRenamed(2048),
+
+  /// Unreadable file in working directory.
   wtUnreadable(4096),
+
+  /// Ignored file.
   ignored(16384),
+
+  /// Conflicted file.
   conflicted(32768);
 
   const GitStatus(this.value);
@@ -180,17 +236,40 @@ enum GitMergePreference {
 /// These values represent possible states for the repository to be in,
 /// based on the current operation which is ongoing.
 enum GitRepositoryState {
+  /// Normal state, no operation in progress.
   none(0),
+
+  /// Merge in progress.
   merge(1),
+
+  /// Revert in progress.
   revert(2),
+
+  /// Revert sequence in progress.
   revertSequence(3),
+
+  /// Cherry-pick in progress.
   cherrypick(4),
+
+  /// Cherry-pick sequence in progress.
   cherrypickSequence(5),
+
+  /// Bisect in progress.
   bisect(6),
+
+  /// Rebase in progress.
   rebase(7),
+
+  /// Interactive rebase in progress.
   rebaseInteractive(8),
+
+  /// Rebase merge in progress.
   rebaseMerge(9),
+
+  /// Apply mailbox in progress.
   applyMailbox(10),
+
+  /// Apply mailbox or rebase in progress.
   applyMailboxOrRebase(11);
 
   const GitRepositoryState(this.value);
@@ -200,12 +279,12 @@ enum GitRepositoryState {
 /// Flags for merge options.
 enum GitMergeFlag {
   /// Detect renames that occur between the common ancestor and the "ours"
-  /// side or the common ancestor and the "theirs" side.  This will enable
+  /// side or the common ancestor and the "theirs" side. This will enable
   /// the ability to merge between a modified and renamed file.
   findRenames(1),
 
   /// If a conflict occurs, exit immediately instead of attempting to
-  /// continue resolving conflicts.  The merge operation will fail with
+  /// continue resolving conflicts. The merge operation will fail with
   /// and no index will be returned.
   failOnConflict(2),
 
@@ -292,7 +371,7 @@ enum GitMergeFileFlag {
 /// Checkout behavior flags.
 ///
 /// In libgit2, checkout is used to update the working directory and index
-/// to match a target tree.  Unlike git checkout, it does not move the HEAD
+/// to match a target tree. Unlike git checkout, it does not move the HEAD
 /// commit for you - use `setHead` or the like to do that.
 enum GitCheckout {
   /// Default is a dry run, no actual updates.
@@ -390,7 +469,7 @@ enum GitReset {
   final int value;
 }
 
-/// Flags for diff options.  A combination of these flags can be passed.
+/// Flags for diff options. A combination of these flags can be passed.
 enum GitDiff {
   /// Normal diff, the default.
   normal(0),
@@ -424,7 +503,7 @@ enum GitDiff {
   includeTypechange(64),
 
   /// Even with [GitDiff.includeTypechange], blob->tree changes still
-  /// generally show as a DELETED blob.  This flag tries to correctly
+  /// generally show as a DELETED blob. This flag tries to correctly
   /// label blob->tree transitions as TYPECHANGE records with new_file's
   /// mode set to tree. Note: the tree SHA will not be available.
   includeTypechangeTrees(128),
@@ -450,7 +529,7 @@ enum GitDiff {
   /// specified, all children will be included.
   disablePathspecMatch(4096),
 
-  /// Disable updating of the `binary` flag in delta records.  This is
+  /// Disable updating of the `binary` flag in delta records. This is
   /// useful when iterating over a diff if you don't need hunk and data
   /// callbacks and want to avoid having to load file completely.
   skipBinaryCheck(8192),
@@ -459,7 +538,7 @@ enum GitDiff {
   /// core Git, it scans the contents for IGNORED and UNTRACKED files.
   /// If *all* contents are IGNORED, then the directory is IGNORED; if
   /// any contents are not IGNORED, then the directory is UNTRACKED.
-  /// This is extra work that may not matter in many cases.  This flag
+  /// This is extra work that may not matter in many cases. This flag
   /// turns off that scan and immediately labels an untracked directory
   /// as UNTRACKED (changing the behavior to not match core Git).
   enableFastUntrackedDirs(16384),
@@ -503,7 +582,7 @@ enum GitDiff {
   showUntrackedContent(33554432),
 
   /// When generating output, include the names of unmodified files if
-  /// they are included in the git diff.  Normally these are skipped in
+  /// they are included in the git diff. Normally these are skipped in
   /// the formats that list files (e.g. name-only, name-status, raw).
   /// Even with this, these will not be included in patch format.
   showUnmodified(67108864),
@@ -661,7 +740,7 @@ enum GitDiffFind {
   ///
   /// Normally, [GitDiffFind.andBreakRewrites] will measure the self-
   /// similarity of modified files and split the ones that have changed a
-  /// lot into a DELETE / ADD pair.  Then the sides of that pair will be
+  /// lot into a DELETE / ADD pair. Then the sides of that pair will be
   /// considered candidates for rename and copy detection.
   ///
   /// If you add this flag in and the split pair is *not* used for an
@@ -683,8 +762,13 @@ enum GitDiffFind {
 
 /// Line origin, describing where a line came from.
 enum GitDiffLine {
+  /// Line is from the common ancestor.
   context(32),
+
+  /// Line is from the new file.
   addition(43),
+
+  /// Line is from the old file.
   deletion(45),
 
   /// Both files have no LF at end.
@@ -696,7 +780,10 @@ enum GitDiffLine {
   /// Old has LF at end, new does not.
   delEOFNL(60),
 
+  /// File header.
   fileHeader(70),
+
+  /// Hunk header.
   hunkHeader(72),
 
   /// For "Binary files x and y differ"
@@ -787,6 +874,7 @@ enum GitStash {
 
 /// Stash application flags.
 enum GitStashApply {
+  /// Default options.
   defaults(0),
 
   /// Try to reinstate not only the working tree's changes,
@@ -799,7 +887,10 @@ enum GitStashApply {
 
 /// Direction of the connection.
 enum GitDirection {
+  /// Fetch from remote.
   fetch(0),
+
+  /// Push to remote.
   push(1);
 
   const GitDirection(this.value);
@@ -925,11 +1016,22 @@ enum GitFeature {
 
 /// Combinations of these values determine the lookup order for attribute.
 enum GitAttributeCheck {
+  /// Check file first, then index.
   fileThenIndex(0),
+
+  /// Check index first, then file.
   indexThenFile(1),
+
+  /// Check index only.
   indexOnly(2),
+
+  /// Do not check system attributes.
   noSystem(4),
+
+  /// Include HEAD in the check.
   includeHead(8),
+
+  /// Include commit in the check.
   includeCommit(16);
 
   const GitAttributeCheck(this.value);
@@ -953,13 +1055,13 @@ enum GitBlameFlag {
   trackCopiesSameCommitMoves(2),
 
   /// Track lines that have been copied from another file that exists
-  /// in the same commit (like `git blame -CC`).  Implies SAME_FILE.
+  /// in the same commit (like `git blame -CC`). Implies SAME_FILE.
   ///
   /// This is not yet implemented and reserved for future use.
   trackCopiesSameCommitCopies(4),
 
   /// Track lines that have been copied from another file that exists in
-  /// *any* commit (like `git blame -CCC`).  Implies SAME_COMMIT_COPIES.
+  /// *any* commit (like `git blame -CCC`). Implies SAME_COMMIT_COPIES.
   ///
   /// This is not yet implemented and reserved for future use.
   trackCopiesAnyCommitCopies(8),
@@ -1036,11 +1138,11 @@ enum GitDescribeStrategy {
 /// configuration value which says how deeply to look at the working
 /// directory when getting submodule status.
 enum GitSubmoduleIgnore {
-  // Use the submodule's configuration.
+  /// Use the submodule's configuration.
   unspecified(-1),
 
   /// Don't ignore any change - i.e. even an untracked file, will mark the
-  /// submodule as dirty.  Ignored files are still ignored, of course.
+  /// submodule as dirty. Ignored files are still ignored, of course.
   none(1),
 
   /// Ignore untracked files; only changes to tracked files, or the index or
@@ -1062,7 +1164,7 @@ enum GitSubmoduleIgnore {
 ///
 /// These values represent settings for the `submodule.$name.update`
 /// configuration value which says how to handle `git submodule update` for
-/// this submodule.  The value is usually set in the `.gitmodules` file and
+/// this submodule. The value is usually set in the `.gitmodules` file and
 /// copied to `.git/config` when the submodule is initialized.
 enum GitSubmoduleUpdate {
   /// The default; when a submodule is updated, checkout the new detached HEAD
@@ -1086,14 +1188,14 @@ enum GitSubmoduleUpdate {
 }
 
 /// A combination of these flags will be returned to describe the status of a
-/// submodule.  Depending on the "ignore" property of the submodule, some of
+/// submodule. Depending on the "ignore" property of the submodule, some of
 /// the flags may never be returned because they indicate changes that are
 /// supposed to be ignored.
 ///
 /// Submodule info is contained in 4 places: the HEAD tree, the index, config
-/// files (both .git/config and .gitmodules), and the working directory.  Any
+/// files (both .git/config and .gitmodules), and the working directory. Any
 /// or all of those places might be missing information about the submodule
-/// depending on what state the repo is in.  We consider all four places to
+/// depending on what state the repo is in. We consider all four places to
 /// build the combination of status flags.
 enum GitSubmoduleStatus {
   /// Superproject head contains submodule.
@@ -1144,9 +1246,16 @@ enum GitSubmoduleStatus {
 
 /// Capabilities of system that affect index actions.
 enum GitIndexCapability {
+  /// Ignore case when comparing file names.
   ignoreCase(1),
+
+  /// Do not use file mode.
   noFileMode(2),
+
+  /// Do not use symbolic links.
   noSymlinks(4),
+
+  /// Use owner's capabilities.
   fromOwner(-1);
 
   const GitIndexCapability(this.value);
@@ -1176,6 +1285,7 @@ enum GitBlobFilter {
 
 /// Flags for APIs that add files matching pathspec.
 enum GitIndexAddOption {
+  /// Default options.
   defaults(0),
 
   /// Skip the checking of ignore rules.

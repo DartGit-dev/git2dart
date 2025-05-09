@@ -10,6 +10,10 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing Git configuration.
+///
+/// This class provides methods to read, write, and manage Git configuration
+/// settings. It supports both single-value and multi-value configurations.
 class Config with IterableMixin<ConfigEntry> {
   /// Initializes a new instance of [Config] class from provided
   /// pointer to config object in memory.
@@ -51,38 +55,32 @@ class Config with IterableMixin<ConfigEntry> {
 
   /// Opens the system configuration file.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Config.system() {
     libgit2.git_libgit2_init();
 
     _configPointer = bindings.open(bindings.findSystem());
-    // coverage:ignore-start
     _finalizer.attach(this, _configPointer, detach: this);
-    // coverage:ignore-end
   }
 
   /// Opens the global configuration file.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Config.global() {
     libgit2.git_libgit2_init();
 
     _configPointer = bindings.open(bindings.findGlobal());
-    // coverage:ignore-start
     _finalizer.attach(this, _configPointer, detach: this);
-    // coverage:ignore-end
   }
 
   /// Opens the global XDG configuration file.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Config.xdg() {
     libgit2.git_libgit2_init();
 
     _configPointer = bindings.open(bindings.findXdg());
-    // coverage:ignore-start
     _finalizer.attach(this, _configPointer, detach: this);
-    // coverage:ignore-end
   }
 
   /// Pointer to memory address for allocated config object.
@@ -146,7 +144,7 @@ class Config with IterableMixin<ConfigEntry> {
   /// Deletes [variable] from the config file with the highest level
   /// (usually the local one).
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   void delete(String variable) =>
       bindings.delete(configPointer: _configPointer, variable: variable);
 
@@ -177,7 +175,7 @@ class Config with IterableMixin<ConfigEntry> {
   }) {
     bindings.setMultivar(
       configPointer: _configPointer,
-      variable: variable,
+      name: variable,
       regexp: regexp,
       value: value,
     );
@@ -190,8 +188,24 @@ class Config with IterableMixin<ConfigEntry> {
   void deleteMultivar({required String variable, required String regexp}) {
     bindings.deleteMultivar(
       configPointer: _configPointer,
-      variable: variable,
+      name: variable,
       regexp: regexp,
+    );
+  }
+
+  /// Iterates over all config variables matching a regular expression.
+  ///
+  /// The [callback] will be called for each variable that matches the [regexp].
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  void foreachMatch({
+    required String regexp,
+    required int Function(Pointer<git_config_entry>, Pointer<Void>) callback,
+  }) {
+    bindings.foreachMatch(
+      configPointer: _configPointer,
+      regexp: regexp,
+      callback: callback,
     );
   }
 
@@ -206,12 +220,11 @@ class Config with IterableMixin<ConfigEntry> {
       _ConfigIterator(bindings.iterator(_configPointer));
 }
 
-// coverage:ignore-start
 final _finalizer = Finalizer<Pointer<git_config>>(
   (pointer) => bindings.free(pointer),
 );
-// coverage:ignore-end
 
+/// A class representing a single Git configuration entry.
 @immutable
 class ConfigEntry extends Equatable {
   const ConfigEntry._({
@@ -221,13 +234,13 @@ class ConfigEntry extends Equatable {
     required this.level,
   });
 
-  /// Name of the entry (normalised).
+  /// Name of the entry (normalized).
   final String name;
 
   /// Value of the entry.
   final String value;
 
-  /// Depth of includes where this variable was found
+  /// Depth of includes where this variable was found.
   final int includeDepth;
 
   /// Which config file this was found in.
@@ -243,6 +256,7 @@ class ConfigEntry extends Equatable {
   List<Object?> get props => [name, value, includeDepth, level];
 }
 
+/// Iterator implementation for [Config] entries.
 class _ConfigIterator implements Iterator<ConfigEntry> {
   _ConfigIterator(this._iteratorPointer) {
     _iteratorFinalizer.attach(this, _iteratorPointer);
@@ -287,8 +301,6 @@ class _ConfigIterator implements Iterator<ConfigEntry> {
   }
 }
 
-// coverage:ignore-start
 final _iteratorFinalizer = Finalizer<Pointer<git_config_iterator>>(
   (pointer) => bindings.freeIterator(pointer),
 );
-// coverage:ignore-end

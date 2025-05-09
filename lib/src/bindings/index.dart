@@ -44,8 +44,27 @@ void setCapabilities({
 }
 
 /// Get the full path to the index file on disk.
-String path(Pointer<git_index> index) {
-  return libgit2.git_index_path(index).toDartString();
+///
+/// Returns the path to the index file, or null if the index is in-memory.
+String? getPath(Pointer<git_index> index) {
+  final path = libgit2.git_index_path(index);
+  return path == nullptr ? null : path.toDartString();
+}
+
+/// Find the first position of any entries which point to given path in the Git
+/// index.
+///
+/// Returns the position of the entry, or -1 if not found.
+int findIndex({
+  required Pointer<git_index> indexPointer,
+  required String path,
+}) {
+  final pathC = path.toChar();
+  final result = libgit2.git_index_find(nullptr, indexPointer, pathC);
+
+  calloc.free(pathC);
+
+  return result;
 }
 
 /// Update the contents of an existing index object in memory by reading from
@@ -120,17 +139,6 @@ Pointer<git_oid> writeTreeTo({
   } else {
     return out;
   }
-}
-
-/// Find the first position of any entries which point to given path in the Git
-/// index.
-bool find({required Pointer<git_index> indexPointer, required String path}) {
-  final pathC = path.toChar();
-  final result = libgit2.git_index_find(nullptr, indexPointer, pathC);
-
-  calloc.free(pathC);
-
-  return result != git_error_code.GIT_ENOTFOUND || false;
 }
 
 /// Get the count of entries currently in the index.
@@ -280,41 +288,26 @@ void addFromBuffer({
 
 /// Add or update index entries matching files in the working directory.
 ///
-/// The [pathspec] is a list of file paths to add/update.
+/// This method will add all files in the working directory that match the given
+/// [pathspec] to the index. If [pathspec] is null, all files will be added.
+///
+/// This method will respect gitignore rules.
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void addAll({
   required Pointer<git_index> indexPointer,
-  required List<String> pathspec,
+  required Pointer<git_strarray> pathspec,
   required int flags,
-  required int Function(
-    Pointer<Char> path,
-    Pointer<Char> matchedPathspec,
-    Pointer<Void> payload,
-  )
-  callback,
+  required git_index_matched_path_cb callback,
+  required Pointer<Void> payload,
 }) {
-  final pathspecC = pathspec.map((p) => p.toChar()).toList();
-  final pathspecArray = calloc<git_strarray>();
-  pathspecArray.ref.count = pathspec.length;
-  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
-  for (var i = 0; i < pathspec.length; i++) {
-    pathspecArray.ref.strings[i] = pathspecC[i];
-  }
-
   final error = libgit2.git_index_add_all(
     indexPointer,
-    pathspecArray,
+    pathspec,
     flags,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
+    callback,
+    payload,
   );
-
-  for (var i = 0; i < pathspec.length; i++) {
-    calloc.free(pathspecC[i]);
-  }
-  calloc.free(pathspecArray.ref.strings);
-  calloc.free(pathspecArray);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -323,39 +316,25 @@ void addAll({
 
 /// Update all index entries to match the working directory.
 ///
-/// The [pathspec] is a list of file paths to update.
+/// This method will update all files in the working directory that match the
+/// given [pathspec] to the index. If [pathspec] is null, all files will be
+/// updated.
+///
+/// This method will respect gitignore rules.
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void updateAll({
   required Pointer<git_index> indexPointer,
-  required List<String> pathspec,
-  required int Function(
-    Pointer<Char> path,
-    Pointer<Char> matchedPathspec,
-    Pointer<Void> payload,
-  )
-  callback,
+  required Pointer<git_strarray> pathspec,
+  required git_index_matched_path_cb callback,
+  required Pointer<Void> payload,
 }) {
-  final pathspecC = pathspec.map((p) => p.toChar()).toList();
-  final pathspecArray = calloc<git_strarray>();
-  pathspecArray.ref.count = pathspec.length;
-  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
-  for (var i = 0; i < pathspec.length; i++) {
-    pathspecArray.ref.strings[i] = pathspecC[i];
-  }
-
   final error = libgit2.git_index_update_all(
     indexPointer,
-    pathspecArray,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
+    pathspec,
+    callback,
+    payload,
   );
-
-  for (var i = 0; i < pathspec.length; i++) {
-    calloc.free(pathspecC[i]);
-  }
-  calloc.free(pathspecArray.ref.strings);
-  calloc.free(pathspecArray);
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -384,52 +363,115 @@ void remove({
   }
 }
 
+/// Remove an index entry corresponding to a file on disk.
+///
+/// The file [path] must be relative to the repository's working folder.
+///
+/// This method will fail in bare index instances.
+///
+/// If this file currently is the result of a merge conflict, this file will no
+/// longer be marked as conflicting. The data about the conflict will be moved
+/// to the "resolve undo" (REUC) section.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void removeByPath({
+  required Pointer<git_index> indexPointer,
+  required String path,
+}) {
+  final pathC = path.toChar();
+  final error = libgit2.git_index_remove_bypath(indexPointer, pathC);
+
+  calloc.free(pathC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
 /// Remove all entries from the index under a given directory.
+///
+/// The [dir] path must be relative to the repository's working folder.
+///
+/// This method will fail in bare index instances.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void removeDirectory({
   required Pointer<git_index> indexPointer,
   required String dir,
   required int stage,
 }) {
   final dirC = dir.toChar();
-  libgit2.git_index_remove_directory(indexPointer, dirC, stage);
+  final error = libgit2.git_index_remove_directory(indexPointer, dirC, stage);
+
   calloc.free(dirC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
 /// Remove all matching index entries.
 ///
-/// The [pathspec] is a list of file paths to remove.
+/// If [pathspec] is null, all files will be removed.
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void removeAll({
   required Pointer<git_index> indexPointer,
-  required List<String> pathspec,
-  required int Function(
-    Pointer<Char> path,
-    Pointer<Char> matchedPathspec,
-    Pointer<Void> payload,
-  )
-  callback,
+  required Pointer<git_strarray> pathspec,
+  required git_index_matched_path_cb callback,
+  required Pointer<Void> payload,
 }) {
-  final pathspecC = pathspec.map((p) => p.toChar()).toList();
-  final pathspecArray = calloc<git_strarray>();
-  pathspecArray.ref.count = pathspec.length;
-  pathspecArray.ref.strings = calloc<Pointer<Char>>(pathspec.length);
-  for (var i = 0; i < pathspec.length; i++) {
-    pathspecArray.ref.strings[i] = pathspecC[i];
-  }
-
   final error = libgit2.git_index_remove_all(
     indexPointer,
-    pathspecArray,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
+    pathspec,
+    callback,
+    payload,
   );
 
-  for (var i = 0; i < pathspec.length; i++) {
-    calloc.free(pathspecC[i]);
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
   }
-  calloc.free(pathspecArray.ref.strings);
-  calloc.free(pathspecArray);
+}
+
+/// Update the contents of an index entry in the index from a file on disk.
+///
+/// The file [path] must be relative to the repository's working folder.
+///
+/// This method will fail in bare index instances.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void updateByPath({
+  required Pointer<git_index> indexPointer,
+  required String path,
+}) {
+  final pathC = path.toChar();
+  final error = libgit2.git_index_add_bypath(indexPointer, pathC);
+
+  calloc.free(pathC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Update the contents of an index entry in the index from a buffer in memory.
+///
+/// This method will create a blob in the repository that owns the index and
+/// then update the index entry to point to the new blob.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void updateByBuffer({
+  required Pointer<git_index> indexPointer,
+  required Pointer<git_index_entry> entry,
+  required Pointer<Void> buffer,
+  required int len,
+}) {
+  final error = libgit2.git_index_add_frombuffer(
+    indexPointer,
+    entry,
+    buffer,
+    len,
+  );
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
@@ -557,4 +599,42 @@ int findPrefix({
   final result = libgit2.git_index_find_prefix(size, indexPointer, prefixC);
   calloc.free(prefixC);
   return result;
+}
+
+/// Get the repository that owns this index.
+///
+/// Returns the repository that owns this index, or null if the index is not
+/// associated with a repository.
+Pointer<git_repository>? getOwner(Pointer<git_index> index) {
+  return libgit2.git_index_owner(index);
+}
+
+/// Get the checksum of the index file.
+///
+/// Returns the checksum of the index file, or null if the index is in-memory.
+Pointer<git_oid>? getChecksum(Pointer<git_index> index) {
+  return libgit2.git_index_checksum(index);
+}
+
+/// Get the version of the index file.
+///
+/// Returns the version of the index file.
+int getVersion(Pointer<git_index> index) {
+  return libgit2.git_index_version(index);
+}
+
+/// Set the version of the index file.
+///
+/// This can be used to override the default version of the index file.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void setVersion({
+  required Pointer<git_index> indexPointer,
+  required int version,
+}) {
+  final error = libgit2.git_index_set_version(indexPointer, version);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }

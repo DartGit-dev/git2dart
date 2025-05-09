@@ -242,8 +242,7 @@ void main() {
       expect(newTag.target, tag.oid);
     });
 
-    test(
-        'creates new annotated tag with already existing name '
+    test('creates new annotated tag with already existing name '
         'when force is set to true', () {
       final signature = Signature.create(
         name: 'Author',
@@ -280,8 +279,7 @@ void main() {
       expect(repo.tags.length, equals(2));
     });
 
-    test(
-        'creates new lightweight tag with already existing name '
+    test('creates new lightweight tag with already existing name '
         'when force is set to true', () {
       final tagName = tag.name;
       const targetSHA = 'f17d0d48eae3aa08cecf29128a35e310c97b3521';
@@ -345,21 +343,23 @@ void main() {
       );
     });
 
-    test('throws when trying to create lightweight tag with invalid target',
-        () {
-      expect(
-        () => Tag.createLightweight(
-          repo: repo,
-          tagName: '',
-          target: repo['0' * 40],
-          targetType: GitObject.commit,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to create lightweight tag with invalid target',
+      () {
+        expect(
+          () => Tag.createLightweight(
+            repo: repo,
+            tagName: '',
+            target: repo['0' * 40],
+            targetType: GitObject.commit,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('returns list of tags in repository', () {
-      expect(Tag.list(repo), ['v0.1', 'v0.2']);
+      expect(Tag.list(repo: repo), ['v0.1', 'v0.2']);
     });
 
     test('throws when trying to get list of tags and error occurs', () {
@@ -367,15 +367,15 @@ void main() {
     });
 
     test('deletes tag', () {
-      expect(Tag.list(repo), ['v0.1', 'v0.2']);
+      expect(Tag.list(repo: repo), ['v0.1', 'v0.2']);
 
-      Tag.delete(repo: repo, name: 'v0.2');
-      expect(Tag.list(repo), ['v0.1']);
+      Tag.delete(repo: repo, tagName: 'v0.2');
+      expect(Tag.list(repo: repo), ['v0.1']);
     });
 
     test('throws when trying to delete non existing tag', () {
       expect(
-        () => Tag.delete(repo: repo, name: 'not.there'),
+        () => Tag.delete(repo: repo, tagName: 'not.there'),
         throwsA(isA<LibGit2Error>()),
       );
     });

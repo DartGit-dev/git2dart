@@ -7,28 +7,42 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Get the type of a reference.
 ///
-/// Either direct or symbolic.
+/// Returns either [GIT_REFERENCE_DIRECT] for direct references (pointing to an OID)
+/// or [GIT_REFERENCE_SYMBOLIC] for symbolic references (pointing to another reference).
 git_reference_t referenceType(Pointer<git_reference> ref) =>
     libgit2.git_reference_type(ref);
 
 /// Get the OID pointed to by a direct reference.
 ///
-/// Only available if the reference is direct (i.e. an object id reference, not
-/// a symbolic one).
+/// This function is only available for direct references (those pointing to an OID).
+/// For symbolic references, use [resolve] to get the final target OID.
+///
+/// Returns a pointer to the OID that this reference points to.
 Pointer<git_oid> target(Pointer<git_reference> ref) =>
     libgit2.git_reference_target(ref);
 
+/// Get the target of a symbolic reference.
+///
+/// This function is only available for symbolic references. For direct references,
+/// use [target] to get the OID.
+///
+/// Returns the name of the reference that this symbolic reference points to.
+String symbolicTarget(Pointer<git_reference> ref) =>
+    libgit2.git_reference_symbolic_target(ref).toDartString();
+
 /// Resolve a symbolic reference to a direct reference.
 ///
-/// This method iteratively peels a symbolic reference until it resolves
-/// to a direct reference to an OID.
+/// This method iteratively peels a symbolic reference until it resolves to a
+/// direct reference to an OID. For example, if HEAD is a symbolic reference to
+/// refs/heads/master, and master is a direct reference to an OID, this will
+/// return the direct reference to that OID.
 ///
 /// If a direct reference is passed as an argument, a copy of that reference is
 /// returned.
 ///
 /// The returned reference must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reference cannot be resolved.
 Pointer<git_reference> resolve(Pointer<git_reference> ref) {
   final out = calloc<Pointer<git_reference>>();
   final error = libgit2.git_reference_resolve(out, ref);
@@ -44,12 +58,19 @@ Pointer<git_reference> resolve(Pointer<git_reference> ref) {
   }
 }
 
-/// Lookup a reference by name in a repository. The returned reference must be
-/// freed with [free].
+/// Lookup a reference by name in a repository.
 ///
-/// The name will be checked for validity.
+/// The name will be checked for validity. Valid reference names must follow
+/// one of two patterns:
+/// 1. Top-level names must contain only capital letters and underscores, and
+///    must begin and end with a letter (e.g., "HEAD", "ORIG_HEAD").
+/// 2. Names prefixed with "refs/" can be almost anything, but must avoid the
+///    characters '~', '^', ':', '\', '?', '[', '*', and the sequences ".."
+///    and "@{" which have special meaning to revparse.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// The returned reference must be freed with [free].
+///
+/// Throws a [LibGit2Error] if the reference cannot be found or is invalid.
 Pointer<git_reference> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -71,32 +92,41 @@ Pointer<git_reference> lookup({
 }
 
 /// Get the full name of a reference.
+///
+/// Returns the full name of the reference (e.g., "refs/heads/master").
 String name(Pointer<git_reference> ref) {
   return libgit2.git_reference_name(ref).toDartString();
 }
 
 /// Get the reference's short name.
 ///
-/// This will transform the reference name into a name "human-readable" version.
+/// This will transform the reference name into a "human-readable" version.
+/// For example:
+/// - "refs/heads/master" becomes "master"
+/// - "refs/remotes/origin/master" becomes "origin/master"
+/// - "refs/tags/v1.0" becomes "v1.0"
+///
 /// If no shortname is appropriate, it will return the full name.
 String shorthand(Pointer<git_reference> ref) {
   return libgit2.git_reference_shorthand(ref).toDartString();
 }
 
-/// Rename an existing reference. The returned reference must be freed with
-/// [free].
+/// Rename an existing reference.
 ///
-/// This method works for both direct and symbolic references.
+/// This method works for both direct and symbolic references. The new name will
+/// be checked for validity.
 ///
-/// The new name will be checked for validity.
+/// If [force] is false and there's already a reference with the given name,
+/// the renaming will fail.
 ///
-/// If the force flag is not enabled, and there's already a reference with the
-/// given name, the renaming will fail.
+/// If [logMessage] is provided, it will be used as the message for the reflog
+/// entry. The reflog entry will only be written if the reference belongs to the
+/// standard set (HEAD, branches, and remote-tracking branches) or if it already
+/// has a reflog.
 ///
-/// IMPORTANT: The user needs to write a proper reflog entry if the reflog is
-/// enabled for the repository. We only rename the reflog if it exists.
+/// The returned reference must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reference cannot be renamed.
 Pointer<git_reference> rename({
   required Pointer<git_reference> refPointer,
   required String newName,
@@ -105,7 +135,7 @@ Pointer<git_reference> rename({
 }) {
   final out = calloc<Pointer<git_reference>>();
   final newNameC = newName.toChar();
-  final forceC = force == true ? 1 : 0;
+  final forceC = force ? 1 : 0;
   final logMessageC = logMessage?.toChar() ?? nullptr;
   final error = libgit2.git_reference_rename(
     out,
@@ -128,9 +158,14 @@ Pointer<git_reference> rename({
   }
 }
 
-/// Fill a list with all the references that can be found in a repository.
+/// List all references in a repository.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Returns a list of all reference names that can be found in the repository.
+/// This includes all references in the standard locations (refs/heads/,
+/// refs/remotes/, refs/tags/, etc.) as well as any other references that
+/// might exist.
+///
+/// Throws a [LibGit2Error] if the references cannot be listed.
 List<String> list(Pointer<git_repository> repo) {
   final array = calloc<git_strarray>();
   final error = libgit2.git_reference_list(array, repo);
@@ -150,6 +185,8 @@ List<String> list(Pointer<git_repository> repo) {
 }
 
 /// Check if a reflog exists for the specified reference.
+///
+/// Returns true if the reference has a reflog, false otherwise.
 bool hasLog({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -159,14 +196,15 @@ bool hasLog({
 
   calloc.free(nameC);
 
-  return result == 1 || false;
+  return result == 1;
 }
 
 /// Ensure there is a reflog for a particular reference.
 ///
-/// Make sure that successive updates to the reference will append to its log.
+/// This will create a reflog for the reference if it doesn't already exist.
+/// Successive updates to the reference will append to its log.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reflog cannot be created.
 void ensureLog({
   required Pointer<git_repository> repoPointer,
   required String refName,
@@ -182,51 +220,58 @@ void ensureLog({
 }
 
 /// Check if a reference is a local branch.
+///
+/// Returns true if the reference is a local branch (starts with "refs/heads/").
 bool isBranch(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_branch(ref) == 1 || false;
+  return libgit2.git_reference_is_branch(ref) == 1;
 }
 
 /// Check if a reference is a note.
+///
+/// Returns true if the reference is a note (starts with "refs/notes/").
 bool isNote(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_note(ref) == 1 || false;
+  return libgit2.git_reference_is_note(ref) == 1;
 }
 
 /// Check if a reference is a remote tracking branch.
+///
+/// Returns true if the reference is a remote tracking branch
+/// (starts with "refs/remotes/").
 bool isRemote(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_remote(ref) == 1 || false;
+  return libgit2.git_reference_is_remote(ref) == 1;
 }
 
 /// Check if a reference is a tag.
+///
+/// Returns true if the reference is a tag (starts with "refs/tags/").
 bool isTag(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_tag(ref) == 1 || false;
+  return libgit2.git_reference_is_tag(ref) == 1;
 }
 
-/// Create a new direct reference and write it to the disk. The returned
-/// reference must be freed with [free].
+/// Create a new direct reference.
 ///
 /// A direct reference (also called an object id reference) refers directly to a
-/// specific object id (a.k.a. OID or SHA) in the repository. The id
-/// permanently refers to the object (although the reference itself can be
-/// moved). For example, in libgit2 the direct ref "refs/tags/v0.17.0" refers
-/// to OID 5b9fac39d8a76b9139667c26a63e6b3f204b3977.
+/// specific object id (OID) in the repository. The id permanently refers to the
+/// object (although the reference itself can be moved).
 ///
 /// Valid reference names must follow one of two patterns:
+/// 1. Top-level names must contain only capital letters and underscores, and
+///    must begin and end with a letter (e.g., "HEAD", "ORIG_HEAD").
+/// 2. Names prefixed with "refs/" can be almost anything, but must avoid the
+///    characters '~', '^', ':', '\', '?', '[', '*', and the sequences ".."
+///    and "@{" which have special meaning to revparse.
 ///
-/// Top-level names must contain only capital letters and underscores, and
-/// must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
-/// Names prefixed with "refs/" can be almost anything. You must avoid the
-/// characters '~', '^', ':', '\', '?', '[', and '*', and the sequences ".."
-/// and "@{" which have special meaning to revparse.
+/// If [force] is false and a reference already exists with the given name,
+/// the creation will fail.
 ///
-/// This function will throw a [LibGit2Error] if a reference already exists
-/// with the given name unless force is true, in which case it will be
-/// overwritten.
+/// If [logMessage] is provided, it will be used as the message for the reflog
+/// entry. The reflog entry will only be written if the reference belongs to the
+/// standard set (HEAD, branches, and remote-tracking branches) or if it already
+/// has a reflog.
 ///
-/// The message for the reflog will be ignored if the reference does not belong
-/// in the standard set (HEAD, branches and remote-tracking branches) and it
-/// does not have a reflog.
+/// The returned reference must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reference cannot be created.
 Pointer<git_reference> createDirect({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -236,7 +281,7 @@ Pointer<git_reference> createDirect({
 }) {
   final out = calloc<Pointer<git_reference>>();
   final nameC = name.toChar();
-  final forceC = force == true ? 1 : 0;
+  final forceC = force ? 1 : 0;
   final logMessageC = logMessage?.toChar() ?? nullptr;
   final error = libgit2.git_reference_create(
     out,
@@ -260,31 +305,29 @@ Pointer<git_reference> createDirect({
   }
 }
 
-/// Create a new symbolic reference and write it to the disk. The returned
-/// reference must be freed with [free].
+/// Create a new symbolic reference.
 ///
-/// A symbolic reference is a reference name that refers to another reference
-/// name. If the other name moves, the symbolic name will move, too. As a
-/// simple example, the "HEAD" reference might refer to "refs/heads/master"
-/// while on the "master" branch of a repository.
+/// A symbolic reference points to another reference rather than directly to an
+/// OID. For example, HEAD is typically a symbolic reference pointing to a branch.
 ///
 /// Valid reference names must follow one of two patterns:
+/// 1. Top-level names must contain only capital letters and underscores, and
+///    must begin and end with a letter (e.g., "HEAD", "ORIG_HEAD").
+/// 2. Names prefixed with "refs/" can be almost anything, but must avoid the
+///    characters '~', '^', ':', '\', '?', '[', '*', and the sequences ".."
+///    and "@{" which have special meaning to revparse.
 ///
-/// Top-level names must contain only capital letters and underscores, and must
-/// begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
-/// Names prefixed with "refs/" can be almost anything. You must avoid the
-/// characters '~', '^', ':', '\', '?', '[', and '*', and the sequences ".." and
-/// "@{" which have special meaning to revparse.
+/// If [force] is false and a reference already exists with the given name,
+/// the creation will fail.
 ///
-/// This function will throw an [LibGit2Error] if a reference already exists
-/// with the given name unless force is true, in which case it will be
-/// overwritten.
+/// If [logMessage] is provided, it will be used as the message for the reflog
+/// entry. The reflog entry will only be written if the reference belongs to the
+/// standard set (HEAD, branches, and remote-tracking branches) or if it already
+/// has a reflog.
 ///
-/// The message for the reflog will be ignored if the reference does not belong
-/// in the standard set (HEAD, branches and remote-tracking branches) and it
-/// does not have a reflog.
+/// The returned reference must be freed with [free].
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reference cannot be created.
 Pointer<git_reference> createSymbolic({
   required Pointer<git_repository> repoPointer,
   required String name,
@@ -295,7 +338,7 @@ Pointer<git_reference> createSymbolic({
   final out = calloc<Pointer<git_reference>>();
   final nameC = name.toChar();
   final targetC = target.toChar();
-  final forceC = force == true ? 1 : 0;
+  final forceC = force ? 1 : 0;
   final logMessageC = logMessage?.toChar() ?? nullptr;
   final error = libgit2.git_reference_symbolic_create(
     out,
@@ -320,12 +363,109 @@ Pointer<git_reference> createSymbolic({
   }
 }
 
-/// Delete an existing reference.
+/// Update a direct reference to point to a new OID.
 ///
-/// This method works for both direct and symbolic references.
-/// The reference will be immediately removed on disk but the memory will not
-/// be freed.
-void delete(Pointer<git_reference> ref) => libgit2.git_reference_delete(ref);
+/// This function can only be used on direct references. For symbolic references,
+/// use [updateSymbolic] instead.
+///
+/// If [logMessage] is provided, it will be used as the message for the reflog
+/// entry. The reflog entry will only be written if the reference belongs to the
+/// standard set (HEAD, branches, and remote-tracking branches) or if it already
+/// has a reflog.
+///
+/// The returned reference must be freed with [free].
+///
+/// Throws a [LibGit2Error] if the reference cannot be updated.
+Pointer<git_reference> updateDirect({
+  required Pointer<git_reference> refPointer,
+  required Pointer<git_oid> oidPointer,
+  String? logMessage,
+}) {
+  final out = calloc<Pointer<git_reference>>();
+  final logMessageC = logMessage?.toChar() ?? nullptr;
+  final error = libgit2.git_reference_set_target(
+    out,
+    refPointer,
+    oidPointer,
+    logMessageC,
+  );
+
+  final result = out.value;
+
+  calloc.free(out);
+  calloc.free(logMessageC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Update a symbolic reference to point to a new target.
+///
+/// This function can only be used on symbolic references. For direct references,
+/// use [updateDirect] instead.
+///
+/// If [logMessage] is provided, it will be used as the message for the reflog
+/// entry. The reflog entry will only be written if the reference belongs to the
+/// standard set (HEAD, branches, and remote-tracking branches) or if it already
+/// has a reflog.
+///
+/// The returned reference must be freed with [free].
+///
+/// Throws a [LibGit2Error] if the reference cannot be updated.
+Pointer<git_reference> updateSymbolic({
+  required Pointer<git_reference> refPointer,
+  required String target,
+  String? logMessage,
+}) {
+  final out = calloc<Pointer<git_reference>>();
+  final targetC = target.toChar();
+  final logMessageC = logMessage?.toChar() ?? nullptr;
+  final error = libgit2.git_reference_symbolic_set_target(
+    out,
+    refPointer,
+    targetC,
+    logMessageC,
+  );
+
+  final result = out.value;
+
+  calloc.free(out);
+  calloc.free(targetC);
+  calloc.free(logMessageC);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  } else {
+    return result;
+  }
+}
+
+/// Delete a reference.
+///
+/// This will remove the reference from the repository. If the reference is a
+/// symbolic reference, it will be removed. If it is a direct reference, the
+/// reference will be removed but the object it points to will remain in the
+/// repository.
+///
+/// Throws a [LibGit2Error] if the reference cannot be deleted.
+void delete(Pointer<git_reference> ref) {
+  final error = libgit2.git_reference_delete(ref);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+}
+
+/// Free a reference object.
+///
+/// This will free the reference and all associated resources. The reference
+/// must not be used after this call.
+void free(Pointer<git_reference> ref) {
+  libgit2.git_reference_free(ref);
+}
 
 /// Get the repository where a reference resides.
 Pointer<git_repository> owner(Pointer<git_reference> ref) {
@@ -473,9 +613,6 @@ Pointer<git_oid> nameToId({
     return result;
   }
 }
-
-/// Free the given reference.
-void free(Pointer<git_reference> ref) => libgit2.git_reference_free(ref);
 
 /// Iterate over all references that match the specified glob pattern.
 ///

@@ -80,13 +80,15 @@ void main() {
       expect(remote.fetchRefspecs, [spec]);
     });
 
-    test('throws when trying to create with fetchspec with invalid remote name',
-        () {
-      expect(
-        () => Remote.create(repo: repo, name: '', url: '', fetch: ''),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to create with fetchspec with invalid remote name',
+      () {
+        expect(
+          () => Remote.create(repo: repo, name: '', url: '', fetch: ''),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('deletes remote', () {
       final remote = Remote.create(
@@ -201,20 +203,22 @@ void main() {
       expect(refspec, equals(remote.getRefspec(0)));
     });
 
-    test('throws when trying to transform refspec with invalid reference name',
-        () {
-      final refspec = Remote.lookup(repo: repo, name: 'origin').getRefspec(0);
+    test(
+      'throws when trying to transform refspec with invalid reference name',
+      () {
+        final refspec = Remote.lookup(repo: repo, name: 'origin').getRefspec(0);
 
-      expect(
-        () => refspec.transform('invalid/name'),
-        throwsA(isA<LibGit2Error>()),
-      );
+        expect(
+          () => refspec.transform('invalid/name'),
+          throwsA(isA<LibGit2Error>()),
+        );
 
-      expect(
-        () => refspec.rTransform('invalid/name'),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+        expect(
+          () => refspec.rTransform('invalid/name'),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('adds fetch refspec', () {
       Remote.addFetch(
@@ -224,22 +228,15 @@ void main() {
       );
       final remote = Remote.lookup(repo: repo, name: 'origin');
       expect(remote.fetchRefspecs.length, 2);
-      expect(
-        remote.fetchRefspecs,
-        [
-          '+refs/heads/*:refs/remotes/origin/*',
-          '+refs/test/*:refs/test/remotes/*',
-        ],
-      );
+      expect(remote.fetchRefspecs, [
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/test/*:refs/test/remotes/*',
+      ]);
     });
 
     test('throws when trying to add fetch refspec for invalid remote name', () {
       expect(
-        () => Remote.addFetch(
-          repo: repo,
-          remote: '',
-          refspec: '',
-        ),
+        () => Remote.addFetch(repo: repo, remote: '', refspec: ''),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -257,11 +254,7 @@ void main() {
 
     test('throws when trying to add push refspec for invalid remote name', () {
       expect(
-        () => Remote.addPush(
-          repo: repo,
-          remote: '',
-          refspec: '',
-        ),
+        () => Remote.addPush(repo: repo, remote: '', refspec: ''),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -284,8 +277,7 @@ void main() {
       expect(refs.first, remote.ls().first);
     });
 
-    test(
-        "throws when trying to get remote repo's reference list with "
+    test("throws when trying to get remote repo's reference list with "
         "invalid url", () {
       Remote.setUrl(repo: repo, remote: 'libgit2', url: 'invalid');
       final remote = Remote.lookup(repo: repo, name: 'libgit2');
@@ -293,103 +285,88 @@ void main() {
       expect(() => remote.ls(), throwsA(isA<LibGit2Error>()));
     });
 
-    test(
-      tags: 'remote_fetch',
-      'fetches data',
-      () {
-        Remote.setUrl(
-          repo: repo,
-          remote: 'libgit2',
-          url: 'https://github.com/libgit2/TestGitRepository',
-        );
-        Remote.addFetch(
-          repo: repo,
-          remote: 'libgit2',
-          refspec: '+refs/heads/*:refs/remotes/origin/*',
-        );
-        final remote = Remote.lookup(repo: repo, name: 'libgit2');
+    test(tags: 'remote_fetch', 'fetches data', () {
+      Remote.setUrl(
+        repo: repo,
+        remote: 'libgit2',
+        url: 'https://github.com/libgit2/TestGitRepository',
+      );
+      Remote.addFetch(
+        repo: repo,
+        remote: 'libgit2',
+        refspec: '+refs/heads/*:refs/remotes/origin/*',
+      );
+      final remote = Remote.lookup(repo: repo, name: 'libgit2');
 
-        final stats = remote.fetch(
+      final stats = remote.fetch(
+        refspecs: ['+refs/heads/*:refs/remotes/origin/*'],
+      );
+
+      expect(stats.totalObjects, 69);
+      expect(stats.indexedObjects, 69);
+      expect(stats.receivedObjects, 69);
+      expect(stats.localObjects, 0);
+      expect(stats.totalDeltas, 3);
+      expect(stats.indexedDeltas, 3);
+      expect(stats.receivedBytes, 0);
+      expect(stats.toString(), contains('TransferProgress{'));
+    });
+
+    test(tags: 'remote_fetch', 'fetches data with proxy set to auto', () {
+      Remote.setUrl(
+        repo: repo,
+        remote: 'libgit2',
+        url: 'https://github.com/libgit2/TestGitRepository',
+      );
+      Remote.addFetch(
+        repo: repo,
+        remote: 'libgit2',
+        refspec: '+refs/heads/*:refs/remotes/origin/*',
+      );
+      final remote = Remote.lookup(repo: repo, name: 'libgit2');
+
+      final stats = remote.fetch(
+        refspecs: ['+refs/heads/*:refs/remotes/origin/*'],
+        proxy: 'auto',
+      );
+
+      expect(stats.totalObjects, 69);
+      expect(stats.indexedObjects, 69);
+      expect(stats.receivedObjects, 69);
+      expect(stats.localObjects, 0);
+      expect(stats.totalDeltas, 3);
+      expect(stats.indexedDeltas, 3);
+      expect(stats.receivedBytes, 0);
+      expect(stats.toString(), contains('TransferProgress{'));
+    });
+
+    test(tags: 'remote_fetch', 'uses specified proxy for fetch', () {
+      Remote.setUrl(
+        repo: repo,
+        remote: 'libgit2',
+        url: 'https://github.com/libgit2/TestGitRepository',
+      );
+      Remote.addFetch(
+        repo: repo,
+        remote: 'libgit2',
+        refspec: '+refs/heads/*:refs/remotes/origin/*',
+      );
+      final remote = Remote.lookup(repo: repo, name: 'libgit2');
+
+      expect(
+        () => remote.fetch(
           refspecs: ['+refs/heads/*:refs/remotes/origin/*'],
-        );
-
-        expect(stats.totalObjects, 69);
-        expect(stats.indexedObjects, 69);
-        expect(stats.receivedObjects, 69);
-        expect(stats.localObjects, 0);
-        expect(stats.totalDeltas, 3);
-        expect(stats.indexedDeltas, 3);
-        expect(stats.receivedBytes, 0);
-        expect(stats.toString(), contains('TransferProgress{'));
-      },
-    );
-
-    test(
-      tags: 'remote_fetch',
-      'fetches data with proxy set to auto',
-      () {
-        Remote.setUrl(
-          repo: repo,
-          remote: 'libgit2',
-          url: 'https://github.com/libgit2/TestGitRepository',
-        );
-        Remote.addFetch(
-          repo: repo,
-          remote: 'libgit2',
-          refspec: '+refs/heads/*:refs/remotes/origin/*',
-        );
-        final remote = Remote.lookup(repo: repo, name: 'libgit2');
-
-        final stats = remote.fetch(
-          refspecs: ['+refs/heads/*:refs/remotes/origin/*'],
-          proxy: 'auto',
-        );
-
-        expect(stats.totalObjects, 69);
-        expect(stats.indexedObjects, 69);
-        expect(stats.receivedObjects, 69);
-        expect(stats.localObjects, 0);
-        expect(stats.totalDeltas, 3);
-        expect(stats.indexedDeltas, 3);
-        expect(stats.receivedBytes, 0);
-        expect(stats.toString(), contains('TransferProgress{'));
-      },
-    );
-
-    test(
-      tags: 'remote_fetch',
-      'uses specified proxy for fetch',
-      () {
-        Remote.setUrl(
-          repo: repo,
-          remote: 'libgit2',
-          url: 'https://github.com/libgit2/TestGitRepository',
-        );
-        Remote.addFetch(
-          repo: repo,
-          remote: 'libgit2',
-          refspec: '+refs/heads/*:refs/remotes/origin/*',
-        );
-        final remote = Remote.lookup(repo: repo, name: 'libgit2');
-
-        expect(
-          () => remote.fetch(
-            refspecs: ['+refs/heads/*:refs/remotes/origin/*'],
-            proxy: 'https://1.1.1.1',
-          ),
-          throwsA(isA<LibGit2Error>()),
-        );
-      },
-    );
+          proxy: 'https://1.1.1.1',
+        ),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
 
     test('throws when trying to fetch data with invalid url', () {
       Remote.setUrl(repo: repo, remote: 'libgit2', url: 'https://wrong.url');
       final remote = Remote.lookup(repo: repo, name: 'libgit2');
 
-      expect(
-        () => remote.fetch(),
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
     });
 
     test(
@@ -435,7 +412,8 @@ Total 69 (delta 0), reused 1 (delta 0), pack-reused 68
         final remote = Remote.lookup(repo: repo, name: 'libgit2');
 
         final sidebandOutput = StringBuffer();
-        void sideband(String message) => sidebandOutput.write(message);
+        void sideband(String message, int len, void payload) =>
+            sidebandOutput.write(message);
 
         remote.fetch(callbacks: Callbacks(sidebandProgress: sideband));
         expect(sidebandOutput.toString(), sidebandMessage);

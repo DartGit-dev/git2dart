@@ -6,20 +6,24 @@ import 'package:git2dart/src/bindings/worktree.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git worktree.
+///
+/// A worktree is a linked working copy of a Git repository. It allows you to
+/// have multiple working directories for the same repository, each with its
+/// own branch checked out.
 @immutable
 class Worktree extends Equatable {
-  /// Creates new worktree.
+  /// Creates a new worktree.
   ///
-  /// If [ref] is provided, no new branch will be created but specified [ref]
-  /// will be used instead.
+  /// Creates a new working tree for the repository at the specified path.
+  /// If [ref] is provided, it will be used instead of creating a new branch.
   ///
-  /// [repo] is the repository to create working tree for.
+  /// [repo] is the repository to create the worktree for.
+  /// [name] is the name of the new worktree.
+  /// [path] is the filesystem path where the worktree will be created.
+  /// [ref] is an optional reference to checkout (if null, HEAD is used).
   ///
-  /// [name] is the name of the working tree.
-  ///
-  /// [path] is the path to create working tree at.
-  ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if an error occurs.
   Worktree.create({
     required Repository repo,
     required String name,
@@ -35,52 +39,61 @@ class Worktree extends Equatable {
     _finalizer.attach(this, _worktreePointer, detach: this);
   }
 
-  /// Lookups existing worktree in [repo] with provided [name].
+  /// Looks up an existing worktree in [repo] with the provided [name].
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if an error occurs or if the worktree is not found.
   Worktree.lookup({required Repository repo, required String name}) {
     _worktreePointer = bindings.lookup(repoPointer: repo.pointer, name: name);
     _finalizer.attach(this, _worktreePointer, detach: this);
   }
 
-  /// Pointer to memory address for allocated branch object.
+  /// Pointer to the memory address for the allocated worktree object.
   late final Pointer<git_worktree> _worktreePointer;
 
-  /// Returns list of names of linked working trees.
+  /// Returns a list of names of linked working trees in the repository.
   ///
-  /// Throws a [LibGit2Error] if error occured.
-  static List<String> list(Repository repo) => bindings.list(repo.pointer);
+  /// Throws a [LibGit2Error] if an error occurs.
+  static List<String> list(Repository repo) {
+    final worktrees = bindings.list(repo.pointer);
+    return worktrees.map((wt) => bindings.name(wt)).toList();
+  }
 
-  /// Name of the worktree.
+  /// Gets the name of the worktree.
   String get name => bindings.name(_worktreePointer);
 
-  /// Filesystem path for the worktree.
+  /// Gets the filesystem path for the worktree.
   String get path => bindings.path(_worktreePointer);
 
-  /// Whether worktree is locked.
+  /// Checks if the worktree is locked.
   ///
   /// A worktree may be locked if the linked working tree is stored on a
   /// portable device which is not available.
   bool get isLocked => bindings.isLocked(_worktreePointer);
 
-  /// Locks worktree if not already locked.
+  /// Locks the worktree if it is not already locked.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
   void lock() => bindings.lock(_worktreePointer);
 
   /// Unlocks a locked worktree.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
   void unlock() => bindings.unlock(_worktreePointer);
 
-  /// Whether worktree is prunable.
+  /// Checks if the worktree is prunable.
   ///
   /// A worktree is not prunable in the following scenarios:
-  /// - the worktree is linking to a valid on-disk worktree.
-  /// - the worktree is locked.
+  /// - The worktree is linking to a valid on-disk worktree
+  /// - The worktree is locked
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if an error occurs.
   bool get isPrunable => bindings.isPrunable(_worktreePointer);
 
-  /// Prunes working tree, that is removes the git data structures on disk.
+  /// Prunes the working tree by removing its git data structures from disk.
   ///
-  /// [flags] is optional combination of [GitWorktree] flags.
+  /// [flags] is an optional combination of [GitWorktree] flags.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
   void prune([Set<GitWorktree>? flags]) {
     bindings.prune(
       worktreePointer: _worktreePointer,
@@ -88,13 +101,13 @@ class Worktree extends Equatable {
     );
   }
 
-  /// Whether worktree is valid.
+  /// Checks if the worktree is valid.
   ///
   /// A valid worktree requires both the git data structures inside the linked
   /// parent repository and the linked working copy to be present.
   bool get isValid => bindings.isValid(_worktreePointer);
 
-  /// Releases memory allocated for worktree object.
+  /// Releases memory allocated for the worktree object.
   void free() {
     bindings.free(_worktreePointer);
     _finalizer.detach(this);

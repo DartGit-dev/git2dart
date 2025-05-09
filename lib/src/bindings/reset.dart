@@ -5,19 +5,23 @@ import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
-/// Sets the current head to the specified commit oid and optionally resets the
-/// index and working tree to match.
+/// Performs a reset operation on the repository, moving the HEAD and optionally
+/// updating the index and working tree to match the specified commit.
 ///
-/// SOFT reset means the Head will be moved to the commit.
+/// The reset operation can be performed in three modes:
+/// - [git_reset_t.GIT_RESET_SOFT]: Only moves the HEAD to the target commit
+/// - [git_reset_t.GIT_RESET_MIXED]: Moves HEAD and updates the index to match the target commit
+/// - [git_reset_t.GIT_RESET_HARD]: Moves HEAD, updates index, and updates working tree to match
 ///
-/// MIXED reset will trigger a SOFT reset, plus the index will be replaced with
-/// the content of the commit tree.
+/// Parameters:
+/// - [repoPointer]: Pointer to the repository to reset
+/// - [targetPointer]: Pointer to the target commit object to reset to
+/// - [resetType]: Type of reset to perform (soft, mixed, or hard)
+/// - [strategy]: Optional checkout strategy flags for working tree updates
+/// - [checkoutDirectory]: Optional alternative directory for checkout
+/// - [pathspec]: Optional list of paths to limit the reset operation
 ///
-/// HARD reset will trigger a MIXED reset and the working directory will be
-/// replaced with the content of the index. (Untracked and ignored files will
-/// be left alone, however.)
-///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reset operation fails.
 void reset({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_object> targetPointer,
@@ -60,15 +64,20 @@ void reset({
   }
 }
 
-/// Updates some entries in the index from the target commit tree.
+/// Updates specific entries in the index from the target commit tree.
 ///
-/// The scope of the updated entries is determined by the paths being passed in
-/// the [pathspec] parameters.
+/// This function allows for more granular control over the reset operation by
+/// only updating specific paths in the index. It can be used to:
+/// - Update specific files to match the target commit
+/// - Remove specific files from the index
+/// - Reset specific paths to their state in the target commit
 ///
-/// Passing a null [targetPointer] will result in removing entries in the index
-/// matching the provided [pathspec]s.
+/// Parameters:
+/// - [repoPointer]: Pointer to the repository to reset
+/// - [targetPointer]: Pointer to the target commit object, or null to remove entries
+/// - [pathspec]: List of paths to update in the index
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if the reset operation fails.
 void resetDefault({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_object>? targetPointer,

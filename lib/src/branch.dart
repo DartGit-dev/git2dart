@@ -7,6 +7,11 @@ import 'package:git2dart/src/bindings/reference.dart' as reference_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git branch.
+///
+/// This class provides functionality to create, lookup, and manage Git branches.
+/// It supports both local and remote branches, and provides methods for common
+/// branch operations like renaming, deleting, and managing upstream relationships.
 @immutable
 class Branch extends Equatable {
   /// Initializes a new instance of [Branch] class from provided pointer to
@@ -32,7 +37,7 @@ class Branch extends Equatable {
   /// [target] is the commit to which this branch should point. This object must
   /// belong to the given [repo].
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Branch.create({
     required Repository repo,
     required String name,
@@ -48,15 +53,14 @@ class Branch extends Equatable {
     _finalizer.attach(this, _branchPointer, detach: this);
   }
 
-  /// Lookups a branch by its [name] and [type] in a [repo]sitory. Lookups in
-  /// local branches by default.
+  /// Lookups a branch by its [name] and [type] in a [repo]sitory.
   ///
   /// The branch name will be checked for validity.
   ///
   /// If branch [type] is [GitBranch.remote] you must include the remote name
   /// in the [name] (e.g. "origin/master").
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Branch.lookup({
     required Repository repo,
     required String name,
@@ -81,7 +85,7 @@ class Branch extends Equatable {
   /// Returns a list of branches that can be found in a [repo]sitory for
   /// provided [type]. Default is all branches (local and remote).
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   static List<Branch> list({
     required Repository repo,
     GitBranch type = GitBranch.all,
@@ -96,7 +100,10 @@ class Branch extends Equatable {
 
   /// Deletes an existing branch reference with provided [name].
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Note that if the deletion succeeds, the reference object will not be valid
+  /// anymore, and should be freed immediately.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   static void delete({required Repository repo, required String name}) {
     final branch = Branch.lookup(repo: repo, name: name);
     bindings.delete(branch.pointer);
@@ -108,7 +115,10 @@ class Branch extends Equatable {
   ///
   /// If [force] is true, existing branch will be overwritten.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Note that if the move succeeds, the old reference object will not be valid
+  /// anymore, and should be freed immediately.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   static void rename({
     required Repository repo,
     required String oldName,
@@ -126,12 +136,12 @@ class Branch extends Equatable {
 
   /// [Oid] pointed to by a branch.
   ///
-  /// Throws an [Exception] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Oid get target => Oid(reference_bindings.target(_branchPointer));
 
   /// Whether HEAD points to the given branch.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   bool get isHead => bindings.isHead(_branchPointer);
 
   /// Whether any HEAD points to the current branch.
@@ -140,7 +150,7 @@ class Branch extends Equatable {
   /// of worktrees) and report whether any HEAD is pointing at the current
   /// branch.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   bool get isCheckedOut => bindings.isCheckedOut(_branchPointer);
 
   /// Branch name.
@@ -148,8 +158,8 @@ class Branch extends Equatable {
   /// Given a reference object, this will check that it really is a branch
   /// (i.e. it lives under "refs/heads/" or "refs/remotes/"), and return the branch part of it.
   ///
-  /// Throws a [LibGit2Error] if error occured.
-  String get name => bindings.name(_branchPointer);
+  /// Throws a [LibGit2Error] if error occurred.
+  String get name => bindings.getName(_branchPointer);
 
   /// Remote name of a remote-tracking branch.
   ///
@@ -158,7 +168,7 @@ class Branch extends Equatable {
   /// will extract the "test" part.
   ///
   /// Throws a [LibGit2Error] if refspecs from multiple remotes match or if
-  /// error occured.
+  /// error occurred.
   String get remoteName {
     final owner = reference_bindings.owner(_branchPointer);
     final branchName = reference_bindings.name(_branchPointer);
@@ -167,7 +177,10 @@ class Branch extends Equatable {
 
   /// Upstream [Reference] of a local branch.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Given a reference, this will return a new reference object corresponding to
+  /// its remote tracking branch. The reference must be a local branch.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
   Reference get upstream => Reference(bindings.getUpstream(_branchPointer));
 
   /// Sets a branch's upstream branch.
@@ -179,11 +192,12 @@ class Branch extends Equatable {
   /// **Note**: The actual tracking reference must have been already created for
   /// the operation to succeed.
   ///
-  /// Throws a [LibGit2Error] if error occured.
-  void setUpstream(String? branchName) => bindings.setUpstream(
-        branchPointer: _branchPointer,
-        branchName: branchName,
-      );
+  /// Throws a [LibGit2Error] if error occurred.
+  void setUpstream(String? branchName) {
+    if (branchName != null) {
+      bindings.setUpstream(refPointer: _branchPointer, branchName: branchName);
+    }
+  }
 
   /// Upstream name of a branch.
   ///
@@ -191,7 +205,7 @@ class Branch extends Equatable {
   /// information, as a full reference name, ie. "feature/nice" would become
   /// "refs/remotes/origin/feature/nice", depending on that branch's configuration.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   String get upstreamName {
     final owner = reference_bindings.owner(_branchPointer);
     final branchName = reference_bindings.name(_branchPointer);
@@ -203,7 +217,7 @@ class Branch extends Equatable {
   /// This will return the currently configured "branch.*.remote" for a branch.
   /// Branch must be local.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   String get upstreamRemote {
     final owner = reference_bindings.owner(_branchPointer);
     final branchName = reference_bindings.name(_branchPointer);
@@ -215,7 +229,7 @@ class Branch extends Equatable {
   /// This will return the currently configured "branch.*.merge" for a branch.
   /// Branch must be local.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   String get upstreamMerge {
     final owner = reference_bindings.owner(_branchPointer);
     final branchName = reference_bindings.name(_branchPointer);

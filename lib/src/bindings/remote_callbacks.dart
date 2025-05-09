@@ -8,12 +8,16 @@ import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
+/// A class that manages callbacks for remote operations in Git.
+/// These callbacks are used during fetch, push, and clone operations
+/// to provide progress updates and handle authentication.
 class RemoteCallbacks {
-  /// Callback function that reports transfer progress.
+  /// Callback function that reports transfer progress during fetch/push operations.
+  /// Provides information about the number of objects being transferred.
   static void Function(TransferProgress)? transferProgress;
 
-  /// A callback that will be regularly called with the current count of
-  /// progress done by the indexer during the download of new data.
+  /// Native callback that converts C transfer progress data to Dart [TransferProgress].
+  /// Called by libgit2 during fetch/push operations.
   static int transferProgressCb(
     Pointer<git_indexer_progress> stats,
     Pointer<Void> payload,
@@ -22,23 +26,27 @@ class RemoteCallbacks {
     return 0;
   }
 
-  /// Callback function that reports textual progress from the remote.
-  static void Function(String)? sidebandProgress;
+  /// Callback function that reports textual progress messages from the remote.
+  /// Used for receiving status messages during remote operations.
+  static int Function(Pointer<Char>, int, Pointer<Void>)? sidebandProgress;
 
-  /// Callback for messages received by the transport.
+  /// Native callback that handles sideband progress messages from the remote.
+  /// Converts C string data to Dart format.
   static int sidebandProgressCb(
     Pointer<Char> progressOutput,
     int length,
     Pointer<Void> payload,
   ) {
-    sidebandProgress!(progressOutput.toDartString(length: length));
+    sidebandProgress!(progressOutput, length, payload);
     return 0;
   }
 
-  /// Callback function that report reference updates.
+  /// Callback function that reports reference updates during fetch operations.
+  /// Provides information about which references were updated and their new OIDs.
   static void Function(String, Oid, Oid)? updateTips;
 
-  /// A callback that will be called for every reference.
+  /// Native callback that handles reference updates during fetch.
+  /// Converts C reference data to Dart format.
   static int updateTipsCb(
     Pointer<Char> refname,
     Pointer<git_oid> oldOid,
@@ -49,12 +57,12 @@ class RemoteCallbacks {
     return 0;
   }
 
-  /// Callback function used to inform of the update status from the remote.
+  /// Callback function used to inform of the update status from the remote during push.
+  /// If the message is not empty, the update was rejected by the remote server.
   static void Function(String, String)? pushUpdateReference;
 
-  /// Callback called for each updated reference on push. If [message] is
-  /// not empty, the update was rejected by the remote server
-  /// and [message] contains the reason given.
+  /// Native callback that handles push reference updates.
+  /// Reports success or failure of reference updates during push.
   static int pushUpdateReferenceCb(
     Pointer<Char> refname,
     Pointer<Char> message,
@@ -69,8 +77,8 @@ class RemoteCallbacks {
   /// during a clone operation.
   static RemoteCallback? remoteCbData;
 
-  /// A callback used to create the git remote, prior to its being used to
-  /// perform the clone operation.
+  /// Native callback used to create the git remote during clone.
+  /// Allows customization of the remote before it's used for cloning.
   static int remoteCb(
     Pointer<Pointer<git_remote>> remote,
     Pointer<git_repository> repo,
@@ -104,7 +112,8 @@ class RemoteCallbacks {
   /// during a clone operation.
   static RepositoryCallback? repositoryCbData;
 
-  /// A callback used to create the new repository into which to clone.
+  /// Native callback used to create the new repository during clone.
+  /// Allows customization of the repository before cloning begins.
   static int repositoryCb(
     Pointer<Pointer<git_repository>> repo,
     Pointer<Char> path,
@@ -136,12 +145,12 @@ class RemoteCallbacks {
     return 0;
   }
 
-  /// [Credentials] object used for authentication in order to connect to
-  /// remote.
+  /// [Credentials] object used for authentication in order to connect to remote.
+  /// Handles various authentication methods like username/password and SSH keys.
   static Credentials? credentials;
 
-  /// Credential acquisition callback that will be called if the remote host
-  /// requires authentication in order to connect to it.
+  /// Native callback for credential acquisition during remote operations.
+  /// Called when the remote host requires authentication.
   static int credentialsCb(
     Pointer<Pointer<git_credential>> credPointer,
     Pointer<Char> url,
@@ -199,7 +208,8 @@ class RemoteCallbacks {
     return 0;
   }
 
-  /// Plugs provided callbacks into libgit2 callbacks.
+  /// Plugs provided callbacks into libgit2 callbacks structure.
+  /// Sets up all the necessary callback functions for remote operations.
   static void plug({
     required git_remote_callbacks callbacksOptions,
     required Callbacks callbacks,
@@ -215,7 +225,10 @@ class RemoteCallbacks {
     }
 
     if (callbacks.sidebandProgress != null) {
-      sidebandProgress = callbacks.sidebandProgress;
+      sidebandProgress = (message, len, payload) {
+        callbacks.sidebandProgress!(message.toDartString(), len, payload);
+        return 0;
+      };
       callbacksOptions.sideband_progress = Pointer.fromFunction(
         sidebandProgressCb,
         except,
@@ -246,7 +259,8 @@ class RemoteCallbacks {
     }
   }
 
-  /// Resets callback functions to their original null values.
+  /// Resets all callback functions to their original null values.
+  /// Should be called after remote operations are complete.
   static void reset() {
     transferProgress = null;
     sidebandProgress = null;

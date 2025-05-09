@@ -5,10 +5,16 @@ import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
+/// Main class for interacting with libgit2 library.
+///
+/// This class provides access to global libgit2 options and settings.
+/// All methods are static as they operate on global libgit2 state.
 class Libgit2 {
   Libgit2._(); // coverage:ignore-line
 
-  /// Libgit2 version number.
+  /// Get the current libgit2 version number.
+  ///
+  /// Returns a string in the format "major.minor.revision".
   static String get version {
     libgit2.git_libgit2_init();
 
@@ -26,7 +32,10 @@ class Libgit2 {
     return version;
   }
 
-  /// Options libgit2 was compiled with.
+  /// Get the features that libgit2 was compiled with.
+  ///
+  /// Returns a set of [GitFeature] values indicating which features
+  /// are available in this build of libgit2.
   static Set<GitFeature> get features {
     libgit2.git_libgit2_init();
     final featuresInt = libgit2.git_libgit2_features();
@@ -35,7 +44,10 @@ class Libgit2 {
         .toSet();
   }
 
-  /// Maximum mmap window size.
+  /// Get or set the maximum mmap window size.
+  ///
+  /// This controls the maximum size of memory-mapped files that libgit2
+  /// will use. Larger values may improve performance but use more memory.
   static int get mmapWindowSize {
     libgit2.git_libgit2_init();
 
@@ -52,9 +64,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_set_mwindow_size(value);
   }
 
-  /// Maximum memory that will be mapped in total by the library.
+  /// Get or set the maximum total memory that will be mapped by the library.
   ///
-  /// The default (0) is unlimited.
+  /// The default (0) is unlimited. This is a soft limit that may be
+  /// temporarily exceeded.
   static int get mmapWindowMappedLimit {
     libgit2.git_libgit2_init();
 
@@ -71,9 +84,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_set_mwindow_mapped_limit(value);
   }
 
-  /// Maximum number of files that will be mapped at any time by the library.
+  /// Get or set the maximum number of files that will be mapped at any time.
   ///
-  /// The default (0) is unlimited.
+  /// The default (0) is unlimited. This helps control memory usage when
+  /// working with many repositories.
   static int get mmapWindowFileLimit {
     libgit2.git_libgit2_init();
 
@@ -90,13 +104,15 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_set_mwindow_file_limit(value);
   }
 
-  /// Returns search path for a given [level] of config data.
+  /// Get the search path for a given config level.
   ///
   /// [level] must be one of:
   /// - [GitConfigLevel.system]
   /// - [GitConfigLevel.global]
   /// - [GitConfigLevel.xdg]
   /// - [GitConfigLevel.programData]
+  ///
+  /// Returns the path where config files for this level are stored.
   static String getConfigSearchPath(GitConfigLevel level) {
     libgit2.git_libgit2_init();
 
@@ -110,19 +126,16 @@ class Libgit2 {
     return result;
   }
 
-  /// Sets the search path for a [level] of config data. The search path
-  /// applied to shared attributes and ignore files.
-  ///
-  /// [path] lists directories delimited by `:`.
-  /// Pass null to reset to the default (generally based on environment
-  /// variables). Use magic path `$PATH` to include the old value of the path
-  /// (if you want to prepend or append, for instance).
+  /// Set the search path for a config level.
   ///
   /// [level] must be one of:
   /// - [GitConfigLevel.system]
   /// - [GitConfigLevel.global]
   /// - [GitConfigLevel.xdg]
   /// - [GitConfigLevel.programData]
+  ///
+  /// [path] lists directories delimited by `:`. Pass null to reset to default.
+  /// Use `$PATH` to include the old value (for prepending/appending).
   static void setConfigSearchPath({
     required GitConfigLevel level,
     required String? path,
@@ -134,12 +147,10 @@ class Libgit2 {
     calloc.free(pathC);
   }
 
-  /// Sets the maximum data size for the given [type] of object to be
-  /// considered eligible for caching in memory. Setting the [value] to
-  /// zero means that that type of object will not be cached.
+  /// Set the maximum data size for caching a given object type.
   ///
-  /// Defaults to 0 for [GitObject.blob] (i.e. won't cache blobs) and 4k
-  /// for [GitObject.commit], [GitObject.tree] and [GitObject.tag].
+  /// Setting [value] to zero means objects of that type won't be cached.
+  /// Defaults to 0 for blobs and 4k for commits, trees and tags.
   static void setCacheObjectLimit({
     required GitObject type,
     required int value,
@@ -148,20 +159,19 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_set_cache_object_limit(type.value, value);
   }
 
-  /// Sets the maximum total data size that will be cached in memory
-  /// across all repositories before libgit2 starts evicting objects
-  /// from the cache.  This is a soft limit, in that the library might
-  /// briefly exceed it, but will start aggressively evicting objects
-  /// from cache when that happens.
+  /// Set the maximum total cache size across all repositories.
   ///
-  /// The default cache size is 256MB.
+  /// This is a soft limit - the library may briefly exceed it before
+  /// aggressively evicting objects. Default is 256MB.
   static void setCacheMaxSize(int bytes) {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_set_cache_max_size(bytes);
   }
 
-  /// [CachedMemory] object containing current bytes in cache and the maximum
-  /// that would be allowed in the cache.
+  /// Get information about the current cache usage.
+  ///
+  /// Returns a [CachedMemory] object containing the current bytes in cache
+  /// and the maximum allowed.
   static CachedMemory get cachedMemory {
     libgit2.git_libgit2_init();
 
@@ -179,23 +189,26 @@ class Libgit2 {
     return result;
   }
 
-  /// Enables caching.
+  /// Enable object caching.
+  ///
+  /// This allows libgit2 to cache objects in memory for better performance.
   static void enableCaching() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_enable_caching(1);
   }
 
-  /// Disables caching completely.
+  /// Disable object caching completely.
   ///
-  /// Because caches are repository-specific, disabling the cache
-  /// cannot immediately clear all cached objects, but each cache will
-  /// be cleared on the next attempt to update anything in it.
+  /// Caches are repository-specific, so disabling won't immediately clear
+  /// all cached objects. Each cache will be cleared on next update.
   static void disableCaching() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_enable_caching(0);
   }
 
-  /// Default template path.
+  /// Get or set the default template path.
+  ///
+  /// This is the path used for repository templates when creating new repos.
   static String get templatePath {
     libgit2.git_libgit2_init();
 
@@ -218,12 +231,10 @@ class Libgit2 {
     calloc.free(pathC);
   }
 
-  /// Sets the SSL certificate-authority locations.
+  /// Set SSL certificate locations.
   ///
-  /// - [file] is the location of a file containing several
-  ///   certificates concatenated together.
-  /// - [path] is the location of a directory holding several
-  ///   certificates, one per file.
+  /// - [file] is a file containing concatenated certificates
+  /// - [path] is a directory containing certificate files
   ///
   /// Either parameter may be null, but not both.
   ///
@@ -244,9 +255,9 @@ class Libgit2 {
     }
   }
 
-  /// Value of the User-Agent header.
+  /// Get or set the User-Agent header value.
   ///
-  /// This value will be appended to "git/1.0", for compatibility with other
+  /// This value is appended to "git/1.0" for compatibility with other
   /// git clients.
   static String get userAgent {
     libgit2.git_libgit2_init();
@@ -270,11 +281,10 @@ class Libgit2 {
     calloc.free(userAgentC);
   }
 
-  /// Enables strict input validation when creating new objects
-  /// to ensure that all inputs to the new objects are valid.
+  /// Enable strict input validation for object creation.
   ///
-  /// For example, when this is enabled, the parent(s) and tree inputs
-  /// will be validated when creating a new commit.
+  /// When enabled, validates all inputs when creating new objects.
+  /// For example, validates parent(s) and tree inputs when creating commits.
   ///
   /// Enabled by default.
   static void enableStrictObjectCreation() {
@@ -282,7 +292,9 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_object_creation(1);
   }
 
-  /// Disables strict input validation when creating new objects.
+  /// Disable strict input validation for object creation.
+  ///
+  /// When disabled, skips validation of inputs when creating new objects.
   ///
   /// Enabled by default.
   static void disableStrictObjectCreation() {
@@ -290,14 +302,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_object_creation(0);
   }
 
-  /// Enables validation of a symbolic ref target when creating it.
+  /// Enable validation of symbolic ref targets.
   ///
-  /// For example, `foobar` is not a valid ref, therefore `foobar` is
-  /// not a valid target for a symbolic ref by default, whereas
-  /// `refs/heads/foobar` is.
-  ///
-  /// Disabling this bypasses validation so that an arbitrary strings
-  /// such as `foobar` can be used for a symbolic ref target.
+  /// When enabled, validates that symbolic ref targets are valid refs.
+  /// For example, "foobar" is not valid but "refs/heads/foobar" is.
   ///
   /// Enabled by default.
   static void enableStrictSymbolicRefCreation() {
@@ -305,14 +313,9 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_symbolic_ref_creation(1);
   }
 
-  /// Disables validation of a symbolic ref target when creating it.
+  /// Disable validation of symbolic ref targets.
   ///
-  /// For example, `foobar` is not a valid ref, therefore `foobar` is
-  /// not a valid target for a symbolic ref by default, whereas
-  /// `refs/heads/foobar` is.
-  ///
-  /// Disabling this bypasses validation so that an arbitrary strings
-  /// such as `foobar` can be used for a symbolic ref target.
+  /// When disabled, allows arbitrary strings as symbolic ref targets.
   ///
   /// Enabled by default.
   static void disableStrictSymbolicRefCreation() {
@@ -320,12 +323,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_symbolic_ref_creation(0);
   }
 
-  /// Enables the use of "offset deltas" when creating packfiles,
-  /// and the negotiation of them when talking to a remote server.
+  /// Enable use of offset deltas in packfiles.
   ///
-  /// Offset deltas store a delta base location as an offset into the
-  /// packfile from the current location, which provides a shorter encoding
-  /// and thus smaller resultant packfiles.
+  /// Offset deltas store base locations as offsets within the packfile,
+  /// providing shorter encoding and smaller packfiles.
   ///
   /// Enabled by default.
   static void enableOffsetDelta() {
@@ -333,12 +334,7 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_offset_delta(1);
   }
 
-  /// Disables the use of "offset deltas" when creating packfiles,
-  /// and the negotiation of them when talking to a remote server.
-  ///
-  /// Offset deltas store a delta base location as an offset into the
-  /// packfile from the current location, which provides a shorter encoding
-  /// and thus smaller resultant packfiles.
+  /// Disable use of offset deltas in packfiles.
   ///
   /// Packfiles containing offset deltas can still be read.
   ///
@@ -348,9 +344,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_offset_delta(0);
   }
 
-  /// Enables synchronized writes of files in the gitdir using `fsync`
-  /// (or the platform equivalent) to ensure that new object data
-  /// is written to permanent storage, not simply cached.
+  /// Enable synchronized writes to gitdir.
+  ///
+  /// Uses fsync (or platform equivalent) to ensure object data is written
+  /// to permanent storage, not just cached.
   ///
   /// Disabled by default.
   static void enableFsyncGitdir() {
@@ -358,8 +355,7 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_fsync_gitdir(1);
   }
 
-  /// Disables synchronized writes of files in the gitdir using `fsync`
-  /// (or the platform equivalent).
+  /// Disable synchronized writes to gitdir.
   ///
   /// Disabled by default.
   static void disableFsyncGitdir() {
@@ -367,11 +363,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_fsync_gitdir(0);
   }
 
-  /// Enables strict verification of object hashsums when reading objects from
-  /// disk.
+  /// Enable strict hash verification.
   ///
-  /// This may impact performance due to an additional checksum calculation
-  /// on each object.
+  /// When enabled, verifies object hashsums when reading from disk.
+  /// This may impact performance due to additional checksum calculations.
   ///
   /// Enabled by default.
   static void enableStrictHashVerification() {
@@ -379,8 +374,9 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_hash_verification(1);
   }
 
-  /// Disables strict verification of object hashsums when reading objects from
-  /// disk.
+  /// Disable strict hash verification.
+  ///
+  /// When disabled, skips hash verification when reading objects.
   ///
   /// Enabled by default.
   static void disableStrictHashVerification() {
@@ -388,11 +384,10 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_strict_hash_verification(0);
   }
 
-  /// Enables check for unsaved changes in the index before beginning any
-  /// operation that reloads the index from disk (e.g., checkout).
+  /// Enable unsaved index safety checks.
   ///
-  /// If there are unsaved changes, the instruction will fail (using
-  /// the FORCE flag to checkout will still overwrite these changes).
+  /// When enabled, checks for unsaved changes in the index before
+  /// operations that reload it (e.g., checkout).
   ///
   /// Enabled by default.
   static void enableUnsavedIndexSafety() {
@@ -400,11 +395,9 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_unsaved_index_safety(1);
   }
 
-  /// Disables check for unsaved changes in the index before beginning any
-  /// operation that reloads the index from disk (e.g., checkout).
+  /// Disable unsaved index safety checks.
   ///
-  /// If there are unsaved changes, the instruction will fail (using
-  /// the FORCE flag to checkout will still overwrite these changes).
+  /// When disabled, allows operations that may overwrite unsaved index changes.
   ///
   /// Enabled by default.
   static void disableUnsavedIndexSafety() {
@@ -412,9 +405,9 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_enable_unsaved_index_safety(0);
   }
 
-  /// Maximum number of objects libgit2 will allow in a pack file when
-  /// downloading a pack file from a remote. This can be used to limit maximum
-  /// memory usage when fetching from an untrusted remote.
+  /// Get or set the maximum number of objects in a pack file.
+  ///
+  /// This limits memory usage when fetching from untrusted remotes.
   static int get packMaxObjects {
     libgit2.git_libgit2_init();
 
@@ -431,50 +424,49 @@ class Libgit2 {
     libgit2Opts.git_libgit2_opts_set_pack_max_objects(value);
   }
 
-  /// Enables checks of .keep file existence to be skipped when accessing
-  /// packfiles.
+  /// Enable .keep file checks for packfiles.
+  ///
+  /// When enabled, checks for .keep files when accessing packfiles.
   static void enablePackKeepFileChecks() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_disable_pack_keep_file_checks(0);
   }
 
-  /// Disables checks of .keep file existence to be skipped when accessing
-  /// packfiles, which can help performance with remote filesystems.
+  /// Disable .keep file checks for packfiles.
+  ///
+  /// This can improve performance with remote filesystems.
   static void disablePackKeepFileChecks() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_disable_pack_keep_file_checks(1);
   }
 
-  /// When connecting to a server using NTLM or Negotiate
-  /// authentication, use expect/continue when POSTing data.
+  /// Enable HTTP expect/continue for NTLM/Negotiate auth.
   ///
-  /// This option is not available on Windows.
+  /// When enabled, uses expect/continue when POSTing data with NTLM
+  /// or Negotiate authentication.
+  ///
+  /// Not available on Windows.
   static void enableHttpExpectContinue() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_enable_http_expect_continue(1);
   }
 
-  /// When connecting to a server using NTLM or Negotiate
-  /// authentication, don't use expect/continue when POSTing data.
+  /// Disable HTTP expect/continue for NTLM/Negotiate auth.
   ///
-  /// This option is not available on Windows.
+  /// Not available on Windows.
   static void disableHttpExpectContinue() {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_enable_http_expect_continue(0);
   }
 
-  /// List of git extensions that are supported.
+  /// Get or set the list of supported git extensions.
   ///
-  /// This is the list of built-in extensions supported by libgit2 and
-  /// custom extensions that have been added.
+  /// This includes both built-in and custom extensions.
   ///
-  /// Extensions supported by libgit2 may be negated by prefixing
-  /// them with a `!`. For example: setting extensions to
-  /// `"!noop", "newext"` indicates that the caller does not want
-  /// to support repositories with the `noop` extension but does want
-  /// to support repositories with the `newext` extension.
+  /// Extensions can be negated with "!" prefix. For example:
+  /// `["!noop", "newext"]` disables "noop" but enables "newext".
   ///
-  /// Extensions that have been negated will not be returned.
+  /// Negated extensions are not returned.
   static List<String> get extensions {
     libgit2.git_libgit2_init();
 
@@ -507,7 +499,9 @@ class Libgit2 {
     calloc.free(array);
   }
 
-  /// Owner validation setting for repository directories.
+  /// Get or set owner validation for repository directories.
+  ///
+  /// When enabled, validates repository directory ownership.
   ///
   /// Enabled by default.
   static bool get ownerValidation {
@@ -529,11 +523,16 @@ class Libgit2 {
   }
 }
 
-/// Current bytes in cache and the maximum that would be allowed in the cache.
+/// Information about current cache usage.
+///
+/// Contains the current number of bytes in cache and the maximum allowed.
 class CachedMemory {
   const CachedMemory._({required this.current, required this.allowed});
 
+  /// Current number of bytes in cache.
   final int current;
+
+  /// Maximum number of bytes allowed in cache.
   final int allowed;
 
   @override

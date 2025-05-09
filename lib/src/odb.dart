@@ -6,6 +6,11 @@ import 'package:git2dart/src/bindings/odb.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class representing a Git object database (ODB).
+///
+/// The object database is responsible for storing and retrieving Git objects
+/// (commits, trees, blobs, and tags). It provides methods for reading, writing,
+/// and checking the existence of objects.
 @immutable
 class Odb extends Equatable {
   /// Initializes a new instance of [Odb] class from provided
@@ -20,7 +25,7 @@ class Odb extends Equatable {
   /// Creates a new object database with no backends.
   ///
   /// Before the ODB can be used for read/writing, a custom database backend must be
-  /// manually added.
+  /// manually added using [addDiskAlternate].
   Odb.create() {
     libgit2.git_libgit2_init();
 
@@ -38,7 +43,7 @@ class Odb extends Equatable {
 
   /// Adds an on-disk alternate to an existing Object DB.
   ///
-  /// Note that the added [path] must point to an `objects`, not to a full
+  /// Note that the added [path] must point to an `objects` directory, not to a full
   /// repository, to use it as an alternate store.
   ///
   /// Alternate backends are always checked for objects after all the main
@@ -46,15 +51,12 @@ class Odb extends Equatable {
   ///
   /// Writing is disabled on alternate backends.
   void addDiskAlternate(String path) {
-    bindings.addDiskAlternate(
-      odbPointer: _odbPointer,
-      path: path,
-    );
+    bindings.addDiskAlternate(odbPointer: _odbPointer, path: path);
   }
 
   /// List of all objects [Oid]s available in the database.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   List<Oid> get objects => bindings.objects(_odbPointer);
 
   /// Whether given object [oid] can be found in the object database.
@@ -67,22 +69,19 @@ class Odb extends Equatable {
   /// This method queries all available ODB backends trying to read the given
   /// [oid].
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   OdbObject read(Oid oid) {
     return OdbObject._(
-      bindings.read(
-        odbPointer: _odbPointer,
-        oidPointer: oid.pointer,
-      ),
+      bindings.read(odbPointer: _odbPointer, oidPointer: oid.pointer),
     );
   }
 
-  /// Writes raw [data] to into the object database.
+  /// Writes raw [data] into the object database.
   ///
   /// [type] should be one of [GitObject.blob], [GitObject.commit],
   /// [GitObject.tag] or [GitObject.tree].
   ///
-  /// Throws a [LibGit2Error] if error occured or [ArgumentError] if provided
+  /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
   Oid write({required GitObject type, required String data}) {
     if (type == GitObject.any ||
@@ -94,7 +93,7 @@ class Odb extends Equatable {
       return Oid(
         bindings.write(
           odbPointer: _odbPointer,
-          type: type.value,
+          type: git_object_t.fromValue(type.value),
           data: data,
         ),
       );
@@ -117,6 +116,9 @@ final _finalizer = Finalizer<Pointer<git_odb>>(
 );
 // coverage:ignore-end
 
+/// A class representing a Git object in the object database.
+///
+/// This class provides access to the object's data, type, and OID.
 @immutable
 class OdbObject extends Equatable {
   /// Initializes a new instance of the [OdbObject] class from

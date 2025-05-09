@@ -5,12 +5,27 @@ import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
-/// Parse a revision string for from, to, and intent.
+/// Parses a revision string and returns a [git_revspec] structure.
 ///
-/// See `man gitrevisions` or https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions
-/// for information on the syntax accepted.
+/// This function parses a revision string and returns a [git_revspec] structure
+/// containing the parsed information. The revision string can be in various formats
+/// as described in the git documentation.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// For more information about the accepted syntax, see:
+/// * [git-rev-parse documentation](https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions)
+/// * `man gitrevisions`
+///
+/// The returned [git_revspec] structure should be freed when no longer needed.
+///
+/// Throws a [LibGit2Error] if an error occurs during parsing.
+///
+/// Example:
+/// ```dart
+/// final revspec = revParse(
+///   repoPointer: repo.pointer,
+///   spec: 'HEAD~1',
+/// );
+/// ```
 Pointer<git_revspec> revParse({
   required Pointer<git_repository> repoPointer,
   required String spec,
@@ -25,18 +40,31 @@ Pointer<git_revspec> revParse({
   if (error < 0) {
     calloc.free(out);
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return out;
   }
+
+  return out;
 }
 
-/// Find a single object, as specified by a [spec] revision string.
-/// See `man gitrevisions`, or https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions
-/// for information on the syntax accepted.
+/// Finds a single object as specified by a revision string.
 ///
-/// The returned object should be freed.
+/// This function parses a revision string and returns the corresponding git object.
+/// The revision string can be in various formats as described in the git documentation.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// For more information about the accepted syntax, see:
+/// * [git-rev-parse documentation](https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions)
+/// * `man gitrevisions`
+///
+/// The returned object should be freed when no longer needed.
+///
+/// Throws a [LibGit2Error] if an error occurs during parsing.
+///
+/// Example:
+/// ```dart
+/// final object = revParseSingle(
+///   repoPointer: repo.pointer,
+///   spec: 'HEAD',
+/// );
+/// ```
 Pointer<git_object> revParseSingle({
   required Pointer<git_repository> repoPointer,
   required String spec,
@@ -53,23 +81,38 @@ Pointer<git_object> revParseSingle({
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
   }
+
+  return result;
 }
 
-/// Find a single object and intermediate reference by a [spec] revision string.
+/// Finds a single object and intermediate reference by a revision string.
 ///
-/// See `man gitrevisions`, or https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions
-/// for information on the syntax accepted.
+/// This function parses a revision string and returns both the corresponding git object
+/// and any intermediate reference. This is particularly useful for expressions like
+/// `@{<-n>}` or `<branchname>@{upstream}` where an intermediate reference is involved.
 ///
-/// In some cases (@{<-n>} or <branchname>@{upstream}), the expression may
-/// point to an intermediate reference. When such expressions are being passed
-/// in, reference_out will be valued as well.
+/// For more information about the accepted syntax, see:
+/// * [git-rev-parse documentation](https://git-scm.com/docs/git-rev-parse.html#_specifying_revisions)
+/// * `man gitrevisions`
 ///
-/// The returned object and reference should be freed.
+/// The returned object and reference (if present) should be freed when no longer needed.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Returns a list containing:
+/// * The git object pointer at index 0
+/// * The reference pointer at index 1 (if present)
+///
+/// Throws a [LibGit2Error] if an error occurs during parsing.
+///
+/// Example:
+/// ```dart
+/// final results = revParseExt(
+///   repoPointer: repo.pointer,
+///   spec: 'master@{upstream}',
+/// );
+/// final object = results[0];
+/// final reference = results.length > 1 ? results[1] : null;
+/// ```
 List<Pointer> revParseExt({
   required Pointer<git_repository> repoPointer,
   required String spec,
@@ -96,7 +139,7 @@ List<Pointer> revParseExt({
 
   if (error < 0) {
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
   }
+
+  return result;
 }

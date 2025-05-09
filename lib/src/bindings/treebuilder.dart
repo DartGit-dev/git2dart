@@ -11,7 +11,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// The tree builder can be used to create or modify trees in memory and write
 /// them as tree objects to the database.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// If [sourcePointer] is provided, the tree builder will be initialized with
+/// the entries of the given tree.
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_treebuilder> create({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_tree> sourcePointer,
@@ -31,16 +34,25 @@ Pointer<git_treebuilder> create({
 }
 
 /// Write the contents of the tree builder as a tree object.
+///
+/// The tree builder will write a new tree object to the object database
+/// containing all the entries in the tree.
+///
+/// Returns a pointer to the OID of the newly written tree object.
 Pointer<git_oid> write(Pointer<git_treebuilder> bld) {
   final out = calloc<git_oid>();
   libgit2.git_treebuilder_write(out, bld);
   return out;
 }
 
-/// Clear all the entires in the builder.
+/// Clear all the entries in the builder.
+///
+/// This will clear all the entries in the tree builder, making it empty.
 void clear(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_clear(bld);
 
 /// Get the number of entries listed in a treebuilder.
+///
+/// Returns the number of entries in the tree builder.
 int entryCount(Pointer<git_treebuilder> bld) =>
     libgit2.git_treebuilder_entrycount(bld);
 
@@ -68,14 +80,13 @@ Pointer<git_tree_entry> getByFilename({
 /// Add or update an entry to the builder.
 ///
 /// Insert a new entry for filename in the builder with the given attributes.
-///
 /// If an entry named filename already exists, its attributes will be updated
 /// with the given ones.
 ///
 /// By default the entry that you are inserting will be checked for validity;
 /// that it exists in the object database and is of the correct type.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void add({
   required Pointer<git_treebuilder> builderPointer,
   required String filename,
@@ -100,7 +111,9 @@ void add({
 
 /// Remove an entry from the builder by its filename.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// If the entry does not exist, this will still succeed but will do nothing.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void remove({
   required Pointer<git_treebuilder> builderPointer,
   required String filename,
@@ -115,5 +128,7 @@ void remove({
   }
 }
 
-/// Free a tree builder and all the entries to release memory.
+/// Free a tree builder and all the entries.
+///
+/// This will clear all the entries and free the builder.
 void free(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_free(bld);

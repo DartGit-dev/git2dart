@@ -33,7 +33,7 @@ void main() {
     });
 
     test('describes commit', () {
-      Tag.delete(repo: repo, name: 'v0.2');
+      Tag.delete(repo: repo, tagName: 'v0.2');
 
       expect(
         repo.describe(describeStrategy: GitDescribeStrategy.tags),
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('describes and follows first parent only', () {
-      Tag.delete(repo: repo, name: 'v0.2');
+      Tag.delete(repo: repo, tagName: 'v0.2');
 
       expect(
         repo.describe(
@@ -109,7 +109,7 @@ void main() {
 
     test('describes with provided abbreviated size', () {
       final commit = Commit.lookup(repo: repo, oid: repo['821ed6e']);
-      Tag.delete(repo: repo, name: 'v0.2');
+      Tag.delete(repo: repo, tagName: 'v0.2');
 
       expect(
         repo.describe(

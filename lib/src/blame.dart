@@ -8,6 +8,11 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
+/// A class that provides blame information for a file.
+///
+/// This class allows you to track the history of changes to a file, showing
+/// which commit last modified each line. It implements [IterableMixin] to allow
+/// iteration over blame hunks.
 class Blame with IterableMixin<BlameHunk> {
   /// Returns the blame for a single file.
   ///
@@ -36,7 +41,7 @@ class Blame with IterableMixin<BlameHunk> {
   /// [maxLine] is the last line in the file to blame. The default is the last
   /// line of the file.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Blame.file({
     required Repository repo,
     required String path,
@@ -60,20 +65,23 @@ class Blame with IterableMixin<BlameHunk> {
     _finalizer.attach(this, _blamePointer, detach: this);
   }
 
-  /// Returns blame data for a file that has been modified in memory. The
-  /// [reference] parameter is a pre-calculated blame for the in-odb history of
-  /// the file.
-  /// This means that once a file blame is completed (which can be expensive),
+  /// Returns blame data for a file that has been modified in memory.
+  ///
+  /// The [reference] parameter is a pre-calculated blame for the in-odb history of
+  /// the file. This means that once a file blame is completed (which can be expensive),
   /// updating the buffer blame is very fast.
+  ///
+  /// [buffer] is the content of the file to blame.
   ///
   /// Lines that differ between the buffer and the committed version are marked
   /// as having a zero Oid for their finalCommitOid.
   ///
-  /// Throws a [LibGit2Error] if error occured.
+  /// Throws a [LibGit2Error] if error occurred.
   Blame.buffer({required Blame reference, required String buffer}) {
     _blamePointer = bindings.buffer(
-      reference: reference._blamePointer,
       buffer: buffer,
+      bufferLen: buffer.length,
+      ref: reference._blamePointer,
     );
     _finalizer.attach(this, _blamePointer, detach: this);
   }
@@ -86,10 +94,7 @@ class Blame with IterableMixin<BlameHunk> {
   /// Throws [RangeError] if index out of range.
   BlameHunk operator [](int index) {
     return BlameHunk._(
-      bindings.getHunkByIndex(
-        blamePointer: _blamePointer,
-        index: index,
-      ),
+      bindings.getHunkByindex(blamePointer: _blamePointer, index: index),
     );
   }
 
@@ -99,10 +104,7 @@ class Blame with IterableMixin<BlameHunk> {
   /// Throws [RangeError] if [lineNumber] is out of range.
   BlameHunk forLine(int lineNumber) {
     return BlameHunk._(
-      bindings.getHunkByLine(
-        blamePointer: _blamePointer,
-        lineNumber: lineNumber,
-      ),
+      bindings.getHunkByline(blamePointer: _blamePointer, lineno: lineNumber),
     );
   }
 
@@ -122,6 +124,10 @@ final _finalizer = Finalizer<Pointer<git_blame>>(
 );
 // coverage:ignore-end
 
+/// Represents a single hunk of blame information.
+///
+/// A blame hunk contains information about a contiguous block of lines that were
+/// last modified in the same commit.
 @immutable
 class BlameHunk extends Equatable {
   /// Initializes a new instance of the [BlameHunk] class from
@@ -188,18 +194,19 @@ class BlameHunk extends Equatable {
 
   @override
   List<Object?> get props => [
-        linesCount,
-        isBoundary,
-        finalStartLineNumber,
-        finalCommitter,
-        finalCommitOid,
-        originStartLineNumber,
-        originCommitter,
-        originCommitOid,
-        originPath,
-      ];
+    linesCount,
+    isBoundary,
+    finalStartLineNumber,
+    finalCommitter,
+    finalCommitOid,
+    originStartLineNumber,
+    originCommitter,
+    originCommitOid,
+    originPath,
+  ];
 }
 
+/// Iterator implementation for [Blame] class.
 class _BlameIterator implements Iterator<BlameHunk> {
   _BlameIterator(this._blamePointer) {
     count = bindings.hunkCount(_blamePointer);
@@ -219,10 +226,7 @@ class _BlameIterator implements Iterator<BlameHunk> {
       return false;
     } else {
       currentHunk = BlameHunk._(
-        bindings.getHunkByIndex(
-          blamePointer: _blamePointer,
-          index: index,
-        ),
+        bindings.getHunkByindex(blamePointer: _blamePointer, index: index),
       );
       index++;
       return true;
