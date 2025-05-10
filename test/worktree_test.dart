@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -79,29 +80,17 @@ void main() {
 
     test('throws when trying to create worktree with invalid name or path', () {
       expect(
-        () => Worktree.create(
-          repo: repo,
-          name: '',
-          path: worktreeDir.path,
-        ),
+        () => Worktree.create(repo: repo, name: '', path: worktreeDir.path),
         throwsA(isA<LibGit2Error>()),
       );
       expect(
-        () => Worktree.create(
-          repo: repo,
-          name: 'name',
-          path: '',
-        ),
+        () => Worktree.create(repo: repo, name: 'name', path: ''),
         throwsA(isA<LibGit2Error>()),
       );
     });
 
     test('lookups worktree', () {
-      Worktree.create(
-        repo: repo,
-        name: worktreeName,
-        path: worktreeDir.path,
-      );
+      Worktree.create(repo: repo, name: worktreeName, path: worktreeDir.path);
       final worktree = Worktree.lookup(repo: repo, name: worktreeName);
 
       expect(worktree.name, worktreeName);

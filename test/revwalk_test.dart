@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -33,10 +34,7 @@ void main() {
     });
 
     test('throws when trying to initialize and error occurs', () {
-      expect(
-        () => RevWalk(Repository(nullptr)),
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => RevWalk(Repository(nullptr)), throwsA(isA<LibGit2Error>()));
     });
 
     test('returns list of commits with default sorting', () {
@@ -113,13 +111,15 @@ void main() {
       expect(commits.length, 6);
     });
 
-    test('throws when trying to add reference for traversal with invalid name',
-        () {
-      expect(
-        () => RevWalk(repo).pushReference('invalid'),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to add reference for traversal with invalid name',
+      () {
+        expect(
+          () => RevWalk(repo).pushReference('invalid'),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('adds range for traversal', () {
       final walker = RevWalk(repo);
@@ -209,24 +209,28 @@ void main() {
       expect(commits, <Commit>[]);
     });
 
-    test('simplifies walker by enqueuing only first parent for each commit',
-        () {
-      final walker = RevWalk(repo);
+    test(
+      'simplifies walker by enqueuing only first parent for each commit',
+      () {
+        final walker = RevWalk(repo);
 
-      walker.push(repo[log.first]);
-      walker.simplifyFirstParent();
-      final commits = walker.walk();
+        walker.push(repo[log.first]);
+        walker.simplifyFirstParent();
+        final commits = walker.walk();
 
-      expect(commits.length, 3);
-    });
+        expect(commits.length, 3);
+      },
+    );
 
-    test('throws when trying to add new root for traversal and error occurs',
-        () {
-      expect(
-        () => RevWalk(repo).push(repo['0' * 40]),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to add new root for traversal and error occurs',
+      () {
+        expect(
+          () => RevWalk(repo).push(repo['0' * 40]),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('manually releases allocated memory', () {
       expect(() => RevWalk(repo).free(), returnsNormally);

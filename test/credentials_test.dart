@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -65,10 +66,7 @@ void main() {
     test('throws when provided username and password are incorrect', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(
-        credentials: UserPass(
-          username: 'libgit2',
-          password: 'libgit2',
-        ),
+        credentials: UserPass(username: 'libgit2', password: 'libgit2'),
       );
 
       expect(
@@ -167,10 +165,7 @@ void main() {
     test('throws when provided credential type is invalid', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(
-        credentials: UserPass(
-          username: 'libgit2',
-          password: 'libgit2',
-        ),
+        credentials: UserPass(username: 'libgit2', password: 'libgit2'),
       );
 
       expect(
@@ -187,8 +182,10 @@ void main() {
 
     test('clones repository with provided keypair from memory', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final pubKey = File(p.join('test', 'assets', 'keys', 'id_rsa.pub'))
-          .readAsStringSync();
+      final pubKey =
+          File(
+            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
+          ).readAsStringSync();
       final privateKey =
           File(p.join('test', 'assets', 'keys', 'id_rsa')).readAsStringSync();
       final keypair = KeypairFromMemory(
@@ -214,8 +211,10 @@ void main() {
 
     test('throws when provided keypair from memory is incorrect', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final pubKey = File(p.join('test', 'assets', 'keys', 'id_rsa.pub'))
-          .readAsStringSync();
+      final pubKey =
+          File(
+            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
+          ).readAsStringSync();
       final keypair = KeypairFromMemory(
         username: 'git',
         pubKey: pubKey,

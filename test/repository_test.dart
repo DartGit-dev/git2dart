@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -102,11 +103,13 @@ void main() {
       expect(() => repo.isHeadDetached, throwsA(isA<LibGit2Error>()));
     });
 
-    test('throws when trying to check if branch is unborn and error occurs',
-        () {
-      File(p.join(repo.path, 'HEAD')).deleteSync();
-      expect(() => repo.isBranchUnborn, throwsA(isA<LibGit2Error>()));
-    });
+    test(
+      'throws when trying to check if branch is unborn and error occurs',
+      () {
+        File(p.join(repo.path, 'HEAD')).deleteSync();
+        expect(() => repo.isBranchUnborn, throwsA(isA<LibGit2Error>()));
+      },
+    );
 
     group('setHead', () {
       test('sets head when target is reference', () {
@@ -151,13 +154,10 @@ void main() {
       File(p.join(tmpDir.path, 'new_file.txt')).createSync();
       repo.index.remove('file');
       repo.index.add('new_file.txt');
-      expect(
-        repo.status,
-        {
-          'file': {GitStatus.indexDeleted, GitStatus.wtNew},
-          'new_file.txt': {GitStatus.indexNew},
-        },
-      );
+      expect(repo.status, {
+        'file': {GitStatus.indexDeleted, GitStatus.wtNew},
+        'new_file.txt': {GitStatus.indexNew},
+      });
     });
 
     test('throws when trying to get status of bare repository', () {
@@ -187,10 +187,10 @@ void main() {
 
     test('returns status of a single file for provided path', () {
       repo.index.remove('file');
-      expect(
-        repo.statusFile('file'),
-        {GitStatus.indexDeleted, GitStatus.wtNew},
-      );
+      expect(repo.statusFile('file'), {
+        GitStatus.indexDeleted,
+        GitStatus.wtNew,
+      });
       expect(repo.statusFile('.gitignore'), {GitStatus.current});
     });
 
@@ -211,8 +211,9 @@ void main() {
     test('returns attribute value', () {
       expect(repo.getAttribute(path: 'invalid', name: 'not-there'), null);
 
-      File(p.join(repo.workdir, '.gitattributes'))
-          .writeAsStringSync('*.dart text\n*.jpg -text\n*.sh eol=lf\n');
+      File(
+        p.join(repo.workdir, '.gitattributes'),
+      ).writeAsStringSync('*.dart text\n*.jpg -text\n*.sh eol=lf\n');
 
       File(p.join(repo.workdir, 'file.dart')).createSync();
       File(p.join(repo.workdir, 'file.sh')).createSync();
@@ -227,18 +228,18 @@ void main() {
       final commit1 = Commit.lookup(repo: repo, oid: repo['821ed6e']);
       final commit2 = Commit.lookup(repo: repo, oid: repo['c68ff54']);
 
-      expect(
-        repo.aheadBehind(local: commit1.oid, upstream: commit2.oid),
-        [4, 0],
-      );
-      expect(
-        repo.aheadBehind(local: commit2.oid, upstream: commit1.oid),
-        [0, 4],
-      );
-      expect(
-        repo.aheadBehind(local: commit1.oid, upstream: commit1.oid),
-        [0, 0],
-      );
+      expect(repo.aheadBehind(local: commit1.oid, upstream: commit2.oid), [
+        4,
+        0,
+      ]);
+      expect(repo.aheadBehind(local: commit2.oid, upstream: commit1.oid), [
+        0,
+        4,
+      ]);
+      expect(repo.aheadBehind(local: commit1.oid, upstream: commit1.oid), [
+        0,
+        0,
+      ]);
     });
 
     test('manually releases allocated memory', () {

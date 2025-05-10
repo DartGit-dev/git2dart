@@ -6,7 +6,6 @@ import 'package:equatable/equatable.dart';
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/config.dart' as bindings;
-import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
@@ -190,22 +189,6 @@ class Config with IterableMixin<ConfigEntry> {
       configPointer: _configPointer,
       name: variable,
       regexp: regexp,
-    );
-  }
-
-  /// Iterates over all config variables matching a regular expression.
-  ///
-  /// The [callback] will be called for each variable that matches the [regexp].
-  ///
-  /// Throws a [LibGit2Error] if error occurred.
-  void foreachMatch({
-    required String regexp,
-    required int Function(Pointer<git_config_entry>, Pointer<Void>) callback,
-  }) {
-    bindings.foreachMatch(
-      configPointer: _configPointer,
-      regexp: regexp,
-      callback: callback,
     );
   }
 

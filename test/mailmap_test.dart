@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -149,10 +150,10 @@ Santa Claus <santa.claus@northpole.xx> <me@company.xx>
       expect(mailmap, isA<Mailmap>());
 
       for (final entry in testResolve) {
-        expect(
-          mailmap.resolve(name: entry['name']!, email: entry['email']!),
-          [entry['realName'], entry['realEmail']],
-        );
+        expect(mailmap.resolve(name: entry['name']!, email: entry['email']!), [
+          entry['realName'],
+          entry['realEmail'],
+        ]);
       }
     });
 
@@ -161,10 +162,10 @@ Santa Claus <santa.claus@northpole.xx> <me@company.xx>
       expect(mailmap, isA<Mailmap>());
 
       for (final entry in testResolve) {
-        expect(
-          mailmap.resolve(name: entry['name']!, email: entry['email']!),
-          [entry['realName'], entry['realEmail']],
-        );
+        expect(mailmap.resolve(name: entry['name']!, email: entry['email']!), [
+          entry['realName'],
+          entry['realEmail'],
+        ]);
       }
     });
 
@@ -179,10 +180,10 @@ Santa Claus <santa.claus@northpole.xx> <me@company.xx>
       final mailmap = Mailmap.empty();
 
       for (final entry in testResolve) {
-        expect(
-          mailmap.resolve(name: entry['name']!, email: entry['email']!),
-          [entry['name'], entry['email']],
-        );
+        expect(mailmap.resolve(name: entry['name']!, email: entry['email']!), [
+          entry['name'],
+          entry['email'],
+        ]);
       }
     });
 
@@ -199,18 +200,16 @@ Santa Claus <santa.claus@northpole.xx> <me@company.xx>
       }
 
       for (final entry in testResolve) {
-        expect(
-          mailmap.resolve(name: entry['name']!, email: entry['email']!),
-          [entry['realName'], entry['realEmail']],
-        );
+        expect(mailmap.resolve(name: entry['name']!, email: entry['email']!), [
+          entry['realName'],
+          entry['realEmail'],
+        ]);
       }
     });
 
     test('throws when trying to add entry with empty replace email', () {
       expect(
-        () => Mailmap.empty().addEntry(
-          replaceEmail: ' ',
-        ),
+        () => Mailmap.empty().addEntry(replaceEmail: ' '),
         throwsA(isA<ArgumentError>()),
       );
     });

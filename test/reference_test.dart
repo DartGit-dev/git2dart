@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -24,17 +25,14 @@ void main() {
 
   group('Reference', () {
     test('returns a list', () {
-      expect(
-        Reference.list(repo),
-        [
-          'refs/heads/feature',
-          'refs/heads/master',
-          'refs/notes/commits',
-          'refs/remotes/origin/master',
-          'refs/tags/v0.1',
-          'refs/tags/v0.2',
-        ],
-      );
+      expect(Reference.list(repo), [
+        'refs/heads/feature',
+        'refs/heads/master',
+        'refs/notes/commits',
+        'refs/remotes/origin/master',
+        'refs/tags/v0.1',
+        'refs/tags/v0.2',
+      ]);
     });
 
     test('throws when trying to get a list of references and error occurs', () {
@@ -57,17 +55,11 @@ void main() {
     });
 
     test('returns SHA hex of symbolic reference', () {
-      expect(
-        Reference.lookup(repo: repo, name: 'HEAD').target.sha,
-        lastCommit,
-      );
+      expect(Reference.lookup(repo: repo, name: 'HEAD').target.sha, lastCommit);
     });
 
     test('throws when trying to resolve invalid reference', () {
-      expect(
-        () => Reference(nullptr).target,
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => Reference(nullptr).target, throwsA(isA<LibGit2Error>()));
     });
 
     test('returns the full name', () {
@@ -108,10 +100,7 @@ void main() {
     });
 
     test('checks if reference is a tag', () {
-      expect(
-        Reference.lookup(repo: repo, name: 'refs/tags/v0.1').isTag,
-        true,
-      );
+      expect(Reference.lookup(repo: repo, name: 'refs/tags/v0.1').isTag, true);
     });
 
     test('checks if reflog exists for the reference', () {

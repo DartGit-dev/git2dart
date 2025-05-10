@@ -14,7 +14,6 @@ linter:
     avoid_equals_and_hash_code_on_mutable_classes: true
     avoid_escaping_inner_quotes: true
     avoid_field_initializers_in_const_classes: true
-    lines_longer_than_80_chars: false
     avoid_js_rounded_ints: true
     avoid_positional_boolean_parameters: true
     avoid_print: true
@@ -46,7 +45,6 @@ linter:
     prefer_if_elements_to_conditional_expressions: true
     prefer_int_literals: true
     prefer_null_aware_method_calls: true
-    require_trailing_commas: true
     sort_constructors_first: true
     sort_pub_dependencies: true
     sort_unnamed_constructors_first: true

@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -54,10 +55,7 @@ void main() {
     });
 
     test('throws when trying to read object and error occurs', () {
-      expect(
-        () => repo.odb.read(repo['0' * 40]),
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => repo.odb.read(repo['0' * 40]), throwsA(isA<LibGit2Error>()));
     });
 
     test("returns list of all objects oid's in database", () {
@@ -71,10 +69,7 @@ void main() {
       final odb = repo.odb;
       Directory(p.join(repo.path, 'objects')).deleteSync(recursive: true);
 
-      expect(
-        () => odb.objects,
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => odb.objects, throwsA(isA<LibGit2Error>()));
     });
 
     test('writes data', () {

@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -53,10 +54,10 @@ void main() {
           theirHead: repo['6cbc22e'],
           ourRef: 'refs/heads/${ffBranch.name}',
         );
-        expect(
-          analysis.result,
-          {GitMergeAnalysis.fastForward, GitMergeAnalysis.normal},
-        );
+        expect(analysis.result, {
+          GitMergeAnalysis.fastForward,
+          GitMergeAnalysis.normal,
+        });
         expect(repo.status, isEmpty);
       });
 
@@ -84,12 +85,9 @@ void main() {
       expect(index.hasConflicts, true);
       expect(index.conflicts.length, 1);
       expect(repo.state, GitRepositoryState.merge);
-      expect(
-        repo.status,
-        {
-          'conflict_file': {GitStatus.conflicted},
-        },
-      );
+      expect(repo.status, {
+        'conflict_file': {GitStatus.conflicted},
+      });
 
       final conflictedFile = index.conflicts['conflict_file']!;
       expect(conflictedFile.ancestor, null);
@@ -100,12 +98,9 @@ void main() {
       index.write();
       expect(index.hasConflicts, false);
       expect(index.conflicts, isEmpty);
-      expect(
-        repo.status,
-        {
-          'conflict_file': {GitStatus.indexModified},
-        },
-      );
+      expect(repo.status, {
+        'conflict_file': {GitStatus.indexModified},
+      });
     });
 
     group('merge file from index', () {
@@ -327,10 +322,7 @@ theirs content
           repo: repo,
           ourCommit: Commit.lookup(repo: repo, oid: repo['1490545']),
           theirCommit: Commit.lookup(repo: repo, oid: repo['5aecfa0']),
-          mergeFlags: {
-            GitMergeFlag.findRenames,
-            GitMergeFlag.noRecursive,
-          },
+          mergeFlags: {GitMergeFlag.findRenames, GitMergeFlag.noRecursive},
           fileFlags: {
             GitMergeFileFlag.ignoreWhitespace,
             GitMergeFileFlag.ignoreWhitespaceEOL,
@@ -384,10 +376,8 @@ theirs content
 
     test('throws when trying to find merge base for invalid oid', () {
       expect(
-        () => Merge.base(
-          repo: repo,
-          commits: [repo['0' * 40], repo['5aecfa0']],
-        ),
+        () =>
+            Merge.base(repo: repo, commits: [repo['0' * 40], repo['5aecfa0']]),
         throwsA(isA<LibGit2Error>()),
       );
 

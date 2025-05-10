@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/odb.dart' as odb_bindings;
 import 'package:git2dart/src/bindings/oid.dart' as bindings;
-import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 

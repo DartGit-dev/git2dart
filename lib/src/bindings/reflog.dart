@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -100,10 +99,7 @@ void add({
 /// Remove an entry from the reflog by its index.
 ///
 /// Throws a [LibGit2Error] if error occured.
-void remove({
-  required Pointer<git_reflog> reflogPointer,
-  required int index,
-}) {
+void remove({required Pointer<git_reflog> reflogPointer, required int index}) {
   final error = libgit2.git_reflog_drop(reflogPointer, index, 1);
 
   if (error < 0) {

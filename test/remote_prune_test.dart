@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -21,10 +22,7 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     }
     originRepo = Repository.open(tmpDir.path);
-    clonedRepo = Repository.clone(
-      url: tmpDir.path,
-      localPath: cloneDir.path,
-    );
+    clonedRepo = Repository.clone(url: tmpDir.path, localPath: cloneDir.path);
     Branch.delete(repo: originRepo, name: 'feature');
     remote = Remote.lookup(repo: clonedRepo, name: 'origin');
   });
@@ -83,8 +81,7 @@ void main() {
       );
     });
 
-    test(
-        'throws when trying to prune remote refs and remote has never '
+    test('throws when trying to prune remote refs and remote has never '
         'connected', () {
       expect(() => remote.prune(), throwsA(isA<LibGit2Error>()));
     });

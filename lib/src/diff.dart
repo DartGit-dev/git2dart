@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/diff.dart' as bindings;
-import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 

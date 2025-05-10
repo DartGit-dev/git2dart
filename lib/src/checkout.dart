@@ -1,7 +1,6 @@
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/checkout.dart' as bindings;
 import 'package:git2dart/src/bindings/object.dart' as object_bindings;
-import 'package:git2dart/src/git_types.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// A class that provides functionality for checking out files and directories

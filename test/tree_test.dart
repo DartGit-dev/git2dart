@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -96,8 +97,7 @@ void main() {
       expect(() => tree.free(), returnsNormally);
     });
 
-    test(
-        'manually releases allocated memory for tree entry '
+    test('manually releases allocated memory for tree entry '
         'looked up by path', () {
       expect(() => tree['dir/dir_file.txt'].free(), returnsNormally);
     });

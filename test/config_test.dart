@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -40,8 +41,7 @@ void main() {
       expect(config, isA<Config>());
     });
 
-    test(
-        'opens the global, XDG and system configuration files '
+    test('opens the global, XDG and system configuration files '
         '(if they are present) if no path provided', () {
       try {
         expect(Config.open(), isA<Config>());
@@ -98,10 +98,7 @@ void main() {
       });
 
       test("throws when variable isn't found", () {
-        expect(
-          () => config['not.there'],
-          throwsA(isA<LibGit2Error>()),
-        );
+        expect(() => config['not.there'], throwsA(isA<LibGit2Error>()));
       });
     });
 
@@ -137,22 +134,16 @@ void main() {
       });
 
       test('throws on deleting non existing variable', () {
-        expect(
-          () => config.delete('not.there'),
-          throwsA(isA<LibGit2Error>()),
-        );
+        expect(() => config.delete('not.there'), throwsA(isA<LibGit2Error>()));
       });
     });
 
     group('get multivar values', () {
       test('returns list of values', () {
-        expect(
-          config.multivar(variable: 'core.gitproxy'),
-          [
-            'proxy-command for kernel.org',
-            'default-proxy',
-          ],
-        );
+        expect(config.multivar(variable: 'core.gitproxy'), [
+          'proxy-command for kernel.org',
+          'default-proxy',
+        ]);
       });
 
       test('returns list of values for provided regexp', () {

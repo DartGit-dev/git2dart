@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -63,8 +64,7 @@ void main() {
       expect(clonedRepo.head.name, 'refs/heads/feature');
     });
 
-    test(
-        'clones repository with provided remote callback having default fetch '
+    test('clones repository with provided remote callback having default fetch '
         'refspec value', () {
       final clonedRepo = Repository.clone(
         url: tmpDir.path,

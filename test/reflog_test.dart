@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -69,17 +70,19 @@ void main() {
       expect(File(renamedPath).existsSync(), true);
     });
 
-    test('throws when trying to rename reflog and provided new name is invalid',
-        () {
-      expect(
-        () => RefLog.rename(
-          repo: repo,
-          oldName: 'refs/heads/master',
-          newName: '',
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to rename reflog and provided new name is invalid',
+      () {
+        expect(
+          () => RefLog.rename(
+            repo: repo,
+            oldName: 'refs/heads/master',
+            newName: '',
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('adds a new entry to the in-memory reflog', () {
       final committer = Signature.create(

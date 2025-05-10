@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -49,8 +50,7 @@ void main() {
       expect(annotated.refName, refName);
     });
 
-    test(
-        'throws when trying to create annotated commit from provided '
+    test('throws when trying to create annotated commit from provided '
         'reference and error occurs', () {
       expect(
         () => AnnotatedCommit.fromReference(
@@ -68,13 +68,15 @@ void main() {
       expect(annotated.refName, '');
     });
 
-    test('throws when trying to create annotated commit from invalid revspec',
-        () {
-      expect(
-        () => AnnotatedCommit.fromRevSpec(repo: repo, spec: 'invalid'),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to create annotated commit from invalid revspec',
+      () {
+        expect(
+          () => AnnotatedCommit.fromRevSpec(repo: repo, spec: 'invalid'),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('creates annotated commit from provided fetch head data', () {
       final oid = repo['821ed6e'];
@@ -89,8 +91,7 @@ void main() {
       expect(annotated.refName, 'master');
     });
 
-    test(
-        'throws when trying to create annotated commit from fetch head and '
+    test('throws when trying to create annotated commit from fetch head and '
         'error occurs', () {
       expect(
         () => AnnotatedCommit.fromFetchHead(

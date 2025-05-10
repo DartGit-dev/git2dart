@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -50,10 +51,12 @@ void main() {
     });
 
     test(
-        'throws when trying to get the summary of the commit message and error '
-        'occurs', () {
-      expect(() => Commit(nullptr).summary, throwsA(isA<LibGit2Error>()));
-    });
+      'throws when trying to get the summary of the commit message and error '
+      'occurs',
+      () {
+        expect(() => Commit(nullptr).summary, throwsA(isA<LibGit2Error>()));
+      },
+    );
 
     test('reverts commit affecting index and workdir', () {
       final commit = Commit.lookup(repo: repo, oid: repo['821ed6e']);
@@ -69,9 +72,10 @@ void main() {
 
     test('reverts merge commit to provided parent', () {
       const masterContents = 'master contents';
-      final file = File(p.join(repo.workdir, 'another_feature_file'))
-        ..createSync()
-        ..writeAsStringSync(masterContents);
+      final file =
+          File(p.join(repo.workdir, 'another_feature_file'))
+            ..createSync()
+            ..writeAsStringSync(masterContents);
 
       repo.index.add('another_feature_file');
       repo.index.write();
@@ -158,10 +162,7 @@ void main() {
           GitMergeFileFlag.ignoreWhitespace,
           GitMergeFileFlag.styleZdiff3,
         },
-        checkoutStrategy: {
-          GitCheckout.force,
-          GitCheckout.conflictStyleMerge,
-        },
+        checkoutStrategy: {GitCheckout.force, GitCheckout.conflictStyleMerge},
         checkoutDirectory: repo.workdir,
         checkoutPaths: ['dir/dir_file.txt'],
       );
@@ -366,21 +367,23 @@ Some description.
       );
     });
 
-    test('throws when trying to write commit into a buffer and error occurs',
-        () {
-      expect(
-        () => Commit.createBuffer(
-          repo: Repository(nullptr),
-          updateRef: 'HEAD',
-          message: message,
-          author: author,
-          committer: committer,
-          tree: tree,
-          parents: [Commit.lookup(repo: repo, oid: tip)],
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to write commit into a buffer and error occurs',
+      () {
+        expect(
+          () => Commit.createBuffer(
+            repo: Repository(nullptr),
+            updateRef: 'HEAD',
+            message: message,
+            author: author,
+            committer: committer,
+            tree: tree,
+            parents: [Commit.lookup(repo: repo, oid: tip)],
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('amends commit with default arguments', () {
       final commit = Commit.lookup(repo: repo, oid: repo['821ed6e']);
@@ -440,8 +443,7 @@ Some description.
       );
     });
 
-    test(
-        'throws when trying to amend commit that is not the tip of the branch '
+    test('throws when trying to amend commit that is not the tip of the branch '
         'with HEAD provided as update reference', () {
       final commit = Commit.lookup(repo: repo, oid: repo['78b8bf1']);
       expect(commit.oid, isNot(repo.head.target));
@@ -485,13 +487,15 @@ Some description.
       expect(ancestor.oid.sha, 'f17d0d48eae3aa08cecf29128a35e310c97b3521');
     });
 
-    test('throws when trying to get nth generation ancestor and none exists',
-        () {
-      expect(
-        () => Commit.lookup(repo: repo, oid: tip).nthGenAncestor(10),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to get nth generation ancestor and none exists',
+      () {
+        expect(
+          () => Commit.lookup(repo: repo, oid: tip).nthGenAncestor(10),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('returns parent at specified position', () {
       final commit = Commit.lookup(repo: repo, oid: repo['78b8bf1']);

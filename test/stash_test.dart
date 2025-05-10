@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -17,10 +18,7 @@ void main() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
     filePath = p.join(repo.workdir, 'file');
-    stasher = Signature.create(
-      name: 'Stasher',
-      email: 'stasher@email.com',
-    );
+    stasher = Signature.create(name: 'Stasher', email: 'stasher@email.com');
   });
 
   tearDown(() {

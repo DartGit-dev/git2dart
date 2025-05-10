@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -66,27 +67,29 @@ void main() {
       expect(builder[entry.name].name, entry.name);
     });
 
-    test('throws when trying to add entry with invalid name or invalid oid',
-        () {
-      final builder = TreeBuilder(repo: repo);
+    test(
+      'throws when trying to add entry with invalid name or invalid oid',
+      () {
+        final builder = TreeBuilder(repo: repo);
 
-      expect(
-        () => builder.add(
-          filename: '',
-          oid: repo['0' * 40],
-          filemode: GitFilemode.blob,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-      expect(
-        () => builder.add(
-          filename: 'some.file',
-          oid: repo['0' * 40],
-          filemode: GitFilemode.blob,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+        expect(
+          () => builder.add(
+            filename: '',
+            oid: repo['0' * 40],
+            filemode: GitFilemode.blob,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+        expect(
+          () => builder.add(
+            filename: 'some.file',
+            oid: repo['0' * 40],
+            filemode: GitFilemode.blob,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('removes an entry', () {
       final builder = TreeBuilder(repo: repo, tree: tree);

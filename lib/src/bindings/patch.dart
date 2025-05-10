@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -192,12 +191,7 @@ Map<String, int> lineStats(Pointer<git_patch> patch) {
   final context = calloc<Size>();
   final insertions = calloc<Size>();
   final deletions = calloc<Size>();
-  libgit2.git_patch_line_stats(
-    context,
-    insertions,
-    deletions,
-    patch,
-  );
+  libgit2.git_patch_line_stats(context, insertions, deletions, patch);
 
   final result = {
     'context': context.value,

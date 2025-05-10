@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -110,7 +109,7 @@ Pointer<git_blame_hunk> getHunkByline({
   final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineno);
 
   if (result == nullptr) {
-    throw ArgumentError('Line number out of bounds');
+    throw RangeError('Line number out of bounds');
   } else {
     return result;
   }

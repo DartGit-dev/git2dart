@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -9,10 +10,7 @@ void main() {
 
   group('Repository.open', () {
     test("throws when repository isn't found at provided path", () {
-      expect(
-        () => Repository.open('/not/there'),
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => Repository.open('/not/there'), throwsA(isA<LibGit2Error>()));
     });
 
     group('empty bare', () {
@@ -105,10 +103,7 @@ void main() {
       });
 
       test('returns path to working directory', () {
-        expect(
-          repo.workdir,
-          contains('/test/assets/empty_standard/'),
-        );
+        expect(repo.workdir, contains('/test/assets/empty_standard/'));
       });
     });
   });

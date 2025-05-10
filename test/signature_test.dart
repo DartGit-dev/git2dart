@@ -1,4 +1,5 @@
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -9,11 +10,7 @@ void main() {
   const offset = 0;
 
   setUp(() {
-    signature = Signature.create(
-      name: name,
-      email: email,
-      time: time,
-    );
+    signature = Signature.create(name: name, email: email, time: time);
   });
 
   group('Signature', () {
@@ -28,8 +25,7 @@ void main() {
       );
     });
 
-    test(
-        'throws when trying to create with empty name and email and '
+    test('throws when trying to create with empty name and email and '
         'default time', () {
       expect(
         () => Signature.create(name: '', email: ''),
@@ -67,11 +63,7 @@ void main() {
     });
 
     test('manually releases allocated memory', () {
-      final signature = Signature.create(
-        name: name,
-        email: email,
-        time: time,
-      );
+      final signature = Signature.create(name: name, email: email, time: time);
       expect(() => signature.free(), returnsNormally);
     });
 

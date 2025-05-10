@@ -2,7 +2,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/bindings/checkout.dart' as checkout_bindings;
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart/src/stash.dart';

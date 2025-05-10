@@ -3,7 +3,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -362,31 +361,6 @@ void deleteMultivar({
   );
 
   calloc.free(nameC);
-  calloc.free(regexpC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-}
-
-/// Iterate over all the config variables matching a regular expression.
-///
-/// The callback will be called for each variable that matches the regexp.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void foreachMatch({
-  required Pointer<git_config> configPointer,
-  required String regexp,
-  required int Function(Pointer<git_config_entry>, Pointer<Void>) callback,
-}) {
-  final regexpC = regexp.toChar();
-  final error = libgit2.git_config_foreach_match(
-    configPointer,
-    regexpC,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
-  );
-
   calloc.free(regexpC);
 
   if (error < 0) {

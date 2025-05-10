@@ -5,7 +5,6 @@ import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
-import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// A class that manages callbacks for remote operations in Git.

@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -611,54 +610,5 @@ Pointer<git_oid> nameToId({
     throw LibGit2Error(libgit2.git_error_last());
   } else {
     return result;
-  }
-}
-
-/// Iterate over all references that match the specified glob pattern.
-///
-/// The callback will be called for each reference that matches the glob.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void foreachGlob({
-  required Pointer<git_repository> repoPointer,
-  required String glob,
-  required int Function(Pointer<Char>, Pointer<Void>) callback,
-}) {
-  final globC = glob.toChar();
-  final error = libgit2.git_reference_foreach_glob(
-    repoPointer,
-    globC,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
-  );
-
-  calloc.free(globC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-}
-
-/// Iterate over all reference names that match the specified glob pattern.
-///
-/// The callback will be called for each reference name that matches the glob.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void foreachName({
-  required Pointer<git_repository> repoPointer,
-  required String glob,
-  required int Function(Pointer<Char>, Pointer<Void>) callback,
-}) {
-  final globC = glob.toChar();
-  final error = libgit2.git_reference_foreach_name(
-    repoPointer,
-    Pointer.fromFunction(callback, 0),
-    nullptr,
-  );
-
-  calloc.free(globC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
   }
 }

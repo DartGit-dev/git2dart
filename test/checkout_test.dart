@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -34,14 +35,10 @@ void main() {
       expect(repo.status, isEmpty);
     });
 
-    test(
-        'throws when trying to checkout head with invalid alternative '
+    test('throws when trying to checkout head with invalid alternative '
         'directory', () {
       expect(
-        () => Checkout.head(
-          repo: repo,
-          directory: 'not/there',
-        ),
+        () => Checkout.head(repo: repo, directory: 'not/there'),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -52,17 +49,13 @@ void main() {
 
       Checkout.index(
         repo: repo,
-        strategy: {
-          GitCheckout.force,
-          GitCheckout.conflictStyleMerge,
-        },
+        strategy: {GitCheckout.force, GitCheckout.conflictStyleMerge},
         paths: ['feature_file'],
       );
       expect(repo.status, isEmpty);
     });
 
-    test(
-        'throws when trying to checkout index with invalid alternative '
+    test('throws when trying to checkout index with invalid alternative '
         'directory', () {
       expect(
         () => Checkout.index(repo: repo, directory: 'not/there'),
@@ -88,8 +81,7 @@ void main() {
       );
     });
 
-    test(
-        'throws when trying to checkout reference with invalid alternative '
+    test('throws when trying to checkout reference with invalid alternative '
         'directory', () {
       expect(
         () => Checkout.reference(
@@ -122,16 +114,12 @@ void main() {
 
       // does not change HEAD
       expect(repo.head.target, isNot(featureHead.oid));
-      expect(
-        repo.status,
-        {
-          'another_feature_file': {GitStatus.indexNew},
-        },
-      );
+      expect(repo.status, {
+        'another_feature_file': {GitStatus.indexNew},
+      });
     });
 
-    test(
-        'throws when trying to checkout commit with invalid alternative '
+    test('throws when trying to checkout commit with invalid alternative '
         'directory', () {
       expect(
         () => Checkout.commit(
@@ -163,10 +151,8 @@ void main() {
     });
 
     test('checkouts file with provided path', () {
-      final featureTip = Reference.lookup(
-        repo: repo,
-        name: 'refs/heads/feature',
-      ).target;
+      final featureTip =
+          Reference.lookup(repo: repo, name: 'refs/heads/feature').target;
 
       expect(repo.status, isEmpty);
       Checkout.reference(
@@ -174,12 +160,9 @@ void main() {
         name: 'refs/heads/feature',
         paths: ['another_feature_file'],
       );
-      expect(
-        repo.status,
-        {
-          'another_feature_file': {GitStatus.indexNew},
-        },
-      );
+      expect(repo.status, {
+        'another_feature_file': {GitStatus.indexNew},
+      });
       // does not change HEAD
       expect(repo.head.target, isNot(featureTip));
     });

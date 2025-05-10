@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -340,8 +341,11 @@ void main() {
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
           repo: conflictRepo,
-          oid: Branch.lookup(repo: conflictRepo, name: 'ancestor-conflict')
-              .target,
+          oid:
+              Branch.lookup(
+                repo: conflictRepo,
+                name: 'ancestor-conflict',
+              ).target,
         ),
       );
 
@@ -362,10 +366,8 @@ void main() {
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
           repo: conflictRepo,
-          oid: Branch.lookup(
-            repo: conflictRepo,
-            name: 'conflict-branch',
-          ).target,
+          oid:
+              Branch.lookup(repo: conflictRepo, name: 'conflict-branch').target,
         ),
       );
 
@@ -389,8 +391,11 @@ void main() {
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
           repo: conflictRepo,
-          oid: Branch.lookup(repo: conflictRepo, name: 'ancestor-conflict')
-              .target,
+          oid:
+              Branch.lookup(
+                repo: conflictRepo,
+                name: 'ancestor-conflict',
+              ).target,
         ),
       );
 
@@ -437,10 +442,8 @@ void main() {
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
           repo: conflictRepo,
-          oid: Branch.lookup(
-            repo: conflictRepo,
-            name: 'conflict-branch',
-          ).target,
+          oid:
+              Branch.lookup(repo: conflictRepo, name: 'conflict-branch').target,
         ),
       );
 
@@ -461,8 +464,14 @@ void main() {
 
     test('throws when trying to remove conflict and error occurs', () {
       expect(
-        () => ConflictEntry(index.pointer, 'invalid.path', null, null, null)
-            .remove(),
+        () =>
+            ConflictEntry(
+              index.pointer,
+              'invalid.path',
+              null,
+              null,
+              null,
+            ).remove(),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -477,10 +486,8 @@ void main() {
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
           repo: conflictRepo,
-          oid: Branch.lookup(
-            repo: conflictRepo,
-            name: 'conflict-branch',
-          ).target,
+          oid:
+              Branch.lookup(repo: conflictRepo, name: 'conflict-branch').target,
         ),
       );
 

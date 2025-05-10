@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -92,10 +93,7 @@ void main() {
     });
 
     test('throws when checking if branch is current head and error occurs', () {
-      expect(
-        () => Branch(nullptr).isHead,
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => Branch(nullptr).isHead, throwsA(isA<LibGit2Error>()));
     });
 
     test('checks if branch is checked out', () {
@@ -104,10 +102,7 @@ void main() {
     });
 
     test('throws when checking if branch is checked out and error occurs', () {
-      expect(
-        () => Branch(nullptr).isCheckedOut,
-        throwsA(isA<LibGit2Error>()),
-      );
+      expect(() => Branch(nullptr).isCheckedOut, throwsA(isA<LibGit2Error>()));
     });
 
     test('returns name', () {
@@ -123,8 +118,7 @@ void main() {
       expect(branch.remoteName, 'origin');
     });
 
-    test(
-        'throws when getting remote name of a remote-tracking branch and '
+    test('throws when getting remote name of a remote-tracking branch and '
         'error occurs', () {
       expect(
         () => Branch.lookup(repo: repo, name: 'master').remoteName,
@@ -181,13 +175,15 @@ void main() {
       );
     });
 
-    test('throws when trying to get upstream name of a branch and error occurs',
-        () {
-      expect(
-        () => Branch.lookup(repo: repo, name: 'feature').upstreamName,
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to get upstream name of a branch and error occurs',
+      () {
+        expect(
+          () => Branch.lookup(repo: repo, name: 'feature').upstreamName,
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('returns upstream remote of a local branch', () {
       expect(
@@ -198,9 +194,11 @@ void main() {
 
     test('throws when trying to get upstream remote of a remote branch', () {
       expect(
-        () => Branch.list(repo: repo, type: GitBranch.remote)
-            .first
-            .upstreamRemote,
+        () =>
+            Branch.list(
+              repo: repo,
+              type: GitBranch.remote,
+            ).first.upstreamRemote,
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -286,11 +284,8 @@ void main() {
 
       test('throws when name already exists', () {
         expect(
-          () => Branch.rename(
-            repo: repo,
-            oldName: 'feature',
-            newName: 'master',
-          ),
+          () =>
+              Branch.rename(repo: repo, oldName: 'feature', newName: 'master'),
           throwsA(isA<LibGit2Error>()),
         );
       });
@@ -308,11 +303,8 @@ void main() {
 
       test('throws when name is invalid', () {
         expect(
-          () => Branch.rename(
-            repo: repo,
-            oldName: 'feature',
-            newName: 'inv@{id',
-          ),
+          () =>
+              Branch.rename(repo: repo, oldName: 'feature', newName: 'inv@{id'),
           throwsA(isA<LibGit2Error>()),
         );
       });

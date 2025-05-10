@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -217,19 +218,20 @@ index e69de29..0000000
     });
 
     test(
-        'returns string representation of Patch, DiffHunk and DiffLine objects',
-        () {
-      final patch = Patch.fromBuffers(
-        oldBuffer: oldBuffer,
-        newBuffer: newBuffer,
-        oldBufferPath: path,
-        newBufferPath: path,
-      );
+      'returns string representation of Patch, DiffHunk and DiffLine objects',
+      () {
+        final patch = Patch.fromBuffers(
+          oldBuffer: oldBuffer,
+          newBuffer: newBuffer,
+          oldBufferPath: path,
+          newBufferPath: path,
+        );
 
-      expect(patch.toString(), contains('Patch{'));
-      expect(patch.hunks[0].toString(), contains('DiffHunk{'));
-      expect(patch.hunks[0].lines[0].toString(), contains('DiffLine{'));
-    });
+        expect(patch.toString(), contains('Patch{'));
+        expect(patch.hunks[0].toString(), contains('DiffHunk{'));
+        expect(patch.hunks[0].lines[0].toString(), contains('DiffLine{'));
+      },
+    );
 
     test('supports value comparison', () {
       final patch = Patch.fromBuffers(

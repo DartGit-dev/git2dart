@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -130,10 +131,7 @@ void main() {
       expect(hunk.finalStartLineNumber, hunks[0]['finalStartLineNumber']);
       expect(hunk.finalCommitter, hunks[0]['finalCommitter']);
       expect(hunk.originCommitOid.sha, hunks[0]['originCommitOid']);
-      expect(
-        hunk.originStartLineNumber,
-        hunks[0]['originStartLineNumber'],
-      );
+      expect(hunk.originStartLineNumber, hunks[0]['originStartLineNumber']);
       expect(hunk.originCommitter, hunks[0]['originCommitter']);
       expect(hunk.isBoundary, hunks[0]['isBoundary']);
       expect(hunk.originPath, 'feature_file');
@@ -166,41 +164,43 @@ void main() {
       expect(hunk.finalStartLineNumber, hunks[0]['finalStartLineNumber']);
       expect(hunk.finalCommitter, hunks[0]['finalCommitter']);
       expect(hunk.originCommitOid.sha, hunks[0]['originCommitOid']);
-      expect(
-        hunk.originStartLineNumber,
-        hunks[0]['originStartLineNumber'],
-      );
+      expect(hunk.originStartLineNumber, hunks[0]['originStartLineNumber']);
       expect(hunk.originCommitter, hunks[0]['originCommitter']);
       expect(hunk.isBoundary, hunks[0]['isBoundary']);
       expect(hunk.originPath, 'feature_file');
     });
 
-    test('returns the blame for provided file with minLine and maxLine set',
-        () {
-      final blame = Blame.file(
-        repo: repo,
-        path: 'feature_file',
-        minLine: 1,
-        maxLine: 1,
-      );
-
-      expect(blame.length, 1);
-
-      for (var i = 0; i < blame.length; i++) {
-        expect(blame[i].linesCount, 1);
-        expect(blame[i].finalCommitOid.sha, hunks[i]['finalCommitOid']);
-        expect(blame[i].finalStartLineNumber, hunks[i]['finalStartLineNumber']);
-        expect(blame[i].finalCommitter, hunks[i]['finalCommitter']);
-        expect(blame[i].originCommitOid.sha, hunks[i]['originCommitOid']);
-        expect(
-          blame[i].originStartLineNumber,
-          hunks[i]['originStartLineNumber'],
+    test(
+      'returns the blame for provided file with minLine and maxLine set',
+      () {
+        final blame = Blame.file(
+          repo: repo,
+          path: 'feature_file',
+          minLine: 1,
+          maxLine: 1,
         );
-        expect(blame[i].originCommitter, hunks[i]['originCommitter']);
-        expect(blame[i].isBoundary, hunks[i]['isBoundary']);
-        expect(blame[i].originPath, 'feature_file');
-      }
-    });
+
+        expect(blame.length, 1);
+
+        for (var i = 0; i < blame.length; i++) {
+          expect(blame[i].linesCount, 1);
+          expect(blame[i].finalCommitOid.sha, hunks[i]['finalCommitOid']);
+          expect(
+            blame[i].finalStartLineNumber,
+            hunks[i]['finalStartLineNumber'],
+          );
+          expect(blame[i].finalCommitter, hunks[i]['finalCommitter']);
+          expect(blame[i].originCommitOid.sha, hunks[i]['originCommitOid']);
+          expect(
+            blame[i].originStartLineNumber,
+            hunks[i]['originStartLineNumber'],
+          );
+          expect(blame[i].originCommitter, hunks[i]['originCommitter']);
+          expect(blame[i].isBoundary, hunks[i]['isBoundary']);
+          expect(blame[i].originPath, 'feature_file');
+        }
+      },
+    );
 
     test('manually releases allocated memory', () {
       final blame = Blame.file(repo: repo, path: 'feature_file');

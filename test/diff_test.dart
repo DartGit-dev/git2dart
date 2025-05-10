@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -174,13 +175,15 @@ index e69de29..c217c63 100644
       }
     });
 
-    test('throws when trying to diff between tree and workdir and error occurs',
-        () {
-      expect(
-        () => Diff.treeToWorkdir(repo: Repository(nullptr), tree: null),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to diff between tree and workdir and error occurs',
+      () {
+        expect(
+          () => Diff.treeToWorkdir(repo: Repository(nullptr), tree: null),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('returns diff between tree and workdir with index', () {
       final diff = Diff.treeToWorkdirWithIndex(
@@ -194,14 +197,11 @@ index e69de29..c217c63 100644
       }
     });
 
-    test(
-        'throws when trying to diff between tree and workdir with index and '
+    test('throws when trying to diff between tree and workdir with index and '
         'error occurs', () {
       expect(
-        () => Diff.treeToWorkdirWithIndex(
-          repo: Repository(nullptr),
-          tree: null,
-        ),
+        () =>
+            Diff.treeToWorkdirWithIndex(repo: Repository(nullptr), tree: null),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -245,17 +245,19 @@ index e69de29..c217c63 100644
       }
     });
 
-    test('throws when trying to diff between tree and tree and error occurs',
-        () {
-      expect(
-        () => Diff.treeToTree(
-          repo: Repository(nullptr),
-          oldTree: Tree(nullptr),
-          newTree: Tree(nullptr),
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to diff between tree and tree and error occurs',
+      () {
+        expect(
+          () => Diff.treeToTree(
+            repo: Repository(nullptr),
+            oldTree: Tree(nullptr),
+            newTree: Tree(nullptr),
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('throws when trying to diff between two null trees', () {
       expect(
@@ -277,17 +279,19 @@ index e69de29..c217c63 100644
       }
     });
 
-    test('throws when trying to diff between index and index and error occurs',
-        () {
-      expect(
-        () => Diff.indexToIndex(
-          repo: repo,
-          oldIndex: repo.index,
-          newIndex: Index(nullptr),
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+    test(
+      'throws when trying to diff between index and index and error occurs',
+      () {
+        expect(
+          () => Diff.indexToIndex(
+            repo: repo,
+            oldIndex: repo.index,
+            newIndex: Index(nullptr),
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('merges diffs', () {
       final commit = Commit.lookup(repo: repo, oid: repo.head.target);
@@ -331,26 +335,28 @@ index e69de29..c217c63 100644
         );
       });
 
-      test('checks if hunk with provided index can be applied to repository',
-          () {
-        final diff1 = Diff.indexToWorkdir(repo: repo, index: repo.index);
-        expect(
-          diff1.applies(repo: repo, location: GitApplyLocation.both),
-          false,
-        );
+      test(
+        'checks if hunk with provided index can be applied to repository',
+        () {
+          final diff1 = Diff.indexToWorkdir(repo: repo, index: repo.index);
+          expect(
+            diff1.applies(repo: repo, location: GitApplyLocation.both),
+            false,
+          );
 
-        final diff2 = Diff.parse(patchText);
-        final hunk = diff2.patches.first.hunks.first;
-        Checkout.head(repo: repo, strategy: {GitCheckout.force});
-        expect(
-          diff2.applies(
-            repo: repo,
-            hunkIndex: hunk.index,
-            location: GitApplyLocation.both,
-          ),
-          true,
-        );
-      });
+          final diff2 = Diff.parse(patchText);
+          final hunk = diff2.patches.first.hunks.first;
+          Checkout.head(repo: repo, strategy: {GitCheckout.force});
+          expect(
+            diff2.applies(
+              repo: repo,
+              hunkIndex: hunk.index,
+              location: GitApplyLocation.both,
+            ),
+            true,
+          );
+        },
+      );
 
       test('applies diff to repository', () {
         final file = File(p.join(tmpDir.path, 'subdir', 'modified_file'));
@@ -453,10 +459,9 @@ index e69de29..c217c63 100644
 
       test('throws when trying to apply diff to tree and error occurs', () {
         expect(
-          () => Diff.parse(patchText).applyToTree(
-            repo: repo,
-            tree: Tree(nullptr),
-          ),
+          () => Diff.parse(
+            patchText,
+          ).applyToTree(repo: repo, tree: Tree(nullptr)),
           throwsA(isA<LibGit2Error>()),
         );
       });
@@ -506,14 +511,11 @@ index e69de29..c217c63 100644
 
       expect(diff.deltas[2].oldFile.size, 17);
 
-      expect(
-        diff.deltas[0].oldFile.flags,
-        {GitDiffFlag.validId, GitDiffFlag.exists},
-      );
-      expect(
-        diff.deltas[0].newFile.flags,
-        {GitDiffFlag.validId},
-      );
+      expect(diff.deltas[0].oldFile.flags, {
+        GitDiffFlag.validId,
+        GitDiffFlag.exists,
+      });
+      expect(diff.deltas[0].newFile.flags, {GitDiffFlag.validId});
 
       expect(diff.deltas[0].oldFile.mode, GitFilemode.blob);
     });
@@ -570,8 +572,7 @@ index e69de29..c217c63 100644
       expect(() => stats.free(), returnsNormally);
     });
 
-    test(
-        'returns string representation of Diff, DiffDelta, DiffFile '
+    test('returns string representation of Diff, DiffDelta, DiffFile '
         ' and DiffStats objects', () {
       final diff = Diff.parse(patchText);
       final patch = Patch.fromDiff(diff: diff, index: 0);

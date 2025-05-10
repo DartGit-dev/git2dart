@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 /// source or target branches being merged.
 @immutable
 class AnnotatedCommit extends Equatable {
-  late final Pointer<git_annotated_commit> _annotatedCommitPointer;
 
   /// Creates an annotated commit by looking up the given commit [oid].
   ///
@@ -87,6 +86,7 @@ class AnnotatedCommit extends Equatable {
     );
     _finalizer.attach(this, _annotatedCommitPointer, detach: this);
   }
+  late final Pointer<git_annotated_commit> _annotatedCommitPointer;
 
   /// Pointer to the memory address for the allocated commit object.
   ///

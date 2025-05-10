@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -148,8 +149,7 @@ void main() {
       expect(repo.index['conflict_file'], isA<IndexEntry>());
     });
 
-    test(
-        'throws when trying to initialize rebase without upstream and onto '
+    test('throws when trying to initialize rebase without upstream and onto '
         'provided', () {
       expect(() => Rebase.init(repo: repo), throwsA(isA<LibGit2Error>()));
     });
@@ -187,29 +187,31 @@ void main() {
       );
     });
 
-    test('throws when trying to perfrom next rebase operation and error occurs',
-        () {
-      final conflict = Reference.lookup(
-        repo: repo,
-        name: 'refs/heads/conflict-branch',
-      );
-
-      Checkout.reference(repo: repo, name: conflict.name);
-      repo.setHead(conflict.name);
-
-      final rebase = Rebase.init(
-        repo: repo,
-        branch: AnnotatedCommit.lookup(
+    test(
+      'throws when trying to perfrom next rebase operation and error occurs',
+      () {
+        final conflict = Reference.lookup(
           repo: repo,
-          oid: Reference.lookup(repo: repo, name: 'refs/heads/master').target,
-        ),
-        onto: AnnotatedCommit.lookup(repo: repo, oid: conflict.target),
-      );
-      expect(rebase.operations.length, 1);
+          name: 'refs/heads/conflict-branch',
+        );
 
-      rebase.next(); // repo now have conflicts
-      expect(() => rebase.next(), throwsA(isA<LibGit2Error>()));
-    });
+        Checkout.reference(repo: repo, name: conflict.name);
+        repo.setHead(conflict.name);
+
+        final rebase = Rebase.init(
+          repo: repo,
+          branch: AnnotatedCommit.lookup(
+            repo: repo,
+            oid: Reference.lookup(repo: repo, name: 'refs/heads/master').target,
+          ),
+          onto: AnnotatedCommit.lookup(repo: repo, oid: conflict.target),
+        );
+        expect(rebase.operations.length, 1);
+
+        rebase.next(); // repo now have conflicts
+        expect(() => rebase.next(), throwsA(isA<LibGit2Error>()));
+      },
+    );
 
     test('aborts rebase in progress', () {
       final conflict = Reference.lookup(
