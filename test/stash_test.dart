@@ -17,6 +17,8 @@ void main() {
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
+
     filePath = p.join(repo.workdir, 'file');
     stasher = Signature.create(name: 'Stasher', email: 'stasher@email.com');
   });

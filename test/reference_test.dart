@@ -48,7 +48,7 @@ void main() {
       expect(repo.head.type, ReferenceType.symbolic);
       expect(
         Reference.lookup(repo: repo, name: 'HEAD').type,
-        ReferenceType.symbolic,
+        ReferenceType.direct,
       );
     });
 

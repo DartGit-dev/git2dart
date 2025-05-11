@@ -627,8 +627,6 @@ class DiffStats {
   }
 }
 
-// coverage:ignore-start
 final _statsFinalizer = Finalizer<Pointer<git_diff_stats>>(
   (pointer) => bindings.freeStats(pointer),
 );
-// coverage:ignore-end
