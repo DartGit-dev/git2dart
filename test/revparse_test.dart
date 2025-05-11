@@ -32,10 +32,8 @@ void main() {
       expect(tree, isA<Tree>());
       expect(tree.length, isNonZero);
 
-      final blob = RevParse.single(
-        repo: repo,
-        spec: 'HEAD:feature_file',
-      ) as Blob;
+      final blob =
+          RevParse.single(repo: repo, spec: 'HEAD:feature_file') as Blob;
       expect(blob, isA<Blob>());
       expect(blob.content, 'Feature edit\n');
 
@@ -94,8 +92,7 @@ void main() {
       );
     });
 
-    test(
-        '.range returns revspec with correct fields values based on '
+    test('.range returns revspec with correct fields values based on '
         'provided spec', () {
       var revspec = RevParse.range(repo: repo, spec: 'master');
 

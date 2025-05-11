@@ -7,7 +7,7 @@ Directory setupRepo(Directory repoDir) {
   Libgit2.ownerValidation = false;
   final tmpDir = Directory.systemTemp.createTempSync('testrepo');
   copyRepo(from: repoDir, to: tmpDir);
-  
+
   return tmpDir;
 }
 

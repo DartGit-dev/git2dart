@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 /// source or target branches being merged.
 @immutable
 class AnnotatedCommit extends Equatable {
-
   /// Creates an annotated commit by looking up the given commit [oid].
   ///
   /// It is preferable to use [AnnotatedCommit.fromReference] instead of this

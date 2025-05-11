@@ -205,11 +205,7 @@ void main() {
     });
 
     test('GitReset returns correct values', () {
-      const expected = {
-        GitReset.soft: 1,
-        GitReset.mixed: 2,
-        GitReset.hard: 3,
-      };
+      const expected = {GitReset.soft: 1, GitReset.mixed: 2, GitReset.hard: 3};
       final actual = {for (final e in GitReset.values) e: e.value};
       expect(actual, expected);
     });
@@ -377,10 +373,7 @@ void main() {
     });
 
     test('GitDirection returns correct values', () {
-      const expected = {
-        GitDirection.fetch: 0,
-        GitDirection.push: 1,
-      };
+      const expected = {GitDirection.fetch: 0, GitDirection.push: 1};
       final actual = {for (final e in GitDirection.values) e: e.value};
       expect(actual, expected);
     });

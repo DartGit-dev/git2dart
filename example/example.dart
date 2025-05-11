@@ -203,11 +203,7 @@ void viewCommit(Repository repo) {
   );
   stdout.writeln('\n\t${commit.message}');
 
-  final diff = Diff.treeToTree(
-    repo: repo,
-    oldTree: null,
-    newTree: commit.tree,
-  );
+  final diff = Diff.treeToTree(repo: repo, oldTree: null, newTree: commit.tree);
   stdout.writeln('\n${diff.patch}');
 }
 
@@ -425,10 +421,8 @@ void pullChanges(Repository repo) {
   remote.fetch();
 
   // Merge changes
-  final theirHead = Reference.lookup(
-    repo: repo,
-    name: 'refs/remotes/origin/master',
-  ).target;
+  final theirHead =
+      Reference.lookup(repo: repo, name: 'refs/remotes/origin/master').target;
   final analysis = Merge.analysis(repo: repo, theirHead: theirHead);
 
   // In reality there should be more checks for analysis result (if we should
