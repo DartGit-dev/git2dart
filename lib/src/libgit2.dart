@@ -475,7 +475,7 @@ class Libgit2 {
 
     final result = <String>[
       for (var i = 0; i < array.ref.count; i++)
-        array.ref.strings.elementAt(i).value.toDartString(),
+        array.ref.strings[i].cast<Char>().toDartString(),
     ];
 
     calloc.free(array);

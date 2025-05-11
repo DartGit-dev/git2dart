@@ -174,7 +174,7 @@ List<String> list(Pointer<git_repository> repo) {
     throw LibGit2Error(libgit2.git_error_last());
   } else {
     for (var i = 0; i < array.ref.count; i++) {
-      result.add(array.ref.strings.elementAt(i).value.toDartString());
+      result.add(array.ref.strings[i].cast<Char>().toDartString());
     }
   }
 
