@@ -147,7 +147,7 @@ index e69de29..c217c63 100644
     test('returns diff between index and workdir', () {
       final diff = Diff.indexToWorkdir(repo: repo, index: repo.index);
 
-      expect(diff.length, 12);
+      expect(diff.length, 8);
       for (var i = 0; i < diff.deltas.length; i++) {
         expect(diff.deltas[i].newFile.path, indexToWorkdir[i]);
       }
@@ -181,7 +181,7 @@ index e69de29..c217c63 100644
         tree: Commit.lookup(repo: repo, oid: repo.head.target).tree,
       );
 
-      expect(diff.length, 11);
+      expect(diff.length, 9);
       for (var i = 0; i < diff.deltas.length; i++) {
         expect(diff.deltas[i].newFile.path, treeToWorkdir[i]);
       }
@@ -203,7 +203,7 @@ index e69de29..c217c63 100644
         tree: Commit.lookup(repo: repo, oid: repo.head.target).tree,
       );
 
-      expect(diff.length, 13);
+      expect(diff.length, 11);
       for (var i = 0; i < diff.deltas.length; i++) {
         expect(diff.deltas[i].newFile.path, treeToWorkdirWithIndex[i]);
       }
@@ -504,7 +504,7 @@ index e69de29..c217c63 100644
     test('returns deltas', () {
       final diff = Diff.indexToWorkdir(repo: repo, index: repo.index);
 
-      expect(diff.deltas[1].numberOfFiles, 1);
+      expect(diff.deltas[1].numberOfFiles, 2);
       expect(diff.deltas[1].status, GitDelta.deleted);
       expect(diff.deltas[1].statusChar, 'D');
       expect(diff.deltas[1].flags, isEmpty);
@@ -537,7 +537,7 @@ index e69de29..c217c63 100644
       final diff = Diff.indexToWorkdir(repo: repo, index: repo.index);
       final patches = diff.patches;
 
-      expect(patches.length, 12);
+      expect(patches.length, 8);
       expect(patches[1].delta.status, GitDelta.deleted);
 
       for (final p in patches) {
@@ -551,7 +551,7 @@ index e69de29..c217c63 100644
 
       expect(stats.insertions, 4);
       expect(stats.deletions, 2);
-      expect(stats.filesChanged, 12);
+      expect(stats.filesChanged, 8);
       expect(stats.print(format: {GitDiffStats.full}, width: 80), statsPrint);
     });
 

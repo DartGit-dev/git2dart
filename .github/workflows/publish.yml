@@ -33,15 +33,13 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-      # - name: Set git to use LF
-      #   run: |
-      #     git config --global core.autocrlf false
-      #     git config --global core.eol lf
+      - name: Setup git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # - name: Setup github keys
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     ssh-keyscan github.com >> ~/.ssh/known_hosts
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:

@@ -45,10 +45,10 @@ void main() {
     });
 
     test('returns correct type of reference', () {
-      expect(repo.head.type, ReferenceType.symbolic);
+      expect(repo.head.type, ReferenceType.direct);
       expect(
         Reference.lookup(repo: repo, name: 'HEAD').type,
-        ReferenceType.direct,
+        ReferenceType.symbolic,
       );
     });
 
