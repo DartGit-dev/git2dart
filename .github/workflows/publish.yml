@@ -47,7 +47,7 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter test --reporter expande --platform=vm
+      - run: flutter test --reporter expanded
 
   # publish:
   #   needs: test
