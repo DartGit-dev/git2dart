@@ -72,7 +72,7 @@ class Refspec extends Equatable {
   /// Returns [GitDirection.fetch] for fetch refspecs and [GitDirection.push]
   /// for push refspecs.
   GitDirection get direction {
-    return bindings.direction(_refspecPointer) == 0
+    return bindings.direction(_refspecPointer).value == 0
         ? GitDirection.fetch
         : GitDirection.push;
   }

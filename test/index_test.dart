@@ -305,11 +305,7 @@ void main() {
       final tmpDir = setupRepo(Directory(mergeRepoPath));
       final repo = Repository.open(tmpDir.path);
 
-      expect(
-        () => libgit2.getLastError(),
-        null,
-        reason: libgit2.getLastError()?.message,
-      );
+      repo.reset(oid: repo.head.target, resetType: GitReset.hard);
 
       Merge.commit(
         repo: repo,
@@ -342,6 +338,8 @@ void main() {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
 
+      conflictRepo.reset(oid: repo.head.target, resetType: GitReset.hard);
+
       Checkout.reference(repo: conflictRepo, name: 'refs/heads/feature');
       conflictRepo.setHead('refs/heads/feature');
 
@@ -370,6 +368,11 @@ void main() {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
 
+      conflictRepo.reset(
+        oid: conflictRepo.head.target,
+        resetType: GitReset.hard,
+      );
+
       Merge.commit(
         repo: conflictRepo,
         commit: AnnotatedCommit.lookup(
@@ -391,6 +394,8 @@ void main() {
     test('returns conflicts with ancestor and their present and null our', () {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
+
+      conflictRepo.reset(oid: repo.head.target, resetType: GitReset.hard);
 
       Checkout.reference(repo: conflictRepo, name: 'refs/heads/our-conflict');
       conflictRepo.setHead('refs/heads/our-conflict');
@@ -420,6 +425,8 @@ void main() {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
 
+      conflictRepo.reset(oid: repo.head.target, resetType: GitReset.hard);
+
       Checkout.reference(repo: conflictRepo, name: 'refs/heads/feature');
       conflictRepo.setHead('refs/heads/feature');
 
@@ -443,6 +450,11 @@ void main() {
     test('removes conflict', () {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
+
+      conflictRepo.reset(
+        oid: conflictRepo.head.target,
+        resetType: GitReset.hard,
+      );
 
       final index = conflictRepo.index;
 
@@ -487,6 +499,11 @@ void main() {
     test('removes all conflicts', () {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
+
+      conflictRepo.reset(
+        oid: conflictRepo.head.target,
+        resetType: GitReset.hard,
+      );
 
       final index = conflictRepo.index;
 

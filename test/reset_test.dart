@@ -17,6 +17,8 @@ void main() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     file = File(p.join(tmpDir.path, 'feature_file'));
     repo = Repository.open(tmpDir.path);
+
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
   });
 
   tearDown(() {

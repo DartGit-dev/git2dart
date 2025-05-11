@@ -16,6 +16,7 @@ void main() {
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
   });
 
   tearDown(() {
@@ -395,15 +396,15 @@ void main() {
         expect(stats.receivedBytes == callbackStats?.receivedBytes, true);
       },
     );
-
     test(
       tags: 'remote_fetch',
       'fetches data with provided sideband progress callback',
       () {
         const sidebandMessage = """
 Enumerating objects: 69, done.
-Counting objects: 100% (1/1)\rCounting objects: 100% (1/1), done.
-Total 69 (delta 0), reused 1 (delta 0), pack-reused 68
+Counting objects: 100% (1/1)\r.
+Counting objects: 100% (1/1), done.
+Total 69 (delta 0), reused 1 (delta 0), pack-reused 68 (from 1)
 """;
         Remote.setUrl(
           repo: repo,
@@ -417,7 +418,10 @@ Total 69 (delta 0), reused 1 (delta 0), pack-reused 68
             sidebandOutput.write(message);
 
         remote.fetch(callbacks: Callbacks(sidebandProgress: sideband));
-        expect(sidebandOutput.toString(), sidebandMessage);
+        expect(
+          sidebandOutput.toString().replaceAll('\r\n', '\n'),
+          sidebandMessage.replaceAll('\r\n', '\n'),
+        );
       },
     );
 

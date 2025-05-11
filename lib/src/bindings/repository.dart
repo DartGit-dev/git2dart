@@ -478,6 +478,11 @@ void setHeadDetached({
 /// Throws a [LibGit2Error] if error occurred.
 bool isBranchUnborn(Pointer<git_repository> repo) {
   final result = libgit2.git_repository_head_unborn(repo);
+
+  if (result < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+
   return result == 1;
 }
 

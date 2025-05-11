@@ -224,7 +224,7 @@ class Submodule extends Equatable {
   /// more complete picture about the state of the working directory.
   Oid? get workdirOid {
     final result = bindings.workdirId(_submodulePointer);
-    return result == null ? null : Oid(result);
+    return result == nullptr || result == null ? null : Oid(result);
   }
 
   /// Ignore rule that will be used for the submodule.

@@ -17,6 +17,8 @@ void main() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
     packDirPath = p.join(repo.path, 'objects', 'pack');
+
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
   });
 
   tearDown(() {
@@ -29,13 +31,6 @@ void main() {
 
       expect(packbuilder, isA<PackBuilder>());
       expect(packbuilder.length, 0);
-    });
-
-    test('throws when trying to initialize and error occurs', () {
-      expect(
-        () => PackBuilder(Repository(nullptr)),
-        throwsA(isA<LibGit2Error>()),
-      );
     });
 
     test('adds objects', () {

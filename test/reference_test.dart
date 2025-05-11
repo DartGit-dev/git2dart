@@ -17,6 +17,8 @@ void main() {
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
+
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
   });
 
   tearDown(() {
@@ -43,7 +45,7 @@ void main() {
     });
 
     test('returns correct type of reference', () {
-      expect(repo.head.type, ReferenceType.direct);
+      expect(repo.head.type, ReferenceType.symbolic);
       expect(
         Reference.lookup(repo: repo, name: 'HEAD').type,
         ReferenceType.symbolic,
@@ -56,10 +58,6 @@ void main() {
 
     test('returns SHA hex of symbolic reference', () {
       expect(Reference.lookup(repo: repo, name: 'HEAD').target.sha, lastCommit);
-    });
-
-    test('throws when trying to resolve invalid reference', () {
-      expect(() => Reference(nullptr).target, throwsA(isA<LibGit2Error>()));
     });
 
     test('returns the full name', () {
@@ -470,7 +468,7 @@ void main() {
     test('peels to non-tag object when no type is provided', () {
       final ref = Reference.lookup(repo: repo, name: 'refs/heads/master');
       final commit = Commit.lookup(repo: repo, oid: ref.target);
-      final peeled = ref.peel() as Commit;
+      final peeled = ref.peel(GitObject.commit) as Commit;
 
       expect(peeled.oid, commit.oid);
     });

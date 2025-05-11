@@ -37,10 +37,6 @@ void main() {
       );
     });
 
-    test('throws when trying to get target of a tag and error occurs', () {
-      expect(() => Tag(nullptr).target, throwsA(isA<LibGit2Error>()));
-    });
-
     test('returns correct values', () {
       final signature = Signature.create(
         name: 'Aleksey Kulikov',

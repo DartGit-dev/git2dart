@@ -74,9 +74,21 @@ class Tag extends Equatable {
   /// Returns a [GitObject] representing the tagged object.
   ///
   /// Throws a [LibGit2Error] if an error occurs.
-  GitObject get target {
+  Object get target {
     final type = bindings.targetType(_tagPointer);
-    return GitObject.fromValue(type.value);
+    final object = bindings.target(_tagPointer);
+
+    if (type.value == GitObject.commit.value) {
+      return Commit(object.cast());
+    } else if (type.value == GitObject.tree.value) {
+      return Tree(object.cast());
+    } else if (type.value == GitObject.blob.value) {
+      return Blob(object.cast());
+    } else if (type.value == GitObject.tag.value) {
+      return Tag(object.cast());
+    } else {
+      throw ArgumentError('Unsupported tag target type: ${type.value}');
+    }
   }
 
   /// Creates a new annotated tag in the repository.

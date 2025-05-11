@@ -207,7 +207,7 @@ class Reference extends Equatable {
 
   /// Type of the reference.
   ReferenceType get type {
-    return bindings.referenceType(_refPointer) == 1
+    return bindings.referenceType(_refPointer).value == 1
         ? ReferenceType.direct
         : ReferenceType.symbolic;
   }
@@ -247,14 +247,16 @@ class Reference extends Equatable {
     );
     final objectType = object_bindings.type(object);
 
-    if (objectType == GitObject.commit.value) {
+    if (objectType.value == GitObject.commit.value) {
       return Commit(object.cast());
-    } else if (objectType == GitObject.tree.value) {
+    } else if (objectType.value == GitObject.tree.value) {
       return Tree(object.cast());
-    } else if (objectType == GitObject.blob.value) {
+    } else if (objectType.value == GitObject.blob.value) {
       return Blob(object.cast());
-    } else {
+    } else if (objectType.value == GitObject.tag.value) {
       return Tag(object.cast());
+    } else {
+      throw ArgumentError.value('Invalid object type: $objectType');
     }
   }
 
