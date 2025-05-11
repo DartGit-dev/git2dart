@@ -485,9 +485,7 @@ class DiffDelta extends Equatable {
 
   /// Type of change.
   GitDelta get status {
-    return GitDelta.values.firstWhere(
-      (e) => _diffDeltaPointer.ref.status == e.value,
-    );
+    return GitDelta.fromValue(_diffDeltaPointer.ref.status.value);
   }
 
   /// Single character abbreviation for a delta status code.
@@ -566,9 +564,7 @@ class DiffFile extends Equatable {
   }
 
   /// One of the [GitFilemode] values.
-  GitFilemode get mode {
-    return GitFilemode.values.firstWhere((e) => _diffFile.mode == e.value);
-  }
+  GitFilemode get mode => GitFilemode.fromValue(_diffFile.mode);
 
   @override
   String toString() {

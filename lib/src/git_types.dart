@@ -14,6 +14,14 @@ enum ReferenceType {
 
   const ReferenceType(this.value);
   final int value;
+
+  static ReferenceType fromValue(int value) => switch (value) {
+    0 => invalid,
+    1 => direct,
+    2 => symbolic,
+    3 => all,
+    _ => throw ArgumentError('Unknown value for ReferenceType: $value'),
+  };
 }
 
 /// Valid modes for index and tree entries.
@@ -38,6 +46,16 @@ enum GitFilemode {
 
   const GitFilemode(this.value);
   final int value;
+
+  static GitFilemode fromValue(int value) => switch (value) {
+    0 => unreadable,
+    16384 => tree,
+    33188 => blob,
+    33261 => blobExecutable,
+    40960 => link,
+    57344 => commit,
+    _ => throw ArgumentError('Unknown value for GitFilemode: $value'),
+  };
 }
 
 /// Flags to specify the sorting which a revwalk should perform.
@@ -61,6 +79,14 @@ enum GitSort {
 
   const GitSort(this.value);
   final int value;
+
+  static GitSort fromValue(int value) => switch (value) {
+    0 => none,
+    1 => topological,
+    2 => time,
+    4 => reverse,
+    _ => throw ArgumentError('Unknown value for GitSort: $value'),
+  };
 }
 
 /// Basic type (loose or packed) of any Git object.
@@ -118,6 +144,13 @@ enum GitRevSpec {
 
   const GitRevSpec(this.value);
   final int value;
+
+  static GitRevSpec fromValue(int value) => switch (value) {
+    1 => single,
+    2 => range,
+    4 => mergeBase,
+    _ => throw ArgumentError('Unknown value for GitRevSpec: $value'),
+  };
 }
 
 /// Basic type of any Git branch.
@@ -133,6 +166,13 @@ enum GitBranch {
 
   const GitBranch(this.value);
   final int value;
+
+  static GitBranch fromValue(int value) => switch (value) {
+    1 => local,
+    2 => remote,
+    3 => all,
+    _ => throw ArgumentError('Unknown value for GitBranch: $value'),
+  };
 }
 
 /// Status flags for a single file.
@@ -188,6 +228,24 @@ enum GitStatus {
 
   const GitStatus(this.value);
   final int value;
+
+  static GitStatus fromValue(int value) => switch (value) {
+    0 => current,
+    1 => indexNew,
+    2 => indexModified,
+    4 => indexDeleted,
+    8 => indexRenamed,
+    16 => indexTypeChange,
+    128 => wtNew,
+    256 => wtModified,
+    512 => wtDeleted,
+    1024 => wtTypeChange,
+    2048 => wtRenamed,
+    4096 => wtUnreadable,
+    16384 => ignored,
+    32768 => conflicted,
+    _ => throw ArgumentError('Unknown value for GitStatus: $value'),
+  };
 }
 
 /// The results of `mergeAnalysis` indicate the merge opportunities.
@@ -212,6 +270,14 @@ enum GitMergeAnalysis {
 
   const GitMergeAnalysis(this.value);
   final int value;
+
+  static GitMergeAnalysis fromValue(int value) => switch (value) {
+    1 => normal,
+    2 => upToDate,
+    4 => fastForward,
+    8 => unborn,
+    _ => throw ArgumentError('Unknown value for GitMergeAnalysis: $value'),
+  };
 }
 
 /// The user's stated preference for merges.
@@ -229,6 +295,13 @@ enum GitMergePreference {
 
   const GitMergePreference(this.value);
   final int value;
+
+  static GitMergePreference fromValue(int value) => switch (value) {
+    0 => none,
+    1 => noFastForward,
+    2 => fastForwardOnly,
+    _ => throw ArgumentError('Unknown value for GitMergePreference: $value'),
+  };
 }
 
 /// Repository state.
@@ -274,6 +347,22 @@ enum GitRepositoryState {
 
   const GitRepositoryState(this.value);
   final int value;
+
+  static GitRepositoryState fromValue(int value) => switch (value) {
+    0 => none,
+    1 => merge,
+    2 => revert,
+    3 => revertSequence,
+    4 => cherrypick,
+    5 => cherrypickSequence,
+    6 => bisect,
+    7 => rebase,
+    8 => rebaseInteractive,
+    9 => rebaseMerge,
+    10 => applyMailbox,
+    11 => applyMailboxOrRebase,
+    _ => throw ArgumentError('Unknown value for GitRepositoryState: $value'),
+  };
 }
 
 /// Flags for merge options.
@@ -298,6 +387,14 @@ enum GitMergeFlag {
 
   const GitMergeFlag(this.value);
   final int value;
+
+  static GitMergeFlag fromValue(int value) => switch (value) {
+    1 => findRenames,
+    2 => failOnConflict,
+    4 => skipREUC,
+    8 => noRecursive,
+    _ => throw ArgumentError('Unknown value for GitMergeFlag: $value'),
+  };
 }
 
 /// Merge file favor options to instruct the file-level merging functionality
@@ -325,6 +422,14 @@ enum GitMergeFileFavor {
 
   const GitMergeFileFavor(this.value);
   final int value;
+
+  static GitMergeFileFavor fromValue(int value) => switch (value) {
+    0 => normal,
+    1 => ours,
+    2 => theirs,
+    3 => union,
+    _ => throw ArgumentError('Unknown value for GitMergeFileFavor: $value'),
+  };
 }
 
 /// File merging flags.
@@ -366,6 +471,21 @@ enum GitMergeFileFlag {
 
   const GitMergeFileFlag(this.value);
   final int value;
+
+  static GitMergeFileFlag fromValue(int value) => switch (value) {
+    0 => defaults,
+    1 => styleMerge,
+    2 => styleDiff3,
+    4 => simplifyAlnum,
+    8 => ignoreWhitespace,
+    16 => ignoreWhitespaceChange,
+    32 => ignoreWhitespaceEOL,
+    64 => diffPatience,
+    128 => diffMinimal,
+    256 => styleZdiff3,
+    512 => acceptConflicts,
+    _ => throw ArgumentError('Unknown value for GitMergeFileFlag: $value'),
+  };
 }
 
 /// Checkout behavior flags.
@@ -452,6 +572,32 @@ enum GitCheckout {
 
   const GitCheckout(this.value);
   final int value;
+
+  static GitCheckout fromValue(int value) => switch (value) {
+    0 => none,
+    1 => safe,
+    2 => force,
+    4 => recreateMissing,
+    16 => allowConflicts,
+    32 => removeUntracked,
+    64 => removeIgnored,
+    128 => updateOnly,
+    256 => dontUpdateIndex,
+    512 => noRefresh,
+    1024 => skipUnmerged,
+    2048 => useOurs,
+    4096 => useTheirs,
+    8192 => disablePathspecMatch,
+    262144 => skipLockedDirectories,
+    524288 => dontOverwriteIgnored,
+    1048576 => conflictStyleMerge,
+    2097152 => conflictStyleDiff3,
+    4194304 => dontRemoveExisting,
+    8388608 => dontWriteIndex,
+    16777216 => dryRun,
+    33554432 => conflictStyleZdiff3,
+    _ => throw ArgumentError('Unknown value for GitCheckout: $value'),
+  };
 }
 
 /// Kinds of reset operation.
@@ -467,6 +613,13 @@ enum GitReset {
 
   const GitReset(this.value);
   final int value;
+
+  static GitReset fromValue(int value) => switch (value) {
+    1 => soft,
+    2 => mixed,
+    3 => hard,
+    _ => throw ArgumentError('Unknown value for GitReset: $value'),
+  };
 }
 
 /// Flags for diff options. A combination of these flags can be passed.
@@ -599,6 +752,40 @@ enum GitDiff {
 
   const GitDiff(this.value);
   final int value;
+
+  static GitDiff fromValue(int value) => switch (value) {
+    0 => normal,
+    1 => reverse,
+    2 => includeIgnored,
+    4 => recurseIgnoredDirs,
+    8 => includeUntracked,
+    16 => recurseUntrackedDirs,
+    32 => includeUnmodified,
+    64 => includeTypechange,
+    128 => includeTypechangeTrees,
+    256 => ignoreFilemode,
+    512 => ignoreSubmodules,
+    1024 => ignoreCase,
+    2048 => includeCaseChange,
+    4096 => disablePathspecMatch,
+    8192 => skipBinaryCheck,
+    16384 => enableFastUntrackedDirs,
+    32768 => updateIndex,
+    65536 => includeUnreadable,
+    131072 => includeUnreadableAsUntracked,
+    262144 => indentHeuristic,
+    1048576 => forceText,
+    2097152 => forceBinary,
+    4194304 => ignoreWhitespace,
+    8388608 => ignoreWhitespaceChange,
+    16777216 => ignoreWhitespaceEOL,
+    33554432 => showUntrackedContent,
+    67108864 => showUnmodified,
+    268435456 => patience,
+    536870912 => minimal,
+    1073741824 => showBinary,
+    _ => throw ArgumentError('Unknown value for GitDiff: $value'),
+  };
 }
 
 /// What type of change is described by a git_diff_delta?
@@ -645,6 +832,21 @@ enum GitDelta {
 
   const GitDelta(this.value);
   final int value;
+
+  static GitDelta fromValue(int value) => switch (value) {
+    0 => unmodified,
+    1 => added,
+    2 => deleted,
+    3 => modified,
+    4 => renamed,
+    5 => copied,
+    6 => ignored,
+    7 => untracked,
+    8 => typechange,
+    9 => unreadable,
+    10 => conflicted,
+    _ => throw ArgumentError('Unknown value for GitDelta: $value'),
+  };
 }
 
 /// Flags for the delta object and the file objects on each side.
@@ -663,6 +865,14 @@ enum GitDiffFlag {
 
   const GitDiffFlag(this.value);
   final int value;
+
+  static GitDiffFlag fromValue(int value) => switch (value) {
+    1 => binary,
+    2 => notBinary,
+    4 => validId,
+    8 => exists,
+    _ => throw ArgumentError('Unknown value for GitDiffFlag: $value'),
+  };
 }
 
 /// Formatting options for diff stats.
@@ -685,6 +895,15 @@ enum GitDiffStats {
 
   const GitDiffStats(this.value);
   final int value;
+
+  static GitDiffStats fromValue(int value) => switch (value) {
+    0 => none,
+    1 => full,
+    2 => short,
+    4 => number,
+    8 => includeSummary,
+    _ => throw ArgumentError('Unknown value for GitDiffStats: $value'),
+  };
 }
 
 /// Formatting options for diff stats.
@@ -758,6 +977,25 @@ enum GitDiffFind {
 
   const GitDiffFind(this.value);
   final int value;
+
+  static GitDiffFind fromValue(int value) => switch (value) {
+    0 => byConfig,
+    1 => renames,
+    2 => renamesFromRewrites,
+    4 => copies,
+    8 => copiesFromUnmodified,
+    16 => rewrites,
+    32 => breakRewrites,
+    48 => andBreakRewrites,
+    64 => forUntracked,
+    255 => all,
+    4096 => ignoreWhitespace,
+    8192 => dontIgnoreWhitespace,
+    16384 => exactMatchOnly,
+    32768 => breakRewritesForRenamesOnly,
+    65536 => removeUnmodified,
+    _ => throw ArgumentError('Unknown value for GitDiffFind: $value'),
+  };
 }
 
 /// Line origin, describing where a line came from.
@@ -791,6 +1029,19 @@ enum GitDiffLine {
 
   const GitDiffLine(this.value);
   final int value;
+
+  static GitDiffLine fromValue(int value) => switch (value) {
+    32 => context,
+    43 => addition,
+    45 => deletion,
+    61 => contextEOFNL,
+    62 => addEOFNL,
+    60 => delEOFNL,
+    70 => fileHeader,
+    72 => hunkHeader,
+    66 => binary,
+    _ => throw ArgumentError('Unknown value for GitDiffLine: $value'),
+  };
 }
 
 /// Possible application locations for `apply()`
@@ -849,6 +1100,27 @@ enum GitConfigLevel {
 
   const GitConfigLevel(this.value);
   final int value;
+
+  static GitConfigLevel fromValue(int value) {
+    switch (value) {
+      case 1:
+        return GitConfigLevel.programData;
+      case 2:
+        return GitConfigLevel.system;
+      case 3:
+        return GitConfigLevel.xdg;
+      case 4:
+        return GitConfigLevel.global;
+      case 5:
+        return GitConfigLevel.local;
+      case 6:
+        return GitConfigLevel.app;
+      case -1:
+        return GitConfigLevel.highest;
+      default:
+        throw ArgumentError('Invalid GitConfigLevel value: $value');
+    }
+  }
 }
 
 /// Stash flags.
@@ -870,6 +1142,14 @@ enum GitStash {
 
   const GitStash(this.value);
   final int value;
+
+  static GitStash fromValue(int value) => switch (value) {
+    0 => defaults,
+    1 => keepIndex,
+    2 => includeUntracked,
+    4 => includeIgnored,
+    _ => throw ArgumentError('Unknown value for GitStash: $value'),
+  };
 }
 
 /// Stash application flags.
@@ -883,6 +1163,12 @@ enum GitStashApply {
 
   const GitStashApply(this.value);
   final int value;
+
+  static GitStashApply fromValue(int value) => switch (value) {
+    0 => defaults,
+    1 => reinstateIndex,
+    _ => throw ArgumentError('Unknown value for GitStashApply: $value'),
+  };
 }
 
 /// Direction of the connection.
@@ -895,6 +1181,12 @@ enum GitDirection {
 
   const GitDirection(this.value);
   final int value;
+
+  static GitDirection fromValue(int value) => switch (value) {
+    0 => fetch,
+    1 => push,
+    _ => throw ArgumentError('Unknown value for GitDirection: $value'),
+  };
 }
 
 /// Acceptable prune settings when fetching.
@@ -911,6 +1203,13 @@ enum GitFetchPrune {
 
   const GitFetchPrune(this.value);
   final int value;
+
+  static GitFetchPrune fromValue(int value) => switch (value) {
+    0 => unspecified,
+    1 => prune,
+    2 => noPrune,
+    _ => throw ArgumentError('Unknown value for GitFetchPrune: $value'),
+  };
 }
 
 /// Option flags for [Repository] init.
@@ -949,6 +1248,17 @@ enum GitRepositoryInit {
 
   const GitRepositoryInit(this.value);
   final int value;
+
+  static GitRepositoryInit fromValue(int value) => switch (value) {
+    1 => bare,
+    2 => noReinit,
+    4 => noDotGitDir,
+    8 => mkdir,
+    16 => mkpath,
+    32 => externalTemplate,
+    64 => relativeGitlink,
+    _ => throw ArgumentError('Unknown value for GitRepositoryInit: $value'),
+  };
 }
 
 /// Supported credential types.
@@ -987,6 +1297,17 @@ enum GitCredential {
 
   const GitCredential(this.value);
   final int value;
+
+  static GitCredential fromValue(int value) => switch (value) {
+    1 => userPassPlainText,
+    2 => sshKey,
+    4 => sshCustom,
+    8 => defaultAuth,
+    16 => sshInteractive,
+    32 => username,
+    64 => sshMemory,
+    _ => throw ArgumentError('Unknown value for GitCredential: $value'),
+  };
 }
 
 /// Combinations of these values describe the features with which libgit2
@@ -1012,6 +1333,14 @@ enum GitFeature {
 
   const GitFeature(this.value);
   final int value;
+
+  static GitFeature fromValue(int value) => switch (value) {
+    1 => threads,
+    2 => https,
+    4 => ssh,
+    8 => nsec,
+    _ => throw ArgumentError('Unknown value for GitFeature: $value'),
+  };
 }
 
 /// Combinations of these values determine the lookup order for attribute.
@@ -1036,6 +1365,16 @@ enum GitAttributeCheck {
 
   const GitAttributeCheck(this.value);
   final int value;
+
+  static GitAttributeCheck fromValue(int value) => switch (value) {
+    0 => fileThenIndex,
+    1 => indexThenFile,
+    2 => indexOnly,
+    4 => noSystem,
+    8 => includeHead,
+    16 => includeCommit,
+    _ => throw ArgumentError('Unknown value for GitAttributeCheck: $value'),
+  };
 }
 
 /// Flags for indicating option behavior for git blame APIs.
@@ -1081,6 +1420,18 @@ enum GitBlameFlag {
 
   const GitBlameFlag(this.value);
   final int value;
+
+  static GitBlameFlag fromValue(int value) => switch (value) {
+    0 => normal,
+    1 => trackCopiesSameFile,
+    2 => trackCopiesSameCommitMoves,
+    4 => trackCopiesSameCommitCopies,
+    8 => trackCopiesAnyCommitCopies,
+    16 => firstParent,
+    32 => useMailmap,
+    64 => ignoreWhitespace,
+    _ => throw ArgumentError('Unknown value for GitBlameFlag: $value'),
+  };
 }
 
 /// Type of rebase operation in-progress after calling rebase's `next()`.
@@ -1111,6 +1462,16 @@ enum GitRebaseOperation {
 
   const GitRebaseOperation(this.value);
   final int value;
+
+  static GitRebaseOperation fromValue(int value) => switch (value) {
+    0 => pick,
+    1 => reword,
+    2 => edit,
+    3 => squash,
+    4 => fixup,
+    5 => exec,
+    _ => throw ArgumentError('Unknown value for GitRebaseOperation: $value'),
+  };
 }
 
 /// Reference lookup strategy.
@@ -1130,6 +1491,13 @@ enum GitDescribeStrategy {
 
   const GitDescribeStrategy(this.value);
   final int value;
+
+  static GitDescribeStrategy fromValue(int value) => switch (value) {
+    0 => defaultStrategy,
+    1 => tags,
+    2 => all,
+    _ => throw ArgumentError('Unknown value for GitDescribeStrategy: $value'),
+  };
 }
 
 /// Submodule ignore values.
@@ -1158,6 +1526,15 @@ enum GitSubmoduleIgnore {
 
   const GitSubmoduleIgnore(this.value);
   final int value;
+
+  static GitSubmoduleIgnore fromValue(int value) => switch (value) {
+    -1 => unspecified,
+    1 => none,
+    2 => untracked,
+    3 => dirty,
+    4 => all,
+    _ => throw ArgumentError('Unknown value for GitSubmoduleIgnore: $value'),
+  };
 }
 
 /// Submodule update values
@@ -1185,6 +1562,14 @@ enum GitSubmoduleUpdate {
 
   const GitSubmoduleUpdate(this.value);
   final int value;
+
+  static GitSubmoduleUpdate fromValue(int value) => switch (value) {
+    1 => checkout,
+    2 => rebase,
+    3 => merge,
+    4 => none,
+    _ => throw ArgumentError('Unknown value for GitSubmoduleUpdate: $value'),
+  };
 }
 
 /// A combination of these flags will be returned to describe the status of a
@@ -1242,6 +1627,24 @@ enum GitSubmoduleStatus {
 
   const GitSubmoduleStatus(this.value);
   final int value;
+
+  static GitSubmoduleStatus fromValue(int value) => switch (value) {
+    1 => inHead,
+    2 => inIndex,
+    4 => inConfig,
+    8 => inWorkdir,
+    16 => indexAdded,
+    32 => indexDeleted,
+    64 => indexModified,
+    128 => workdirUninitialized,
+    256 => workdirAdded,
+    512 => workdirDeleted,
+    1024 => workdirModified,
+    2048 => workdirIndexModified,
+    4096 => smWorkdirModified,
+    8192 => workdirUntracked,
+    _ => throw ArgumentError('Unknown value for GitSubmoduleStatus: $value'),
+  };
 }
 
 /// Capabilities of system that affect index actions.
@@ -1260,6 +1663,14 @@ enum GitIndexCapability {
 
   const GitIndexCapability(this.value);
   final int value;
+
+  static GitIndexCapability fromValue(int value) => switch (value) {
+    1 => ignoreCase,
+    2 => noFileMode,
+    4 => noSymlinks,
+    -1 => fromOwner,
+    _ => throw ArgumentError('Unknown value for GitIndexCapability: $value'),
+  };
 }
 
 /// Flags to control the functionality of blob content filtering.
@@ -1281,6 +1692,14 @@ enum GitBlobFilter {
 
   const GitBlobFilter(this.value);
   final int value;
+
+  static GitBlobFilter fromValue(int value) => switch (value) {
+    1 => checkForBinary,
+    2 => noSystemAttributes,
+    4 => attributesFromHead,
+    8 => attributesFromCommit,
+    _ => throw ArgumentError('Unknown value for GitBlobFilter: $value'),
+  };
 }
 
 /// Flags for APIs that add files matching pathspec.
@@ -1301,6 +1720,14 @@ enum GitIndexAddOption {
 
   const GitIndexAddOption(this.value);
   final int value;
+
+  static GitIndexAddOption fromValue(int value) => switch (value) {
+    0 => defaults,
+    1 => force,
+    2 => disablePathspecMatch,
+    4 => checkPathspec,
+    _ => throw ArgumentError('Unknown value for GitIndexAddOption: $value'),
+  };
 }
 
 /// Flags to alter working tree pruning behavior.
@@ -1316,4 +1743,11 @@ enum GitWorktree {
 
   const GitWorktree(this.value);
   final int value;
+
+  static GitWorktree fromValue(int value) => switch (value) {
+    1 => pruneValid,
+    2 => pruneLocked,
+    4 => pruneWorkingTree,
+    _ => throw ArgumentError('Unknown value for GitWorktree: $value'),
+  };
 }

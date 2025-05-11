@@ -189,9 +189,7 @@ class RebaseOperation {
   /// This indicates what kind of operation will be performed (e.g., pick, reword,
   /// edit, squash, fixup, exec).
   GitRebaseOperation get type {
-    return GitRebaseOperation.values.firstWhere(
-      (e) => _rebaseOperationPointer.ref.type == e.value,
-    );
+    return GitRebaseOperation.fromValue(_rebaseOperationPointer.ref.type.value);
   }
 
   /// [Oid] of commit being cherry-picked.

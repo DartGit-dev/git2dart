@@ -249,8 +249,8 @@ class RemoteCallbacks {
 
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
-      final payload = calloc<Int8>()..value = 1;
-      callbacksOptions.payload = payload.cast();
+      final withUser = calloc<Int8>()..value = 1;
+      callbacksOptions.payload = withUser.cast();
       callbacksOptions.credentials = Pointer.fromFunction(
         credentialsCb,
         except,

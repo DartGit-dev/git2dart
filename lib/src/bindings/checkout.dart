@@ -13,7 +13,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// dirty. Instead, checkout the target of the branch and then update HEAD
 /// using [setHead] to point to the branch you checked out.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void head({
   required Pointer<git_repository> repoPointer,
   required int strategy,
@@ -25,29 +25,28 @@ void head({
     directory: directory,
     paths: paths,
   );
-  final optsC = initOpts[0];
-  final pathPointers = initOpts[1];
-  final strArray = initOpts[2];
+  final optsC = initOpts[0] as Pointer<git_checkout_options>;
+  final pathPointers = initOpts[1] as List<Pointer<Char>>;
+  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
 
-  final error = libgit2.git_checkout_head(
-    repoPointer,
-    optsC as Pointer<git_checkout_options>,
-  );
+  try {
+    final error = libgit2.git_checkout_head(repoPointer, optsC);
 
-  for (final p in pathPointers as List) {
-    calloc.free(p as Pointer);
-  }
-  calloc.free(strArray as Pointer);
-  calloc.free(optsC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
+    if (error < 0) {
+      throw LibGit2Error(libgit2.git_error_last());
+    }
+  } finally {
+    for (final p in pathPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArray);
+    calloc.free(optsC);
   }
 }
 
 /// Updates files in the working tree to match the content of the index.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void index({
   required Pointer<git_repository> repoPointer,
   required int strategy,
@@ -59,29 +58,29 @@ void index({
     directory: directory,
     paths: paths,
   );
-  final optsC = initOpts[0];
-  final pathPointers = initOpts[1];
-  final strArray = initOpts[2];
+  final optsC = initOpts[0] as Pointer<git_checkout_options>;
+  final pathPointers = initOpts[1] as List<Pointer<Char>>;
+  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
 
-  final error = libgit2.git_checkout_index(
-    repoPointer,
-    nullptr,
-    optsC as Pointer<git_checkout_options>,
-  );
+  try {
+    final error = libgit2.git_checkout_index(repoPointer, nullptr, optsC);
 
-  for (final p in pathPointers as List) {
-    calloc.free(p as Pointer);
-  }
-  calloc.free(strArray as Pointer);
-  calloc.free(optsC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
+    if (error < 0) {
+      throw LibGit2Error(libgit2.git_error_last());
+    }
+  } finally {
+    for (final p in pathPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArray);
+    calloc.free(optsC);
   }
 }
 
 /// Updates files in the index and working tree to match the content of the tree
 /// pointed at by the treeish.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void tree({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_object> treeishPointer,
@@ -94,27 +93,31 @@ void tree({
     directory: directory,
     paths: paths,
   );
-  final optsC = initOpts[0];
-  final pathPointers = initOpts[1];
-  final strArray = initOpts[2];
+  final optsC = initOpts[0] as Pointer<git_checkout_options>;
+  final pathPointers = initOpts[1] as List<Pointer<Char>>;
+  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
 
-  final error = libgit2.git_checkout_tree(
-    repoPointer,
-    treeishPointer,
-    optsC as Pointer<git_checkout_options>,
-  );
+  try {
+    final error = libgit2.git_checkout_tree(repoPointer, treeishPointer, optsC);
 
-  for (final p in pathPointers as List) {
-    calloc.free(p as Pointer);
-  }
-  calloc.free(strArray as Pointer);
-  calloc.free(optsC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
+    if (error < 0) {
+      throw LibGit2Error(libgit2.git_error_last());
+    }
+  } finally {
+    for (final p in pathPointers) {
+      calloc.free(p);
+    }
+    calloc.free(strArray);
+    calloc.free(optsC);
   }
 }
 
+/// Initialize checkout options with the given parameters.
+///
+/// Returns a list containing:
+/// - [0]: Pointer to checkout options
+/// - [1]: List of path pointers that need to be freed
+/// - [2]: String array pointer that needs to be freed
 List<Object> initOptions({
   required int strategy,
   String? directory,

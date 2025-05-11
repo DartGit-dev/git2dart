@@ -18,6 +18,7 @@ void main() {
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'attributes_repo')));
     repo = Repository.open(tmpDir.path);
+    repo.reset(oid: repo.head.target, resetType: GitReset.hard);
   });
 
   tearDown(() {

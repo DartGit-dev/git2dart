@@ -230,7 +230,7 @@ class Submodule extends Equatable {
   /// Ignore rule that will be used for the submodule.
   GitSubmoduleIgnore get ignoreRule {
     final rule = bindings.ignoreRule(_submodulePointer);
-    return GitSubmoduleIgnore.values.firstWhere((e) => e.value == rule);
+    return GitSubmoduleIgnore.fromValue(rule.value);
   }
 
   /// Sets the ignore rule for the submodule in the configuration.
@@ -249,7 +249,7 @@ class Submodule extends Equatable {
   /// This value controls the behavior of the `git submodule update` command.
   GitSubmoduleUpdate get updateRule {
     final rule = bindings.updateRule(_submodulePointer);
-    return GitSubmoduleUpdate.values.firstWhere((e) => e.value == rule);
+    return GitSubmoduleUpdate.fromValue(rule.value);
   }
 
   /// Sets the update rule for the submodule in the configuration.

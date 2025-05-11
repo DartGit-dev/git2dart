@@ -14,6 +14,7 @@ void main() {
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
+    repo.reset(oid: repo['821ed6e'], resetType: GitReset.hard);
   });
 
   tearDown(() {
@@ -22,7 +23,6 @@ void main() {
 
   group('Checkout', () {
     test('checkouts head', () {
-      repo.reset(oid: repo['821ed6e'], resetType: GitReset.hard);
       expect(repo.status, isEmpty);
       File(p.join(tmpDir.path, 'feature_file')).writeAsStringSync('edit');
       expect(repo.status, contains('feature_file'));
@@ -65,6 +65,7 @@ void main() {
 
     test('checkouts reference', () {
       final masterTree = Commit.lookup(repo: repo, oid: repo['821ed6e']).tree;
+
       expect(
         masterTree.entries.any((e) => e.name == 'another_feature_file'),
         false,

@@ -161,7 +161,6 @@ void main() {
 
       cloneDir.deleteSync(recursive: true);
     });
-
     test('throws when provided credential type is invalid', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(

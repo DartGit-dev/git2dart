@@ -164,11 +164,41 @@ void rename({
 }
 
 /// Check if a branch is the current HEAD.
-bool isHead(Pointer<git_reference> ref) => libgit2.git_branch_is_head(ref) == 1;
+///
+/// Given a reference object, this will check if the branch it refers to is
+/// the current HEAD branch.
+///
+/// Returns true if the branch is the HEAD branch, false otherwise.
+///
+/// Throws a [LibGit2Error] if error occurred.
+bool isHead(Pointer<git_reference> ref) {
+  final result = libgit2.git_branch_is_head(ref);
+
+  if (result < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+
+  return result == 1;
+}
 
 /// Check if a branch is checked out in any linked worktree.
-bool isCheckedOut(Pointer<git_reference> ref) =>
-    libgit2.git_branch_is_checked_out(ref) == 1;
+///
+/// This will iterate over all known linked repositories (usually in the form
+/// of worktrees) and report whether any HEAD is pointing at the current
+/// branch.
+///
+/// Returns true if the branch is checked out in any worktree, false otherwise.
+///
+/// Throws a [LibGit2Error] if error occurred.
+bool isCheckedOut(Pointer<git_reference> ref) {
+  final result = libgit2.git_branch_is_checked_out(ref);
+
+  if (result < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+
+  return result == 1;
+}
 
 /// Get the branch name.
 ///
@@ -244,9 +274,9 @@ Pointer<git_reference> getUpstream(Pointer<git_reference> branch) {
 /// Throws a [LibGit2Error] if error occurred.
 void setUpstream({
   required Pointer<git_reference> refPointer,
-  required String branchName,
+  required String? branchName,
 }) {
-  final branchNameC = branchName.toChar();
+  final branchNameC = branchName?.toChar() ?? nullptr;
   final error = libgit2.git_branch_set_upstream(refPointer, branchNameC);
 
   calloc.free(branchNameC);

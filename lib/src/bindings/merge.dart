@@ -6,7 +6,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Find a merge base between two commits.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Given two commits, find their merge base. This is the best common ancestor
+/// of the two commits that can be used as a reference point for merging.
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_oid> mergeBase({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> aPointer,
@@ -25,7 +28,11 @@ Pointer<git_oid> mergeBase({
 
 /// Find a merge base given a list of commits.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Given a list of commits, find their merge base. This is the best common
+/// ancestor of all the commits that can be used as a reference point for
+/// merging.
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_oid> mergeBaseMany({
   required Pointer<git_repository> repoPointer,
   required List<git_oid> commits,
@@ -55,7 +62,11 @@ Pointer<git_oid> mergeBaseMany({
 
 /// Find a merge base in preparation for an octopus merge.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Given a list of commits, find their merge base in preparation for an
+/// octopus merge. This is the best common ancestor of all the commits that
+/// can be used as a reference point for merging.
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_oid> mergeBaseOctopus({
   required Pointer<git_repository> repoPointer,
   required List<git_oid> commits,
@@ -85,6 +96,12 @@ Pointer<git_oid> mergeBaseOctopus({
 
 /// Analyzes the given branch(es) and determines the opportunities for merging
 /// them into a reference.
+///
+/// Analyzes the given branch(es) and determines the opportunities for merging
+/// them into a reference. The analysis is returned in the form of a combination
+/// of [GitMergeAnalysis] flags.
+///
+/// Throws a [LibGit2Error] if error occurred.
 List<int> analysis({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_reference> ourRefPointer,
@@ -96,7 +113,7 @@ List<int> analysis({
   final theirHead = calloc<Pointer<git_annotated_commit>>();
   theirHead[0] = theirHeadPointer;
 
-  libgit2.git_merge_analysis_for_ref(
+  final error = libgit2.git_merge_analysis_for_ref(
     analysisOut,
     preferenceOut,
     repoPointer,
@@ -104,6 +121,13 @@ List<int> analysis({
     theirHead,
     theirHeadsLen,
   );
+
+  if (error < 0) {
+    calloc.free(analysisOut);
+    calloc.free(preferenceOut);
+    calloc.free(theirHead);
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 
   final result = [analysisOut.value, preferenceOut.value];
 
@@ -115,13 +139,17 @@ List<int> analysis({
 }
 
 /// Merges the given commit into HEAD, writing the results into the working
-/// directory. Any changes are staged for commit and any conflicts are written
-/// to the index. Callers should inspect the repository's index after this
-/// completes, resolve any conflicts and prepare a commit.
+/// directory.
+///
+/// Any changes are staged for commit and any conflicts are written to the index.
+/// Callers should inspect the repository's index after this completes, resolve
+/// any conflicts and prepare a commit.
 ///
 /// For compatibility with git, the repository is put into a merging state.
 /// Once the commit is done (or if the user wishes to abort), that state should
 /// be cleared by calling relative method.
+///
+/// Throws a [LibGit2Error] if error occurred.
 void merge({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_annotated_commit> theirHeadPointer,
@@ -146,7 +174,7 @@ void merge({
       git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
       git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
 
-  libgit2.git_merge(
+  final error = libgit2.git_merge(
     repoPointer,
     theirHead,
     theirHeadsLen,
@@ -157,14 +185,21 @@ void merge({
   calloc.free(mergeOpts);
   calloc.free(checkoutOpts);
   calloc.free(theirHead);
+
+  if (error < 0) {
+    throw LibGit2Error(libgit2.git_error_last());
+  }
 }
 
-/// Merge two files as they exist in the in-memory data structures, using the
-/// given common ancestor as the baseline, producing a string that reflects the
-/// merge result.
+/// Merge two files as they exist in the in-memory data structures.
+///
+/// Using the given common ancestor as the baseline, produces a string that
+/// reflects the merge result.
 ///
 /// Note that this function does not reference a repository and any
 /// configuration must be passed.
+///
+/// Throws a [LibGit2Error] if error occurred.
 String mergeFile({
   required String ancestor,
   required String ancestorLabel,
@@ -209,7 +244,7 @@ String mergeFile({
     opts.ref.their_label = theirsLabelC;
   }
 
-  libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
+  final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
 
   calloc.free(ancestorC);
   calloc.free(ancestorLabelC);
@@ -219,17 +254,23 @@ String mergeFile({
   calloc.free(theirsLabelC);
   calloc.free(opts);
 
+  if (error < 0) {
+    calloc.free(out);
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+
   final result = out.ref.ptr.toDartString(length: out.ref.len);
   calloc.free(out);
 
   return result;
 }
 
-/// Merge two files as they exist in the index, using the given common ancestor
-/// as the baseline, producing a string that reflects the merge result
-/// containing possible conflicts.
+/// Merge two files as they exist in the index.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Using the given common ancestor as the baseline, produces a string that
+/// reflects the merge result containing possible conflicts.
+///
+/// Throws a [LibGit2Error] if error occurred.
 String mergeFileFromIndex({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_index_entry>? ancestorPointer,
@@ -272,32 +313,35 @@ String mergeFileFromIndex({
     opts,
   );
 
+  calloc.free(ancestorLabelC);
+  calloc.free(oursLabelC);
+  calloc.free(theirsLabelC);
+  calloc.free(opts);
+
+  if (error < 0) {
+    calloc.free(out);
+    throw LibGit2Error(libgit2.git_error_last());
+  }
+
   late final String result;
   if (out.ref.ptr != nullptr) {
     result = out.ref.ptr.toDartString(length: out.ref.len);
   }
 
-  calloc.free(ancestorLabelC);
-  calloc.free(oursLabelC);
-  calloc.free(theirsLabelC);
-  calloc.free(opts);
   calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return result;
 }
 
 /// Merge two commits, producing a git index that reflects the result of the
-/// merge. The index may be written as-is to the working directory or checked
-/// out. If the index is to be converted to a tree, the caller should resolve
-/// any conflicts that arose as part of the merge.
+/// merge.
+///
+/// The index may be written as-is to the working directory or checked out.
+/// If the index is to be converted to a tree, the caller should resolve any
+/// conflicts that arose as part of the merge.
 ///
 /// The returned index must be freed.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_index> mergeCommits({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_commit> ourCommitPointer,
@@ -321,26 +365,27 @@ Pointer<git_index> mergeCommits({
     opts,
   );
 
-  final result = out.value;
-
-  calloc.free(out);
   calloc.free(opts);
 
   if (error < 0) {
+    calloc.free(out);
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
   }
+
+  final result = out.value;
+  calloc.free(out);
+  return result;
 }
 
-/// Merge two trees, producing an index that reflects the result of the
-/// merge. The index may be written as-is to the working directory or checked
-/// out. If the index is to be converted to a tree, the caller should resolve
-/// any conflicts that arose as part of the merge.
+/// Merge two trees, producing an index that reflects the result of the merge.
+///
+/// The index may be written as-is to the working directory or checked out.
+/// If the index is to be converted to a tree, the caller should resolve any
+/// conflicts that arose as part of the merge.
 ///
 /// The returned index must be freed.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_index> mergeTrees({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_tree> ancestorTreePointer,
@@ -366,22 +411,22 @@ Pointer<git_index> mergeTrees({
     opts,
   );
 
-  final result = out.value;
-
-  calloc.free(out);
   calloc.free(opts);
 
   if (error < 0) {
+    calloc.free(out);
     throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
   }
+
+  final result = out.value;
+  calloc.free(out);
+  return result;
 }
 
 /// Cherry-pick the given commit, producing changes in the index and working
 /// directory.
 ///
-/// Throws a [LibGit2Error] if error occured.
+/// Throws a [LibGit2Error] if error occurred.
 void cherryPick({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_commit> commitPointer,

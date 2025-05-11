@@ -99,9 +99,7 @@ class Config with IterableMixin<ConfigEntry> {
     final name = entryPointer.ref.name.toDartString();
     final value = entryPointer.ref.value.toDartString();
     final includeDepth = entryPointer.ref.include_depth;
-    final level = GitConfigLevel.values.firstWhere(
-      (e) => entryPointer.ref.level == e.value,
-    );
+    final level = GitConfigLevel.fromValue(entryPointer.ref.level.value);
 
     bindings.freeEntry(entryPointer);
 
@@ -265,9 +263,7 @@ class _ConfigIterator implements Iterator<ConfigEntry> {
         final name = entry.value.ref.name.toDartString();
         final value = entry.value.ref.value.toDartString();
         final includeDepth = entry.value.ref.include_depth;
-        final level = GitConfigLevel.values.firstWhere(
-          (e) => entry.value.ref.level == e.value,
-        );
+        final level = GitConfigLevel.fromValue(entry.value.ref.level.value);
 
         _currentEntry = ConfigEntry._(
           name: name,

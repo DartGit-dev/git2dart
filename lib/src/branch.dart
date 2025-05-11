@@ -193,11 +193,8 @@ class Branch extends Equatable {
   /// the operation to succeed.
   ///
   /// Throws a [LibGit2Error] if error occurred.
-  void setUpstream(String? branchName) {
-    if (branchName != null) {
+  void setUpstream(String? branchName) =>
       bindings.setUpstream(refPointer: _branchPointer, branchName: branchName);
-    }
-  }
 
   /// Upstream name of a branch.
   ///

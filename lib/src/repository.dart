@@ -323,9 +323,7 @@ class Repository extends Equatable {
   /// cherry-pick, etc) is in progress.
   GitRepositoryState get state {
     final stateInt = bindings.state(_repoPointer);
-    return GitRepositoryState.values.firstWhere(
-      (state) => stateInt == state.value,
-    );
+    return GitRepositoryState.fromValue(stateInt);
   }
 
   /// Removes all the metadata associated with an ongoing command like
@@ -503,7 +501,7 @@ class Repository extends Equatable {
       result[path] =
           GitStatus.values
               .skip(1)
-              .where((e) => (entry.ref.status.value & e.value) != 0)
+              .where((e) => (entry.ref.statusAsInt & e.value) != 0)
               .toSet();
     }
 

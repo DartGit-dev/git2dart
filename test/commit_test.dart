@@ -32,6 +32,8 @@ void main() {
     );
     tip = repo['821ed6e80627b8769d170a293862f9fc60825226'];
     tree = Tree.lookup(repo: repo, oid: repo['a8ae3dd']);
+
+    repo.reset(oid: repo['821ed6e'], resetType: GitReset.hard);
   });
 
   tearDown(() {

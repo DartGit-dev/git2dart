@@ -170,7 +170,7 @@ class TreeEntry extends Equatable {
   /// - File type (regular file, directory, symlink, etc.)
   GitFilemode get filemode {
     final modeInt = bindings.entryFilemode(_treeEntryPointer);
-    return GitFilemode.values.firstWhere((mode) => modeInt == mode.value);
+    return GitFilemode.fromValue(modeInt.value);
   }
 
   /// Releases memory allocated for tree entry object.

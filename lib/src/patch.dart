@@ -237,9 +237,7 @@ class Patch extends Equatable {
         );
         lines.add(
           DiffLine._(
-            origin: GitDiffLine.values.firstWhere(
-              (e) => linePointer.ref.origin == e.value,
-            ),
+            origin: GitDiffLine.fromValue(linePointer.ref.origin),
             oldLineNumber: linePointer.ref.old_lineno,
             newLineNumber: linePointer.ref.new_lineno,
             numLines: linePointer.ref.num_lines,

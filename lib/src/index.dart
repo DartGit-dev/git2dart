@@ -430,11 +430,7 @@ class IndexEntry extends Equatable {
   set path(String path) => _indexEntryPointer.ref.path = path.toChar();
 
   /// UNIX file attributes of a index entry.
-  GitFilemode get mode {
-    return GitFilemode.values.firstWhere(
-      (mode) => _indexEntryPointer.ref.mode == mode.value,
-    );
-  }
+  GitFilemode get mode => GitFilemode.fromValue(_indexEntryPointer.ref.mode);
 
   /// Sets the UNIX file attributes of a index entry.
   set mode(GitFilemode mode) => _indexEntryPointer.ref.mode = mode.value;

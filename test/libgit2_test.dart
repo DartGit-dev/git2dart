@@ -1,22 +1,22 @@
 import 'package:git2dart/git2dart.dart';
-import 'package:git2dart_binaries/src/util.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Libgit2', () {
     test('returns up to date version of libgit2', () {
-      expect(Libgit2.version, libgit2Version);
+      expect(Libgit2.version, '1.9.0');
     });
 
     test('returns list of options libgit2 was compiled with', () {
-      expect(
-        Libgit2.features,
-        {GitFeature.threads, GitFeature.https, GitFeature.ssh, GitFeature.nsec},
-      );
+      expect(Libgit2.features, {
+        GitFeature.threads,
+        GitFeature.https,
+        GitFeature.ssh,
+        GitFeature.nsec,
+      });
     });
 
-    test(
-        'sets and returns the owner validation setting for repository '
+    test('sets and returns the owner validation setting for repository '
         'directories', () {
       final oldValue = Libgit2.ownerValidation;
       Libgit2.ownerValidation = !oldValue;
@@ -35,8 +35,7 @@ void main() {
       Libgit2.mmapWindowSize = oldValue;
     });
 
-    test(
-        'sets and returns the maximum memory that will be mapped in total by '
+    test('sets and returns the maximum memory that will be mapped in total by '
         'the library', () {
       final oldValue = Libgit2.mmapWindowMappedLimit;
       Libgit2.mmapWindowMappedLimit = 420 * 1024;
@@ -46,8 +45,7 @@ void main() {
       Libgit2.mmapWindowMappedLimit = oldValue;
     });
 
-    test(
-        'sets and returns the maximum number of files that will be mapped '
+    test('sets and returns the maximum number of files that will be mapped '
         'at any time by the library', () {
       final oldValue = Libgit2.mmapWindowFileLimit;
       Libgit2.mmapWindowFileLimit = 69;
@@ -57,18 +55,19 @@ void main() {
       Libgit2.mmapWindowFileLimit = oldValue;
     });
 
-    test('sets and returns the search path for a given level of config data',
-        () {
-      const paths = '/tmp/global:/tmp/another';
-      Libgit2.setConfigSearchPath(level: GitConfigLevel.global, path: paths);
-      expect(Libgit2.getConfigSearchPath(GitConfigLevel.global), paths);
-
-      // Reset to avoid side effects in later tests
-      Libgit2.setConfigSearchPath(level: GitConfigLevel.global, path: null);
-    });
-
     test(
-        'sets the maximum data size for the given type of object '
+      'sets and returns the search path for a given level of config data',
+      () {
+        const paths = '/tmp/global:/tmp/another';
+        Libgit2.setConfigSearchPath(level: GitConfigLevel.global, path: paths);
+        expect(Libgit2.getConfigSearchPath(GitConfigLevel.global), paths);
+
+        // Reset to avoid side effects in later tests
+        Libgit2.setConfigSearchPath(level: GitConfigLevel.global, path: null);
+      },
+    );
+
+    test('sets the maximum data size for the given type of object '
         'to be considered eligible for caching in memory', () {
       expect(
         () => Libgit2.setCacheObjectLimit(type: GitObject.blob, value: 420),
@@ -122,13 +121,15 @@ void main() {
       );
     });
 
-    test('throws when trying to set both ssl certificates location to null',
-        () {
-      expect(
-        () => Libgit2.setSSLCertLocations(),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
+    test(
+      'throws when trying to set both ssl certificates location to null',
+      () {
+        expect(
+          () => Libgit2.setSSLCertLocations(),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
 
     test('sets and returns the User-Agent header', () {
       final oldValue = Libgit2.userAgent;
@@ -154,13 +155,14 @@ void main() {
     });
 
     test(
-        'disables and enables the use of offset deltas when creating packfiles',
-        () {
-      expect(() => Libgit2.disableOffsetDelta(), returnsNormally);
+      'disables and enables the use of offset deltas when creating packfiles',
+      () {
+        expect(() => Libgit2.disableOffsetDelta(), returnsNormally);
 
-      // Reset to avoid side effects in later tests
-      Libgit2.enableOffsetDelta();
-    });
+        // Reset to avoid side effects in later tests
+        Libgit2.enableOffsetDelta();
+      },
+    );
 
     test('enables and disables the fsync of files in gitdir', () {
       expect(() => Libgit2.enableFsyncGitdir(), returnsNormally);
@@ -212,11 +214,14 @@ void main() {
 
     test('sets and returns the list of git extensions', () {
       Libgit2.extensions = ['newext', 'anotherext'];
+
       expect(Libgit2.extensions, [
+        'anotherext',
+        'newext',
         'noop',
         'objectformat',
-        'newext',
-        'anotherext',
+        "preciousobjects",
+        "worktreeconfig",
       ]);
 
       // Reset to avoid side effects in later tests

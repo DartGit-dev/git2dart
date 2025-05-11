@@ -18,6 +18,8 @@ void main() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
     repo = Repository.open(tmpDir.path);
     index = repo.index;
+
+    repo.reset(oid: repo['821ed6e'], resetType: GitReset.hard);
   });
 
   tearDown(() {
@@ -302,6 +304,12 @@ void main() {
     test('throws when trying to write tree while index have conflicts', () {
       final tmpDir = setupRepo(Directory(mergeRepoPath));
       final repo = Repository.open(tmpDir.path);
+
+      expect(
+        () => libgit2.getLastError(),
+        null,
+        reason: libgit2.getLastError()?.message,
+      );
 
       Merge.commit(
         repo: repo,
