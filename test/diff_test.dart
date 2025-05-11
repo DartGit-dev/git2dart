@@ -12,16 +12,12 @@ void main() {
   late Repository repo;
   late Directory tmpDir;
   const indexToWorkdir = [
-    'current_file',
     'file_deleted',
     'modified_file',
-    'staged_changes',
     'staged_changes_file_deleted',
     'staged_changes_file_modified',
-    'staged_new',
     'staged_new_file_deleted',
     'staged_new_file_modified',
-    'subdir/current_file',
     'subdir/deleted_file',
     'subdir/modified_file',
   ];
@@ -38,7 +34,6 @@ void main() {
   ];
 
   const treeToWorkdir = [
-    'current_file',
     'file_deleted',
     'modified_file',
     'staged_changes',
@@ -46,7 +41,6 @@ void main() {
     'staged_changes_file_modified',
     'staged_delete',
     'staged_delete_file_modified',
-    'subdir/current_file',
     'subdir/deleted_file',
     'subdir/modified_file',
   ];
@@ -65,7 +59,6 @@ void main() {
   ];
 
   const treeToWorkdirWithIndex = [
-    'current_file',
     'file_deleted',
     'modified_file',
     'staged_changes',
@@ -75,7 +68,6 @@ void main() {
     'staged_delete_file_modified',
     'staged_new',
     'staged_new_file_modified',
-    'subdir/current_file',
     'subdir/deleted_file',
     'subdir/modified_file',
   ];
@@ -119,19 +111,15 @@ index e69de29..c217c63 100644
 """;
 
   const statsPrint = """
- current_file                 | 0
  file_deleted                 | 0
  modified_file                | 1 +
- staged_changes               | 0
  staged_changes_file_deleted  | 1 -
  staged_changes_file_modified | 2 +-
- staged_new                   | 0
  staged_new_file_deleted      | 0
  staged_new_file_modified     | 1 +
- subdir/current_file          | 0
  subdir/deleted_file          | 0
  subdir/modified_file         | 1 +
- 12 files changed, 4 insertions(+), 2 deletions(-)
+ 8 files changed, 4 insertions(+), 2 deletions(-)
 """;
 
   setUp(() {
@@ -315,10 +303,10 @@ index e69de29..c217c63 100644
       final diff2 = Diff.treeToWorkdir(repo: repo, tree: commit.tree);
 
       expect(diff1.length, 10);
-      expect(diff2.length, 11);
+      expect(diff2.length, 9);
 
       diff1.merge(diff2);
-      expect(diff1.length, 12);
+      expect(diff1.length, 11);
     });
 
     test('parses provided diff', () {
@@ -501,31 +489,35 @@ index e69de29..c217c63 100644
       expect(() => Diff(nullptr).findSimilar(), throwsA(isA<LibGit2Error>()));
     });
 
+    test('throws when trying to get patch Oid and error occurs', () {
+      expect(() => Diff(nullptr).patchOid, throwsA(isA<LibGit2Error>()));
+    });
+
     test('returns deltas', () {
       final diff = Diff.indexToWorkdir(repo: repo, index: repo.index);
 
-      expect(diff.deltas[1].numberOfFiles, 2);
-      expect(diff.deltas[1].status, GitDelta.deleted);
-      expect(diff.deltas[1].statusChar, 'D');
-      expect(diff.deltas[1].flags, isEmpty);
-      expect(diff.deltas[1].similarity, 0);
+      expect(diff.deltas[0].numberOfFiles, 1);
+      expect(diff.deltas[0].status, GitDelta.deleted);
+      expect(diff.deltas[0].statusChar, 'D');
+      expect(diff.deltas[0].flags, isEmpty);
+      expect(diff.deltas[0].similarity, 0);
 
-      expect(diff.deltas[1].oldFile.path, indexToWorkdir[1]);
+      expect(diff.deltas[0].oldFile.path, indexToWorkdir[0]);
       expect(
-        diff.deltas[1].oldFile.oid.sha,
+        diff.deltas[0].oldFile.oid.sha,
         'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391',
       );
-      expect(diff.deltas[1].newFile.oid.sha, '0' * 40);
+      expect(diff.deltas[0].newFile.oid.sha, '0' * 40);
 
-      expect(diff.deltas[3].oldFile.size, 17);
+      expect(diff.deltas[2].oldFile.size, 17);
 
-      expect(diff.deltas[1].oldFile.flags, {
+      expect(diff.deltas[0].oldFile.flags, {
         GitDiffFlag.validId,
         GitDiffFlag.exists,
       });
-      expect(diff.deltas[1].newFile.flags, {GitDiffFlag.validId});
+      expect(diff.deltas[0].newFile.flags, {GitDiffFlag.validId});
 
-      expect(diff.deltas[1].oldFile.mode, GitFilemode.blob);
+      expect(diff.deltas[0].oldFile.mode, GitFilemode.blob);
     });
 
     test('throws when trying to get delta with invalid index', () {
@@ -538,7 +530,7 @@ index e69de29..c217c63 100644
       final patches = diff.patches;
 
       expect(patches.length, 8);
-      expect(patches[1].delta.status, GitDelta.deleted);
+      expect(patches.first.delta.status, GitDelta.deleted);
 
       for (final p in patches) {
         p.free();
