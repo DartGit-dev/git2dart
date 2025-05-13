@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Lookup a blob object from a repository by its [oid].
@@ -13,18 +14,13 @@ Pointer<git_blob> lookup({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final out = calloc<Pointer<git_blob>>();
-  final error = libgit2.git_blob_lookup(out, repoPointer, oidPointer);
+  return using((arena) {
+    final out = arena<Pointer<git_blob>>();
+    final error = libgit2.git_blob_lookup(out, repoPointer, oidPointer);
 
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the [Oid] of a blob.
@@ -69,14 +65,9 @@ Pointer<git_oid> create({
     len,
   );
 
-  calloc.free(bufferC);
+  checkErrorAndThrow(error);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return out;
-  }
+  return out;
 }
 
 /// Read a file from the working folder of a repository and write it to the
@@ -97,14 +88,8 @@ Pointer<git_oid> createFromWorkdir({
     relativePathC,
   );
 
-  calloc.free(relativePathC);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return out;
-  }
+  checkErrorAndThrow(error);
+  return out;
 }
 
 /// Read a file from the filesystem and write its content to the Object
@@ -121,27 +106,19 @@ Pointer<git_oid> createFromDisk({
   final pathC = path.toChar();
   final error = libgit2.git_blob_create_from_disk(out, repoPointer, pathC);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return out;
-  }
+  checkErrorAndThrow(error);
+  return out;
 }
 
 /// Create an in-memory copy of a blob.
 ///
 /// The returned copy must be freed with [free] when no longer needed.
 Pointer<git_blob> duplicate(Pointer<git_blob> source) {
-  final out = calloc<Pointer<git_blob>>();
-  libgit2.git_blob_dup(out, source);
-  final result = out.value;
-
-  calloc.free(out);
-
-  return result;
+  return using((arena) {
+    final out = arena<Pointer<git_blob>>();
+    libgit2.git_blob_dup(out, source);
+    return out.value;
+  });
 }
 
 /// Get a buffer with the filtered content of a blob.
@@ -163,32 +140,25 @@ String filterContent({
   required int flags,
   git_oid? attributesCommit,
 }) {
-  final out = calloc<git_buf>();
-  final asPathC = asPath.toChar();
-  final opts = calloc<git_blob_filter_options>();
-  libgit2.git_blob_filter_options_init(opts, GIT_BLOB_FILTER_OPTIONS_VERSION);
-  opts.ref.flags = flags;
-  if (attributesCommit != null) {
-    opts.ref.attr_commit_id = attributesCommit;
-  }
+  return using((arena) {
+    final out = arena<git_buf>();
+    final asPathC = asPath.toChar();
+    final opts = arena<git_blob_filter_options>();
+    libgit2.git_blob_filter_options_init(opts, GIT_BLOB_FILTER_OPTIONS_VERSION);
+    opts.ref.flags = flags;
+    if (attributesCommit != null) {
+      opts.ref.attr_commit_id = attributesCommit;
+    }
 
-  final error = libgit2.git_blob_filter(out, blobPointer, asPathC, opts);
+    final error = libgit2.git_blob_filter(out, blobPointer, asPathC, opts);
 
-  late final String result;
-  if (out.ref.ptr != nullptr) {
-    result = out.ref.ptr.toDartString(length: out.ref.size);
-  }
+    checkErrorAndThrow(error);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(asPathC);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    if (out.ref.ptr == nullptr) {
+      return '';
+    }
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Free the memory allocated for a blob object.
