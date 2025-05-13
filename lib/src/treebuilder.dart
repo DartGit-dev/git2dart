@@ -23,11 +23,11 @@ class TreeBuilder {
   /// If [tree] is provided, the builder will be initialized with its entries.
   /// If [tree] is null, the builder will start empty.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while creating the tree builder.
   TreeBuilder({required Repository repo, Tree? tree}) {
     _treeBuilderPointer = bindings.create(
-      repoPointer: repo.pointer,
-      sourcePointer: tree?.pointer ?? nullptr,
+      repo.pointer,
+      tree?.pointer ?? nullptr,
     );
     _finalizer.attach(this, _treeBuilderPointer, detach: this);
   }
@@ -46,6 +46,8 @@ class TreeBuilder {
   /// the entries in the builder.
   ///
   /// Returns the [Oid] of the newly written tree object.
+  ///
+  /// Throws a [LibGit2Error] if error occurred while writing the tree.
   Oid write() => Oid(bindings.write(_treeBuilderPointer));
 
   /// Clears all the entries in the tree builder.
@@ -56,14 +58,12 @@ class TreeBuilder {
   /// Returns an entry from the tree builder with provided [filename].
   ///
   /// Throws [ArgumentError] if nothing found for provided [filename].
-  TreeEntry operator [](String filename) {
-    return TreeEntry(
-      bindings.getByFilename(
-        builderPointer: _treeBuilderPointer,
-        filename: filename,
-      ),
-    );
-  }
+  TreeEntry operator [](String filename) => TreeEntry(
+    bindings.getByFilename(
+      builderPointer: _treeBuilderPointer,
+      filename: filename,
+    ),
+  );
 
   /// Adds or updates an entry to the tree builder with the given attributes.
   ///
@@ -83,7 +83,7 @@ class TreeBuilder {
   ///   - [GitFilemode.link] for symbolic links
   ///   - [GitFilemode.commit] for submodules
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while adding the entry.
   void add({
     required String filename,
     required Oid oid,
@@ -101,10 +101,9 @@ class TreeBuilder {
   ///
   /// If the entry does not exist, this method will still succeed.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
-  void remove(String filename) {
-    bindings.remove(builderPointer: _treeBuilderPointer, filename: filename);
-  }
+  /// Throws a [LibGit2Error] if error occurred while removing the entry.
+  void remove(String filename) =>
+      bindings.remove(builderPointer: _treeBuilderPointer, filename: filename);
 
   /// Releases memory allocated for tree builder object and all the entries.
   ///
@@ -115,9 +114,7 @@ class TreeBuilder {
   }
 
   @override
-  String toString() {
-    return 'TreeBuilder{length: $length}';
-  }
+  String toString() => 'TreeBuilder{length: $length}';
 }
 
 // coverage:ignore-start

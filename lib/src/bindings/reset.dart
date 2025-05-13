@@ -1,7 +1,8 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Performs a reset operation on the repository, moving the HEAD and optionally
@@ -29,38 +30,35 @@ void reset({
   String? checkoutDirectory,
   List<String>? pathspec,
 }) {
-  final opts = calloc<git_checkout_options>();
-  libgit2.git_checkout_options_init(opts, GIT_CHECKOUT_OPTIONS_VERSION);
+  using((arena) {
+    final opts = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(opts, GIT_CHECKOUT_OPTIONS_VERSION);
 
-  if (strategy != null) {
-    opts.ref.checkout_strategy = strategy;
-  }
-  if (checkoutDirectory != null) {
-    opts.ref.target_directory = checkoutDirectory.toChar();
-  }
-  var pathPointers = <Pointer<Char>>[];
-  Pointer<Pointer<Char>> strArray = nullptr;
-  if (pathspec != null) {
-    pathPointers = pathspec.map((e) => e.toChar()).toList();
-    strArray = calloc(pathspec.length);
-    for (var i = 0; i < pathspec.length; i++) {
-      strArray[i] = pathPointers[i];
+    if (strategy != null) {
+      opts.ref.checkout_strategy = strategy;
     }
-    opts.ref.paths.strings = strArray;
-    opts.ref.paths.count = pathspec.length;
-  }
+    if (checkoutDirectory != null) {
+      opts.ref.target_directory = checkoutDirectory.toChar(arena);
+    }
 
-  final error = libgit2.git_reset(repoPointer, targetPointer, resetType, opts);
+    if (pathspec != null) {
+      final pathPointers = pathspec.map((e) => e.toChar(arena)).toList();
+      final strArray = arena<Pointer<Char>>(pathspec.length);
+      for (var i = 0; i < pathspec.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      opts.ref.paths.strings = strArray;
+      opts.ref.paths.count = pathspec.length;
+    }
 
-  for (final p in pathPointers) {
-    calloc.free(p);
-  }
-  calloc.free(strArray);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    final error = libgit2.git_reset(
+      repoPointer,
+      targetPointer,
+      resetType,
+      opts,
+    );
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Updates specific entries in the index from the target commit tree.
@@ -82,30 +80,24 @@ void resetDefault({
   required Pointer<git_object>? targetPointer,
   required List<String> pathspec,
 }) {
-  final pathspecC = calloc<git_strarray>();
-  final pathPointers = pathspec.map((e) => e.toChar()).toList();
-  final strArray = calloc<Pointer<Char>>(pathspec.length);
+  using((arena) {
+    final pathspecC = arena<git_strarray>();
+    final pathPointers = pathspec.map((e) => e.toChar(arena)).toList();
+    final strArray = arena<Pointer<Char>>(pathspec.length);
 
-  for (var i = 0; i < pathspec.length; i++) {
-    strArray[i] = pathPointers[i];
-  }
+    for (var i = 0; i < pathspec.length; i++) {
+      strArray[i] = pathPointers[i];
+    }
 
-  pathspecC.ref.strings = strArray;
-  pathspecC.ref.count = pathspec.length;
+    pathspecC.ref.strings = strArray;
+    pathspecC.ref.count = pathspec.length;
 
-  final error = libgit2.git_reset_default(
-    repoPointer,
-    targetPointer ?? nullptr,
-    pathspecC,
-  );
+    final error = libgit2.git_reset_default(
+      repoPointer,
+      targetPointer ?? nullptr,
+      pathspecC,
+    );
 
-  calloc.free(pathspecC);
-  for (final p in pathPointers) {
-    calloc.free(p);
-  }
-  calloc.free(strArray);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }

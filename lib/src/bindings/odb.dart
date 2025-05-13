@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/bindings/oid.dart' as oid_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -12,14 +13,12 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// Before the ODB can be used for read/writing, a custom database backend must be
 /// manually added.
 Pointer<git_odb> create() {
-  final out = calloc<Pointer<git_odb>>();
-  libgit2.git_odb_new(out);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  return result;
+  return using((arena) {
+    final out = arena<Pointer<git_odb>>();
+    final error = libgit2.git_odb_new(out);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Add an on-disk alternate to an existing Object DB.
@@ -35,9 +34,10 @@ void addDiskAlternate({
   required Pointer<git_odb> odbPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  libgit2.git_odb_add_disk_alternate(odbPointer, pathC);
-  calloc.free(pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    libgit2.git_odb_add_disk_alternate(odbPointer, pathC);
+  });
 }
 
 /// Determine if an object can be found in the object database by an
@@ -49,20 +49,17 @@ Pointer<git_oid> existsPrefix({
   required Pointer<git_oid> shortOidPointer,
   required int length,
 }) {
-  final out = calloc<git_oid>();
-  final error = libgit2.git_odb_exists_prefix(
-    out,
-    odbPointer,
-    shortOidPointer,
-    length,
-  );
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final error = libgit2.git_odb_exists_prefix(
+      out,
+      odbPointer,
+      shortOidPointer,
+      length,
+    );
+    checkErrorAndThrow(error);
     return out;
-  }
+  });
 }
 
 /// Determine if the given object can be found in the object database.
@@ -95,11 +92,7 @@ List<Oid> objects(Pointer<git_odb> odb) {
         except,
       );
   final error = libgit2.git_odb_foreach(odb, cb, nullptr);
-
-  if (error < 0) {
-    _objects.clear();
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 
   final result = _objects.toList(growable: false);
   _objects.clear();
@@ -117,18 +110,14 @@ Pointer<git_odb_object> read({
   required Pointer<git_odb> odbPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final out = calloc<Pointer<git_odb_object>>();
-  final error = libgit2.git_odb_read(out, odbPointer, oidPointer);
+  return using((arena) {
+    final out = arena<Pointer<git_odb_object>>();
+    final error = libgit2.git_odb_read(out, odbPointer, oidPointer);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Return the OID of an ODB object.
@@ -167,30 +156,26 @@ Pointer<git_oid> write({
   required git_object_t type,
   required String data,
 }) {
-  final stream = calloc<Pointer<git_odb_stream>>();
-  final streamError = libgit2.git_odb_open_wstream(
-    stream,
-    odbPointer,
-    data.length,
-    type,
-  );
+  return using((arena) {
+    final stream = arena<Pointer<git_odb_stream>>();
+    final streamError = libgit2.git_odb_open_wstream(
+      stream,
+      odbPointer,
+      data.length,
+      type,
+    );
+    checkErrorAndThrow(streamError);
 
-  if (streamError < 0) {
+    final bufferC = data.toChar(arena);
+    libgit2.git_odb_stream_write(stream.value, bufferC, data.length);
+
+    final out = calloc<git_oid>();
+    final error = libgit2.git_odb_stream_finalize_write(out, stream.value);
+    checkErrorAndThrow(error);
+
     libgit2.git_odb_stream_free(stream.value);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final bufferC = data.toChar();
-  libgit2.git_odb_stream_write(stream.value, bufferC, data.length);
-
-  final out = calloc<git_oid>();
-  libgit2.git_odb_stream_finalize_write(out, stream.value);
-
-  calloc.free(bufferC);
-  libgit2.git_odb_stream_free(stream.value);
-  calloc.free(stream);
-
-  return out;
+    return out;
+  });
 }
 
 /// Close an open object database.

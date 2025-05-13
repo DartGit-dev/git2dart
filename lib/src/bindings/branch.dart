@@ -56,7 +56,7 @@ Pointer<git_reference> lookup({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final error = libgit2.git_branch_lookup(
       out,
       repoPointer,
@@ -87,7 +87,7 @@ Pointer<git_reference> create({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final forceC = force ? 1 : 0;
     final error = libgit2.git_branch_create(
       out,
@@ -128,7 +128,7 @@ void rename({
 }) {
   using((arena) {
     final out = arena<Pointer<git_reference>>();
-    final newBranchNameC = newBranchName.toChar();
+    final newBranchNameC = newBranchName.toChar(arena);
     final forceC = force ? 1 : 0;
     final error = libgit2.git_branch_move(
       out,
@@ -198,7 +198,7 @@ String remoteName({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final error = libgit2.git_branch_remote_name(out, repoPointer, branchNameC);
 
     checkErrorAndThrow(error);
@@ -231,7 +231,7 @@ void setUpstream({
   required String? branchName,
 }) {
   using((arena) {
-    final branchNameC = branchName?.toChar() ?? nullptr;
+    final branchNameC = branchName?.toChar(arena) ?? nullptr;
     final error = libgit2.git_branch_set_upstream(refPointer, branchNameC);
     checkErrorAndThrow(error);
   });
@@ -250,7 +250,7 @@ String upstreamName({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final error = libgit2.git_branch_upstream_name(
       out,
       repoPointer,
@@ -274,7 +274,7 @@ String upstreamRemote({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final error = libgit2.git_branch_upstream_remote(
       out,
       repoPointer,
@@ -298,7 +298,7 @@ String upstreamMerge({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final branchNameC = branchName.toChar();
+    final branchNameC = branchName.toChar(arena);
     final error = libgit2.git_branch_upstream_merge(
       out,
       repoPointer,

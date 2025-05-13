@@ -23,7 +23,7 @@ Pointer<git_blame> file({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_blame>>();
-    final pathC = path.toChar();
+    final pathC = path.toChar(arena);
     final options = arena<git_blame_options>();
     libgit2.git_blame_options_init(options, GIT_BLAME_OPTIONS_VERSION);
 
@@ -69,7 +69,7 @@ Pointer<git_blame> buffer({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_blame>>();
-    final bufferC = buffer.toChar();
+    final bufferC = buffer.toChar(arena);
 
     final error = libgit2.git_blame_buffer(
       out,

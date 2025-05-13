@@ -28,11 +28,11 @@ void head({
     optsC.ref.checkout_strategy = strategy;
 
     if (directory != null) {
-      optsC.ref.target_directory = directory.toChar();
+      optsC.ref.target_directory = directory.toChar(arena);
     }
 
     if (paths != null) {
-      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final pathPointers = paths.map((e) => e.toChar(arena)).toList();
       final strArray = arena<Pointer<Char>>(paths.length);
       for (var i = 0; i < paths.length; i++) {
         strArray[i] = pathPointers[i];
@@ -62,11 +62,11 @@ void index({
     optsC.ref.checkout_strategy = strategy;
 
     if (directory != null) {
-      optsC.ref.target_directory = directory.toChar();
+      optsC.ref.target_directory = directory.toChar(arena);
     }
 
     if (paths != null) {
-      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final pathPointers = paths.map((e) => e.toChar(arena)).toList();
       final strArray = arena<Pointer<Char>>(paths.length);
       for (var i = 0; i < paths.length; i++) {
         strArray[i] = pathPointers[i];
@@ -98,11 +98,11 @@ void tree({
     optsC.ref.checkout_strategy = strategy;
 
     if (directory != null) {
-      optsC.ref.target_directory = directory.toChar();
+      optsC.ref.target_directory = directory.toChar(arena);
     }
 
     if (paths != null) {
-      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final pathPointers = paths.map((e) => e.toChar(arena)).toList();
       final strArray = arena<Pointer<Char>>(paths.length);
       for (var i = 0; i < paths.length; i++) {
         strArray[i] = pathPointers[i];
@@ -127,26 +127,28 @@ List<Object> initOptions({
   String? directory,
   List<String>? paths,
 }) {
-  final optsC = calloc<git_checkout_options>();
-  libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+  return using((arena) {
+    final optsC = calloc<git_checkout_options>();
+    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
 
-  optsC.ref.checkout_strategy = strategy;
+    optsC.ref.checkout_strategy = strategy;
 
-  if (directory != null) {
-    optsC.ref.target_directory = directory.toChar();
-  }
-
-  var pathPointers = <Pointer<Char>>[];
-  Pointer<Pointer<Char>> strArray = nullptr;
-  if (paths != null) {
-    pathPointers = paths.map((e) => e.toChar()).toList();
-    strArray = calloc(paths.length);
-    for (var i = 0; i < paths.length; i++) {
-      strArray[i] = pathPointers[i];
+    if (directory != null) {
+      optsC.ref.target_directory = directory.toChar(arena);
     }
-    optsC.ref.paths.strings = strArray;
-    optsC.ref.paths.count = paths.length;
-  }
 
-  return [optsC, pathPointers, strArray];
+    var pathPointers = <Pointer<Char>>[];
+    Pointer<Pointer<Char>> strArray = nullptr;
+    if (paths != null) {
+      pathPointers = paths.map((e) => e.toChar(arena)).toList();
+      strArray = calloc(paths.length);
+      for (var i = 0; i < paths.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      optsC.ref.paths.strings = strArray;
+      optsC.ref.paths.count = paths.length;
+    }
+
+    return [optsC, pathPointers, strArray];
+  });
 }

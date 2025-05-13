@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Creates a new plain-text username and password credential object.
@@ -18,19 +19,20 @@ Pointer<git_credential> userPass({
   required String username,
   required String password,
 }) {
-  final out = calloc<Pointer<git_credential>>();
-  final usernameC = username.toChar();
-  final passwordC = password.toChar();
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final usernameC = username.toChar(arena);
+    final passwordC = password.toChar(arena);
 
-  libgit2.git_credential_userpass_plaintext_new(out, usernameC, passwordC);
+    final error = libgit2.git_credential_userpass_plaintext_new(
+      out,
+      usernameC,
+      passwordC,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(usernameC);
-  calloc.free(passwordC);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Creates a new passphrase-protected SSH key credential object.
@@ -50,29 +52,24 @@ Pointer<git_credential> sshKey({
   required String privateKey,
   required String passPhrase,
 }) {
-  final out = calloc<Pointer<git_credential>>();
-  final usernameC = username.toChar();
-  final publicKeyC = publicKey.toChar();
-  final privateKeyC = privateKey.toChar();
-  final passPhraseC = passPhrase.toChar();
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final usernameC = username.toChar(arena);
+    final publicKeyC = publicKey.toChar(arena);
+    final privateKeyC = privateKey.toChar(arena);
+    final passPhraseC = passPhrase.toChar(arena);
 
-  libgit2.git_credential_ssh_key_new(
-    out,
-    usernameC,
-    publicKeyC,
-    privateKeyC,
-    passPhraseC,
-  );
+    final error = libgit2.git_credential_ssh_key_new(
+      out,
+      usernameC,
+      publicKeyC,
+      privateKeyC,
+      passPhraseC,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(usernameC);
-  calloc.free(publicKeyC);
-  calloc.free(privateKeyC);
-  calloc.free(passPhraseC);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Creates a new SSH key credential object that uses an SSH agent.
@@ -84,17 +81,15 @@ Pointer<git_credential> sshKey({
 ///
 /// Returns a pointer to the newly created credential object.
 Pointer<git_credential> sshKeyFromAgent(String username) {
-  final out = calloc<Pointer<git_credential>>();
-  final usernameC = username.toChar();
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final usernameC = username.toChar(arena);
 
-  libgit2.git_credential_ssh_key_from_agent(out, usernameC);
+    final error = libgit2.git_credential_ssh_key_from_agent(out, usernameC);
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(usernameC);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Creates a new SSH key credential object with keys stored in memory.
@@ -114,27 +109,22 @@ Pointer<git_credential> sshKeyFromMemory({
   required String privateKey,
   required String passPhrase,
 }) {
-  final out = calloc<Pointer<git_credential>>();
-  final usernameC = username.toChar();
-  final publicKeyC = publicKey.toChar();
-  final privateKeyC = privateKey.toChar();
-  final passPhraseC = passPhrase.toChar();
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final usernameC = username.toChar(arena);
+    final publicKeyC = publicKey.toChar(arena);
+    final privateKeyC = privateKey.toChar(arena);
+    final passPhraseC = passPhrase.toChar(arena);
 
-  libgit2.git_credential_ssh_key_memory_new(
-    out,
-    usernameC,
-    publicKeyC,
-    privateKeyC,
-    passPhraseC,
-  );
+    final error = libgit2.git_credential_ssh_key_memory_new(
+      out,
+      usernameC,
+      publicKeyC,
+      privateKeyC,
+      passPhraseC,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(usernameC);
-  calloc.free(publicKeyC);
-  calloc.free(privateKeyC);
-  calloc.free(passPhraseC);
-
-  return result;
+    return out.value;
+  });
 }

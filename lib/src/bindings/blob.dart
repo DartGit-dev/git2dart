@@ -56,18 +56,20 @@ Pointer<git_oid> create({
   required String buffer,
   required int len,
 }) {
-  final out = calloc<git_oid>();
-  final bufferC = buffer.toNativeUtf8().cast<Void>();
-  final error = libgit2.git_blob_create_from_buffer(
-    out,
-    repoPointer,
-    bufferC,
-    len,
-  );
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final bufferC = buffer.toNativeUtf8Arena(arena).cast<Void>();
+    final error = libgit2.git_blob_create_from_buffer(
+      out,
+      repoPointer,
+      bufferC,
+      len,
+    );
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
 
-  return out;
+    return out;
+  });
 }
 
 /// Read a file from the working folder of a repository and write it to the
@@ -80,16 +82,18 @@ Pointer<git_oid> createFromWorkdir({
   required Pointer<git_repository> repoPointer,
   required String relativePath,
 }) {
-  final out = calloc<git_oid>();
-  final relativePathC = relativePath.toChar();
-  final error = libgit2.git_blob_create_from_workdir(
-    out,
-    repoPointer,
-    relativePathC,
-  );
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final relativePathC = relativePath.toChar(arena);
+    final error = libgit2.git_blob_create_from_workdir(
+      out,
+      repoPointer,
+      relativePathC,
+    );
 
-  checkErrorAndThrow(error);
-  return out;
+    checkErrorAndThrow(error);
+    return out;
+  });
 }
 
 /// Read a file from the filesystem and write its content to the Object
@@ -102,12 +106,14 @@ Pointer<git_oid> createFromDisk({
   required Pointer<git_repository> repoPointer,
   required String path,
 }) {
-  final out = calloc<git_oid>();
-  final pathC = path.toChar();
-  final error = libgit2.git_blob_create_from_disk(out, repoPointer, pathC);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_blob_create_from_disk(out, repoPointer, pathC);
 
-  checkErrorAndThrow(error);
-  return out;
+    checkErrorAndThrow(error);
+    return out;
+  });
 }
 
 /// Create an in-memory copy of a blob.
@@ -142,7 +148,7 @@ String filterContent({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final asPathC = asPath.toChar();
+    final asPathC = asPath.toChar(arena);
     final opts = arena<git_blob_filter_options>();
     libgit2.git_blob_filter_options_init(opts, GIT_BLOB_FILTER_OPTIONS_VERSION);
     opts.ref.flags = flags;

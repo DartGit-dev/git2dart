@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Apply a filter list to an arbitrary data buffer.
@@ -13,26 +14,23 @@ String applyToData({
   required Pointer<git_filter_list> filterListPointer,
   required String buffer,
 }) {
-  final out = calloc<git_buf>();
-  final bufferC = buffer.toChar();
-  final error = libgit2.git_filter_list_apply_to_buffer(
-    out,
-    filterListPointer,
-    bufferC,
-    buffer.length,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final bufferC = buffer.toChar(arena);
+    final error = libgit2.git_filter_list_apply_to_buffer(
+      out,
+      filterListPointer,
+      bufferC,
+      buffer.length,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    checkErrorAndThrow(error);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(bufferC);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }
 
 /// Apply a filter list to a file on disk.
@@ -45,26 +43,23 @@ String applyToFile({
   required Pointer<git_filter_list> filterListPointer,
   required String path,
 }) {
-  final out = calloc<git_buf>();
-  final pathC = path.toChar();
-  final error = libgit2.git_filter_list_apply_to_file(
-    out,
-    filterListPointer,
-    repoPointer,
-    pathC,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_filter_list_apply_to_file(
+      out,
+      filterListPointer,
+      repoPointer,
+      pathC,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    checkErrorAndThrow(error);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(pathC);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }
 
 /// Apply a filter list to a blob.
@@ -76,23 +71,21 @@ String applyToBlob({
   required Pointer<git_filter_list> filterListPointer,
   required Pointer<git_blob> blobPointer,
 }) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_filter_list_apply_to_blob(
-    out,
-    filterListPointer,
-    blobPointer,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_filter_list_apply_to_blob(
+      out,
+      filterListPointer,
+      blobPointer,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    checkErrorAndThrow(error);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }
 
 /// Free a filter list.

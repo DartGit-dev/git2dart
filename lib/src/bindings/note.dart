@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Returns list of notes for repository. The returned notes must be freed with
@@ -12,46 +13,42 @@ List<Map<String, Pointer>> list({
   required Pointer<git_repository> repoPointer,
   required String notesRef,
 }) {
-  final notesRefC = notesRef.toChar();
-  final iterator = calloc<Pointer<git_iterator>>();
-  final iteratorError = libgit2.git_note_iterator_new(
-    iterator,
-    repoPointer,
-    notesRefC,
-  );
+  return using((arena) {
+    final notesRefC = notesRef.toChar(arena);
+    final iterator = arena<Pointer<git_iterator>>();
+    final iteratorError = libgit2.git_note_iterator_new(
+      iterator,
+      repoPointer,
+      notesRefC,
+    );
+    checkErrorAndThrow(iteratorError);
 
-  if (iteratorError < 0) {
-    calloc.free(iterator);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    final result = <Map<String, Pointer>>[];
+    var nextError = 0;
 
-  final result = <Map<String, Pointer>>[];
-  var nextError = 0;
+    while (nextError >= 0) {
+      final noteOid = arena<git_oid>();
+      final annotatedOid = arena<git_oid>();
+      nextError = libgit2.git_note_next(noteOid, annotatedOid, iterator.value);
+      if (nextError >= 0) {
+        final out = arena<Pointer<git_note>>();
+        final error = libgit2.git_note_read(
+          out,
+          repoPointer,
+          notesRefC,
+          annotatedOid,
+        );
+        checkErrorAndThrow(error);
 
-  while (nextError >= 0) {
-    final noteOid = calloc<git_oid>();
-    final annotatedOid = calloc<git_oid>();
-    nextError = libgit2.git_note_next(noteOid, annotatedOid, iterator.value);
-    if (nextError >= 0) {
-      final out = calloc<Pointer<git_note>>();
-      libgit2.git_note_read(out, repoPointer, notesRefC, annotatedOid);
-
-      final note = out.value;
-
-      calloc.free(out);
-
-      result.add({'note': note, 'annotatedOid': annotatedOid});
-    } else {
-      break;
+        result.add({'note': out.value, 'annotatedOid': annotatedOid});
+      } else {
+        break;
+      }
     }
-    calloc.free(noteOid);
-  }
 
-  calloc.free(notesRefC);
-  libgit2.git_note_iterator_free(iterator.value);
-  calloc.free(iterator);
-
-  return result;
+    libgit2.git_note_iterator_free(iterator.value);
+    return result;
+  });
 }
 
 /// Read the note for an object. The returned note must be freed with [free].
@@ -62,20 +59,18 @@ Pointer<git_note> lookup({
   required Pointer<git_oid> oidPointer,
   required String notesRef,
 }) {
-  final out = calloc<Pointer<git_note>>();
-  final notesRefC = notesRef.toChar();
-  final error = libgit2.git_note_read(out, repoPointer, notesRefC, oidPointer);
-
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(notesRefC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_note>>();
+    final notesRefC = notesRef.toChar(arena);
+    final error = libgit2.git_note_read(
+      out,
+      repoPointer,
+      notesRefC,
+      oidPointer,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Add a note for an object.
@@ -90,30 +85,24 @@ Pointer<git_oid> create({
   required String note,
   bool force = false,
 }) {
-  final out = calloc<git_oid>();
-  final notesRefC = notesRef.toChar();
-  final noteC = note.toChar();
-  final forceC = force ? 1 : 0;
-  final error = libgit2.git_note_create(
-    out,
-    repoPointer,
-    notesRefC,
-    authorPointer,
-    committerPointer,
-    oidPointer,
-    noteC,
-    forceC,
-  );
-
-  calloc.free(notesRefC);
-  calloc.free(noteC);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final notesRefC = notesRef.toChar(arena);
+    final noteC = note.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final error = libgit2.git_note_create(
+      out,
+      repoPointer,
+      notesRefC,
+      authorPointer,
+      committerPointer,
+      oidPointer,
+      noteC,
+      forceC,
+    );
+    checkErrorAndThrow(error);
     return out;
-  }
+  });
 }
 
 /// Delete the note for an object.
@@ -126,21 +115,17 @@ void delete({
   required Pointer<git_signature> committerPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final notesRefC = notesRef.toChar();
-
-  final error = libgit2.git_note_remove(
-    repoPointer,
-    notesRefC,
-    authorPointer,
-    committerPointer,
-    oidPointer,
-  );
-
-  calloc.free(notesRefC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  return using((arena) {
+    final notesRefC = notesRef.toChar(arena);
+    final error = libgit2.git_note_remove(
+      repoPointer,
+      notesRefC,
+      authorPointer,
+      committerPointer,
+      oidPointer,
+    );
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the note object's id.

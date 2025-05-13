@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Create a new tree builder. The returned tree builder must be freed with
@@ -14,22 +15,16 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// the entries of the given tree.
 ///
 /// Throws a [LibGit2Error] if error occurred.
-Pointer<git_treebuilder> create({
-  required Pointer<git_repository> repoPointer,
-  required Pointer<git_tree> sourcePointer,
-}) {
-  final out = calloc<Pointer<git_treebuilder>>();
-  final error = libgit2.git_treebuilder_new(out, repoPointer, sourcePointer);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+Pointer<git_treebuilder> create(
+  Pointer<git_repository> repoPointer,
+  Pointer<git_tree> source,
+) {
+  return using((arena) {
+    final out = arena<Pointer<git_treebuilder>>();
+    final error = libgit2.git_treebuilder_new(out, repoPointer, source);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Write the contents of the tree builder as a tree object.
@@ -55,25 +50,26 @@ void clear(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_clear(bld);
 int entryCount(Pointer<git_treebuilder> bld) =>
     libgit2.git_treebuilder_entrycount(bld);
 
-/// Get an entry from the builder from its filename.
+/// Get a tree entry from the builder by its filename.
 ///
-/// The returned entry is owned by the builder and should not be freed manually.
+/// This returns a tree entry that is owned by the builder. You don't have to
+/// free it, but you must not use it after the builder is released.
 ///
 /// Throws [ArgumentError] if nothing found for provided filename.
 Pointer<git_tree_entry> getByFilename({
   required Pointer<git_treebuilder> builderPointer,
   required String filename,
 }) {
-  final filenameC = filename.toChar();
-  final result = libgit2.git_treebuilder_get(builderPointer, filenameC);
+  return using((arena) {
+    final filenameC = filename.toChar(arena);
+    final result = libgit2.git_treebuilder_get(builderPointer, filenameC);
 
-  calloc.free(filenameC);
-
-  if (result == nullptr) {
-    throw ArgumentError.value('$filename was not found');
-  } else {
-    return result;
-  }
+    if (result == nullptr) {
+      throw ArgumentError.value('$filename was not found');
+    } else {
+      return result;
+    }
+  });
 }
 
 /// Add or update an entry to the builder.
@@ -92,20 +88,17 @@ void add({
   required Pointer<git_oid> oidPointer,
   required git_filemode_t filemode,
 }) {
-  final filenameC = filename.toChar();
-  final error = libgit2.git_treebuilder_insert(
-    nullptr,
-    builderPointer,
-    filenameC,
-    oidPointer,
-    filemode,
-  );
-
-  calloc.free(filenameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final filenameC = filename.toChar(arena);
+    final error = libgit2.git_treebuilder_insert(
+      nullptr,
+      builderPointer,
+      filenameC,
+      oidPointer,
+      filemode,
+    );
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove an entry from the builder by its filename.
@@ -117,14 +110,11 @@ void remove({
   required Pointer<git_treebuilder> builderPointer,
   required String filename,
 }) {
-  final filenameC = filename.toChar();
-  final error = libgit2.git_treebuilder_remove(builderPointer, filenameC);
-
-  calloc.free(filenameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final filenameC = filename.toChar(arena);
+    final error = libgit2.git_treebuilder_remove(builderPointer, filenameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Free a tree builder and all the entries.

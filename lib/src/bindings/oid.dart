@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Parse N characters of a hex formatted object id into a git_oid.
@@ -17,13 +18,15 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// Note: The function assumes the input string contains valid hexadecimal
 /// characters. Input validation should be done before calling this function.
 Pointer<git_oid> fromStrN(String hex) {
-  final out = calloc<git_oid>();
-  final hexC = hex.toChar();
-  libgit2.git_oid_fromstrn(out, hexC, hex.length);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final hexC = hex.toChar(arena);
 
-  calloc.free(hexC);
+    final error = libgit2.git_oid_fromstrn(out, hexC, hex.length);
+    checkErrorAndThrow(error);
 
-  return out;
+    return out;
+  });
 }
 
 /// Parse a full 40-character hex formatted object id into a git_oid.
@@ -40,13 +43,15 @@ Pointer<git_oid> fromStrN(String hex) {
 /// and contains valid hexadecimal characters. Input validation should be done
 /// before calling this function.
 Pointer<git_oid> fromSHA(String hex) {
-  final out = calloc<git_oid>();
-  final hexC = hex.toChar();
-  libgit2.git_oid_fromstr(out, hexC);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final hexC = hex.toChar(arena);
 
-  calloc.free(hexC);
+    final error = libgit2.git_oid_fromstr(out, hexC);
+    checkErrorAndThrow(error);
 
-  return out;
+    return out;
+  });
 }
 
 /// Copy a raw 20-byte SHA-1 hash into a git_oid structure.
@@ -65,18 +70,17 @@ Pointer<git_oid> fromSHA(String hex) {
 /// final oid = fromRaw(raw);
 /// ```
 Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
-  final out = calloc<git_oid>();
-  final rawC = calloc<UnsignedChar>(20);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final rawC = arena<UnsignedChar>(20);
 
-  for (var i = 0; i < 20; i++) {
-    rawC[i] = raw[i];
-  }
+    for (var i = 0; i < 20; i++) {
+      rawC[i] = raw[i];
+    }
 
-  libgit2.git_oid_fromraw(out, rawC);
-
-  calloc.free(rawC);
-
-  return out;
+    libgit2.git_oid_fromraw(out, rawC);
+    return out;
+  });
 }
 
 /// Format a git_oid into a 40-character hex string.
@@ -89,12 +93,11 @@ Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
 /// final sha = toSHA(oidPointer); // Returns e.g. "1234567890123456789012345678901234567890"
 /// ```
 String toSHA(Pointer<git_oid> id) {
-  final out = calloc<Char>(40);
-  libgit2.git_oid_fmt(out, id);
-
-  final result = out.toDartString(length: 40);
-  calloc.free(out);
-  return result;
+  return using((arena) {
+    final out = arena<Char>(40);
+    libgit2.git_oid_fmt(out, id);
+    return out.toDartString(length: 40);
+  });
 }
 
 /// Compare two oid structures.
@@ -135,6 +138,9 @@ int compare({
 /// ```
 Pointer<git_oid> copy(Pointer<git_oid> src) {
   final out = calloc<git_oid>();
-  libgit2.git_oid_cpy(out, src);
+  final error = libgit2.git_oid_cpy(out, src);
+
+  checkErrorAndThrow(error);
+
   return out;
 }

@@ -10,7 +10,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_config> open(String path) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final pathC = path.toChar();
+    final pathC = path.toChar(arena);
     final error = libgit2.git_config_open_ondisk(out, pathC);
 
     checkErrorAndThrow(error);
@@ -127,7 +127,7 @@ Pointer<git_config_entry> getEntry({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_config_entry>>();
-    final nameC = variable.toChar();
+    final nameC = variable.toChar(arena);
     final error = libgit2.git_config_get_entry(out, configPointer, nameC);
 
     checkErrorAndThrow(error);
@@ -143,11 +143,13 @@ void setBool({
   required String variable,
   required bool value,
 }) {
-  final nameC = variable.toChar();
-  final valueC = value ? 1 : 0;
-  final error = libgit2.git_config_set_bool(configPointer, nameC, valueC);
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final valueC = value ? 1 : 0;
+    final error = libgit2.git_config_set_bool(configPointer, nameC, valueC);
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Set the value of an integer config variable in the config file with the
@@ -157,10 +159,12 @@ void setInt({
   required String variable,
   required int value,
 }) {
-  final nameC = variable.toChar();
-  final error = libgit2.git_config_set_int64(configPointer, nameC, value);
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_set_int64(configPointer, nameC, value);
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Set the value of a string config variable in the config file with the
@@ -170,11 +174,13 @@ void setString({
   required String variable,
   required String value,
 }) {
-  final nameC = variable.toChar();
-  final valueC = value.toChar();
-  final error = libgit2.git_config_set_string(configPointer, nameC, valueC);
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_set_string(configPointer, nameC, valueC);
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Iterate over all the config variables. The returned iterator must be freed
@@ -198,10 +204,12 @@ void delete({
   required Pointer<git_config> configPointer,
   required String variable,
 }) {
-  final nameC = variable.toChar();
-  final error = libgit2.git_config_delete_entry(configPointer, nameC);
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_delete_entry(configPointer, nameC);
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Iterate over the values of a multivar.
@@ -218,8 +226,8 @@ List<String> multivarValues({
   String? regexp,
 }) {
   return using((arena) {
-    final nameC = variable.toChar();
-    final regexpC = regexp?.toChar() ?? nullptr;
+    final nameC = variable.toChar(arena);
+    final regexpC = regexp?.toChar(arena) ?? nullptr;
     final iterator = arena<Pointer<git_config_iterator>>();
     final entry = arena<Pointer<git_config_entry>>();
 
@@ -270,7 +278,7 @@ String getStringBuf({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final nameC = name.toChar();
+    final nameC = name.toChar(arena);
     final error = libgit2.git_config_get_string_buf(out, configPointer, nameC);
 
     checkErrorAndThrow(error);
@@ -292,17 +300,19 @@ void setMultivar({
   required String regexp,
   required String value,
 }) {
-  final nameC = name.toChar();
-  final regexpC = regexp.toChar();
-  final valueC = value.toChar();
-  final error = libgit2.git_config_set_multivar(
-    configPointer,
-    nameC,
-    regexpC,
-    valueC,
-  );
+  return using((arena) {
+    final nameC = name.toChar(arena);
+    final regexpC = regexp.toChar(arena);
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_set_multivar(
+      configPointer,
+      nameC,
+      regexpC,
+      valueC,
+    );
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Delete a multivar from the local config file.
@@ -315,12 +325,15 @@ void deleteMultivar({
   required String name,
   required String regexp,
 }) {
-  final nameC = name.toChar();
-  final regexpC = regexp.toChar();
-  final error = libgit2.git_config_delete_multivar(
-    configPointer,
-    nameC,
-    regexpC,
-  );
-  checkErrorAndThrow(error);
+  return using((arena) {
+    final nameC = name.toChar(arena);
+    final regexpC = regexp.toChar(arena);
+    final error = libgit2.git_config_delete_multivar(
+      configPointer,
+      nameC,
+      regexpC,
+    );
+
+    checkErrorAndThrow(error);
+  });
 }

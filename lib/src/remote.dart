@@ -19,7 +19,7 @@ class Remote extends Equatable {
   /// The [name] will be checked for validity. If the remote doesn't exist,
   /// a [LibGit2Error] will be thrown.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while looking up the remote.
   Remote.lookup({required Repository repo, required String name}) {
     _remotePointer = remote_bindings.lookup(
       repoPointer: repo.pointer,
@@ -36,27 +36,26 @@ class Remote extends Equatable {
   ///
   /// The [name] and [url] will be checked for validity.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while creating the remote.
   Remote.create({
     required Repository repo,
     required String name,
     required String url,
     String? fetch,
   }) {
-    if (fetch == null) {
-      _remotePointer = remote_bindings.create(
-        repoPointer: repo.pointer,
-        name: name,
-        url: url,
-      );
-    } else {
-      _remotePointer = remote_bindings.createWithFetchSpec(
-        repoPointer: repo.pointer,
-        name: name,
-        url: url,
-        fetch: fetch,
-      );
-    }
+    _remotePointer =
+        fetch == null
+            ? remote_bindings.create(
+              repoPointer: repo.pointer,
+              name: name,
+              url: url,
+            )
+            : remote_bindings.createWithFetchSpec(
+              repoPointer: repo.pointer,
+              name: name,
+              url: url,
+              fetch: fetch,
+            );
     _finalizer.attach(this, _remotePointer, detach: this);
   }
 
@@ -68,10 +67,9 @@ class Remote extends Equatable {
   /// All remote-tracking branches and configuration settings for the remote
   /// will be removed. This operation cannot be undone.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
-  static void delete({required Repository repo, required String name}) {
-    remote_bindings.delete(repoPointer: repo.pointer, name: name);
-  }
+  /// Throws a [LibGit2Error] if error occurred while deleting the remote.
+  static void delete({required Repository repo, required String name}) =>
+      remote_bindings.delete(repoPointer: repo.pointer, name: name);
 
   /// Renames remote with provided [oldName] to [newName].
   ///
@@ -85,26 +83,23 @@ class Remote extends Equatable {
   /// No loaded instances of a the remote with the old name will change their
   /// name or their list of refspecs.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while renaming the remote.
   static List<String> rename({
     required Repository repo,
     required String oldName,
     required String newName,
-  }) {
-    return remote_bindings.rename(
-      repoPointer: repo.pointer,
-      name: oldName,
-      newName: newName,
-    );
-  }
+  }) => remote_bindings.rename(
+    repoPointer: repo.pointer,
+    name: oldName,
+    newName: newName,
+  );
 
   /// Returns a list of the configured remotes for a [repo]sitory.
   ///
   /// This includes all remotes that have been added to the repository's
   /// configuration, regardless of whether they are currently valid or accessible.
-  static List<String> list(Repository repo) {
-    return remote_bindings.list(repo.pointer);
-  }
+  static List<String> list(Repository repo) =>
+      remote_bindings.list(repo.pointer);
 
   /// Sets the [remote]'s [url] in the configuration.
   ///
@@ -113,14 +108,16 @@ class Remote extends Equatable {
   ///
   /// The [url] will be checked for validity.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while setting the URL.
   static void setUrl({
     required Repository repo,
     required String remote,
     required String url,
-  }) {
-    remote_bindings.setUrl(repoPointer: repo.pointer, remote: remote, url: url);
-  }
+  }) => remote_bindings.setUrl(
+    repoPointer: repo.pointer,
+    remote: remote,
+    url: url,
+  );
 
   /// Sets the [remote]'s [url] for pushing in the configuration.
   ///
@@ -129,18 +126,16 @@ class Remote extends Equatable {
   ///
   /// The [url] will be checked for validity.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
+  /// Throws a [LibGit2Error] if error occurred while setting the push URL.
   static void setPushUrl({
     required Repository repo,
     required String remote,
     required String url,
-  }) {
-    remote_bindings.setPushUrl(
-      repoPointer: repo.pointer,
-      remote: remote,
-      url: url,
-    );
-  }
+  }) => remote_bindings.setPushUrl(
+    repoPointer: repo.pointer,
+    remote: remote,
+    url: url,
+  );
 
   /// Adds a fetch [refspec] to the [remote]'s configuration.
   ///
@@ -204,15 +199,10 @@ class Remote extends Equatable {
   ///
   /// The [index] must be between 0 and [refspecCount] - 1.
   ///
-  /// Throws a [LibGit2Error] if error occurred.
-  Refspec getRefspec(int index) {
-    return Refspec(
-      remote_bindings.getRefspec(
-        remotePointer: _remotePointer,
-        position: index,
-      ),
-    );
-  }
+  /// Throws a [LibGit2Error] if error occurred while getting the refspec.
+  Refspec getRefspec(int index) => Refspec(
+    remote_bindings.getRefspec(remotePointer: _remotePointer, position: index),
+  );
 
   /// List of fetch refspecs.
   ///
@@ -342,16 +332,19 @@ class Remote extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occurred.
   void prune([Callbacks callbacks = const Callbacks()]) {
-    final remoteCallbacks = malloc<git_remote_callbacks>();
-    remoteCallbacks.ref.version = 1;
-    RemoteCallbacks.plug(
-      callbacksOptions: remoteCallbacks.ref,
-      callbacks: callbacks,
-    );
-    remote_bindings.prune(
-      remotePointer: _remotePointer,
-      flags: remoteCallbacks,
-    );
+    using((arena) {
+      final remoteCallbacks = arena<git_remote_callbacks>();
+      remoteCallbacks.ref.version = 1;
+      RemoteCallbacks.plug(
+        callbacksOptions: remoteCallbacks.ref,
+        callbacks: callbacks,
+        arena: arena,
+      );
+      remote_bindings.prune(
+        remotePointer: _remotePointer,
+        flags: remoteCallbacks,
+      );
+    });
   }
 
   /// Releases memory allocated for remote object.

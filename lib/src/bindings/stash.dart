@@ -1,8 +1,9 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show calloc, using;
 import 'package:git2dart/src/bindings/checkout.dart' as checkout_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart/src/stash.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -28,10 +29,10 @@ Pointer<git_oid> save({
   String? message,
   required int flags,
 }) {
-  final out = calloc<git_oid>();
-  final messageC = message?.toChar() ?? nullptr;
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final messageC = message?.toChar(arena) ?? nullptr;
 
-  try {
     final error = libgit2.git_stash_save(
       out,
       repoPointer,
@@ -40,14 +41,9 @@ Pointer<git_oid> save({
       flags,
     );
 
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-
+    checkErrorAndThrow(error);
     return out;
-  } finally {
-    calloc.free(messageC);
-  }
+  });
 }
 
 /// Applies a stashed state to the working directory.
@@ -72,38 +68,25 @@ void apply({
   String? directory,
   List<String>? paths,
 }) {
-  final options = calloc<git_stash_apply_options>();
-  libgit2.git_stash_apply_options_init(
-    options,
-    GIT_STASH_APPLY_OPTIONS_VERSION,
-  );
+  using((arena) {
+    final options = arena<git_stash_apply_options>();
+    libgit2.git_stash_apply_options_init(
+      options,
+      GIT_STASH_APPLY_OPTIONS_VERSION,
+    );
 
-  final checkoutOptions = checkout_bindings.initOptions(
-    strategy: strategy,
-    directory: directory,
-    paths: paths,
-  );
-  final optsC = checkoutOptions[0] as Pointer<git_checkout_options>;
-  final pathPointers = checkoutOptions[1] as List<Pointer>;
-  final strArray = checkoutOptions[2] as Pointer;
-
-  try {
+    final checkoutOptions = checkout_bindings.initOptions(
+      strategy: strategy,
+      directory: directory,
+      paths: paths,
+    );
+    final optsC = checkoutOptions[0] as Pointer<git_checkout_options>;
     options.ref.flags = flags;
     options.ref.checkout_options = optsC.ref;
 
     final error = libgit2.git_stash_apply(repoPointer, index, options);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-  } finally {
-    for (final p in pathPointers) {
-      calloc.free(p);
-    }
-    calloc.free(strArray);
-    calloc.free(optsC);
-    calloc.free(options);
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Removes a stashed state from the stash list.
@@ -117,10 +100,7 @@ void apply({
 /// Throws a [LibGit2Error] if an error occurs during the drop operation.
 void drop({required Pointer<git_repository> repoPointer, required int index}) {
   final error = libgit2.git_stash_drop(repoPointer, index);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Applies a stashed state and removes it from the stash list.
@@ -146,43 +126,30 @@ void pop({
   String? directory,
   List<String>? paths,
 }) {
-  final options = calloc<git_stash_apply_options>();
-  libgit2.git_stash_apply_options_init(
-    options,
-    GIT_STASH_APPLY_OPTIONS_VERSION,
-  );
+  using((arena) {
+    final options = arena<git_stash_apply_options>();
+    libgit2.git_stash_apply_options_init(
+      options,
+      GIT_STASH_APPLY_OPTIONS_VERSION,
+    );
 
-  final checkoutOptions = checkout_bindings.initOptions(
-    strategy: strategy,
-    directory: directory,
-    paths: paths,
-  );
-  final optsC = checkoutOptions[0] as Pointer<git_checkout_options>;
-  final pathPointers = checkoutOptions[1] as List<Pointer>;
-  final strArray = checkoutOptions[2] as Pointer;
-
-  try {
+    final checkoutOptions = checkout_bindings.initOptions(
+      strategy: strategy,
+      directory: directory,
+      paths: paths,
+    );
+    final optsC = checkoutOptions[0] as Pointer<git_checkout_options>;
     options.ref.flags = flags;
     options.ref.checkout_options = optsC.ref;
 
     final error = libgit2.git_stash_pop(repoPointer, index, options);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-  } finally {
-    for (final p in pathPointers) {
-      calloc.free(p);
-    }
-    calloc.free(strArray);
-    calloc.free(optsC);
-    calloc.free(options);
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Global list to store stash entries during iteration.
 /// This is used by the [list] function to collect stash entries.
-var _stashList = <Stash>[];
+final _stashList = <Stash>[];
 
 /// Callback function used by [list] to collect stash entries.
 ///
@@ -225,7 +192,8 @@ List<Stash> list(Pointer<git_repository> repo) {
   final git_stash_cb callBack = Pointer.fromFunction(_stashCb, except);
 
   try {
-    libgit2.git_stash_foreach(repo, callBack, nullptr);
+    final error = libgit2.git_stash_foreach(repo, callBack, nullptr);
+    checkErrorAndThrow(error);
     return _stashList.toList(growable: false);
   } finally {
     _stashList.clear();

@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show calloc, using;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -17,19 +17,13 @@ class Libgit2 {
   /// Returns a string in the format "major.minor.revision".
   static String get version {
     libgit2.git_libgit2_init();
-
-    final major = calloc<Int>();
-    final minor = calloc<Int>();
-    final rev = calloc<Int>();
-    libgit2.git_libgit2_version(major, minor, rev);
-
-    final version = '${major.value}.${minor.value}.${rev.value}';
-
-    calloc.free(major);
-    calloc.free(minor);
-    calloc.free(rev);
-
-    return version;
+    return using((arena) {
+      final major = arena<Int>();
+      final minor = arena<Int>();
+      final rev = arena<Int>();
+      libgit2.git_libgit2_version(major, minor, rev);
+      return '${major.value}.${minor.value}.${rev.value}';
+    });
   }
 
   /// Get the features that libgit2 was compiled with.
@@ -50,13 +44,11 @@ class Libgit2 {
   /// will use. Larger values may improve performance but use more memory.
   static int get mmapWindowSize {
     libgit2.git_libgit2_init();
-
-    final out = calloc<Int>();
-    libgit2Opts.git_libgit2_opts_get_mwindow_size(out);
-    final result = out.value;
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<Int>();
+      libgit2Opts.git_libgit2_opts_get_mwindow_size(out);
+      return out.value;
+    });
   }
 
   static set mmapWindowSize(int value) {
@@ -70,13 +62,11 @@ class Libgit2 {
   /// temporarily exceeded.
   static int get mmapWindowMappedLimit {
     libgit2.git_libgit2_init();
-
-    final out = calloc<Int>();
-    libgit2Opts.git_libgit2_opts_get_mwindow_mapped_limit(out);
-    final result = out.value;
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<Int>();
+      libgit2Opts.git_libgit2_opts_get_mwindow_mapped_limit(out);
+      return out.value;
+    });
   }
 
   static set mmapWindowMappedLimit(int value) {
@@ -90,13 +80,11 @@ class Libgit2 {
   /// working with many repositories.
   static int get mmapWindowFileLimit {
     libgit2.git_libgit2_init();
-
-    final out = calloc<Int>();
-    libgit2Opts.git_libgit2_opts_get_mwindow_file_limit(out);
-    final result = out.value;
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<Int>();
+      libgit2Opts.git_libgit2_opts_get_mwindow_file_limit(out);
+      return out.value;
+    });
   }
 
   static set mmapWindowFileLimit(int value) {
@@ -115,15 +103,13 @@ class Libgit2 {
   /// Returns the path where config files for this level are stored.
   static String getConfigSearchPath(GitConfigLevel level) {
     libgit2.git_libgit2_init();
-
-    final out = calloc<git_buf>();
-    libgit2Opts.git_libgit2_opts_get_search_path(level.value, out);
-    final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-    libgit2.git_buf_dispose(out);
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<git_buf>();
+      libgit2Opts.git_libgit2_opts_get_search_path(level.value, out);
+      final result = out.ref.ptr.toDartString(length: out.ref.size);
+      libgit2.git_buf_dispose(out);
+      return result;
+    });
   }
 
   /// Set the search path for a config level.
@@ -141,10 +127,10 @@ class Libgit2 {
     required String? path,
   }) {
     libgit2.git_libgit2_init();
-
-    final pathC = path?.toChar() ?? nullptr;
-    libgit2Opts.git_libgit2_opts_set_search_path(level.value, pathC);
-    calloc.free(pathC);
+    using((arena) {
+      final pathC = path != null ? path.toChar(arena) : nullptr;
+      libgit2Opts.git_libgit2_opts_set_search_path(level.value, pathC);
+    });
   }
 
   /// Set the maximum data size for caching a given object type.
@@ -224,11 +210,10 @@ class Libgit2 {
 
   static set templatePath(String path) {
     libgit2.git_libgit2_init();
-
-    final pathC = path.toChar();
-    libgit2Opts.git_libgit2_opts_set_template_path(pathC);
-
-    calloc.free(pathC);
+    using((arena) {
+      final pathC = path.toChar(arena);
+      libgit2Opts.git_libgit2_opts_set_template_path(pathC);
+    });
   }
 
   /// Set SSL certificate locations.
@@ -244,14 +229,11 @@ class Libgit2 {
       throw ArgumentError("Both file and path can't be null");
     } else {
       libgit2.git_libgit2_init();
-
-      final fileC = file?.toChar() ?? nullptr;
-      final pathC = path?.toChar() ?? nullptr;
-
-      libgit2Opts.git_libgit2_opts_set_ssl_cert_locations(fileC, pathC);
-
-      calloc.free(fileC);
-      calloc.free(pathC);
+      using((arena) {
+        final fileC = file != null ? file.toChar(arena) : nullptr;
+        final pathC = path != null ? path.toChar(arena) : nullptr;
+        libgit2Opts.git_libgit2_opts_set_ssl_cert_locations(fileC, pathC);
+      });
     }
   }
 
@@ -261,24 +243,21 @@ class Libgit2 {
   /// git clients.
   static String get userAgent {
     libgit2.git_libgit2_init();
-
-    final out = calloc<git_buf>();
-    libgit2Opts.git_libgit2_opts_get_user_agent(out);
-    final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-    libgit2.git_buf_dispose(out);
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<git_buf>();
+      libgit2Opts.git_libgit2_opts_get_user_agent(out);
+      final result = out.ref.ptr.toDartString(length: out.ref.size);
+      libgit2.git_buf_dispose(out);
+      return result;
+    });
   }
 
   static set userAgent(String userAgent) {
     libgit2.git_libgit2_init();
-
-    final userAgentC = userAgent.toChar();
-    libgit2Opts.git_libgit2_opts_set_user_agent(userAgentC);
-
-    calloc.free(userAgentC);
+    using((arena) {
+      final userAgentC = userAgent.toChar(arena);
+      libgit2Opts.git_libgit2_opts_set_user_agent(userAgentC);
+    });
   }
 
   /// Enable strict input validation for object creation.
@@ -485,18 +464,13 @@ class Libgit2 {
 
   static set extensions(List<String> extensions) {
     libgit2.git_libgit2_init();
-
-    final array = calloc<Pointer<Char>>(extensions.length);
-    for (var i = 0; i < extensions.length; i++) {
-      array[i] = extensions[i].toChar();
-    }
-
-    libgit2Opts.git_libgit2_opts_set_extensions(array, extensions.length);
-
-    for (var i = 0; i < extensions.length; i++) {
-      calloc.free(array[i]);
-    }
-    calloc.free(array);
+    using((arena) {
+      final array = arena<Pointer<Char>>(extensions.length);
+      for (var i = 0; i < extensions.length; i++) {
+        array[i] = extensions[i].toChar(arena);
+      }
+      libgit2Opts.git_libgit2_opts_set_extensions(array, extensions.length);
+    });
   }
 
   /// Get or set owner validation for repository directories.

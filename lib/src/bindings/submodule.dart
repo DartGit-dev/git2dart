@@ -1,9 +1,10 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart/src/callbacks.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// List of submodule paths.
@@ -33,7 +34,8 @@ List<String> list(Pointer<git_repository> repo) {
     Int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)
   >(_listCb, except);
 
-  libgit2.git_submodule_foreach(repo, callback, nullptr);
+  final error = libgit2.git_submodule_foreach(repo, callback, nullptr);
+  checkErrorAndThrow(error);
 
   final result = _pathsList.toList(growable: false);
   _pathsList.clear();
@@ -56,21 +58,14 @@ Pointer<git_submodule> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
 }) {
-  final out = calloc<Pointer<git_submodule>>();
-  final nameC = name.toChar();
+  return using((arena) {
+    final out = arena<Pointer<git_submodule>>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_submodule_lookup(out, repoPointer, nameC);
 
-  final error = libgit2.git_submodule_lookup(out, repoPointer, nameC);
-
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(nameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Copy submodule info into `.git/config` file.
@@ -88,7 +83,9 @@ void init({
   bool overwrite = false,
 }) {
   final overwriteC = overwrite ? 1 : 0;
-  libgit2.git_submodule_init(submodulePointer, overwriteC);
+  final error = libgit2.git_submodule_init(submodulePointer, overwriteC);
+
+  checkErrorAndThrow(error);
 }
 
 /// Update a submodule's working directory to the commit specified in the index
@@ -112,26 +109,29 @@ void update({
   bool init = false,
   required Callbacks callbacks,
 }) {
-  final initC = init ? 1 : 0;
-  final options = calloc<git_submodule_update_options>();
-  libgit2.git_submodule_update_options_init(
-    options,
-    GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
-  );
+  return using((arena) {
+    final initC = init ? 1 : 0;
+    final options = arena<git_submodule_update_options>();
+    libgit2.git_submodule_update_options_init(
+      options,
+      GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+    );
 
-  RemoteCallbacks.plug(
-    callbacksOptions: options.ref.fetch_opts.callbacks,
-    callbacks: callbacks,
-  );
+    RemoteCallbacks.plug(
+      callbacksOptions: options.ref.fetch_opts.callbacks,
+      callbacks: callbacks,
+      arena: arena,
+    );
 
-  final error = libgit2.git_submodule_update(submodulePointer, initC, options);
+    final error = libgit2.git_submodule_update(
+      submodulePointer,
+      initC,
+      options,
+    );
+    RemoteCallbacks.reset();
 
-  calloc.free(options);
-  RemoteCallbacks.reset();
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Open the repository for a submodule.
@@ -143,18 +143,14 @@ void update({
 ///
 /// Throws a [LibGit2Error] if error occurred.
 Pointer<git_repository> open(Pointer<git_submodule> submodule) {
-  final out = calloc<Pointer<git_repository>>();
-  final error = libgit2.git_submodule_open(out, submodule);
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final error = libgit2.git_submodule_open(out, submodule);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Set up a new git submodule for checkout. The returned submodule must be
@@ -181,29 +177,23 @@ Pointer<git_submodule> addSetup({
   required String path,
   bool useGitlink = true,
 }) {
-  final out = calloc<Pointer<git_submodule>>();
-  final urlC = url.toChar();
-  final pathC = path.toChar();
-  final useGitlinkC = useGitlink ? 1 : 0;
-  final error = libgit2.git_submodule_add_setup(
-    out,
-    repoPointer,
-    urlC,
-    pathC,
-    useGitlinkC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_submodule>>();
+    final urlC = url.toChar(arena);
+    final pathC = path.toChar(arena);
+    final useGitlinkC = useGitlink ? 1 : 0;
+    final error = libgit2.git_submodule_add_setup(
+      out,
+      repoPointer,
+      urlC,
+      pathC,
+      useGitlinkC,
+    );
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(urlC);
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Perform the clone step for a newly created submodule.
@@ -217,27 +207,26 @@ void clone({
   required Pointer<git_submodule> submodule,
   required Callbacks callbacks,
 }) {
-  final out = calloc<Pointer<git_repository>>();
-  final options = calloc<git_submodule_update_options>();
-  libgit2.git_submodule_update_options_init(
-    options,
-    GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final options = arena<git_submodule_update_options>();
+    libgit2.git_submodule_update_options_init(
+      options,
+      GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+    );
 
-  RemoteCallbacks.plug(
-    callbacksOptions: options.ref.fetch_opts.callbacks,
-    callbacks: callbacks,
-  );
+    RemoteCallbacks.plug(
+      callbacksOptions: options.ref.fetch_opts.callbacks,
+      callbacks: callbacks,
+      arena: arena,
+    );
 
-  final error = libgit2.git_submodule_clone(out, submodule, options);
+    final error = libgit2.git_submodule_clone(out, submodule, options);
 
-  calloc.free(options);
-  calloc.free(out);
-  RemoteCallbacks.reset();
+    RemoteCallbacks.reset();
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Resolve the setup of a new git submodule.
@@ -253,9 +242,7 @@ void clone({
 void addFinalize(Pointer<git_submodule> submodule) {
   final error = libgit2.git_submodule_add_finalize(submodule);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Get the status for a submodule.
@@ -270,28 +257,23 @@ int status({
   required String name,
   required git_submodule_ignore_t ignore,
 }) {
-  final out = calloc<UnsignedInt>();
-  final nameC = name.toChar();
-  final error = libgit2.git_submodule_status(out, repoPointer, nameC, ignore);
+  return using((arena) {
+    final out = arena<UnsignedInt>();
+    final nameC = name.toChar(arena);
 
-  final result = out.value;
+    final error = libgit2.git_submodule_status(out, repoPointer, nameC, ignore);
 
-  calloc.free(out);
-  calloc.free(nameC);
+    checkErrorAndThrow(error);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Get the ignore rule for a submodule.
 ///
 /// Returns the ignore rule that will be used for the submodule.
-git_submodule_ignore_t ignoreRule(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_ignore(submodule);
-}
+git_submodule_ignore_t ignoreRule(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_ignore(submodule);
 
 /// Set the ignore rule for a submodule.
 ///
@@ -301,22 +283,19 @@ void setIgnoreRule({
   required String name,
   required git_submodule_ignore_t ignore,
 }) {
-  final nameC = name.toChar();
-  final error = libgit2.git_submodule_set_ignore(repoPointer, nameC, ignore);
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_submodule_set_ignore(repoPointer, nameC, ignore);
 
-  calloc.free(nameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the update rule for a submodule.
 ///
 /// Returns the update rule that will be used for the submodule.
-git_submodule_update_t updateRule(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_update_strategy(submodule);
-}
+git_submodule_update_t updateRule(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_update_strategy(submodule);
 
 /// Set the update rule for a submodule.
 ///
@@ -326,30 +305,25 @@ void setUpdateRule({
   required String name,
   required git_submodule_update_t update,
 }) {
-  final nameC = name.toChar();
-  final error = libgit2.git_submodule_set_update(repoPointer, nameC, update);
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_submodule_set_update(repoPointer, nameC, update);
 
-  calloc.free(nameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the name of a submodule.
-String name(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_name(submodule).toDartString();
-}
+String name(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_name(submodule).toDartString();
 
 /// Get the path of a submodule.
-String path(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_path(submodule).toDartString();
-}
+String path(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_path(submodule).toDartString();
 
 /// Get the URL of a submodule.
-String url(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_url(submodule).toDartString();
-}
+String url(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_url(submodule).toDartString();
 
 /// Set the URL for a submodule.
 ///
@@ -360,22 +334,18 @@ void setUrl({
   required String name,
   required String url,
 }) {
-  final nameC = name.toChar();
-  final urlC = url.toChar();
-  final error = libgit2.git_submodule_set_url(repoPointer, nameC, urlC);
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final urlC = url.toChar(arena);
+    final error = libgit2.git_submodule_set_url(repoPointer, nameC, urlC);
 
-  calloc.free(nameC);
-  calloc.free(urlC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the branch of a submodule.
-String branch(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_branch(submodule).toDartString();
-}
+String branch(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_branch(submodule).toDartString();
 
 /// Set the branch for a submodule.
 ///
@@ -386,43 +356,36 @@ void setBranch({
   required String name,
   required String branch,
 }) {
-  final nameC = name.toChar();
-  final branchC = branch.toChar();
-  final error = libgit2.git_submodule_set_branch(repoPointer, nameC, branchC);
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final branchC = branch.toChar(arena);
+    final error = libgit2.git_submodule_set_branch(repoPointer, nameC, branchC);
 
-  calloc.free(nameC);
-  calloc.free(branchC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the OID of the submodule in the current HEAD tree.
 ///
 /// Returns null if the submodule is not in the HEAD.
-Pointer<git_oid>? headId(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_head_id(submodule);
-}
+Pointer<git_oid>? headId(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_head_id(submodule);
 
 /// Get the OID of the submodule in the index.
 ///
 /// Returns null if the submodule is not in the index.
-Pointer<git_oid>? indexId(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_index_id(submodule);
-}
+Pointer<git_oid>? indexId(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_index_id(submodule);
 
 /// Get the OID of the submodule in the current working directory.
 ///
 /// Returns null if the submodule is not checked out.
-Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_wd_id(submodule);
-}
+Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_wd_id(submodule);
 
 /// Get the repository that owns this submodule.
-Pointer<git_repository> owner(Pointer<git_submodule> submodule) {
-  return libgit2.git_submodule_owner(submodule);
-}
+Pointer<git_repository> owner(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_owner(submodule);
 
 /// Sync a submodule.
 ///
@@ -432,10 +395,7 @@ Pointer<git_repository> owner(Pointer<git_submodule> submodule) {
 /// of upstream changes) and you need to update your local repo.
 void sync({required Pointer<git_submodule> submodulePointer}) {
   final error = libgit2.git_submodule_sync(submodulePointer);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Reread submodule info from config, index, and HEAD.
@@ -450,13 +410,9 @@ void reload({
 }) {
   final forceC = force ? 1 : 0;
   final error = libgit2.git_submodule_reload(submodulePointer, forceC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Free a submodule.
-void free(Pointer<git_submodule> submodule) {
-  libgit2.git_submodule_free(submodule);
-}
+void free(Pointer<git_submodule> submodule) =>
+    libgit2.git_submodule_free(submodule);

@@ -53,7 +53,7 @@ class RevParse {
   /// The [object] property will contain the found Git object, and [reference] will
   /// contain any intermediate reference if one was found.
   ///
-  /// Throws a [LibGit2Error] if an error occurs during parsing.
+  /// Throws a [LibGit2Error] if error occurred while parsing the revision string.
   ///
   /// Example:
   /// ```dart
@@ -65,15 +65,10 @@ class RevParse {
   /// print('Reference: ${revParse.reference}');
   /// ```
   RevParse.ext({required Repository repo, required String spec}) {
-    final pointers = bindings.revParseExt(
-      repoPointer: repo.pointer,
-      spec: spec,
-    );
-    object = Commit(pointers[0].cast<git_commit>());
+    final result = bindings.revParseExt(repoPointer: repo.pointer, spec: spec);
+    object = Commit(result.$1!.cast<git_commit>());
     reference =
-        pointers.length == 2
-            ? Reference(pointers[1].cast<git_reference>())
-            : null;
+        result.$2 != null ? Reference(result.$2!.cast<git_reference>()) : null;
   }
 
   /// The Git object found by the revision string.
@@ -91,7 +86,8 @@ class RevParse {
   /// * [Blob]
   /// * [Tag]
   ///
-  /// Throws a [LibGit2Error] if an error occurs during parsing.
+  /// Throws a [LibGit2Error] if error occurred while parsing the revision string.
+  /// Throws [ArgumentError] if the object type is not one of the expected types.
   ///
   /// Example:
   /// ```dart
@@ -114,16 +110,16 @@ class RevParse {
     );
     final objectType = object_bindings.type(object);
 
-    if (objectType.value == GitObject.commit.value) {
+    if (objectType == git_object_t.GIT_OBJECT_COMMIT) {
       return Commit(object.cast());
-    } else if (objectType.value == GitObject.tree.value) {
+    } else if (objectType == git_object_t.GIT_OBJECT_TREE) {
       return Tree(object.cast());
-    } else if (objectType.value == GitObject.blob.value) {
+    } else if (objectType == git_object_t.GIT_OBJECT_BLOB) {
       return Blob(object.cast());
-    } else if (objectType.value == GitObject.tag.value) {
+    } else if (objectType == git_object_t.GIT_OBJECT_TAG) {
       return Tag(object.cast());
     } else {
-      throw ArgumentError.value('Invalid object type: $objectType');
+      throw ArgumentError('Invalid object type: $objectType');
     }
   }
 
@@ -137,7 +133,7 @@ class RevParse {
   /// * [to] - The ending commit (if specified)
   /// * [flags] - The intent flags for the range
   ///
-  /// Throws a [LibGit2Error] if an error occurs during parsing.
+  /// Throws a [LibGit2Error] if error occurred while parsing the revision range.
   ///
   /// Example:
   /// ```dart
@@ -146,9 +142,8 @@ class RevParse {
   /// print('To: ${range.to}');
   /// print('Flags: ${range.flags}');
   /// ```
-  static RevSpec range({required Repository repo, required String spec}) {
-    return RevSpec._(bindings.revParse(repoPointer: repo.pointer, spec: spec));
-  }
+  static RevSpec range({required Repository repo, required String spec}) =>
+      RevSpec._(bindings.revParse(repoPointer: repo.pointer, spec: spec));
 
   @override
   String toString() {
@@ -172,24 +167,20 @@ class RevSpec {
   Commit get from => Commit(_revSpecPointer.ref.from.cast());
 
   /// The ending commit of the range, if specified.
-  Commit? get to {
-    return _revSpecPointer.ref.to == nullptr
-        ? null
-        : Commit(_revSpecPointer.ref.to.cast());
-  }
+  Commit? get to =>
+      _revSpecPointer.ref.to != nullptr
+          ? Commit(_revSpecPointer.ref.to.cast())
+          : null;
 
   /// The intent flags for the range.
   ///
   /// These flags modify how the range should be interpreted. For example,
   /// they might indicate whether the range is inclusive or exclusive.
-  Set<GitRevSpec> get flags {
-    return GitRevSpec.values
-        .where((e) => _revSpecPointer.ref.flags & e.value == e.value)
-        .toSet();
-  }
+  Set<GitRevSpec> get flags =>
+      GitRevSpec.values
+          .where((e) => _revSpecPointer.ref.flags & e.value == e.value)
+          .toSet();
 
   @override
-  String toString() {
-    return 'RevSpec{from: $from, to: $to, flags: $flags}';
-  }
+  String toString() => 'RevSpec{from: $from, to: $to, flags: $flags}';
 }

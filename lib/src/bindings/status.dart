@@ -1,7 +1,8 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Gather file status information and populate the git_status_list.
@@ -12,27 +13,20 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Throws a [LibGit2Error] if an error occurs.
 Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_status_list>>();
-  final error = libgit2.git_status_list_new(out, repo, nullptr);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_status_list>>();
+    final error = libgit2.git_status_list_new(out, repo, nullptr);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Gets the count of status entries in this list.
 ///
 /// If there are no changes in status (at least according the options given when
 /// the status list was created), this can return 0.
-int listEntryCount(Pointer<git_status_list> statuslist) {
-  return libgit2.git_status_list_entrycount(statuslist);
-}
+int listEntryCount(Pointer<git_status_list> statuslist) =>
+    libgit2.git_status_list_entrycount(statuslist);
 
 /// Get a pointer to one of the entries in the status list.
 ///
@@ -41,9 +35,7 @@ int listEntryCount(Pointer<git_status_list> statuslist) {
 Pointer<git_status_entry> getByIndex({
   required Pointer<git_status_list> statuslistPointer,
   required int index,
-}) {
-  return libgit2.git_status_byindex(statuslistPointer, index);
-}
+}) => libgit2.git_status_byindex(statuslistPointer, index);
 
 /// Get file status for a single file.
 ///
@@ -64,20 +56,13 @@ Pointer<git_status_entry> getByIndex({
 ///
 /// Throws a [LibGit2Error] if an error occurs.
 int file({required Pointer<git_repository> repoPointer, required String path}) {
-  final out = calloc<UnsignedInt>();
-  final pathC = path.toChar();
-  final error = libgit2.git_status_file(out, repoPointer, pathC);
-
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<UnsignedInt>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_status_file(out, repoPointer, pathC);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Free an existing status list.

@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Describe a commit. The returned describe result must be freed with [free].
@@ -17,27 +18,23 @@ Pointer<git_describe_result> commit({
   bool? onlyFollowFirstParent,
   bool? showCommitOidAsFallback,
 }) {
-  final out = calloc<Pointer<git_describe_result>>();
-  final opts = _initOpts(
-    maxCandidatesTags: maxCandidatesTags,
-    describeStrategy: describeStrategy,
-    pattern: pattern,
-    onlyFollowFirstParent: onlyFollowFirstParent,
-    showCommitOidAsFallback: showCommitOidAsFallback,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_describe_result>>();
+    final opts = _initOpts(
+      arena: arena,
+      maxCandidatesTags: maxCandidatesTags,
+      describeStrategy: describeStrategy,
+      pattern: pattern,
+      onlyFollowFirstParent: onlyFollowFirstParent,
+      showCommitOidAsFallback: showCommitOidAsFallback,
+    );
 
-  final error = libgit2.git_describe_commit(out, commitPointer.cast(), opts);
+    final error = libgit2.git_describe_commit(out, commitPointer.cast(), opts);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Describe a commit. The returned describe result must be freed with [free].
@@ -55,27 +52,23 @@ Pointer<git_describe_result> workdir({
   bool? onlyFollowFirstParent,
   bool? showCommitOidAsFallback,
 }) {
-  final out = calloc<Pointer<git_describe_result>>();
-  final opts = _initOpts(
-    maxCandidatesTags: maxCandidatesTags,
-    describeStrategy: describeStrategy,
-    pattern: pattern,
-    onlyFollowFirstParent: onlyFollowFirstParent,
-    showCommitOidAsFallback: showCommitOidAsFallback,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_describe_result>>();
+    final opts = _initOpts(
+      arena: arena,
+      maxCandidatesTags: maxCandidatesTags,
+      describeStrategy: describeStrategy,
+      pattern: pattern,
+      onlyFollowFirstParent: onlyFollowFirstParent,
+      showCommitOidAsFallback: showCommitOidAsFallback,
+    );
 
-  final error = libgit2.git_describe_workdir(out, repo, opts);
+    final error = libgit2.git_describe_workdir(out, repo, opts);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Print the describe result to a buffer.
@@ -85,32 +78,32 @@ String format({
   bool? alwaysUseLongFormat,
   String? dirtySuffix,
 }) {
-  final out = calloc<git_buf>();
-  final opts = calloc<git_describe_format_options>();
-  libgit2.git_describe_format_options_init(
-    opts,
-    GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final opts = arena<git_describe_format_options>();
+    libgit2.git_describe_format_options_init(
+      opts,
+      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    );
 
-  if (abbreviatedSize != null) {
-    opts.ref.abbreviated_size = abbreviatedSize;
-  }
-  if (alwaysUseLongFormat != null) {
-    opts.ref.always_use_long_format = alwaysUseLongFormat ? 1 : 0;
-  }
-  if (dirtySuffix != null) {
-    opts.ref.dirty_suffix = dirtySuffix.toChar();
-  }
+    if (abbreviatedSize != null) {
+      opts.ref.abbreviated_size = abbreviatedSize;
+    }
+    if (alwaysUseLongFormat != null) {
+      opts.ref.always_use_long_format = alwaysUseLongFormat ? 1 : 0;
+    }
+    if (dirtySuffix != null) {
+      opts.ref.dirty_suffix = dirtySuffix.toChar(arena);
+    }
 
-  libgit2.git_describe_format(out, describeResultPointer, opts);
+    final error = libgit2.git_describe_format(out, describeResultPointer, opts);
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(opts);
-
-  return result;
+    return result;
+  });
 }
 
 /// Free the describe result.
@@ -120,6 +113,7 @@ void free(Pointer<git_describe_result> result) {
 
 /// Initialize git_describe_options structure.
 Pointer<git_describe_options> _initOpts({
+  required Arena arena,
   int? maxCandidatesTags,
   int? describeStrategy,
   String? pattern,
@@ -136,7 +130,7 @@ Pointer<git_describe_options> _initOpts({
     opts.ref.describe_strategy = describeStrategy;
   }
   if (pattern != null) {
-    opts.ref.pattern = pattern.toChar();
+    opts.ref.pattern = pattern.toChar(arena);
   }
   if (onlyFollowFirstParent != null) {
     opts.ref.only_follow_first_parent = onlyFollowFirstParent ? 1 : 0;
@@ -157,17 +151,14 @@ String formatString({
   required Pointer<git_describe_result> resultPointer,
   required Pointer<git_describe_format_options> options,
 }) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_describe_format(out, resultPointer, options);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_describe_format(out, resultPointer, options);
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }

@@ -18,8 +18,8 @@ Object? getAttribute({
 }) {
   return using((arena) {
     final out = arena<Pointer<Char>>();
-    final pathC = path.toChar();
-    final nameC = name.toChar();
+    final pathC = path.toChar(arena);
+    final nameC = name.toChar(arena);
 
     final error = libgit2.git_attr_get(out, repoPointer, flags, pathC, nameC);
     checkErrorAndThrow(error);

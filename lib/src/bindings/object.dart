@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Get the object type of an object.
@@ -20,18 +21,12 @@ Pointer<git_object> lookup({
   required Pointer<git_oid> oidPointer,
   required git_object_t type,
 }) {
-  final out = calloc<Pointer<git_object>>();
-  final error = libgit2.git_object_lookup(out, repoPointer, oidPointer, type);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_object_lookup(out, repoPointer, oidPointer, type);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Close an open object to release memory.
@@ -51,18 +46,12 @@ Pointer<git_object> peel({
   required Pointer<git_object> objectPointer,
   required git_object_t targetType,
 }) {
-  final out = calloc<Pointer<git_object>>();
-  final error = libgit2.git_object_peel(out, objectPointer, targetType);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_object_peel(out, objectPointer, targetType);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get a short abbreviated OID string for the object.
@@ -73,27 +62,20 @@ Pointer<git_object> peel({
 ///
 /// Throws a [LibGit2Error] if error occurred.
 String shortId({required Pointer<git_object> objectPointer}) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_object_short_id(out, objectPointer);
-
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_object_short_id(out, objectPointer);
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Convert a string object type to its corresponding type.
 git_object_t string2type(String type) {
-  final typeC = type.toChar();
-  final result = libgit2.git_object_string2type(typeC);
-  calloc.free(typeC);
-  return result;
+  return using((arena) {
+    final typeC = type.toChar(arena);
+    return libgit2.git_object_string2type(typeC);
+  });
 }
 
 /// Convert an object type to its corresponding string representation.

@@ -1,7 +1,9 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Create an in-memory index object.
@@ -11,14 +13,14 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// The returned index must be freed with [free].
 Pointer<git_index> newInMemory() {
-  final out = calloc<Pointer<git_index>>();
-  libgit2.git_index_new(out);
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final error = libgit2.git_index_new(out);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Read index capabilities flags.
@@ -37,9 +39,7 @@ void setCapabilities({
 }) {
   final error = libgit2.git_index_set_caps(indexPointer, caps);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Get the full path to the index file on disk.
@@ -58,12 +58,11 @@ int findIndex({
   required Pointer<git_index> indexPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  final result = libgit2.git_index_find(nullptr, indexPointer, pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
 
-  calloc.free(pathC);
-
-  return result;
+    return libgit2.git_index_find(nullptr, indexPointer, pathC);
+  });
 }
 
 /// Update the contents of an existing index object in memory by reading from
@@ -88,9 +87,7 @@ void read({required Pointer<git_index> indexPointer, required bool force}) {
 void readTree({
   required Pointer<git_index> indexPointer,
   required Pointer<git_tree> treePointer,
-}) {
-  libgit2.git_index_read_tree(indexPointer, treePointer);
-}
+}) => libgit2.git_index_read_tree(indexPointer, treePointer);
 
 /// Write the index as a tree.
 ///
@@ -106,15 +103,14 @@ void readTree({
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> writeTree(Pointer<git_index> index) {
-  final out = calloc<git_oid>();
-  final error = libgit2.git_index_write_tree(out, index);
+  return using((arena) {
+    final out = arena<git_oid>();
+    final error = libgit2.git_index_write_tree(out, index);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    checkErrorAndThrow(error);
+
     return out;
-  }
+  });
 }
 
 /// Write the index as a tree to the given repository.
@@ -129,15 +125,18 @@ Pointer<git_oid> writeTreeTo({
   required Pointer<git_index> indexPointer,
   required Pointer<git_repository> repoPointer,
 }) {
-  final out = calloc<git_oid>();
-  final error = libgit2.git_index_write_tree_to(out, indexPointer, repoPointer);
+  return using((arena) {
+    final out = arena<git_oid>();
+    final error = libgit2.git_index_write_tree_to(
+      out,
+      indexPointer,
+      repoPointer,
+    );
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    checkErrorAndThrow(error);
+
     return out;
-  }
+  });
 }
 
 /// Get the count of entries currently in the index.
@@ -147,7 +146,7 @@ int entryCount(Pointer<git_index> index) => libgit2.git_index_entrycount(index);
 ///
 /// The entry is not modifiable and should not be freed.
 ///
-/// Throws [RangeError] when provided index is outside of valid range.
+/// Throws [Git2DartError] when provided index is outside of valid range.
 Pointer<git_index_entry> getByIndex({
   required Pointer<git_index> indexPointer,
   required int position,
@@ -155,7 +154,7 @@ Pointer<git_index_entry> getByIndex({
   final result = libgit2.git_index_get_byindex(indexPointer, position);
 
   if (result == nullptr) {
-    throw RangeError('Out of bounds');
+    throw Git2DartError('Out of bounds');
   } else {
     return result;
   }
@@ -171,16 +170,16 @@ Pointer<git_index_entry> getByPath({
   required String path,
   required int stage,
 }) {
-  final pathC = path.toChar();
-  final result = libgit2.git_index_get_bypath(indexPointer, pathC, stage);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final result = libgit2.git_index_get_bypath(indexPointer, pathC, stage);
 
-  calloc.free(pathC);
-
-  if (result == nullptr) {
-    throw ArgumentError.value('$path was not found');
-  } else {
-    return result;
-  }
+    if (result == nullptr) {
+      throw ArgumentError.value('$path was not found');
+    } else {
+      return result;
+    }
+  });
 }
 
 /// Return the stage number from a git index entry.
@@ -196,9 +195,7 @@ int entryStage(Pointer<git_index_entry> entry) =>
 void clear(Pointer<git_index> index) {
   final error = libgit2.git_index_clear(index);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Add or update an index entry from an in-memory struct.
@@ -214,9 +211,7 @@ void add({
 }) {
   final error = libgit2.git_index_add(indexPointer, sourceEntryPointer);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Add or update an index entry from a file on disk.
@@ -238,14 +233,12 @@ void addByPath({
   required Pointer<git_index> indexPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  final error = libgit2.git_index_add_bypath(indexPointer, pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_add_bypath(indexPointer, pathC);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Add or update an index entry from a buffer in memory.
@@ -270,19 +263,17 @@ void addFromBuffer({
   required Pointer<git_index_entry> entryPointer,
   required String buffer,
 }) {
-  final bufferC = buffer.toChar();
-  final error = libgit2.git_index_add_from_buffer(
-    indexPointer,
-    entryPointer,
-    bufferC.cast(),
-    buffer.length,
-  );
+  return using((arena) {
+    final bufferC = buffer.toChar(arena);
+    final error = libgit2.git_index_add_from_buffer(
+      indexPointer,
+      entryPointer,
+      bufferC.cast(),
+      buffer.length,
+    );
 
-  calloc.free(bufferC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Add or update index entries matching files in the working directory.
@@ -308,9 +299,7 @@ void addAll({
     payload,
   );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Update all index entries to match the working directory.
@@ -335,9 +324,7 @@ void updateAll({
     payload,
   );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Write an existing index object from memory back to disk using an atomic
@@ -352,14 +339,12 @@ void remove({
   required String path,
   required int stage,
 }) {
-  final pathC = path.toChar();
-  final error = libgit2.git_index_remove(indexPointer, pathC, stage);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_remove(indexPointer, pathC, stage);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove an index entry corresponding to a file on disk.
@@ -377,14 +362,12 @@ void removeByPath({
   required Pointer<git_index> indexPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  final error = libgit2.git_index_remove_bypath(indexPointer, pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_remove_bypath(indexPointer, pathC);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove all entries from the index under a given directory.
@@ -399,14 +382,12 @@ void removeDirectory({
   required String dir,
   required int stage,
 }) {
-  final dirC = dir.toChar();
-  final error = libgit2.git_index_remove_directory(indexPointer, dirC, stage);
+  return using((arena) {
+    final dirC = dir.toChar(arena);
+    final error = libgit2.git_index_remove_directory(indexPointer, dirC, stage);
 
-  calloc.free(dirC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove all matching index entries.
@@ -427,9 +408,7 @@ void removeAll({
     payload,
   );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Update the contents of an index entry in the index from a file on disk.
@@ -443,14 +422,12 @@ void updateByPath({
   required Pointer<git_index> indexPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  final error = libgit2.git_index_add_bypath(indexPointer, pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_add_bypath(indexPointer, pathC);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Update the contents of an index entry in the index from a buffer in memory.
@@ -472,15 +449,12 @@ void updateByBuffer({
     len,
   );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Determine if the index contains entries representing file conflicts.
-bool hasConflicts(Pointer<git_index> index) {
-  return libgit2.git_index_has_conflicts(index) == 1 || false;
-}
+bool hasConflicts(Pointer<git_index> index) =>
+    libgit2.git_index_has_conflicts(index) == 1 || false;
 
 /// Return list of conflicts in the index.
 ///
@@ -488,45 +462,44 @@ bool hasConflicts(Pointer<git_index> index) {
 List<Map<String, Pointer<git_index_entry>>> conflictList(
   Pointer<git_index> index,
 ) {
-  final iterator = calloc<Pointer<git_index_conflict_iterator>>();
-  libgit2.git_index_conflict_iterator_new(iterator, index);
+  return using((arena) {
+    final iterator = arena<Pointer<git_index_conflict_iterator>>();
+    final error = libgit2.git_index_conflict_iterator_new(iterator, index);
+    checkErrorAndThrow(error);
 
-  final result = <Map<String, Pointer<git_index_entry>>>[];
-  var error = 0;
+    final result = <Map<String, Pointer<git_index_entry>>>[];
+    var nextError = 0;
 
-  while (error >= 0) {
-    final ancestorOut = calloc<Pointer<git_index_entry>>();
-    final ourOut = calloc<Pointer<git_index_entry>>();
-    final theirOut = calloc<Pointer<git_index_entry>>();
-    error = libgit2.git_index_conflict_next(
-      ancestorOut,
-      ourOut,
-      theirOut,
-      iterator.value,
-    );
-    if (error >= 0) {
-      result.add({
-        'ancestor': ancestorOut.value,
-        'our': ourOut.value,
-        'their': theirOut.value,
-      });
-    } else {
-      break;
+    while (nextError >= 0) {
+      final ancestorOut = arena<Pointer<git_index_entry>>();
+      final ourOut = arena<Pointer<git_index_entry>>();
+      final theirOut = arena<Pointer<git_index_entry>>();
+      nextError = libgit2.git_index_conflict_next(
+        ancestorOut,
+        ourOut,
+        theirOut,
+        iterator.value,
+      );
+      if (nextError >= 0) {
+        result.add({
+          'ancestor': ancestorOut.value,
+          'our': ourOut.value,
+          'their': theirOut.value,
+        });
+      } else {
+        break;
+      }
     }
-    calloc.free(ancestorOut);
-    calloc.free(ourOut);
-    calloc.free(theirOut);
-  }
 
-  libgit2.git_index_conflict_iterator_free(iterator.value);
-  return result;
+    libgit2.git_index_conflict_iterator_free(iterator.value);
+    return result;
+  });
 }
 
 /// Return whether the given index entry is a conflict (has a high stage entry).
 /// This is simply shorthand for [entryStage] > 0.
-bool entryIsConflict(Pointer<git_index_entry> entry) {
-  return libgit2.git_index_entry_is_conflict(entry) == 1 || false;
-}
+bool entryIsConflict(Pointer<git_index_entry> entry) =>
+    libgit2.git_index_entry_is_conflict(entry) == 1 || false;
 
 /// Add or update index entries to represent a conflict. Any staged entries
 /// that exist at the given paths will be removed.
@@ -550,9 +523,7 @@ void conflictAdd({
     theirEntryPointer ?? nullptr,
   );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Removes the index entries that represent a conflict of a single file.
@@ -562,14 +533,12 @@ void conflictRemove({
   required Pointer<git_index> indexPointer,
   required String path,
 }) {
-  final pathC = path.toChar();
-  final error = libgit2.git_index_conflict_remove(indexPointer, pathC);
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_conflict_remove(indexPointer, pathC);
 
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove all conflicts in the index (entries with a stage greater than 0).
@@ -578,9 +547,7 @@ void conflictRemove({
 void conflictCleanup(Pointer<git_index> index) {
   final error = libgit2.git_index_conflict_cleanup(index);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Free an existing index object.
@@ -594,33 +561,29 @@ int findPrefix({
   required Pointer<git_index> indexPointer,
   required String prefix,
 }) {
-  final prefixC = prefix.toChar();
-  final result = libgit2.git_index_find_prefix(size, indexPointer, prefixC);
-  calloc.free(prefixC);
-  return result;
+  return using((arena) {
+    final prefixC = prefix.toChar(arena);
+    return libgit2.git_index_find_prefix(size, indexPointer, prefixC);
+  });
 }
 
 /// Get the repository that owns this index.
 ///
 /// Returns the repository that owns this index, or null if the index is not
 /// associated with a repository.
-Pointer<git_repository>? getOwner(Pointer<git_index> index) {
-  return libgit2.git_index_owner(index);
-}
+Pointer<git_repository>? getOwner(Pointer<git_index> index) =>
+    libgit2.git_index_owner(index);
 
 /// Get the checksum of the index file.
 ///
 /// Returns the checksum of the index file, or null if the index is in-memory.
-Pointer<git_oid>? getChecksum(Pointer<git_index> index) {
-  return libgit2.git_index_checksum(index);
-}
+Pointer<git_oid>? getChecksum(Pointer<git_index> index) =>
+    libgit2.git_index_checksum(index);
 
 /// Get the version of the index file.
 ///
 /// Returns the version of the index file.
-int getVersion(Pointer<git_index> index) {
-  return libgit2.git_index_version(index);
-}
+int getVersion(Pointer<git_index> index) => libgit2.git_index_version(index);
 
 /// Set the version of the index file.
 ///
@@ -633,7 +596,5 @@ void setVersion({
 }) {
   final error = libgit2.git_index_set_version(indexPointer, version);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }

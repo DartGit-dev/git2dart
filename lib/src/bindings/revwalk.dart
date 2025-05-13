@@ -1,8 +1,9 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Creates a new revision walker to iterate through a repository.
@@ -19,18 +20,12 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Throws a [LibGit2Error] if an error occurs.
 Pointer<git_revwalk> create(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_revwalk>>();
-  final error = libgit2.git_revwalk_new(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_revwalk>>();
+    final error = libgit2.git_revwalk_new(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Changes the sorting mode when iterating through the repository's contents.
@@ -65,10 +60,7 @@ void push({
   required Pointer<git_oid> oidPointer,
 }) {
   final error = libgit2.git_revwalk_push(walkerPointer, oidPointer);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Pushes matching references to the revision walker.
@@ -85,9 +77,10 @@ void pushGlob({
   required Pointer<git_revwalk> walkerPointer,
   required String glob,
 }) {
-  final globC = glob.toChar();
-  libgit2.git_revwalk_push_glob(walkerPointer, globC);
-  calloc.free(globC);
+  using((arena) {
+    final globC = glob.toChar(arena);
+    libgit2.git_revwalk_push_glob(walkerPointer, globC);
+  });
 }
 
 /// Pushes the repository's HEAD to the revision walker.
@@ -103,14 +96,11 @@ void pushRef({
   required Pointer<git_revwalk> walkerPointer,
   required String refName,
 }) {
-  final refNameC = refName.toChar();
-  final error = libgit2.git_revwalk_push_ref(walkerPointer, refNameC);
-
-  calloc.free(refNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final refNameC = refName.toChar(arena);
+    final error = libgit2.git_revwalk_push_ref(walkerPointer, refNameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Pushes and hides the respective endpoints of the given range.
@@ -123,14 +113,11 @@ void pushRange({
   required Pointer<git_revwalk> walkerPointer,
   required String range,
 }) {
-  final rangeC = range.toChar();
-  final error = libgit2.git_revwalk_push_range(walkerPointer, rangeC);
-
-  calloc.free(rangeC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final rangeC = range.toChar(arena);
+    final error = libgit2.git_revwalk_push_range(walkerPointer, rangeC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Gets the list of commits from the revision walk.
@@ -157,31 +144,29 @@ List<Pointer<git_commit>> walk({
   final result = <Pointer<git_commit>>[];
   var error = 0;
 
-  void next() {
-    final oid = calloc<git_oid>();
-    error = libgit2.git_revwalk_next(oid, walkerPointer);
-    if (error == 0) {
-      final commit = commit_bindings.lookup(
-        repoPointer: repoPointer,
-        oidPointer: oid,
-      );
-      result.add(commit);
-      calloc.free(oid);
-    } else {
-      calloc.free(oid);
-      return;
+  using((arena) {
+    void next() {
+      final oid = arena<git_oid>();
+      error = libgit2.git_revwalk_next(oid, walkerPointer);
+      if (error == 0) {
+        final commit = commit_bindings.lookup(
+          repoPointer: repoPointer,
+          oidPointer: oid,
+        );
+        result.add(commit);
+      }
     }
-  }
 
-  if (limit == 0) {
-    while (error == 0) {
-      next();
+    if (limit == 0) {
+      while (error == 0) {
+        next();
+      }
+    } else {
+      for (var i = 0; i < limit; i++) {
+        next();
+      }
     }
-  } else {
-    for (var i = 0; i < limit; i++) {
-      next();
-    }
-  }
+  });
 
   return result;
 }
@@ -199,10 +184,7 @@ void hide({
   required Pointer<git_oid> oidPointer,
 }) {
   final error = libgit2.git_revwalk_hide(walkerPointer, oidPointer);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Hides matching references from the revision walk.
@@ -219,9 +201,10 @@ void hideGlob({
   required Pointer<git_revwalk> walkerPointer,
   required String glob,
 }) {
-  final globC = glob.toChar();
-  libgit2.git_revwalk_hide_glob(walkerPointer, globC);
-  calloc.free(globC);
+  using((arena) {
+    final globC = glob.toChar(arena);
+    libgit2.git_revwalk_hide_glob(walkerPointer, globC);
+  });
 }
 
 /// Hides the repository's HEAD from the revision walk.
@@ -237,14 +220,11 @@ void hideRef({
   required Pointer<git_revwalk> walkerPointer,
   required String refName,
 }) {
-  final refNameC = refName.toChar();
-  final error = libgit2.git_revwalk_hide_ref(walkerPointer, refNameC);
-
-  calloc.free(refNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final refNameC = refName.toChar(arena);
+    final error = libgit2.git_revwalk_hide_ref(walkerPointer, refNameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Resets the revision walker for reuse.

@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Find a merge base between two commits.
@@ -15,15 +16,14 @@ Pointer<git_oid> mergeBase({
   required Pointer<git_oid> aPointer,
   required Pointer<git_oid> bPointer,
 }) {
-  final out = calloc<git_oid>();
-  final error = libgit2.git_merge_base(out, repoPointer, aPointer, bPointer);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final error = libgit2.git_merge_base(out, repoPointer, aPointer, bPointer);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    checkErrorAndThrow(error);
+
     return out;
-  }
+  });
 }
 
 /// Find a merge base given a list of commits.
@@ -37,27 +37,24 @@ Pointer<git_oid> mergeBaseMany({
   required Pointer<git_repository> repoPointer,
   required List<git_oid> commits,
 }) {
-  final out = calloc<git_oid>();
-  final commitsC = calloc<git_oid>(commits.length);
-  for (var i = 0; i < commits.length; i++) {
-    commitsC[i].id = commits[i].id;
-  }
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final commitsC = arena<git_oid>(commits.length);
+    for (var i = 0; i < commits.length; i++) {
+      commitsC[i].id = commits[i].id;
+    }
 
-  final error = libgit2.git_merge_base_many(
-    out,
-    repoPointer,
-    commits.length,
-    commitsC,
-  );
+    final error = libgit2.git_merge_base_many(
+      out,
+      repoPointer,
+      commits.length,
+      commitsC,
+    );
 
-  calloc.free(commitsC);
+    checkErrorAndThrow(error);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return out;
-  }
+  });
 }
 
 /// Find a merge base in preparation for an octopus merge.
@@ -71,27 +68,24 @@ Pointer<git_oid> mergeBaseOctopus({
   required Pointer<git_repository> repoPointer,
   required List<git_oid> commits,
 }) {
-  final out = calloc<git_oid>();
-  final commitsC = calloc<git_oid>(commits.length);
-  for (var i = 0; i < commits.length; i++) {
-    commitsC[i].id = commits[i].id;
-  }
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final commitsC = arena<git_oid>(commits.length);
+    for (var i = 0; i < commits.length; i++) {
+      commitsC[i].id = commits[i].id;
+    }
 
-  final error = libgit2.git_merge_base_octopus(
-    out,
-    repoPointer,
-    commits.length,
-    commitsC,
-  );
+    final error = libgit2.git_merge_base_octopus(
+      out,
+      repoPointer,
+      commits.length,
+      commitsC,
+    );
 
-  calloc.free(commitsC);
+    checkErrorAndThrow(error);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return out;
-  }
+  });
 }
 
 /// Analyzes the given branch(es) and determines the opportunities for merging
@@ -108,34 +102,25 @@ List<int> analysis({
   required Pointer<git_annotated_commit> theirHeadPointer,
   required int theirHeadsLen,
 }) {
-  final analysisOut = calloc<UnsignedInt>();
-  final preferenceOut = calloc<UnsignedInt>();
-  final theirHead = calloc<Pointer<git_annotated_commit>>();
-  theirHead[0] = theirHeadPointer;
+  return using((arena) {
+    final analysisOut = arena<UnsignedInt>();
+    final preferenceOut = arena<UnsignedInt>();
+    final theirHead = arena<Pointer<git_annotated_commit>>();
+    theirHead[0] = theirHeadPointer;
 
-  final error = libgit2.git_merge_analysis_for_ref(
-    analysisOut,
-    preferenceOut,
-    repoPointer,
-    ourRefPointer,
-    theirHead,
-    theirHeadsLen,
-  );
+    final error = libgit2.git_merge_analysis_for_ref(
+      analysisOut,
+      preferenceOut,
+      repoPointer,
+      ourRefPointer,
+      theirHead,
+      theirHeadsLen,
+    );
 
-  if (error < 0) {
-    calloc.free(analysisOut);
-    calloc.free(preferenceOut);
-    calloc.free(theirHead);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
 
-  final result = [analysisOut.value, preferenceOut.value];
-
-  calloc.free(analysisOut);
-  calloc.free(preferenceOut);
-  calloc.free(theirHead);
-
-  return result;
+    return [analysisOut.value, preferenceOut.value];
+  });
 }
 
 /// Merges the given commit into HEAD, writing the results into the working
@@ -158,37 +143,36 @@ void merge({
   required int mergeFlags,
   required int fileFlags,
 }) {
-  final theirHead = calloc<Pointer<git_annotated_commit>>();
-  theirHead[0] = theirHeadPointer;
+  return using((arena) {
+    final theirHead = arena<Pointer<git_annotated_commit>>();
+    theirHead[0] = theirHeadPointer;
 
-  final mergeOpts = _initMergeOptions(
-    favor: favor,
-    mergeFlags: mergeFlags,
-    fileFlags: fileFlags,
-  );
+    final mergeOpts = _initMergeOptions(
+      arena: arena,
+      favor: favor,
+      mergeFlags: mergeFlags,
+      fileFlags: fileFlags,
+    );
 
-  final checkoutOpts = calloc<git_checkout_options>();
-  libgit2.git_checkout_options_init(checkoutOpts, GIT_CHECKOUT_OPTIONS_VERSION);
+    final checkoutOpts = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(
+      checkoutOpts,
+      GIT_CHECKOUT_OPTIONS_VERSION,
+    );
 
-  checkoutOpts.ref.checkout_strategy =
-      git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
-      git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
+    checkoutOpts.ref.checkout_strategy =
+        git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
+        git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
 
-  final error = libgit2.git_merge(
-    repoPointer,
-    theirHead,
-    theirHeadsLen,
-    mergeOpts,
-    checkoutOpts,
-  );
-
-  calloc.free(mergeOpts);
-  calloc.free(checkoutOpts);
-  calloc.free(theirHead);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    final error = libgit2.git_merge(
+      repoPointer,
+      theirHead,
+      theirHeadsLen,
+      mergeOpts,
+      checkoutOpts,
+    );
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Merge two files as they exist in the in-memory data structures.
@@ -210,59 +194,46 @@ String mergeFile({
   required int favor,
   required int flags,
 }) {
-  final out = calloc<git_merge_file_result>();
-  final ancestorC = calloc<git_merge_file_input>();
-  final oursC = calloc<git_merge_file_input>();
-  final theirsC = calloc<git_merge_file_input>();
-  libgit2.git_merge_file_input_init(ancestorC, GIT_MERGE_FILE_INPUT_VERSION);
-  libgit2.git_merge_file_input_init(oursC, GIT_MERGE_FILE_INPUT_VERSION);
-  libgit2.git_merge_file_input_init(theirsC, GIT_MERGE_FILE_INPUT_VERSION);
-  ancestorC.ref.ptr = ancestor.toChar();
-  ancestorC.ref.size = ancestor.length;
-  Pointer<Char> ancestorLabelC = nullptr;
-  oursC.ref.ptr = ours.toChar();
-  oursC.ref.size = ours.length;
-  Pointer<Char> oursLabelC = nullptr;
-  theirsC.ref.ptr = theirs.toChar();
-  theirsC.ref.size = theirs.length;
-  Pointer<Char> theirsLabelC = nullptr;
+  return using((arena) {
+    final out = arena<git_merge_file_result>();
+    final ancestorC = arena<git_merge_file_input>();
+    final oursC = arena<git_merge_file_input>();
+    final theirsC = arena<git_merge_file_input>();
+    libgit2.git_merge_file_input_init(ancestorC, GIT_MERGE_FILE_INPUT_VERSION);
+    libgit2.git_merge_file_input_init(oursC, GIT_MERGE_FILE_INPUT_VERSION);
+    libgit2.git_merge_file_input_init(theirsC, GIT_MERGE_FILE_INPUT_VERSION);
+    ancestorC.ref.ptr = ancestor.toChar(arena);
+    ancestorC.ref.size = ancestor.length;
+    Pointer<Char> ancestorLabelC = nullptr;
+    oursC.ref.ptr = ours.toChar(arena);
+    oursC.ref.size = ours.length;
+    Pointer<Char> oursLabelC = nullptr;
+    theirsC.ref.ptr = theirs.toChar(arena);
+    theirsC.ref.size = theirs.length;
+    Pointer<Char> theirsLabelC = nullptr;
 
-  final opts = calloc<git_merge_file_options>();
-  libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
-  opts.ref.favorAsInt = favor;
-  opts.ref.flags = flags;
-  if (ancestorLabel.isNotEmpty) {
-    ancestorLabelC = ancestorLabel.toChar();
-    opts.ref.ancestor_label = ancestorLabelC;
-  }
-  if (oursLabel.isNotEmpty) {
-    oursLabelC = oursLabel.toChar();
-    opts.ref.our_label = oursLabelC;
-  }
-  if (theirsLabel.isNotEmpty) {
-    theirsLabelC = theirsLabel.toChar();
-    opts.ref.their_label = theirsLabelC;
-  }
+    final opts = arena<git_merge_file_options>();
+    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
+    opts.ref.favorAsInt = favor;
+    opts.ref.flags = flags;
+    if (ancestorLabel.isNotEmpty) {
+      ancestorLabelC = ancestorLabel.toChar(arena);
+      opts.ref.ancestor_label = ancestorLabelC;
+    }
+    if (oursLabel.isNotEmpty) {
+      oursLabelC = oursLabel.toChar(arena);
+      opts.ref.our_label = oursLabelC;
+    }
+    if (theirsLabel.isNotEmpty) {
+      theirsLabelC = theirsLabel.toChar(arena);
+      opts.ref.their_label = theirsLabelC;
+    }
 
-  final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
+    final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
+    checkErrorAndThrow(error);
 
-  calloc.free(ancestorC);
-  calloc.free(ancestorLabelC);
-  calloc.free(oursC);
-  calloc.free(oursLabelC);
-  calloc.free(theirsC);
-  calloc.free(theirsLabelC);
-  calloc.free(opts);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final result = out.ref.ptr.toDartString(length: out.ref.len);
-  calloc.free(out);
-
-  return result;
+    return out.ref.ptr.toDartString(length: out.ref.len);
+  });
 }
 
 /// Merge two files as they exist in the index.
@@ -282,54 +253,45 @@ String mergeFileFromIndex({
   required int favor,
   required int flags,
 }) {
-  final out = calloc<git_merge_file_result>();
-  final opts = calloc<git_merge_file_options>();
-  Pointer<Char> ancestorLabelC = nullptr;
-  Pointer<Char> oursLabelC = nullptr;
-  Pointer<Char> theirsLabelC = nullptr;
+  return using((arena) {
+    final out = arena<git_merge_file_result>();
+    final opts = arena<git_merge_file_options>();
+    Pointer<Char> ancestorLabelC = nullptr;
+    Pointer<Char> oursLabelC = nullptr;
+    Pointer<Char> theirsLabelC = nullptr;
 
-  libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
-  opts.ref.favorAsInt = favor;
-  opts.ref.flags = flags;
-  if (ancestorLabel.isNotEmpty) {
-    ancestorLabelC = ancestorLabel.toChar();
-    opts.ref.ancestor_label = ancestorLabelC;
-  }
-  if (oursLabel.isNotEmpty) {
-    oursLabelC = oursLabel.toChar();
-    opts.ref.our_label = oursLabelC;
-  }
-  if (theirsLabel.isNotEmpty) {
-    theirsLabelC = theirsLabel.toChar();
-    opts.ref.their_label = theirsLabelC;
-  }
+    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
+    opts.ref.favorAsInt = favor;
+    opts.ref.flags = flags;
+    if (ancestorLabel.isNotEmpty) {
+      ancestorLabelC = ancestorLabel.toChar(arena);
+      opts.ref.ancestor_label = ancestorLabelC;
+    }
+    if (oursLabel.isNotEmpty) {
+      oursLabelC = oursLabel.toChar(arena);
+      opts.ref.our_label = oursLabelC;
+    }
+    if (theirsLabel.isNotEmpty) {
+      theirsLabelC = theirsLabel.toChar(arena);
+      opts.ref.their_label = theirsLabelC;
+    }
 
-  final error = libgit2.git_merge_file_from_index(
-    out,
-    repoPointer,
-    ancestorPointer ?? nullptr,
-    oursPointer,
-    theirsPointer,
-    opts,
-  );
+    final error = libgit2.git_merge_file_from_index(
+      out,
+      repoPointer,
+      ancestorPointer ?? nullptr,
+      oursPointer,
+      theirsPointer,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  calloc.free(ancestorLabelC);
-  calloc.free(oursLabelC);
-  calloc.free(theirsLabelC);
-  calloc.free(opts);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  late final String result;
-  if (out.ref.ptr != nullptr) {
-    result = out.ref.ptr.toDartString(length: out.ref.len);
-  }
-
-  calloc.free(out);
-  return result;
+    late final String result;
+    if (out.ref.ptr != nullptr) {
+      result = out.ref.ptr.toDartString(length: out.ref.len);
+    }
+    return result;
+  });
 }
 
 /// Merge two commits, producing a git index that reflects the result of the
@@ -350,31 +312,26 @@ Pointer<git_index> mergeCommits({
   required int mergeFlags,
   required int fileFlags,
 }) {
-  final out = calloc<Pointer<git_index>>();
-  final opts = _initMergeOptions(
-    favor: favor,
-    mergeFlags: mergeFlags,
-    fileFlags: fileFlags,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final opts = _initMergeOptions(
+      arena: arena,
+      favor: favor,
+      mergeFlags: mergeFlags,
+      fileFlags: fileFlags,
+    );
 
-  final error = libgit2.git_merge_commits(
-    out,
-    repoPointer,
-    ourCommitPointer,
-    theirCommitPointer,
-    opts,
-  );
+    final error = libgit2.git_merge_commits(
+      out,
+      repoPointer,
+      ourCommitPointer,
+      theirCommitPointer,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  calloc.free(opts);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final result = out.value;
-  calloc.free(out);
-  return result;
+    return out.value;
+  });
 }
 
 /// Merge two trees, producing an index that reflects the result of the merge.
@@ -395,32 +352,27 @@ Pointer<git_index> mergeTrees({
   required int mergeFlags,
   required int fileFlags,
 }) {
-  final out = calloc<Pointer<git_index>>();
-  final opts = _initMergeOptions(
-    favor: favor,
-    mergeFlags: mergeFlags,
-    fileFlags: fileFlags,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final opts = _initMergeOptions(
+      arena: arena,
+      favor: favor,
+      mergeFlags: mergeFlags,
+      fileFlags: fileFlags,
+    );
 
-  final error = libgit2.git_merge_trees(
-    out,
-    repoPointer,
-    ancestorTreePointer,
-    ourTreePointer,
-    theirTreePointer,
-    opts,
-  );
+    final error = libgit2.git_merge_trees(
+      out,
+      repoPointer,
+      ancestorTreePointer,
+      ourTreePointer,
+      theirTreePointer,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  calloc.free(opts);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final result = out.value;
-  calloc.free(out);
-  return result;
+    return out.value;
+  });
 }
 
 /// Cherry-pick the given commit, producing changes in the index and working
@@ -431,22 +383,21 @@ void cherryPick({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_commit> commitPointer,
 }) {
-  final opts = calloc<git_cherrypick_options>();
-  libgit2.git_cherrypick_options_init(opts, GIT_CHERRYPICK_OPTIONS_VERSION);
+  return using((arena) {
+    final opts = arena<git_cherrypick_options>();
+    libgit2.git_cherrypick_options_init(opts, GIT_CHERRYPICK_OPTIONS_VERSION);
 
-  opts.ref.checkout_opts.checkout_strategy =
-      git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value;
+    opts.ref.checkout_opts.checkout_strategy =
+        git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value;
 
-  final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
+    final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
 
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 Pointer<git_merge_options> _initMergeOptions({
+  required Arena arena,
   required int favor,
   required int mergeFlags,
   required int fileFlags,

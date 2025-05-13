@@ -1,5 +1,4 @@
-// coverage:ignore-file
-
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -12,5 +11,14 @@ extension ToChar on String {
   /// The string is automatically null-terminated.
   ///
   /// Returns a [Pointer<Char>] to the allocated memory containing the UTF-8 encoded string.
-  Pointer<Char> toChar() => toNativeUtf8().cast<Char>();
+  Pointer<Char> toChar(Arena arena) => toNativeUtf8Arena(arena).cast<Char>();
+
+  Pointer<Utf8> toNativeUtf8Arena(Arena arena) {
+    final units = utf8.encode(this);
+    final result = arena<Uint8>(units.length + 1);
+    final nativeString = result.asTypedList(units.length + 1);
+    nativeString.setAll(0, units);
+    nativeString[units.length] = 0;
+    return result.cast();
+  }
 }

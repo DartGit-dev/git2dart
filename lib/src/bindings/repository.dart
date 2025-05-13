@@ -1,9 +1,10 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show calloc, using;
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart/src/callbacks.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart/src/remote.dart';
 import 'package:git2dart/src/repository.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -17,20 +18,14 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Throws a [LibGit2Error] if the repository cannot be opened or is invalid.
 Pointer<git_repository> open(String path) {
-  final out = calloc<Pointer<git_repository>>();
-  final pathC = path.toChar();
-  final error = libgit2.git_repository_open(out, pathC);
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_repository_open(out, pathC);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(pathC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Discover the path to a Git repository by walking up from [startPath].
@@ -44,21 +39,24 @@ Pointer<git_repository> open(String path) {
 /// Returns the absolute path to the discovered repository, or throws a
 /// [LibGit2Error] if no repository is found.
 String discover({required String startPath, String? ceilingDirs}) {
-  final out = calloc<git_buf>();
-  final startPathC = startPath.toChar();
-  final ceilingDirsC = ceilingDirs?.toChar() ?? nullptr;
+  return using((arena) {
+    final out = arena<git_buf>();
+    final startPathC = startPath.toChar(arena);
+    final ceilingDirsC = ceilingDirs?.toChar(arena) ?? nullptr;
 
-  libgit2.git_repository_discover(out, startPathC, 0, ceilingDirsC);
+    final error = libgit2.git_repository_discover(
+      out,
+      startPathC,
+      0,
+      ceilingDirsC,
+    );
 
-  calloc.free(startPathC);
-  calloc.free(ceilingDirsC);
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  return result;
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
 }
 
 /// Initialize a new Git repository with the specified options.
@@ -85,45 +83,34 @@ Pointer<git_repository> init({
   String? initialHead,
   String? originUrl,
 }) {
-  final out = calloc<Pointer<git_repository>>();
-  final pathC = path.toChar();
-  final workdirPathC = workdirPath?.toChar() ?? nullptr;
-  final descriptionC = description?.toChar() ?? nullptr;
-  final templatePathC = templatePath?.toChar() ?? nullptr;
-  final initialHeadC = initialHead?.toChar() ?? nullptr;
-  final originUrlC = originUrl?.toChar() ?? nullptr;
-  final opts = calloc<git_repository_init_options>();
-  libgit2.git_repository_init_options_init(
-    opts,
-    GIT_REPOSITORY_INIT_OPTIONS_VERSION,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final pathC = path.toChar(arena);
+    final workdirPathC = workdirPath?.toChar(arena) ?? nullptr;
+    final descriptionC = description?.toChar(arena) ?? nullptr;
+    final templatePathC = templatePath?.toChar(arena) ?? nullptr;
+    final initialHeadC = initialHead?.toChar(arena) ?? nullptr;
+    final originUrlC = originUrl?.toChar(arena) ?? nullptr;
+    final opts = arena<git_repository_init_options>();
 
-  opts.ref.flags = flags;
-  opts.ref.mode = mode;
-  opts.ref.workdir_path = workdirPathC;
-  opts.ref.description = descriptionC;
-  opts.ref.template_path = templatePathC;
-  opts.ref.initial_head = initialHeadC;
-  opts.ref.origin_url = originUrlC;
+    libgit2.git_repository_init_options_init(
+      opts,
+      GIT_REPOSITORY_INIT_OPTIONS_VERSION,
+    );
 
-  final error = libgit2.git_repository_init_ext(out, pathC, opts);
+    opts.ref.flags = flags;
+    opts.ref.mode = mode;
+    opts.ref.workdir_path = workdirPathC;
+    opts.ref.description = descriptionC;
+    opts.ref.template_path = templatePathC;
+    opts.ref.initial_head = initialHeadC;
+    opts.ref.origin_url = originUrlC;
 
-  final result = out.value;
+    final error = libgit2.git_repository_init_ext(out, pathC, opts);
 
-  calloc.free(out);
-  calloc.free(pathC);
-  calloc.free(workdirPathC);
-  calloc.free(descriptionC);
-  calloc.free(templatePathC);
-  calloc.free(initialHeadC);
-  calloc.free(originUrlC);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Clone a remote repository with the specified options.
@@ -147,59 +134,50 @@ Pointer<git_repository> clone({
   String? checkoutBranch,
   required Callbacks callbacks,
 }) {
-  final out = calloc<Pointer<git_repository>>();
-  final urlC = url.toChar();
-  final localPathC = localPath.toChar();
-  final checkoutBranchC = checkoutBranch?.toChar() ?? nullptr;
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final urlC = url.toChar(arena);
+    final localPathC = localPath.toChar(arena);
+    final checkoutBranchC = checkoutBranch?.toChar(arena) ?? nullptr;
 
-  final cloneOptions = calloc<git_clone_options>();
-  libgit2.git_clone_options_init(cloneOptions, GIT_CLONE_OPTIONS_VERSION);
+    final cloneOptions = arena<git_clone_options>();
+    libgit2.git_clone_options_init(cloneOptions, GIT_CLONE_OPTIONS_VERSION);
 
-  final fetchOptions = calloc<git_fetch_options>();
-  libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
+    final fetchOptions = arena<git_fetch_options>();
+    libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
 
-  RemoteCallbacks.plug(
-    callbacksOptions: fetchOptions.ref.callbacks,
-    callbacks: callbacks,
-  );
+    RemoteCallbacks.plug(
+      callbacksOptions: fetchOptions.ref.callbacks,
+      callbacks: callbacks,
+      arena: arena,
+    );
 
-  const except = -1;
+    const except = -1;
 
-  git_remote_create_cb remoteCb = nullptr;
-  if (remoteCallback != null) {
-    RemoteCallbacks.remoteCbData = remoteCallback;
-    remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
-  }
+    git_remote_create_cb remoteCb = nullptr;
+    if (remoteCallback != null) {
+      RemoteCallbacks.remoteCbData = remoteCallback;
+      remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
+    }
 
-  git_repository_create_cb repositoryCb = nullptr;
-  if (repositoryCallback != null) {
-    RemoteCallbacks.repositoryCbData = repositoryCallback;
-    repositoryCb = Pointer.fromFunction(RemoteCallbacks.repositoryCb, except);
-  }
+    git_repository_create_cb repositoryCb = nullptr;
+    if (repositoryCallback != null) {
+      RemoteCallbacks.repositoryCbData = repositoryCallback;
+      repositoryCb = Pointer.fromFunction(RemoteCallbacks.repositoryCb, except);
+    }
 
-  cloneOptions.ref.bare = bare ? 1 : 0;
-  cloneOptions.ref.remote_cb = remoteCb;
-  cloneOptions.ref.checkout_branch = checkoutBranchC;
-  cloneOptions.ref.repository_cb = repositoryCb;
-  cloneOptions.ref.fetch_opts = fetchOptions.ref;
+    cloneOptions.ref.bare = bare ? 1 : 0;
+    cloneOptions.ref.remote_cb = remoteCb;
+    cloneOptions.ref.checkout_branch = checkoutBranchC;
+    cloneOptions.ref.repository_cb = repositoryCb;
+    cloneOptions.ref.fetch_opts = fetchOptions.ref;
 
-  final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
+    final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(urlC);
-  calloc.free(localPathC);
-  calloc.free(checkoutBranchC);
-  calloc.free(cloneOptions);
-  calloc.free(fetchOptions);
-  RemoteCallbacks.reset();
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    RemoteCallbacks.reset();
+    return out.value;
+  });
 }
 
 /// Get the path to the repository's Git directory.
@@ -216,9 +194,8 @@ String path(Pointer<git_repository> repo) {
 /// - For normal repositories: the `.git` directory
 /// - For bare repositories: the repository root
 /// - For worktrees: the parent repository's `.git` directory
-String commonDir(Pointer<git_repository> repo) {
-  return libgit2.git_repository_commondir(repo).toDartString();
-}
+String commonDir(Pointer<git_repository> repo) =>
+    libgit2.git_repository_commondir(repo).toDartString();
 
 /// Get the repository's current namespace.
 ///
@@ -240,18 +217,18 @@ void setNamespace({
   required Pointer<git_repository> repoPointer,
   String? namespace,
 }) {
-  final namespaceC = namespace?.toChar() ?? nullptr;
-  libgit2.git_repository_set_namespace(repoPointer, namespaceC);
-  calloc.free(namespaceC);
+  using((arena) {
+    final namespaceC = namespace?.toChar(arena) ?? nullptr;
+    libgit2.git_repository_set_namespace(repoPointer, namespaceC);
+  });
 }
 
 /// Check if the repository is bare.
 ///
 /// A bare repository has no working directory and is typically used as a
 /// central repository for collaboration.
-bool isBare(Pointer<git_repository> repo) {
-  return libgit2.git_repository_is_bare(repo) == 1 || false;
-}
+bool isBare(Pointer<git_repository> repo) =>
+    libgit2.git_repository_is_bare(repo) == 1;
 
 /// Check if the repository is empty.
 ///
@@ -261,12 +238,8 @@ bool isBare(Pointer<git_repository> repo) {
 /// Throws a [LibGit2Error] if the repository is corrupted.
 bool isEmpty(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_is_empty(repo);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return error == 1 || false;
-  }
+  checkErrorAndThrow(error);
+  return error == 1;
 }
 
 /// Get the repository's HEAD reference.
@@ -276,18 +249,12 @@ bool isEmpty(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if HEAD cannot be retrieved.
 Pointer<git_reference> head(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_reference>>();
-  final error = libgit2.git_repository_head(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final error = libgit2.git_repository_head(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// A repository's HEAD is detached when it points directly to a commit instead
@@ -296,12 +263,8 @@ Pointer<git_reference> head(Pointer<git_repository> repo) {
 /// Throws a [LibGit2Error] if error occured.
 bool isHeadDetached(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_head_detached(repo);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return error == 1 || false;
-  }
+  checkErrorAndThrow(error);
+  return error == 1;
 }
 
 /// Get the path to the repository's working directory.
@@ -327,18 +290,16 @@ void setWorkdir({
   required String workdir,
   required bool updateGitlink,
 }) {
-  final workdirC = workdir.toChar();
-  final error = libgit2.git_repository_set_workdir(
-    repoPointer,
-    workdirC,
-    updateGitlink ? 1 : 0,
-  );
+  using((arena) {
+    final workdirC = workdir.toChar(arena);
+    final error = libgit2.git_repository_set_workdir(
+      repoPointer,
+      workdirC,
+      updateGitlink ? 1 : 0,
+    );
 
-  calloc.free(workdirC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the repository's configuration.
@@ -348,18 +309,12 @@ void setWorkdir({
 ///
 /// Throws a [LibGit2Error] if the configuration cannot be retrieved.
 Pointer<git_config> config(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_config>>();
-  final error = libgit2.git_repository_config(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_config>>();
+    final error = libgit2.git_repository_config(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the repository's index.
@@ -369,18 +324,12 @@ Pointer<git_config> config(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if the index cannot be retrieved.
 Pointer<git_index> index(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_index>>();
-  final error = libgit2.git_repository_index(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final error = libgit2.git_repository_index(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the repository's object database.
@@ -390,18 +339,12 @@ Pointer<git_index> index(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if the object database cannot be retrieved.
 Pointer<git_odb> odb(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_odb>>();
-  final error = libgit2.git_repository_odb(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_odb>>();
+    final error = libgit2.git_repository_odb(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the repository's reference database.
@@ -411,18 +354,12 @@ Pointer<git_odb> odb(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if the reference database cannot be retrieved.
 Pointer<git_refdb> refdb(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_refdb>>();
-  final error = libgit2.git_repository_refdb(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_refdb>>();
+    final error = libgit2.git_repository_refdb(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Free a repository object.
@@ -442,14 +379,11 @@ void setHead({
   required Pointer<git_repository> repoPointer,
   required String refname,
 }) {
-  final refnameC = refname.toChar();
-  final error = libgit2.git_repository_set_head(repoPointer, refnameC);
-
-  calloc.free(refnameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final refnameC = refname.toChar(arena);
+    final error = libgit2.git_repository_set_head(repoPointer, refnameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Set the repository's HEAD to point to a commit.
@@ -465,10 +399,7 @@ void setHeadDetached({
     repoPointer,
     commitishPointer,
   );
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Check if the current branch is unborn.
@@ -478,11 +409,7 @@ void setHeadDetached({
 /// Throws a [LibGit2Error] if error occurred.
 bool isBranchUnborn(Pointer<git_repository> repo) {
   final result = libgit2.git_repository_head_unborn(repo);
-
-  if (result < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
+  checkErrorAndThrow(result);
   return result == 1;
 }
 
@@ -497,16 +424,12 @@ void setIdentity({
   required String? name,
   required String? email,
 }) {
-  final nameC = name?.toChar() ?? nullptr;
-  final emailC = email?.toChar() ?? nullptr;
-  final error = libgit2.git_repository_set_ident(repoPointer, nameC, emailC);
-
-  calloc.free(nameC);
-  calloc.free(emailC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final nameC = name?.toChar(arena) ?? nullptr;
+    final emailC = email?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_repository_set_ident(repoPointer, nameC, emailC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the configured identity for writing reflogs.
@@ -548,20 +471,14 @@ bool isWorktree(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 String message(Pointer<git_repository> repo) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_repository_message(out, repo);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  return result;
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_repository_message(out, repo);
+    checkErrorAndThrow(error);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
 }
 
 /// Remove Git's prepared message.
@@ -571,10 +488,7 @@ String message(Pointer<git_repository> repo) {
 /// Throws a [LibGit2Error] if error occurred.
 void removeMessage(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_message_remove(repo);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Get the repository's state.
@@ -592,10 +506,7 @@ int state(Pointer<git_repository> repo) {
 /// Throws a [LibGit2Error] if error occurred.
 void stateCleanup(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_state_cleanup(repo);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Get a snapshot of the repository's configuration.
@@ -605,16 +516,73 @@ void stateCleanup(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 Pointer<git_config> configSnapshot(Pointer<git_repository> repo) {
-  final out = calloc<Pointer<git_config>>();
-  final error = libgit2.git_repository_config_snapshot(out, repo);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_config>>();
+    final error = libgit2.git_repository_config_snapshot(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
+
+/// Prune tracking refs that are no longer present on remote.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void prune({
+  required Pointer<git_remote> remotePointer,
+  required Pointer<git_remote_callbacks> flags,
+}) {
+  final error = libgit2.git_remote_prune(remotePointer, flags);
+  checkErrorAndThrow(error);
+}
+
+/// Prune tracking refs that are no longer present on remote.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void pruneRefs({required Pointer<git_remote> remotePointer}) {
+  final error = libgit2.git_remote_prune_refs(remotePointer);
+  checkErrorAndThrow(error);
+}
+
+/// Stop the remote's current operation.
+///
+/// Throws a [LibGit2Error] if error occurred.
+void stop(Pointer<git_remote> remote) {
+  final error = libgit2.git_remote_stop(remote);
+  checkErrorAndThrow(error);
+}
+
+/// Get the remote's name.
+///
+/// Returns the name of the remote or an empty string if the remote is anonymous.
+String name(Pointer<git_remote> remote) {
+  final result = libgit2.git_remote_name(remote);
+  return result == nullptr ? '' : result.toDartString();
+}
+
+/// Get the remote's url.
+///
+/// Returns the URL of the remote repository.
+String url(Pointer<git_remote> remote) =>
+    libgit2.git_remote_url(remote).toDartString();
+
+/// Get the remote's url for pushing.
+///
+/// Returns empty string if no special url for pushing is set.
+String pushUrl(Pointer<git_remote> remote) {
+  final result = libgit2.git_remote_pushurl(remote);
+  return result == nullptr ? '' : result.toDartString();
+}
+
+/// Get the number of refspecs for a remote.
+int refspecCount(Pointer<git_remote> remote) =>
+    libgit2.git_remote_refspec_count(remote);
+
+/// Get a refspec from the remote at provided position.
+Pointer<git_refspec> getRefspec({
+  required Pointer<git_remote> remotePointer,
+  required int position,
+}) => libgit2.git_remote_get_refspec(remotePointer, position);
+
+/// Get the statistics structure that is filled in by the fetch operation.
+Pointer<git_indexer_progress> stats(Pointer<git_remote> remote) =>
+    libgit2.git_remote_stats(remote);

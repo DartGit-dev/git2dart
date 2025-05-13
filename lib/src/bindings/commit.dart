@@ -42,9 +42,9 @@ Pointer<git_oid> create({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final updateRefC = updateRef.toChar();
-    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-    final messageC = message.toChar();
+    final updateRefC = updateRef.toChar(arena);
+    final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
+    final messageC = message.toChar(arena);
     final parentsC = arena<Pointer<git_commit>>(parentCount);
 
     if (parents.isNotEmpty) {
@@ -92,8 +92,8 @@ String createBuffer({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-    final messageC = message.toChar();
+    final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
+    final messageC = message.toChar(arena);
     final parentsC = arena<Pointer<git_commit>>(parentCount);
 
     if (parents.isNotEmpty) {
@@ -146,9 +146,9 @@ Pointer<git_oid> amend({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final updateRefC = updateRef?.toChar() ?? nullptr;
-    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-    final messageC = message?.toChar() ?? nullptr;
+    final updateRefC = updateRef?.toChar(arena) ?? nullptr;
+    final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
+    final messageC = message?.toChar(arena) ?? nullptr;
 
     final error = libgit2.git_commit_amend(
       out,
@@ -230,7 +230,7 @@ String headerField({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final fieldC = field.toChar();
+    final fieldC = field.toChar(arena);
 
     final error = libgit2.git_commit_header_field(out, commitPointer, fieldC);
     checkErrorAndThrow(error);
@@ -354,12 +354,12 @@ void revert({
       opts.ref.checkout_opts.checkout_strategy = checkoutStrategy;
     }
     if (checkoutDirectory != null) {
-      opts.ref.checkout_opts.target_directory = checkoutDirectory.toChar();
+      opts.ref.checkout_opts.target_directory = checkoutDirectory.toChar(arena);
     }
 
     Pointer<Pointer<Char>> strArray = nullptr;
     if (checkoutPaths != null) {
-      final pathPointers = checkoutPaths.map((e) => e.toChar()).toList();
+      final pathPointers = checkoutPaths.map((e) => e.toChar(arena)).toList();
       strArray = arena(checkoutPaths.length);
       for (var i = 0; i < checkoutPaths.length; i++) {
         strArray[i] = pathPointers[i];

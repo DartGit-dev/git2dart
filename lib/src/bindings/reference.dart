@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -44,15 +45,13 @@ String symbolicTarget(Pointer<git_reference> ref) =>
 ///
 /// Throws a [LibGit2Error] if the reference cannot be resolved.
 Pointer<git_reference> resolve(Pointer<git_reference> ref) {
-  final out = calloc<Pointer<git_reference>>();
-  final error = libgit2.git_reference_resolve(out, ref);
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final error = libgit2.git_reference_resolve(out, ref);
 
-  final result = out.value;
-
-  calloc.free(out);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Lookup a reference by name in a repository.
@@ -72,25 +71,21 @@ Pointer<git_reference> lookup({
   required Pointer<git_repository> repoPointer,
   required String name,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final nameC = name.toChar();
-  final error = libgit2.git_reference_lookup(out, repoPointer, nameC);
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reference_lookup(out, repoPointer, nameC);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(nameC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the full name of a reference.
 ///
 /// Returns the full name of the reference (e.g., "refs/heads/master").
-String name(Pointer<git_reference> ref) {
-  return libgit2.git_reference_name(ref).toDartString();
-}
+String name(Pointer<git_reference> ref) =>
+    libgit2.git_reference_name(ref).toDartString();
 
 /// Get the reference's short name.
 ///
@@ -101,9 +96,8 @@ String name(Pointer<git_reference> ref) {
 /// - "refs/tags/v1.0" becomes "v1.0"
 ///
 /// If no shortname is appropriate, it will return the full name.
-String shorthand(Pointer<git_reference> ref) {
-  return libgit2.git_reference_shorthand(ref).toDartString();
-}
+String shorthand(Pointer<git_reference> ref) =>
+    libgit2.git_reference_shorthand(ref).toDartString();
 
 /// Rename an existing reference.
 ///
@@ -127,29 +121,22 @@ Pointer<git_reference> rename({
   required bool force,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final newNameC = newName.toChar();
-  final forceC = force ? 1 : 0;
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_rename(
-    out,
-    refPointer,
-    newNameC,
-    forceC,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final newNameC = newName.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_rename(
+      out,
+      refPointer,
+      newNameC,
+      forceC,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(newNameC);
-  calloc.free(logMessageC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// List all references in a repository.
@@ -161,19 +148,19 @@ Pointer<git_reference> rename({
 ///
 /// Throws a [LibGit2Error] if the references cannot be listed.
 List<String> list(Pointer<git_repository> repo) {
-  final array = calloc<git_strarray>();
-  final error = libgit2.git_reference_list(array, repo);
-  final result = <String>[];
+  return using((arena) {
+    final array = arena<git_strarray>();
+    final error = libgit2.git_reference_list(array, repo);
+    final result = <String>[];
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
 
-  for (var i = 0; i < array.ref.count; i++) {
-    result.add(array.ref.strings[i].cast<Char>().toDartString());
-  }
+    for (var i = 0; i < array.ref.count; i++) {
+      result.add(array.ref.strings[i].cast<Char>().toDartString());
+    }
 
-  calloc.free(array);
-
-  return result;
+    return result;
+  });
 }
 
 /// Check if a reflog exists for the specified reference.
@@ -183,12 +170,12 @@ bool hasLog({
   required Pointer<git_repository> repoPointer,
   required String name,
 }) {
-  final nameC = name.toChar();
-  final result = libgit2.git_reference_has_log(repoPointer, nameC);
+  return using((arena) {
+    final nameC = name.toChar(arena);
+    final result = libgit2.git_reference_has_log(repoPointer, nameC);
 
-  calloc.free(nameC);
-
-  return result == 1;
+    return result == 1;
+  });
 }
 
 /// Ensure there is a reflog for a particular reference.
@@ -201,44 +188,38 @@ void ensureLog({
   required Pointer<git_repository> repoPointer,
   required String refName,
 }) {
-  final refNameC = refName.toChar();
-  final error = libgit2.git_reference_ensure_log(repoPointer, refNameC);
+  using((arena) {
+    final refNameC = refName.toChar(arena);
+    final error = libgit2.git_reference_ensure_log(repoPointer, refNameC);
 
-  calloc.free(refNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Check if a reference is a local branch.
 ///
 /// Returns true if the reference is a local branch (starts with "refs/heads/").
-bool isBranch(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_branch(ref) == 1;
-}
+bool isBranch(Pointer<git_reference> ref) =>
+    libgit2.git_reference_is_branch(ref) == 1;
 
 /// Check if a reference is a note.
 ///
 /// Returns true if the reference is a note (starts with "refs/notes/").
-bool isNote(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_note(ref) == 1;
-}
+bool isNote(Pointer<git_reference> ref) =>
+    libgit2.git_reference_is_note(ref) == 1;
 
 /// Check if a reference is a remote tracking branch.
 ///
 /// Returns true if the reference is a remote tracking branch
 /// (starts with "refs/remotes/").
-bool isRemote(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_remote(ref) == 1;
-}
+bool isRemote(Pointer<git_reference> ref) =>
+    libgit2.git_reference_is_remote(ref) == 1;
 
 /// Check if a reference is a tag.
 ///
 /// Returns true if the reference is a tag (starts with "refs/tags/").
-bool isTag(Pointer<git_reference> ref) {
-  return libgit2.git_reference_is_tag(ref) == 1;
-}
+bool isTag(Pointer<git_reference> ref) =>
+    libgit2.git_reference_is_tag(ref) == 1;
 
 /// Create a new direct reference.
 ///
@@ -271,27 +252,23 @@ Pointer<git_reference> createDirect({
   required bool force,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final nameC = name.toChar();
-  final forceC = force ? 1 : 0;
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_create(
-    out,
-    repoPointer,
-    nameC,
-    oidPointer,
-    forceC,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_create(
+      out,
+      repoPointer,
+      nameC,
+      oidPointer,
+      forceC,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(nameC);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a new symbolic reference.
@@ -324,29 +301,24 @@ Pointer<git_reference> createSymbolic({
   required bool force,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final nameC = name.toChar();
-  final targetC = target.toChar();
-  final forceC = force ? 1 : 0;
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_symbolic_create(
-    out,
-    repoPointer,
-    nameC,
-    targetC,
-    forceC,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final targetC = target.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_symbolic_create(
+      out,
+      repoPointer,
+      nameC,
+      targetC,
+      forceC,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(nameC);
-  calloc.free(targetC);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Update a direct reference to point to a new OID.
@@ -367,22 +339,19 @@ Pointer<git_reference> updateDirect({
   required Pointer<git_oid> oidPointer,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_set_target(
-    out,
-    refPointer,
-    oidPointer,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_set_target(
+      out,
+      refPointer,
+      oidPointer,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Update a symbolic reference to point to a new target.
@@ -403,24 +372,20 @@ Pointer<git_reference> updateSymbolic({
   required String target,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final targetC = target.toChar();
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_symbolic_set_target(
-    out,
-    refPointer,
-    targetC,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final targetC = target.toChar(arena);
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_symbolic_set_target(
+      out,
+      refPointer,
+      targetC,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(targetC);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Delete a reference.
@@ -433,6 +398,7 @@ Pointer<git_reference> updateSymbolic({
 /// Throws a [LibGit2Error] if the reference cannot be deleted.
 void delete(Pointer<git_reference> ref) {
   final error = libgit2.git_reference_delete(ref);
+
   checkErrorAndThrow(error);
 }
 
@@ -462,22 +428,19 @@ Pointer<git_reference> setTarget({
   required Pointer<git_oid> oidPointer,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_set_target(
-    out,
-    refPointer,
-    oidPointer,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_set_target(
+      out,
+      refPointer,
+      oidPointer,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a new reference with the same name as the given reference but a
@@ -499,24 +462,20 @@ Pointer<git_reference> setTargetSymbolic({
   required String target,
   String? logMessage,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final targetC = target.toChar();
-  final logMessageC = logMessage?.toChar() ?? nullptr;
-  final error = libgit2.git_reference_symbolic_set_target(
-    out,
-    refPointer,
-    targetC,
-    logMessageC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final targetC = target.toChar(arena);
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_symbolic_set_target(
+      out,
+      refPointer,
+      targetC,
+      logMessageC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(targetC);
-  calloc.free(logMessageC);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Recursively peel reference until object of the specified type is found.
@@ -532,28 +491,23 @@ Pointer<git_object> peel({
   required Pointer<git_reference> refPointer,
   required git_object_t type,
 }) {
-  final out = calloc<Pointer<git_object>>();
-  final error = libgit2.git_reference_peel(out, refPointer, type);
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_reference_peel(out, refPointer, type);
 
-  final result = out.value;
-
-  calloc.free(out);
-
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a copy of an existing reference. The returned reference must be
 /// freed with [free].
 Pointer<git_reference> duplicate(Pointer<git_reference> source) {
-  final out = calloc<Pointer<git_reference>>();
-  libgit2.git_reference_dup(out, source);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  return result;
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    libgit2.git_reference_dup(out, source);
+    return out.value;
+  });
 }
 
 /// Lookup a reference by name and resolve immediately to OID.
@@ -570,11 +524,13 @@ Pointer<git_oid> nameToId({
   required Pointer<git_repository> repoPointer,
   required String refName,
 }) {
-  final result = calloc<git_oid>();
-  final nameC = refName.toChar();
+  return using((arena) {
+    final result = arena<git_oid>();
+    final nameC = refName.toChar(arena);
 
-  final error = libgit2.git_reference_name_to_id(result, repoPointer, nameC);
+    final error = libgit2.git_reference_name_to_id(result, repoPointer, nameC);
 
-  checkErrorAndThrow(error);
-  return result;
+    checkErrorAndThrow(error);
+    return result;
+  });
 }

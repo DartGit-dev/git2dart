@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Directly generate a patch from the difference between two buffers. The
@@ -15,41 +16,36 @@ Pointer<git_patch> fromBuffers({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_patch>>();
-  final oldBufferC = oldBuffer?.toChar() ?? nullptr;
-  final oldAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final oldLen = oldBuffer?.length ?? 0;
-  final newBufferC = newBuffer?.toChar() ?? nullptr;
-  final newAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final newLen = newBuffer?.length ?? 0;
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_patch>>();
+    final oldBufferC = oldBuffer?.toChar(arena) ?? nullptr;
+    final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final oldLen = oldBuffer?.length ?? 0;
+    final newBufferC = newBuffer?.toChar(arena) ?? nullptr;
+    final newAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final newLen = newBuffer?.length ?? 0;
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  libgit2.git_patch_from_buffers(
-    out,
-    oldBufferC.cast(),
-    oldLen,
-    oldAsPathC,
-    newBufferC.cast(),
-    newLen,
-    newAsPathC,
-    opts,
-  );
+    final error = libgit2.git_patch_from_buffers(
+      out,
+      oldBufferC.cast(),
+      oldLen,
+      oldAsPathC,
+      newBufferC.cast(),
+      newLen,
+      newAsPathC,
+      opts,
+    );
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(oldAsPathC);
-  calloc.free(newAsPathC);
-  calloc.free(opts);
-  // We are not freeing buffers `oldBufferC` and `newBufferC` because patch
-  // object does not have reference to underlying buffers. So if the buffer is
-  // freed the patch text becomes corrupted.
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Directly generate a patch from the difference between two blobs. The
@@ -63,32 +59,29 @@ Pointer<git_patch> fromBlobs({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_patch>>();
-  final oldAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final newAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_patch>>();
+    final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final newAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  libgit2.git_patch_from_blobs(
-    out,
-    oldBlobPointer ?? nullptr,
-    oldAsPathC,
-    newBlobPointer ?? nullptr,
-    newAsPathC,
-    opts,
-  );
+    final error = libgit2.git_patch_from_blobs(
+      out,
+      oldBlobPointer ?? nullptr,
+      oldAsPathC,
+      newBlobPointer ?? nullptr,
+      newAsPathC,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(oldAsPathC);
-  calloc.free(newAsPathC);
-  calloc.free(opts);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Directly generate a patch from the difference between a blob and a buffer.
@@ -102,38 +95,32 @@ Pointer<git_patch> fromBlobAndBuffer({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_patch>>();
-  final oldAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final bufferC = buffer?.toChar() ?? nullptr;
-  final bufferAsPathC = oldAsPath?.toChar() ?? nullptr;
-  final bufferLen = buffer?.length ?? 0;
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_patch>>();
+    final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final bufferC = buffer?.toChar(arena) ?? nullptr;
+    final bufferAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final bufferLen = buffer?.length ?? 0;
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  libgit2.git_patch_from_blob_and_buffer(
-    out,
-    oldBlobPointer ?? nullptr,
-    oldAsPathC,
-    bufferC.cast(),
-    bufferLen,
-    bufferAsPathC,
-    opts,
-  );
+    final error = libgit2.git_patch_from_blob_and_buffer(
+      out,
+      oldBlobPointer ?? nullptr,
+      oldAsPathC,
+      bufferC.cast(),
+      bufferLen,
+      bufferAsPathC,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(oldAsPathC);
-  calloc.free(bufferAsPathC);
-  calloc.free(opts);
-  // We are not freeing buffer `bufferC` because patch object does not have
-  // reference to underlying buffers. So if the buffer is freed the patch text
-  // becomes corrupted.
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Return a patch for an entry in the diff list. The returned patch must be
@@ -144,18 +131,14 @@ Pointer<git_patch> fromDiff({
   required Pointer<git_diff> diffPointer,
   required int index,
 }) {
-  final out = calloc<Pointer<git_patch>>();
-  final error = libgit2.git_patch_from_diff(out, diffPointer, index);
+  return using((arena) {
+    final out = arena<Pointer<git_patch>>();
+    final error = libgit2.git_patch_from_diff(out, diffPointer, index);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Get the delta associated with a patch.
@@ -173,37 +156,46 @@ Map<String, Object> hunk({
   required Pointer<git_patch> patchPointer,
   required int hunkIndex,
 }) {
-  final out = calloc<Pointer<git_diff_hunk>>();
-  final linesInHunk = calloc<Size>();
-  libgit2.git_patch_get_hunk(out, linesInHunk, patchPointer, hunkIndex);
+  return using((arena) {
+    final out = arena<Pointer<git_diff_hunk>>();
+    final linesInHunk = arena<Size>();
 
-  final hunk = out.value;
-  final linesN = linesInHunk.value;
+    final error = libgit2.git_patch_get_hunk(
+      out,
+      linesInHunk,
+      patchPointer,
+      hunkIndex,
+    );
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(linesInHunk);
+    final hunk = out.value;
+    final linesN = linesInHunk.value;
 
-  return {'hunk': hunk, 'linesN': linesN};
+    return {'hunk': hunk, 'linesN': linesN};
+  });
 }
 
 /// Get line counts of each type in a patch.
 Map<String, int> lineStats(Pointer<git_patch> patch) {
-  final context = calloc<Size>();
-  final insertions = calloc<Size>();
-  final deletions = calloc<Size>();
-  libgit2.git_patch_line_stats(context, insertions, deletions, patch);
+  return using((arena) {
+    final context = arena<Size>();
+    final insertions = arena<Size>();
+    final deletions = arena<Size>();
 
-  final result = {
-    'context': context.value,
-    'insertions': insertions.value,
-    'deletions': deletions.value,
-  };
+    final error = libgit2.git_patch_line_stats(
+      context,
+      insertions,
+      deletions,
+      patch,
+    );
+    checkErrorAndThrow(error);
 
-  calloc.free(context);
-  calloc.free(insertions);
-  calloc.free(deletions);
-
-  return result;
+    return {
+      'context': context.value,
+      'insertions': insertions.value,
+      'deletions': deletions.value,
+    };
+  });
 }
 
 /// Get data about a line in a hunk of a patch.
@@ -212,33 +204,33 @@ Pointer<git_diff_line> lines({
   required int hunkIndex,
   required int lineOfHunk,
 }) {
-  final out = calloc<Pointer<git_diff_line>>();
-  libgit2.git_patch_get_line_in_hunk(out, patchPointer, hunkIndex, lineOfHunk);
+  return using((arena) {
+    final out = arena<Pointer<git_diff_line>>();
+    final error = libgit2.git_patch_get_line_in_hunk(
+      out,
+      patchPointer,
+      hunkIndex,
+      lineOfHunk,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Get the content of a patch as a single diff text.
 ///
 /// Throws a [LibGit2Error] if error occured.
 String text(Pointer<git_patch> patch) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_patch_to_buf(out, patch);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_patch_to_buf(out, patch);
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
     return result;
-  }
+  });
 }
 
 /// Look up size of patch diff data in bytes.
@@ -271,12 +263,14 @@ int size({
 void free(Pointer<git_patch> patch) => libgit2.git_patch_free(patch);
 
 Pointer<git_diff_options> _diffOptionsInit({
+  required Arena arena,
   required int flags,
   required int contextLines,
   required int interhunkLines,
 }) {
-  final opts = calloc<git_diff_options>();
-  libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
+  final opts = arena<git_diff_options>();
+  final error = libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
+  checkErrorAndThrow(error);
 
   opts.ref.flags = flags;
   opts.ref.context_lines = contextLines;

@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// A packbuilder is used to create packfiles from a set of objects.
@@ -18,18 +19,14 @@ class Packbuilder {
   ///
   /// Throws a [LibGit2Error] if initialization fails.
   static Pointer<git_packbuilder> init(Pointer<git_repository> repo) {
-    final out = calloc<Pointer<git_packbuilder>>();
-    final error = libgit2.git_packbuilder_new(out, repo);
+    return using((arena) {
+      final out = arena<Pointer<git_packbuilder>>();
+      final error = libgit2.git_packbuilder_new(out, repo);
 
-    final result = out.value;
+      checkErrorAndThrow(error);
 
-    calloc.free(out);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    } else {
-      return result;
-    }
+      return out.value;
+    });
   }
 
   /// Insert a single object into the packbuilder.
@@ -51,9 +48,7 @@ class Packbuilder {
       nullptr,
     );
 
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+    checkErrorAndThrow(error);
   }
 
   /// Recursively insert an object and all its referenced objects.
@@ -74,10 +69,7 @@ class Packbuilder {
       oidPointer,
       nullptr,
     );
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+    checkErrorAndThrow(error);
   }
 
   /// Insert a commit object and its complete tree.
@@ -98,9 +90,7 @@ class Packbuilder {
       oidPointer,
     );
 
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+    checkErrorAndThrow(error);
   }
 
   /// Insert a root tree object and all its contents.
@@ -120,9 +110,7 @@ class Packbuilder {
       oidPointer,
     );
 
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+    checkErrorAndThrow(error);
   }
 
   /// Insert objects as given by the walk.
@@ -142,9 +130,7 @@ class Packbuilder {
       walkerPointer,
     );
 
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+    checkErrorAndThrow(error);
   }
 
   /// Write the new pack and corresponding index file to the specified path.
@@ -158,35 +144,31 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     String? path,
   }) {
-    final pathC = path?.toChar() ?? nullptr;
-    final error = libgit2.git_packbuilder_write(
-      packbuilderPointer,
-      pathC,
-      0,
-      nullptr,
-      nullptr,
-    );
+    return using((arena) {
+      final pathC = path?.toChar(arena) ?? nullptr;
+      final error = libgit2.git_packbuilder_write(
+        packbuilderPointer,
+        pathC,
+        0,
+        nullptr,
+        nullptr,
+      );
 
-    calloc.free(pathC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
+      checkErrorAndThrow(error);
+    });
   }
 
   /// Get the total number of objects the packbuilder will write out.
   ///
   /// [pb] is the packbuilder to get the count from.
-  static int length(Pointer<git_packbuilder> pb) {
-    return libgit2.git_packbuilder_object_count(pb);
-  }
+  static int length(Pointer<git_packbuilder> pb) =>
+      libgit2.git_packbuilder_object_count(pb);
 
   /// Get the number of objects the packbuilder has already written out.
   ///
   /// [pb] is the packbuilder to get the count from.
-  static int writtenCount(Pointer<git_packbuilder> pb) {
-    return libgit2.git_packbuilder_written(pb);
-  }
+  static int writtenCount(Pointer<git_packbuilder> pb) =>
+      libgit2.git_packbuilder_written(pb);
 
   /// Get the unique name for the resulting packfile.
   ///

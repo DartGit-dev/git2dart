@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show Arena;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
@@ -103,7 +103,6 @@ class RemoteCallbacks {
     }
 
     remote[0] = remotePointer;
-
     return 0;
   }
 
@@ -140,7 +139,6 @@ class RemoteCallbacks {
     );
 
     repo[0] = repoPointer;
-
     return 0;
   }
 
@@ -212,6 +210,7 @@ class RemoteCallbacks {
   static void plug({
     required git_remote_callbacks callbacksOptions,
     required Callbacks callbacks,
+    required Arena arena,
   }) {
     const except = -1;
 
@@ -249,7 +248,7 @@ class RemoteCallbacks {
 
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
-      final withUser = calloc<Int8>()..value = 1;
+      final withUser = arena<Int8>()..value = 1;
       callbacksOptions.payload = withUser.cast();
       callbacksOptions.credentials = Pointer.fromFunction(
         credentialsCb,

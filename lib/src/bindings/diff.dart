@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Create a diff with the difference between two index objects. The returned
@@ -16,31 +17,26 @@ Pointer<git_diff> indexToIndex({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  final error = libgit2.git_diff_index_to_index(
-    out,
-    repoPointer,
-    oldIndexPointer,
-    newIndexPointer,
-    opts,
-  );
+    final error = libgit2.git_diff_index_to_index(
+      out,
+      repoPointer,
+      oldIndexPointer,
+      newIndexPointer,
+      opts,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a diff between the repository index and the workdir directory. The
@@ -52,21 +48,25 @@ Pointer<git_diff> indexToWorkdir({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  libgit2.git_diff_index_to_workdir(out, repoPointer, indexPointer, opts);
+    final error = libgit2.git_diff_index_to_workdir(
+      out,
+      repoPointer,
+      indexPointer,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Create a diff between a tree and repository index. The returned diff must
@@ -79,27 +79,26 @@ Pointer<git_diff> treeToIndex({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  libgit2.git_diff_tree_to_index(
-    out,
-    repoPointer,
-    treePointer ?? nullptr,
-    indexPointer,
-    opts,
-  );
+    final error = libgit2.git_diff_tree_to_index(
+      out,
+      repoPointer,
+      treePointer ?? nullptr,
+      indexPointer,
+      opts,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Create a diff between a tree and the working directory. The returned
@@ -113,30 +112,25 @@ Pointer<git_diff> treeToWorkdir({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  final error = libgit2.git_diff_tree_to_workdir(
-    out,
-    repoPointer,
-    treePointer ?? nullptr,
-    opts,
-  );
+    final error = libgit2.git_diff_tree_to_workdir(
+      out,
+      repoPointer,
+      treePointer ?? nullptr,
+      opts,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a diff between a tree and the working directory using index data to
@@ -155,30 +149,25 @@ Pointer<git_diff> treeToWorkdirWithIndex({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  final error = libgit2.git_diff_tree_to_workdir_with_index(
-    out,
-    repoPointer,
-    treePointer ?? nullptr,
-    opts,
-  );
+    final error = libgit2.git_diff_tree_to_workdir_with_index(
+      out,
+      repoPointer,
+      treePointer ?? nullptr,
+      opts,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a diff with the difference between two tree objects. The returned
@@ -193,31 +182,26 @@ Pointer<git_diff> treeToTree({
   required int contextLines,
   required int interhunkLines,
 }) {
-  final out = calloc<Pointer<git_diff>>();
-  final opts = _diffOptionsInit(
-    flags: flags,
-    contextLines: contextLines,
-    interhunkLines: interhunkLines,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final opts = _diffOptionsInit(
+      arena: arena,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    );
 
-  final error = libgit2.git_diff_tree_to_tree(
-    out,
-    repoPointer,
-    oldTreePointer ?? nullptr,
-    newTreePointer ?? nullptr,
-    opts,
-  );
+    final error = libgit2.git_diff_tree_to_tree(
+      out,
+      repoPointer,
+      oldTreePointer ?? nullptr,
+      newTreePointer ?? nullptr,
+      opts,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Query how many diff records are there in a diff.
@@ -233,10 +217,7 @@ void merge({
   required Pointer<git_diff> fromDiffPointer,
 }) {
   final error = libgit2.git_diff_merge(diffPointer, fromDiffPointer);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Read the contents of a git patch file into a git diff object. The returned
@@ -252,16 +233,13 @@ void merge({
 /// it will not read unified diffs produced by the `diff` program, nor any
 /// other types of patch files.
 Pointer<git_diff> parse(String content) {
-  final out = calloc<Pointer<git_diff>>();
-  final contentC = content.toChar();
-  libgit2.git_diff_from_buffer(out, contentC, content.length);
-
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(contentC);
-
-  return result;
+  return using((arena) {
+    final out = arena<Pointer<git_diff>>();
+    final contentC = content.toChar(arena);
+    final error = libgit2.git_diff_from_buffer(out, contentC, content.length);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Transform a diff marking file renames, copies, etc.
@@ -277,10 +255,7 @@ void findSimilar({
   required Pointer<git_diff_find_options> options,
 }) {
   final error = libgit2.git_diff_find_similar(diffPointer, options);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Calculate the patch ID for the given patch.
@@ -295,15 +270,14 @@ void findSimilar({
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> patchOid(Pointer<git_diff> diff) {
-  final out = calloc<git_oid>();
-  final error = libgit2.git_diff_patchid(out, diff, nullptr);
+  return using((arena) {
+    final out = arena<git_oid>();
+    final error = libgit2.git_diff_patchid(out, diff, nullptr);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    checkErrorAndThrow(error);
+
     return out;
-  }
+  });
 }
 
 /// Return the diff delta for an entry in the diff list.
@@ -329,18 +303,14 @@ String statusChar(git_delta_t status) {
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_diff_stats> stats(Pointer<git_diff> diff) {
-  final out = calloc<Pointer<git_diff_stats>>();
-  final error = libgit2.git_diff_get_stats(out, diff);
+  return using((arena) {
+    final out = arena<Pointer<git_diff_stats>>();
+    final error = libgit2.git_diff_get_stats(out, diff);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Get the total number of insertions in a diff.
@@ -363,35 +333,42 @@ String statsPrint({
   required git_diff_stats_format_t format,
   required int width,
 }) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_diff_stats_to_buf(out, statsPointer, format, width);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_diff_stats_to_buf(
+      out,
+      statsPointer,
+      format,
+      width,
+    );
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }
 
 /// Produce the complete formatted text output from a diff into a buffer.
 String addToBuf(Pointer<git_diff> diff) {
-  final out = calloc<git_buf>();
-  libgit2.git_diff_to_buf(out, diff, git_diff_format_t.GIT_DIFF_FORMAT_PATCH);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_diff_to_buf(
+      out,
+      diff,
+      git_diff_format_t.GIT_DIFF_FORMAT_PATCH,
+    );
+    checkErrorAndThrow(error);
 
-  final result =
-      out.ref.ptr == nullptr
-          ? ''
-          : out.ref.ptr.toDartString(length: out.ref.size);
+    final result =
+        out.ref.ptr == nullptr
+            ? ''
+            : out.ref.ptr.toDartString(length: out.ref.size);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  return result;
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
 }
 
 /// Counter for hunk number being applied.
@@ -423,31 +400,30 @@ bool apply({
   required git_apply_location_t location,
   bool check = false,
 }) {
-  final opts = calloc<git_apply_options>();
-  libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
-  if (check) {
-    opts.ref.flags |= git_apply_flags_t.GIT_APPLY_CHECK.value;
-  }
-  Pointer<Int32> payload = nullptr;
-  if (hunkIndex != null) {
-    _counter = 0;
-    const except = -1;
-    // ignore: omit_local_variable_types
-    final git_apply_hunk_cb callback = Pointer.fromFunction(_hunkCb, except);
-    payload = calloc<Int32>()..value = hunkIndex;
-    opts.ref.payload = payload.cast();
-    opts.ref.hunk_cb = callback;
-  }
-  final error = libgit2.git_apply(repoPointer, diffPointer, location, opts);
+  return using((arena) {
+    final opts = arena<git_apply_options>();
+    libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
+    if (check) {
+      opts.ref.flags |= git_apply_flags_t.GIT_APPLY_CHECK.value;
+    }
 
-  calloc.free(payload);
-  calloc.free(opts);
+    Pointer<Int32> payload = nullptr;
+    if (hunkIndex != null) {
+      _counter = 0;
+      const except = -1;
+      // ignore: omit_local_variable_types
+      final git_apply_hunk_cb callback = Pointer.fromFunction(_hunkCb, except);
+      payload = arena<Int32>()..value = hunkIndex;
+      opts.ref.payload = payload.cast();
+      opts.ref.hunk_cb = callback;
+    }
 
-  if (error < 0) {
-    return check ? false : throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    final error = libgit2.git_apply(repoPointer, diffPointer, location, opts);
+
+    checkErrorAndThrow(error);
+
     return true;
-  }
+  });
 }
 
 /// Apply a diff to a tree, and return the resulting image as an index. The
@@ -460,38 +436,34 @@ Pointer<git_index> applyToTree({
   required Pointer<git_diff> diffPointer,
   int? hunkIndex,
 }) {
-  final out = calloc<Pointer<git_index>>();
-  final opts = calloc<git_apply_options>();
-  libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
-  Pointer<Int32> payload = nullptr;
-  if (hunkIndex != null) {
-    _counter = 0;
-    const except = -1;
-    // ignore: omit_local_variable_types
-    final git_apply_hunk_cb callback = Pointer.fromFunction(_hunkCb, except);
-    payload = calloc<Int32>()..value = hunkIndex;
-    opts.ref.payload = payload.cast();
-    opts.ref.hunk_cb = callback;
-  }
-  final error = libgit2.git_apply_to_tree(
-    out,
-    repoPointer,
-    treePointer,
-    diffPointer,
-    opts,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final opts = arena<git_apply_options>();
+    libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
 
-  final result = out.value;
+    Pointer<Int32> payload = nullptr;
+    if (hunkIndex != null) {
+      _counter = 0;
+      const except = -1;
+      // ignore: omit_local_variable_types
+      final git_apply_hunk_cb callback = Pointer.fromFunction(_hunkCb, except);
+      payload = arena<Int32>()..value = hunkIndex;
+      opts.ref.payload = payload.cast();
+      opts.ref.hunk_cb = callback;
+    }
 
-  calloc.free(out);
-  calloc.free(payload);
-  calloc.free(opts);
+    final error = libgit2.git_apply_to_tree(
+      out,
+      repoPointer,
+      treePointer,
+      diffPointer,
+      opts,
+    );
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
 }
 
 /// Free a previously allocated diff stats.
@@ -502,11 +474,12 @@ void freeStats(Pointer<git_diff_stats> stats) =>
 void free(Pointer<git_diff> diff) => libgit2.git_diff_free(diff);
 
 Pointer<git_diff_options> _diffOptionsInit({
+  required Arena arena,
   required int flags,
   required int contextLines,
   required int interhunkLines,
 }) {
-  final opts = calloc<git_diff_options>();
+  final opts = arena<git_diff_options>();
   libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
 
   opts.ref.flags = flags;
@@ -524,17 +497,14 @@ String formatEmail({
   required Pointer<git_diff> diffPointer,
   required Pointer<git_diff_format_email_options> options,
 }) {
-  final out = calloc<git_buf>();
-  final error = libgit2.git_diff_format_email(out, diffPointer, options);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_diff_format_email(out, diffPointer, options);
+    checkErrorAndThrow(error);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return result;
-  }
+  });
 }

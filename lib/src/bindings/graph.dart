@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Determine if a commit is the descendant of another commit.
@@ -32,19 +33,20 @@ List<int> aheadBehind({
   required Pointer<git_oid> localPointer,
   required Pointer<git_oid> upstreamPointer,
 }) {
-  final ahead = calloc<Size>();
-  final behind = calloc<Size>();
+  return using((arena) {
+    final ahead = arena<Size>();
+    final behind = arena<Size>();
 
-  libgit2.git_graph_ahead_behind(
-    ahead,
-    behind,
-    repoPointer,
-    localPointer,
-    upstreamPointer,
-  );
+    final error = libgit2.git_graph_ahead_behind(
+      ahead,
+      behind,
+      repoPointer,
+      localPointer,
+      upstreamPointer,
+    );
 
-  final result = [ahead.value, behind.value];
-  calloc.free(ahead);
-  calloc.free(behind);
-  return result;
+    checkErrorAndThrow(error);
+
+    return [ahead.value, behind.value];
+  });
 }

@@ -71,7 +71,7 @@ Pointer<git_annotated_commit> fromRevSpec({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_annotated_commit>>();
-    final revspecC = revspec.toChar();
+    final revspecC = revspec.toChar(arena);
     final error = libgit2.git_annotated_commit_from_revspec(
       out,
       repoPointer,
@@ -98,8 +98,8 @@ Pointer<git_annotated_commit> fromFetchHead({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_annotated_commit>>();
-    final branchNameC = branchName.toChar();
-    final remoteUrlC = remoteUrl.toChar();
+    final branchNameC = branchName.toChar(arena);
+    final remoteUrlC = remoteUrl.toChar(arena);
     final error = libgit2.git_annotated_commit_from_fetchhead(
       out,
       repoPointer,

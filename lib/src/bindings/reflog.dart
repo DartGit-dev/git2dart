@@ -1,7 +1,8 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Read the reflog for the given reference. The returned reflog must be
@@ -13,16 +14,15 @@ Pointer<git_reflog> read({
   required Pointer<git_repository> repoPointer,
   required String name,
 }) {
-  final out = calloc<Pointer<git_reflog>>();
-  final nameC = name.toChar();
-  libgit2.git_reflog_read(out, repoPointer, nameC);
+  return using((arena) {
+    final out = arena<Pointer<git_reflog>>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reflog_read(out, repoPointer, nameC);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(nameC);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Write an existing in-memory reflog object back to disk using an atomic file
@@ -32,9 +32,7 @@ Pointer<git_reflog> read({
 void write(Pointer<git_reflog> reflog) {
   final error = libgit2.git_reflog_write(reflog);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Delete the reflog for the given reference.
@@ -42,9 +40,12 @@ void delete({
   required Pointer<git_repository> repoPointer,
   required String name,
 }) {
-  final nameC = name.toChar();
-  libgit2.git_reflog_delete(repoPointer, nameC);
-  calloc.free(nameC);
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reflog_delete(repoPointer, nameC);
+
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Rename a reflog.
@@ -59,16 +60,13 @@ void rename({
   required String oldName,
   required String newName,
 }) {
-  final oldNameC = oldName.toChar();
-  final newNameC = newName.toChar();
-  final error = libgit2.git_reflog_rename(repoPointer, oldNameC, newNameC);
+  using((arena) {
+    final oldNameC = oldName.toChar(arena);
+    final newNameC = newName.toChar(arena);
+    final error = libgit2.git_reflog_rename(repoPointer, oldNameC, newNameC);
 
-  calloc.free(oldNameC);
-  calloc.free(newNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Add a new entry to the in-memory reflog.
@@ -80,20 +78,17 @@ void add({
   required Pointer<git_signature> committerPointer,
   required String message,
 }) {
-  final messageC = message.isEmpty ? nullptr : message.toChar();
+  using((arena) {
+    final messageC = message.isEmpty ? nullptr : message.toChar(arena);
+    final error = libgit2.git_reflog_append(
+      reflogPointer,
+      oidPointer,
+      committerPointer,
+      messageC,
+    );
 
-  final error = libgit2.git_reflog_append(
-    reflogPointer,
-    oidPointer,
-    committerPointer,
-    messageC,
-  );
-
-  calloc.free(messageC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Remove an entry from the reflog by its index.
@@ -102,9 +97,7 @@ void add({
 void remove({required Pointer<git_reflog> reflogPointer, required int index}) {
   final error = libgit2.git_reflog_drop(reflogPointer, index, 1);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Get the number of log entries in a reflog.
@@ -118,9 +111,7 @@ int entryCount(Pointer<git_reflog> reflog) =>
 Pointer<git_reflog_entry> getByIndex({
   required Pointer<git_reflog> reflogPointer,
   required int index,
-}) {
-  return libgit2.git_reflog_entry_byindex(reflogPointer, index);
-}
+}) => libgit2.git_reflog_entry_byindex(reflogPointer, index);
 
 /// Get the log message.
 String entryMessage(Pointer<git_reflog_entry> entry) {
@@ -129,19 +120,16 @@ String entryMessage(Pointer<git_reflog_entry> entry) {
 }
 
 /// Get the committer of this entry. The returned signature must be freed.
-Pointer<git_signature> entryCommiter(Pointer<git_reflog_entry> entry) {
-  return libgit2.git_reflog_entry_committer(entry);
-}
+Pointer<git_signature> entryCommiter(Pointer<git_reflog_entry> entry) =>
+    libgit2.git_reflog_entry_committer(entry);
 
 /// Get the new oid.
-Pointer<git_oid> entryOidNew(Pointer<git_reflog_entry> entry) {
-  return libgit2.git_reflog_entry_id_new(entry);
-}
+Pointer<git_oid> entryOidNew(Pointer<git_reflog_entry> entry) =>
+    libgit2.git_reflog_entry_id_new(entry);
 
 /// Get the old oid.
-Pointer<git_oid> entryOidOld(Pointer<git_reflog_entry> entry) {
-  return libgit2.git_reflog_entry_id_old(entry);
-}
+Pointer<git_oid> entryOidOld(Pointer<git_reflog_entry> entry) =>
+    libgit2.git_reflog_entry_id_old(entry);
 
 /// Free the reflog.
 void free(Pointer<git_reflog> reflog) => libgit2.git_reflog_free(reflog);
