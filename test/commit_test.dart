@@ -257,7 +257,6 @@ void main() {
     test('writes commit without parents into the buffer', () {
       final commit = Commit.createBuffer(
         repo: repo,
-        updateRef: 'HEAD',
         message: message,
         author: author,
         committer: committer,
@@ -281,7 +280,6 @@ Some description.
     test('writes commit into the buffer', () {
       final commit = Commit.createBuffer(
         repo: repo,
-        updateRef: 'HEAD',
         message: message,
         author: author,
         committer: committer,
@@ -375,7 +373,6 @@ Some description.
         expect(
           () => Commit.createBuffer(
             repo: Repository(nullptr),
-            updateRef: 'HEAD',
             message: message,
             author: author,
             committer: committer,

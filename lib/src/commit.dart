@@ -111,7 +111,6 @@ class Commit extends Equatable {
   /// Throws a [LibGit2Error] if an error occurs during buffer creation.
   static String createBuffer({
     required Repository repo,
-    required String updateRef,
     required Signature author,
     required Signature committer,
     String? messageEncoding,
@@ -121,7 +120,6 @@ class Commit extends Equatable {
   }) {
     return bindings.createBuffer(
       repoPointer: repo.pointer,
-      updateRef: updateRef,
       authorPointer: author.pointer,
       committerPointer: committer.pointer,
       messageEncoding: messageEncoding,

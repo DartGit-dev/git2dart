@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Lookup a commit object from a repository. The returned commit must be
@@ -12,18 +13,14 @@ Pointer<git_commit> lookup({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final out = calloc<Pointer<git_commit>>();
-  final error = libgit2.git_commit_lookup(out, repoPointer, oidPointer);
+  return using((arena) {
+    final out = arena<Pointer<git_commit>>();
 
-  final result = out.value;
+    final error = libgit2.git_commit_lookup(out, repoPointer, oidPointer);
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Create new commit in the repository.
@@ -43,44 +40,38 @@ Pointer<git_oid> create({
   required int parentCount,
   required List<Pointer<git_commit>> parents,
 }) {
-  final out = calloc<git_oid>();
-  final updateRefC = updateRef.toChar();
-  final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-  final messageC = message.toChar();
-  final parentsC = calloc<Pointer<git_commit>>(parentCount);
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final updateRefC = updateRef.toChar();
+    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
+    final messageC = message.toChar();
+    final parentsC = arena<Pointer<git_commit>>(parentCount);
 
-  if (parents.isNotEmpty) {
-    for (var i = 0; i < parentCount; i++) {
-      parentsC[i] = parents[i];
+    if (parents.isNotEmpty) {
+      for (var i = 0; i < parentCount; i++) {
+        parentsC[i] = parents[i];
+      }
+    } else {
+      parentsC[0] = nullptr;
     }
-  } else {
-    parentsC[0] = nullptr;
-  }
 
-  final error = libgit2.git_commit_create(
-    out,
-    repoPointer,
-    updateRefC,
-    authorPointer,
-    committerPointer,
-    messageEncodingC,
-    messageC,
-    treePointer,
-    parentCount,
-    parentsC,
-  );
+    final error = libgit2.git_commit_create(
+      out,
+      repoPointer,
+      updateRefC,
+      authorPointer,
+      committerPointer,
+      messageEncodingC,
+      messageC,
+      treePointer,
+      parentCount,
+      parentsC,
+    );
 
-  calloc.free(updateRefC);
-  calloc.free(messageEncodingC);
-  calloc.free(messageC);
-  calloc.free(parentsC);
+    checkErrorAndThrow(error);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
     return out;
-  }
+  });
 }
 
 /// Create a commit and write it into a buffer.
@@ -91,7 +82,6 @@ Pointer<git_oid> create({
 /// Throws a [LibGit2Error] if error occured.
 String createBuffer({
   required Pointer<git_repository> repoPointer,
-  required String updateRef,
   required Pointer<git_signature> authorPointer,
   required Pointer<git_signature> committerPointer,
   String? messageEncoding,
@@ -100,46 +90,35 @@ String createBuffer({
   required int parentCount,
   required List<Pointer<git_commit>> parents,
 }) {
-  final out = calloc<git_buf>();
-  final updateRefC = updateRef.toChar();
-  final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-  final messageC = message.toChar();
-  final parentsC = calloc<Pointer<git_commit>>(parentCount);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
+    final messageC = message.toChar();
+    final parentsC = arena<Pointer<git_commit>>(parentCount);
 
-  if (parents.isNotEmpty) {
-    for (var i = 0; i < parentCount; i++) {
-      parentsC[i] = parents[i];
+    if (parents.isNotEmpty) {
+      for (var i = 0; i < parentCount; i++) {
+        parentsC[i] = parents[i];
+      }
+    } else {
+      parentsC[0] = nullptr;
     }
-  } else {
-    parentsC[0] = nullptr;
-  }
 
-  final error = libgit2.git_commit_create_buffer(
-    out,
-    repoPointer,
-    authorPointer,
-    committerPointer,
-    messageEncodingC,
-    messageC,
-    treePointer,
-    parentCount,
-    parentsC,
-  );
+    final error = libgit2.git_commit_create_buffer(
+      out,
+      repoPointer,
+      authorPointer,
+      committerPointer,
+      messageEncodingC,
+      messageC,
+      treePointer,
+      parentCount,
+      parentsC,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(updateRefC);
-  calloc.free(messageEncodingC);
-  calloc.free(messageC);
-  calloc.free(parentsC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Amend an existing commit by replacing only non-null values.
@@ -162,48 +141,41 @@ Pointer<git_oid> amend({
   required Pointer<git_signature>? authorPointer,
   required Pointer<git_signature>? committerPointer,
   String? messageEncoding,
-  required String? message,
+  String? message,
   required Pointer<git_tree>? treePointer,
 }) {
-  final out = calloc<git_oid>();
-  final updateRefC = updateRef?.toChar() ?? nullptr;
-  final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
-  final messageC = message?.toChar() ?? nullptr;
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final updateRefC = updateRef?.toChar() ?? nullptr;
+    final messageEncodingC = messageEncoding?.toChar() ?? nullptr;
+    final messageC = message?.toChar() ?? nullptr;
 
-  final error = libgit2.git_commit_amend(
-    out,
-    commitPointer,
-    updateRefC,
-    authorPointer ?? nullptr,
-    committerPointer ?? nullptr,
-    messageEncodingC,
-    messageC,
-    treePointer ?? nullptr,
-  );
+    final error = libgit2.git_commit_amend(
+      out,
+      commitPointer,
+      updateRefC,
+      authorPointer ?? nullptr,
+      committerPointer ?? nullptr,
+      messageEncodingC,
+      messageC,
+      treePointer ?? nullptr,
+    );
 
-  calloc.free(updateRefC);
-  calloc.free(messageEncodingC);
-  calloc.free(messageC);
-
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
+    checkErrorAndThrow(error);
     return out;
-  }
+  });
 }
 
 /// Create an in-memory copy of a commit. The returned copy must be
 /// freed with [free].
 Pointer<git_commit> duplicate(Pointer<git_commit> source) {
-  final out = calloc<Pointer<git_commit>>();
-  libgit2.git_commit_dup(out, source);
+  return using((arena) {
+    final out = arena<Pointer<git_commit>>();
 
-  final result = out.value;
+    libgit2.git_commit_dup(out, source);
 
-  calloc.free(out);
-
-  return result;
+    return out.value;
+  });
 }
 
 /// Get the encoding for the message of a commit, as a string representing a
@@ -256,21 +228,15 @@ String headerField({
   required Pointer<git_commit> commitPointer,
   required String field,
 }) {
-  final out = calloc<git_buf>();
-  final fieldC = field.toChar();
-  final error = libgit2.git_commit_header_field(out, commitPointer, fieldC);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final fieldC = field.toChar();
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
+    final error = libgit2.git_commit_header_field(out, commitPointer, fieldC);
+    checkErrorAndThrow(error);
 
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(fieldC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Get the id of a commit.
@@ -296,18 +262,12 @@ Pointer<git_commit> parent({
   required Pointer<git_commit> commitPointer,
   required int position,
 }) {
-  final out = calloc<Pointer<git_commit>>();
-  final error = libgit2.git_commit_parent(out, commitPointer, position);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  return using((arena) {
+    final out = arena<Pointer<git_commit>>();
+    final error = libgit2.git_commit_parent(out, commitPointer, position);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the commit object that is the nth generation ancestor of the named
@@ -322,18 +282,14 @@ Pointer<git_commit> nthGenAncestor({
   required Pointer<git_commit> commitPointer,
   required int n,
 }) {
-  final out = calloc<Pointer<git_commit>>();
-  final error = libgit2.git_commit_nth_gen_ancestor(out, commitPointer, n);
+  return using((arena) {
+    final out = arena<Pointer<git_commit>>();
+    final error = libgit2.git_commit_nth_gen_ancestor(out, commitPointer, n);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Get the commit time (i.e. committer time) of a commit.
@@ -345,34 +301,28 @@ int timeOffset(Pointer<git_commit> commit) =>
     libgit2.git_commit_time_offset(commit);
 
 /// Get the committer of a commit.
-Pointer<git_signature> committer(Pointer<git_commit> commit) {
-  return libgit2.git_commit_committer(commit);
-}
+Pointer<git_signature> committer(Pointer<git_commit> commit) =>
+    libgit2.git_commit_committer(commit);
 
 /// Get the author of a commit.
 ///
 /// The returned signature must be freed.
-Pointer<git_signature> author(Pointer<git_commit> commit) {
-  return libgit2.git_commit_author(commit);
-}
+Pointer<git_signature> author(Pointer<git_commit> commit) =>
+    libgit2.git_commit_author(commit);
 
 /// Get the id of the tree pointed to by a commit.
-Pointer<git_oid> treeOid(Pointer<git_commit> commit) {
-  return libgit2.git_commit_tree_id(commit);
-}
+Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>
+    libgit2.git_commit_tree_id(commit);
 
 /// Get the tree pointed to by a commit.
 ///
 /// The returned tree must be freed.
 Pointer<git_tree> tree(Pointer<git_commit> commit) {
-  final out = calloc<Pointer<git_tree>>();
-  libgit2.git_commit_tree(out, commit);
-
-  final result = out.value;
-
-  calloc.free(out);
-
-  return result;
+  return using((arena) {
+    final out = arena<Pointer<git_tree>>();
+    libgit2.git_commit_tree(out, commit);
+    return out.value;
+  });
 }
 
 /// Reverts the given commit, producing changes in the index and working
@@ -390,44 +340,38 @@ void revert({
   String? checkoutDirectory,
   List<String>? checkoutPaths,
 }) {
-  final opts = calloc<git_revert_options>();
-  libgit2.git_revert_options_init(opts, GIT_REVERT_OPTIONS_VERSION);
+  using((arena) {
+    final opts = arena<git_revert_options>();
+    libgit2.git_revert_options_init(opts, GIT_REVERT_OPTIONS_VERSION);
 
-  opts.ref.mainline = mainline;
+    opts.ref.mainline = mainline;
 
-  if (mergeFavor != null) opts.ref.merge_opts.file_favorAsInt = mergeFavor;
-  if (mergeFlags != null) opts.ref.merge_opts.flags = mergeFlags;
-  if (mergeFileFlags != null) opts.ref.merge_opts.file_flags = mergeFileFlags;
+    if (mergeFavor != null) opts.ref.merge_opts.file_favorAsInt = mergeFavor;
+    if (mergeFlags != null) opts.ref.merge_opts.flags = mergeFlags;
+    if (mergeFileFlags != null) opts.ref.merge_opts.file_flags = mergeFileFlags;
 
-  if (checkoutStrategy != null) {
-    opts.ref.checkout_opts.checkout_strategy = checkoutStrategy;
-  }
-  if (checkoutDirectory != null) {
-    opts.ref.checkout_opts.target_directory = checkoutDirectory.toChar();
-  }
-  var pathPointers = <Pointer<Char>>[];
-  Pointer<Pointer<Char>> strArray = nullptr;
-  if (checkoutPaths != null) {
-    pathPointers = checkoutPaths.map((e) => e.toChar()).toList();
-    strArray = calloc(checkoutPaths.length);
-    for (var i = 0; i < checkoutPaths.length; i++) {
-      strArray[i] = pathPointers[i];
+    if (checkoutStrategy != null) {
+      opts.ref.checkout_opts.checkout_strategy = checkoutStrategy;
     }
-    opts.ref.checkout_opts.paths.strings = strArray;
-    opts.ref.checkout_opts.paths.count = checkoutPaths.length;
-  }
+    if (checkoutDirectory != null) {
+      opts.ref.checkout_opts.target_directory = checkoutDirectory.toChar();
+    }
 
-  final error = libgit2.git_revert(repoPointer, commitPointer, opts);
+    Pointer<Pointer<Char>> strArray = nullptr;
+    if (checkoutPaths != null) {
+      final pathPointers = checkoutPaths.map((e) => e.toChar()).toList();
+      strArray = arena(checkoutPaths.length);
+      for (var i = 0; i < checkoutPaths.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      opts.ref.checkout_opts.paths.strings = strArray;
+      opts.ref.checkout_opts.paths.count = checkoutPaths.length;
+    }
 
-  for (final p in pathPointers) {
-    calloc.free(p);
-  }
-  calloc.free(strArray);
-  calloc.free(opts);
+    final error = libgit2.git_revert(repoPointer, commitPointer, opts);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Reverts the given commit against the given "our" commit, producing an index
@@ -445,33 +389,26 @@ Pointer<git_index> revertCommit({
   int? mergeFlags,
   int? mergeFileFlags,
 }) {
-  final out = calloc<Pointer<git_index>>();
-  final opts = calloc<git_merge_options>();
-  libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final opts = arena<git_merge_options>();
+    libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
 
-  if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;
-  if (mergeFlags != null) opts.ref.flags = mergeFlags;
-  if (mergeFileFlags != null) opts.ref.file_flags = mergeFileFlags;
+    if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;
+    if (mergeFlags != null) opts.ref.flags = mergeFlags;
+    if (mergeFileFlags != null) opts.ref.file_flags = mergeFileFlags;
 
-  final error = libgit2.git_revert_commit(
-    out,
-    repoPointer,
-    revertCommitPointer,
-    ourCommitPointer,
-    mainline,
-    opts,
-  );
-
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(opts);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    final error = libgit2.git_revert_commit(
+      out,
+      repoPointer,
+      revertCommitPointer,
+      ourCommitPointer,
+      mainline,
+      opts,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Get the repository that contains the commit.
