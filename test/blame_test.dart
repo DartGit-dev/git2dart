@@ -139,12 +139,12 @@ void main() {
 
     test('throws when provided index for hunk is invalid', () {
       final blame = Blame.file(repo: repo, path: 'feature_file');
-      expect(() => blame[10], throwsA(isA<RangeError>()));
+      expect(() => blame[10], throwsA(isA<Git2DartError>()));
     });
 
     test('throws when provided line number for hunk is invalid', () {
       final blame = Blame.file(repo: repo, path: 'feature_file');
-      expect(() => blame.forLine(10), throwsA(isA<RangeError>()));
+      expect(() => blame.forLine(10), throwsA(isA<Git2DartError>()));
     });
 
     test('returns the blame for provided file with newestCommit argument', () {

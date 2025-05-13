@@ -1,7 +1,9 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart/src/oid.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -19,46 +21,40 @@ Pointer<git_blame> file({
   int? minLine,
   int? maxLine,
 }) {
-  final out = calloc<Pointer<git_blame>>();
-  final pathC = path.toChar();
-  final options = calloc<git_blame_options>();
-  libgit2.git_blame_options_init(options, GIT_BLAME_OPTIONS_VERSION);
+  return using((arena) {
+    final out = arena<Pointer<git_blame>>();
+    final pathC = path.toChar();
+    final options = arena<git_blame_options>();
+    libgit2.git_blame_options_init(options, GIT_BLAME_OPTIONS_VERSION);
 
-  options.ref.flags = flags;
+    options.ref.flags = flags;
 
-  if (minMatchCharacters != null) {
-    options.ref.min_match_characters = minMatchCharacters;
-  }
+    if (minMatchCharacters != null) {
+      options.ref.min_match_characters = minMatchCharacters;
+    }
 
-  if (newestCommit != null) {
-    options.ref.newest_commit = newestCommit.pointer.ref;
-  }
+    if (newestCommit != null) {
+      options.ref.newest_commit = newestCommit.pointer.ref;
+    }
 
-  if (oldestCommit != null) {
-    options.ref.oldest_commit = oldestCommit.pointer.ref;
-  }
+    if (oldestCommit != null) {
+      options.ref.oldest_commit = oldestCommit.pointer.ref;
+    }
 
-  if (minLine != null) {
-    options.ref.min_line = minLine;
-  }
+    if (minLine != null) {
+      options.ref.min_line = minLine;
+    }
 
-  if (maxLine != null) {
-    options.ref.max_line = maxLine;
-  }
+    if (maxLine != null) {
+      options.ref.max_line = maxLine;
+    }
 
-  final error = libgit2.git_blame_file(out, repoPointer, pathC, options);
+    final error = libgit2.git_blame_file(out, repoPointer, pathC, options);
 
-  final result = out.value;
+    checkErrorAndThrow(error);
 
-  calloc.free(out);
-  calloc.free(pathC);
-  calloc.free(options);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    return out.value;
+  });
 }
 
 /// Get blame data for a file that has been modified in memory.
@@ -71,25 +67,20 @@ Pointer<git_blame> buffer({
   required int bufferLen,
   Pointer<git_blame>? ref,
 }) {
-  final out = calloc<Pointer<git_blame>>();
-  final bufferC = buffer.toChar();
-  final error = libgit2.git_blame_buffer(
-    out,
-    ref ?? nullptr,
-    bufferC,
-    bufferLen,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_blame>>();
+    final bufferC = buffer.toChar();
 
-  final result = out.value;
+    final error = libgit2.git_blame_buffer(
+      out,
+      ref ?? nullptr,
+      bufferC,
+      bufferLen,
+    );
 
-  calloc.free(out);
-  calloc.free(bufferC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Gets the number of hunks that exist in the blame structure.
@@ -101,7 +92,7 @@ int hunkCount(Pointer<git_blame> blame) {
 ///
 /// The returned hunk is owned by the blame and must not be freed.
 ///
-/// Throws [ArgumentError] if the line number is out of bounds.
+/// Throws [Git2DartError] if the line number is out of bounds.
 Pointer<git_blame_hunk> getHunkByline({
   required Pointer<git_blame> blamePointer,
   required int lineno,
@@ -109,7 +100,7 @@ Pointer<git_blame_hunk> getHunkByline({
   final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineno);
 
   if (result == nullptr) {
-    throw RangeError('Line number out of bounds');
+    throw Git2DartError('Line number out of bounds');
   } else {
     return result;
   }
@@ -119,7 +110,7 @@ Pointer<git_blame_hunk> getHunkByline({
 ///
 /// The returned hunk is owned by the blame and must not be freed.
 ///
-/// Throws [RangeError] if the index is out of bounds.
+/// Throws [Git2DartError] if the index is out of bounds.
 Pointer<git_blame_hunk> getHunkByindex({
   required Pointer<git_blame> blamePointer,
   required int index,
@@ -127,7 +118,7 @@ Pointer<git_blame_hunk> getHunkByindex({
   final result = libgit2.git_blame_get_hunk_byindex(blamePointer, index);
 
   if (result == nullptr) {
-    throw RangeError('Index out of bounds');
+    throw Git2DartError('Index out of bounds');
   } else {
     return result;
   }

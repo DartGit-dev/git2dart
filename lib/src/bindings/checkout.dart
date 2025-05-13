@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Updates files in the index and the working tree to match the content of the
@@ -20,28 +21,29 @@ void head({
   String? directory,
   List<String>? paths,
 }) {
-  final initOpts = initOptions(
-    strategy: strategy,
-    directory: directory,
-    paths: paths,
-  );
-  final optsC = initOpts[0] as Pointer<git_checkout_options>;
-  final pathPointers = initOpts[1] as List<Pointer<Char>>;
-  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
+  using((arena) {
+    final optsC = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
 
-  try {
+    optsC.ref.checkout_strategy = strategy;
+
+    if (directory != null) {
+      optsC.ref.target_directory = directory.toChar();
+    }
+
+    if (paths != null) {
+      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final strArray = arena<Pointer<Char>>(paths.length);
+      for (var i = 0; i < paths.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      optsC.ref.paths.strings = strArray;
+      optsC.ref.paths.count = paths.length;
+    }
+
     final error = libgit2.git_checkout_head(repoPointer, optsC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-  } finally {
-    for (final p in pathPointers) {
-      calloc.free(p);
-    }
-    calloc.free(strArray);
-    calloc.free(optsC);
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Updates files in the working tree to match the content of the index.
@@ -53,28 +55,29 @@ void index({
   String? directory,
   List<String>? paths,
 }) {
-  final initOpts = initOptions(
-    strategy: strategy,
-    directory: directory,
-    paths: paths,
-  );
-  final optsC = initOpts[0] as Pointer<git_checkout_options>;
-  final pathPointers = initOpts[1] as List<Pointer<Char>>;
-  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
+  using((arena) {
+    final optsC = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
 
-  try {
+    optsC.ref.checkout_strategy = strategy;
+
+    if (directory != null) {
+      optsC.ref.target_directory = directory.toChar();
+    }
+
+    if (paths != null) {
+      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final strArray = arena<Pointer<Char>>(paths.length);
+      for (var i = 0; i < paths.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      optsC.ref.paths.strings = strArray;
+      optsC.ref.paths.count = paths.length;
+    }
+
     final error = libgit2.git_checkout_index(repoPointer, nullptr, optsC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-  } finally {
-    for (final p in pathPointers) {
-      calloc.free(p);
-    }
-    calloc.free(strArray);
-    calloc.free(optsC);
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Updates files in the index and working tree to match the content of the tree
@@ -88,28 +91,29 @@ void tree({
   String? directory,
   List<String>? paths,
 }) {
-  final initOpts = initOptions(
-    strategy: strategy,
-    directory: directory,
-    paths: paths,
-  );
-  final optsC = initOpts[0] as Pointer<git_checkout_options>;
-  final pathPointers = initOpts[1] as List<Pointer<Char>>;
-  final strArray = initOpts[2] as Pointer<Pointer<Char>>;
+  using((arena) {
+    final optsC = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
 
-  try {
+    optsC.ref.checkout_strategy = strategy;
+
+    if (directory != null) {
+      optsC.ref.target_directory = directory.toChar();
+    }
+
+    if (paths != null) {
+      final pathPointers = paths.map((e) => e.toChar()).toList();
+      final strArray = arena<Pointer<Char>>(paths.length);
+      for (var i = 0; i < paths.length; i++) {
+        strArray[i] = pathPointers[i];
+      }
+      optsC.ref.paths.strings = strArray;
+      optsC.ref.paths.count = paths.length;
+    }
+
     final error = libgit2.git_checkout_tree(repoPointer, treeishPointer, optsC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    }
-  } finally {
-    for (final p in pathPointers) {
-      calloc.free(p);
-    }
-    calloc.free(strArray);
-    calloc.free(optsC);
-  }
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Initialize checkout options with the given parameters.

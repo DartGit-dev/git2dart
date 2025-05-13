@@ -151,6 +151,7 @@ class Repository extends Equatable {
       repositoryCallback: repositoryCallback,
       checkoutBranch: checkoutBranch,
       callbacks: callbacks,
+      
     );
 
     _finalizer.attach(this, _repoPointer, detach: this);

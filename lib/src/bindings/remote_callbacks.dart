@@ -157,14 +157,14 @@ class RemoteCallbacks {
     int allowedTypes,
     Pointer<Void> payload,
   ) {
-    if (payload.cast<Char>().value == 2) {
-      throw LibGit2Error(libgit2.git_error_last());
+    if (payload.cast<Int8>().value == 2) {
+      throw Git2DartError('A lot of tries authentication');
     }
 
     final credentialType = credentials!.credentialType;
 
     if (allowedTypes & credentialType.value != credentialType.value) {
-      throw LibGit2Error(libgit2.git_error_last());
+      throw Git2DartError('Invalid credential type');
     }
 
     if (credentials is UserPass) {

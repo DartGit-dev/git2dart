@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Get the type of a reference.
@@ -50,11 +51,8 @@ Pointer<git_reference> resolve(Pointer<git_reference> ref) {
 
   calloc.free(out);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Lookup a reference by name in a repository.
@@ -83,11 +81,8 @@ Pointer<git_reference> lookup({
   calloc.free(out);
   calloc.free(nameC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Get the full name of a reference.
@@ -170,12 +165,10 @@ List<String> list(Pointer<git_repository> repo) {
   final error = libgit2.git_reference_list(array, repo);
   final result = <String>[];
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    for (var i = 0; i < array.ref.count; i++) {
-      result.add(array.ref.strings[i].cast<Char>().toDartString());
-    }
+  checkErrorAndThrow(error);
+
+  for (var i = 0; i < array.ref.count; i++) {
+    result.add(array.ref.strings[i].cast<Char>().toDartString());
   }
 
   calloc.free(array);
@@ -297,11 +290,8 @@ Pointer<git_reference> createDirect({
   calloc.free(nameC);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Create a new symbolic reference.
@@ -355,11 +345,8 @@ Pointer<git_reference> createSymbolic({
   calloc.free(targetC);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Update a direct reference to point to a new OID.
@@ -394,11 +381,8 @@ Pointer<git_reference> updateDirect({
   calloc.free(out);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Update a symbolic reference to point to a new target.
@@ -435,11 +419,8 @@ Pointer<git_reference> updateSymbolic({
   calloc.free(targetC);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Delete a reference.
@@ -452,10 +433,7 @@ Pointer<git_reference> updateSymbolic({
 /// Throws a [LibGit2Error] if the reference cannot be deleted.
 void delete(Pointer<git_reference> ref) {
   final error = libgit2.git_reference_delete(ref);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Free a reference object.
@@ -498,11 +476,8 @@ Pointer<git_reference> setTarget({
   calloc.free(out);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Create a new reference with the same name as the given reference but a
@@ -540,11 +515,8 @@ Pointer<git_reference> setTargetSymbolic({
   calloc.free(targetC);
   calloc.free(logMessageC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Recursively peel reference until object of the specified type is found.
@@ -567,11 +539,8 @@ Pointer<git_object> peel({
 
   calloc.free(out);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }
 
 /// Create a copy of an existing reference. The returned reference must be
@@ -606,9 +575,6 @@ Pointer<git_oid> nameToId({
 
   final error = libgit2.git_reference_name_to_id(result, repoPointer, nameC);
 
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+  checkErrorAndThrow(error);
+  return result;
 }

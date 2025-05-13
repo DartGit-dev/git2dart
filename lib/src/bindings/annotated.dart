@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Creates an annotated commit from the given commit id.
@@ -20,20 +21,17 @@ Pointer<git_annotated_commit> lookup({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final out = calloc<Pointer<git_annotated_commit>>();
-  final error = libgit2.git_annotated_commit_lookup(
-    out,
-    repoPointer,
-    oidPointer,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_annotated_commit>>();
+    final error = libgit2.git_annotated_commit_lookup(
+      out,
+      repoPointer,
+      oidPointer,
+    );
 
-  final result = out.value;
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Creates an annotated commit from the given reference.
@@ -47,20 +45,17 @@ Pointer<git_annotated_commit> fromRef({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_reference> referencePointer,
 }) {
-  final out = calloc<Pointer<git_annotated_commit>>();
-  final error = libgit2.git_annotated_commit_from_ref(
-    out,
-    repoPointer,
-    referencePointer,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_annotated_commit>>();
+    final error = libgit2.git_annotated_commit_from_ref(
+      out,
+      repoPointer,
+      referencePointer,
+    );
 
-  final result = out.value;
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Creates an annotated commit from a revision string.
@@ -74,22 +69,18 @@ Pointer<git_annotated_commit> fromRevSpec({
   required Pointer<git_repository> repoPointer,
   required String revspec,
 }) {
-  final out = calloc<Pointer<git_annotated_commit>>();
-  final revspecC = revspec.toChar();
-  final error = libgit2.git_annotated_commit_from_revspec(
-    out,
-    repoPointer,
-    revspecC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_annotated_commit>>();
+    final revspecC = revspec.toChar();
+    final error = libgit2.git_annotated_commit_from_revspec(
+      out,
+      repoPointer,
+      revspecC,
+    );
 
-  final result = out.value;
-  calloc.free(revspecC);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Creates an annotated commit from the given fetch head data.
@@ -105,26 +96,21 @@ Pointer<git_annotated_commit> fromFetchHead({
   required String remoteUrl,
   required Pointer<git_oid> oid,
 }) {
-  final out = calloc<Pointer<git_annotated_commit>>();
-  final branchNameC = branchName.toChar();
-  final remoteUrlC = remoteUrl.toChar();
-  final error = libgit2.git_annotated_commit_from_fetchhead(
-    out,
-    repoPointer,
-    branchNameC,
-    remoteUrlC,
-    oid,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_annotated_commit>>();
+    final branchNameC = branchName.toChar();
+    final remoteUrlC = remoteUrl.toChar();
+    final error = libgit2.git_annotated_commit_from_fetchhead(
+      out,
+      repoPointer,
+      branchNameC,
+      remoteUrlC,
+      oid,
+    );
 
-  final result = out.value;
-  calloc.free(out);
-  calloc.free(branchNameC);
-  calloc.free(remoteUrlC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-  return result;
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Gets the commit ID that the given annotated commit refers to.

@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/bindings/reference.dart' as reference_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Return a list of branches. The returned references must be freed with
@@ -13,37 +14,33 @@ List<Pointer<git_reference>> list({
   required Pointer<git_repository> repoPointer,
   required int flags,
 }) {
-  final iterator = calloc<Pointer<git_branch_iterator>>();
-  final iteratorError = libgit2.git_branch_iterator_new(
-    iterator,
-    repoPointer,
-    git_branch_t.fromValue(flags),
-  );
+  return using((arena) {
+    final iterator = arena<Pointer<git_branch_iterator>>();
+    final iteratorError = libgit2.git_branch_iterator_new(
+      iterator,
+      repoPointer,
+      git_branch_t.fromValue(flags),
+    );
 
-  if (iteratorError < 0) {
-    libgit2.git_branch_iterator_free(iterator.value);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    checkErrorAndThrow(iteratorError);
 
-  final result = <Pointer<git_reference>>[];
-  var error = 0;
+    final result = <Pointer<git_reference>>[];
+    var error = 0;
 
-  while (error == 0) {
-    final reference = calloc<Pointer<git_reference>>();
-    final refType = calloc<UnsignedInt>();
-    error = libgit2.git_branch_next(reference, refType, iterator.value);
-    if (error == 0) {
-      result.add(reference.value);
-    } else {
-      break;
+    while (error == 0) {
+      final reference = arena<Pointer<git_reference>>();
+      final refType = arena<UnsignedInt>();
+      error = libgit2.git_branch_next(reference, refType, iterator.value);
+      if (error == 0) {
+        result.add(reference.value);
+      } else {
+        break;
+      }
     }
-    calloc.free(reference);
-    calloc.free(refType);
-  }
 
-  libgit2.git_branch_iterator_free(iterator.value);
-  calloc.free(iterator);
-  return result;
+    libgit2.git_branch_iterator_free(iterator.value);
+    return result;
+  });
 }
 
 /// Lookup a branch by its name in a repository. The returned reference must be
@@ -57,25 +54,19 @@ Pointer<git_reference> lookup({
   required String branchName,
   required int branchType,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final branchNameC = branchName.toChar();
-  final error = libgit2.git_branch_lookup(
-    out,
-    repoPointer,
-    branchNameC,
-    git_branch_t.fromValue(branchType),
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final branchNameC = branchName.toChar();
+    final error = libgit2.git_branch_lookup(
+      out,
+      repoPointer,
+      branchNameC,
+      git_branch_t.fromValue(branchType),
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Create a new branch pointing at a target commit. The returned reference
@@ -94,27 +85,21 @@ Pointer<git_reference> create({
   required Pointer<git_commit> targetPointer,
   required bool force,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final branchNameC = branchName.toChar();
-  final forceC = force ? 1 : 0;
-  final error = libgit2.git_branch_create(
-    out,
-    repoPointer,
-    branchNameC,
-    targetPointer,
-    forceC,
-  );
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final branchNameC = branchName.toChar();
+    final forceC = force ? 1 : 0;
+    final error = libgit2.git_branch_create(
+      out,
+      repoPointer,
+      branchNameC,
+      targetPointer,
+      forceC,
+    );
 
-  final result = out.value;
-
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Delete an existing branch reference.
@@ -125,10 +110,7 @@ Pointer<git_reference> create({
 /// Throws a [LibGit2Error] if error occured.
 void delete(Pointer<git_reference> branch) {
   final error = libgit2.git_branch_delete(branch);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  checkErrorAndThrow(error);
 }
 
 /// Move/rename an existing local branch reference.
@@ -144,23 +126,20 @@ void rename({
   required String newBranchName,
   required bool force,
 }) {
-  final out = calloc<Pointer<git_reference>>();
-  final newBranchNameC = newBranchName.toChar();
-  final forceC = force ? 1 : 0;
-  final error = libgit2.git_branch_move(
-    out,
-    branchPointer,
-    newBranchNameC,
-    forceC,
-  );
+  using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final newBranchNameC = newBranchName.toChar();
+    final forceC = force ? 1 : 0;
+    final error = libgit2.git_branch_move(
+      out,
+      branchPointer,
+      newBranchNameC,
+      forceC,
+    );
 
-  calloc.free(newBranchNameC);
-  reference_bindings.free(out.value);
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+    reference_bindings.free(out.value);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Check if a branch is the current HEAD.
@@ -173,11 +152,7 @@ void rename({
 /// Throws a [LibGit2Error] if error occurred.
 bool isHead(Pointer<git_reference> ref) {
   final result = libgit2.git_branch_is_head(ref);
-
-  if (result < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
+  checkErrorAndThrow(result);
   return result == 1;
 }
 
@@ -192,11 +167,7 @@ bool isHead(Pointer<git_reference> ref) {
 /// Throws a [LibGit2Error] if error occurred.
 bool isCheckedOut(Pointer<git_reference> ref) {
   final result = libgit2.git_branch_is_checked_out(ref);
-
-  if (result < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
+  checkErrorAndThrow(result);
   return result == 1;
 }
 
@@ -204,18 +175,13 @@ bool isCheckedOut(Pointer<git_reference> ref) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 String getName(Pointer<git_reference> ref) {
-  final out = calloc<Pointer<Char>>();
-  final error = libgit2.git_branch_name(out, ref);
+  return using((arena) {
+    final out = arena<Pointer<Char>>();
+    final error = libgit2.git_branch_name(out, ref);
 
-  if (error < 0) {
-    calloc.free(out);
-    throw LibGit2Error(libgit2.git_error_last());
-  }
-
-  final name = out.value.cast<Utf8>().toDartString();
-  calloc.free(out);
-
-  return name;
+    checkErrorAndThrow(error);
+    return out.value.cast<Utf8>().toDartString();
+  });
 }
 
 /// Find the remote name of a remote-tracking branch.
@@ -230,21 +196,14 @@ String remoteName({
   required Pointer<git_repository> repoPointer,
   required String branchName,
 }) {
-  final out = calloc<git_buf>();
-  final branchNameC = branchName.toChar();
-  final error = libgit2.git_branch_remote_name(out, repoPointer, branchNameC);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final branchNameC = branchName.toChar();
+    final error = libgit2.git_branch_remote_name(out, repoPointer, branchNameC);
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Get the upstream of a branch. The returned reference must be freed with
@@ -255,18 +214,13 @@ String remoteName({
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_reference> getUpstream(Pointer<git_reference> branch) {
-  final out = calloc<Pointer<git_reference>>();
-  final error = libgit2.git_branch_upstream(out, branch);
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final error = libgit2.git_branch_upstream(out, branch);
 
-  final result = out.value;
-
-  calloc.free(out);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.value;
+  });
 }
 
 /// Set the upstream configuration for a local branch.
@@ -276,14 +230,11 @@ void setUpstream({
   required Pointer<git_reference> refPointer,
   required String? branchName,
 }) {
-  final branchNameC = branchName?.toChar() ?? nullptr;
-  final error = libgit2.git_branch_set_upstream(refPointer, branchNameC);
-
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  }
+  using((arena) {
+    final branchNameC = branchName?.toChar() ?? nullptr;
+    final error = libgit2.git_branch_set_upstream(refPointer, branchNameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Get the upstream name of a branch.
@@ -297,21 +248,18 @@ String upstreamName({
   required Pointer<git_repository> repoPointer,
   required String branchName,
 }) {
-  final out = calloc<git_buf>();
-  final branchNameC = branchName.toChar();
-  final error = libgit2.git_branch_upstream_name(out, repoPointer, branchNameC);
+  return using((arena) {
+    final out = arena<git_buf>();
+    final branchNameC = branchName.toChar();
+    final error = libgit2.git_branch_upstream_name(
+      out,
+      repoPointer,
+      branchNameC,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Retrieve the upstream remote of a local branch.
@@ -324,25 +272,18 @@ String upstreamRemote({
   required Pointer<git_repository> repoPointer,
   required String branchName,
 }) {
-  final out = calloc<git_buf>();
-  final branchNameC = branchName.toChar();
-  final error = libgit2.git_branch_upstream_remote(
-    out,
-    repoPointer,
-    branchNameC,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final branchNameC = branchName.toChar();
+    final error = libgit2.git_branch_upstream_remote(
+      out,
+      repoPointer,
+      branchNameC,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Retrieve the upstream merge of a local branch.
@@ -355,25 +296,18 @@ String upstreamMerge({
   required Pointer<git_repository> repoPointer,
   required String branchName,
 }) {
-  final out = calloc<git_buf>();
-  final branchNameC = branchName.toChar();
-  final error = libgit2.git_branch_upstream_merge(
-    out,
-    repoPointer,
-    branchNameC,
-  );
+  return using((arena) {
+    final out = arena<git_buf>();
+    final branchNameC = branchName.toChar();
+    final error = libgit2.git_branch_upstream_merge(
+      out,
+      repoPointer,
+      branchNameC,
+    );
 
-  final result = out.ref.ptr.toDartString(length: out.ref.size);
-
-  libgit2.git_buf_dispose(out);
-  calloc.free(out);
-  calloc.free(branchNameC);
-
-  if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
-  } else {
-    return result;
-  }
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
 }
 
 /// Free the given reference to release memory.

@@ -214,9 +214,9 @@ void main() {
 
     test('supports value comparison', () {
       File(filePath).writeAsStringSync('edit', mode: FileMode.append);
-      Stash.create(repo: repo, stasher: stasher, message: 'WIP');
+      final oid = Stash.create(repo: repo, stasher: stasher, message: 'WIP');
 
-      expect(repo.stashes.first, equals(repo.stashes.first));
+      expect(repo.stashes.first.oid, equals(oid));
     });
   });
 }
