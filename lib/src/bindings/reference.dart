@@ -525,7 +525,7 @@ Pointer<git_oid> nameToId({
   required String refName,
 }) {
   return using((arena) {
-    final result = arena<git_oid>();
+    final result = calloc<git_oid>();
     final nameC = refName.toChar(arena);
 
     final error = libgit2.git_reference_name_to_id(result, repoPointer, nameC);

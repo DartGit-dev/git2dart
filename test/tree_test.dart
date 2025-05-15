@@ -48,8 +48,8 @@ void main() {
     });
 
     test('throws when provided index position is outside of valid range', () {
-      expect(() => tree[10], throwsA(isA<RangeError>()));
-      expect(() => tree[-10], throwsA(isA<RangeError>()));
+      expect(() => tree[10], throwsA(isA<Git2DartError>()));
+      expect(() => tree[-10], throwsA(isA<Git2DartError>()));
     });
 
     test('returns tree entry with provided filename', () {
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('throws when nothing found for provided filename', () {
-      expect(() => tree['invalid'], throwsA(isA<ArgumentError>()));
+      expect(() => tree['invalid'], throwsA(isA<Git2DartError>()));
     });
 
     test('returns tree entry with provided path to file', () {

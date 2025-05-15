@@ -28,7 +28,7 @@ List<Map<String, Pointer>> list({
 
     while (nextError >= 0) {
       final noteOid = arena<git_oid>();
-      final annotatedOid = arena<git_oid>();
+      final annotatedOid = calloc<git_oid>();
       nextError = libgit2.git_note_next(noteOid, annotatedOid, iterator.value);
       if (nextError >= 0) {
         final out = arena<Pointer<git_note>>();
