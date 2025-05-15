@@ -124,31 +124,30 @@ void tree({
 /// - [2]: String array pointer that needs to be freed
 List<Object> initOptions({
   required int strategy,
+  required Arena arena,
   String? directory,
   List<String>? paths,
 }) {
-  return using((arena) {
-    final optsC = calloc<git_checkout_options>();
-    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+  final optsC = calloc<git_checkout_options>();
+  libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
 
-    optsC.ref.checkout_strategy = strategy;
+  optsC.ref.checkout_strategy = strategy;
 
-    if (directory != null) {
-      optsC.ref.target_directory = directory.toChar(arena);
+  if (directory != null) {
+    optsC.ref.target_directory = directory.toChar(arena);
+  }
+
+  var pathPointers = <Pointer<Char>>[];
+  Pointer<Pointer<Char>> strArray = nullptr;
+  if (paths != null) {
+    pathPointers = paths.map((e) => e.toChar(arena)).toList();
+    strArray = calloc(paths.length);
+    for (var i = 0; i < paths.length; i++) {
+      strArray[i] = pathPointers[i];
     }
+    optsC.ref.paths.strings = strArray;
+    optsC.ref.paths.count = paths.length;
+  }
 
-    var pathPointers = <Pointer<Char>>[];
-    Pointer<Pointer<Char>> strArray = nullptr;
-    if (paths != null) {
-      pathPointers = paths.map((e) => e.toChar(arena)).toList();
-      strArray = calloc(paths.length);
-      for (var i = 0; i < paths.length; i++) {
-        strArray[i] = pathPointers[i];
-      }
-      optsC.ref.paths.strings = strArray;
-      optsC.ref.paths.count = paths.length;
-    }
-
-    return [optsC, pathPointers, strArray];
-  });
+  return [optsC, pathPointers, strArray];
 }

@@ -237,7 +237,9 @@ Pointer<git_diff> parse(String content) {
     final out = arena<Pointer<git_diff>>();
     final contentC = content.toChar(arena);
     final error = libgit2.git_diff_from_buffer(out, contentC, content.length);
+
     checkErrorAndThrow(error);
+
     return out.value;
   });
 }
@@ -270,14 +272,12 @@ void findSimilar({
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> patchOid(Pointer<git_diff> diff) {
-  return using((arena) {
-    final out = arena<git_oid>();
-    final error = libgit2.git_diff_patchid(out, diff, nullptr);
+  final out = calloc<git_oid>();
+  final error = libgit2.git_diff_patchid(out, diff, nullptr);
 
-    checkErrorAndThrow(error);
+  checkErrorAndThrow(error);
 
-    return out;
-  });
+  return out;
 }
 
 /// Return the diff delta for an entry in the diff list.
@@ -402,7 +402,12 @@ bool apply({
 }) {
   return using((arena) {
     final opts = arena<git_apply_options>();
-    libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
+    final error = libgit2.git_apply_options_init(
+      opts,
+      GIT_APPLY_OPTIONS_VERSION,
+    );
+    checkErrorAndThrow(error);
+
     if (check) {
       opts.ref.flags |= git_apply_flags_t.GIT_APPLY_CHECK.value;
     }
@@ -418,11 +423,18 @@ bool apply({
       opts.ref.hunk_cb = callback;
     }
 
-    final error = libgit2.git_apply(repoPointer, diffPointer, location, opts);
+    final errorApply = libgit2.git_apply(
+      repoPointer,
+      diffPointer,
+      location,
+      opts,
+    );
 
-    checkErrorAndThrow(error);
+    if (errorApply >= 0) {
+      return true;
+    }
 
-    return true;
+    return check ? false : throw LibGit2Error(libgit2.git_error_last());
   });
 }
 

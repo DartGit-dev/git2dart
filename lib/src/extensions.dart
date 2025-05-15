@@ -12,6 +12,7 @@ extension ToChar on String {
   ///
   /// Returns a [Pointer<Char>] to the allocated memory containing the UTF-8 encoded string.
   Pointer<Char> toChar(Arena arena) => toNativeUtf8Arena(arena).cast<Char>();
+  Pointer<Char> toCharAlloc() => toNativeUtf8().cast<Char>();
 
   Pointer<Utf8> toNativeUtf8Arena(Arena arena) {
     final units = utf8.encode(this);

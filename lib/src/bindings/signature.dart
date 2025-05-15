@@ -19,22 +19,14 @@ Pointer<git_signature> create({
   required int offset,
 }) {
   return using((arena) {
-    final out = calloc<Pointer<git_signature>>();
+    final out = arena<Pointer<git_signature>>();
     final nameC = name.toChar(arena);
     final emailC = email.toChar(arena);
     final error = libgit2.git_signature_new(out, nameC, emailC, time, offset);
 
-    final result = out.value;
+    checkErrorAndThrow(error);
 
-    calloc.free(out);
-    calloc.free(nameC);
-    calloc.free(emailC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    } else {
-      return result;
-    }
+    return out.value;
   });
 }
 
@@ -44,22 +36,14 @@ Pointer<git_signature> create({
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_signature> now({required String name, required String email}) {
   return using((arena) {
-    final out = calloc<Pointer<git_signature>>();
+    final out = arena<Pointer<git_signature>>();
     final nameC = name.toChar(arena);
     final emailC = email.toChar(arena);
     final error = libgit2.git_signature_now(out, nameC, emailC);
 
-    final result = out.value;
+    checkErrorAndThrow(error);
 
-    calloc.free(out);
-    calloc.free(nameC);
-    calloc.free(emailC);
-
-    if (error < 0) {
-      throw LibGit2Error(libgit2.git_error_last());
-    } else {
-      return result;
-    }
+    return out.value;
   });
 }
 
@@ -78,7 +62,9 @@ Pointer<git_signature> defaultSignature(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
     final error = libgit2.git_signature_default(out, repo);
+
     checkErrorAndThrow(error);
+
     return out.value;
   });
 }
@@ -89,7 +75,9 @@ Pointer<git_signature> duplicate(Pointer<git_signature> sig) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
     final error = libgit2.git_signature_dup(out, sig);
+
     checkErrorAndThrow(error);
+
     return out.value;
   });
 }

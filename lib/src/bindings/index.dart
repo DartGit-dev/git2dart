@@ -103,14 +103,12 @@ void readTree({
 ///
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> writeTree(Pointer<git_index> index) {
-  return using((arena) {
-    final out = arena<git_oid>();
-    final error = libgit2.git_index_write_tree(out, index);
+  final out = calloc<git_oid>();
+  final error = libgit2.git_index_write_tree(out, index);
 
-    checkErrorAndThrow(error);
+  checkErrorAndThrow(error);
 
-    return out;
-  });
+  return out;
 }
 
 /// Write the index as a tree to the given repository.
@@ -125,18 +123,12 @@ Pointer<git_oid> writeTreeTo({
   required Pointer<git_index> indexPointer,
   required Pointer<git_repository> repoPointer,
 }) {
-  return using((arena) {
-    final out = arena<git_oid>();
-    final error = libgit2.git_index_write_tree_to(
-      out,
-      indexPointer,
-      repoPointer,
-    );
+  final out = calloc<git_oid>();
+  final error = libgit2.git_index_write_tree_to(out, indexPointer, repoPointer);
 
-    checkErrorAndThrow(error);
+  checkErrorAndThrow(error);
 
-    return out;
-  });
+  return out;
 }
 
 /// Get the count of entries currently in the index.

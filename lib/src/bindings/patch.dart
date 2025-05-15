@@ -21,8 +21,8 @@ Pointer<git_patch> fromBuffers({
     final oldBufferC = oldBuffer?.toChar(arena) ?? nullptr;
     final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
     final oldLen = oldBuffer?.length ?? 0;
-    final newBufferC = newBuffer?.toChar(arena) ?? nullptr;
-    final newAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final newBufferC = newBuffer?.toCharAlloc() ?? nullptr;
+    final newAsPathC = oldAsPath?.toCharAlloc() ?? nullptr;
     final newLen = newBuffer?.length ?? 0;
     final opts = _diffOptionsInit(
       arena: arena,
@@ -43,6 +43,10 @@ Pointer<git_patch> fromBuffers({
     );
 
     checkErrorAndThrow(error);
+
+    // We are not freeing buffers `oldBufferC` and `newBufferC` because patch
+    // object does not have reference to underlying buffers. So if the buffer is
+    // freed the patch text becomes corrupted.
 
     return out.value;
   });
@@ -98,7 +102,7 @@ Pointer<git_patch> fromBlobAndBuffer({
   return using((arena) {
     final out = arena<Pointer<git_patch>>();
     final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
-    final bufferC = buffer?.toChar(arena) ?? nullptr;
+    final bufferC = buffer?.toCharAlloc() ?? nullptr;
     final bufferAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
     final bufferLen = buffer?.length ?? 0;
     final opts = _diffOptionsInit(
@@ -118,6 +122,10 @@ Pointer<git_patch> fromBlobAndBuffer({
       opts,
     );
     checkErrorAndThrow(error);
+
+    // We are not freeing buffer `bufferC` because patch object does not have
+    // reference to underlying buffers. So if the buffer is freed the patch text
+    // becomes corrupted.
 
     return out.value;
   });

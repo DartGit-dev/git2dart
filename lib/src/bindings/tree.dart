@@ -20,7 +20,9 @@ Pointer<git_tree> lookup({
   return using((arena) {
     final out = arena<Pointer<git_tree>>();
     final error = libgit2.git_tree_lookup(out, repoPointer, oidPointer);
+
     checkErrorAndThrow(error);
+
     return out.value;
   });
 }

@@ -63,8 +63,11 @@ void main() {
         expect(Repository.discover(startPath: subDir), repo.path);
       });
 
-      test('returns empty string when repository not found', () {
-        expect(Repository.discover(startPath: Directory.systemTemp.path), '');
+      test('returns error when repository not found', () {
+        expect(
+          () => Repository.discover(startPath: Directory.systemTemp.path),
+          throwsA(isA<LibGit2Error>()),
+        );
       });
     });
 

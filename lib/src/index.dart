@@ -372,13 +372,12 @@ class Index with IterableMixin<IndexEntry> {
 
   @override
   Iterator<IndexEntry> get iterator => _IndexIterator(_indexPointer);
+  // coverage:ignore-start
+  final _finalizer = Finalizer<Pointer<git_index>>(
+    (pointer) => bindings.free(pointer),
+  );
+  // coverage:ignore-end
 }
-
-// coverage:ignore-start
-final _finalizer = Finalizer<Pointer<git_index>>(
-  (pointer) => bindings.free(pointer),
-);
-// coverage:ignore-end
 
 int _matchedPathCb(
   Pointer<Char> path,
@@ -413,9 +412,7 @@ class IndexEntry extends Equatable {
   String get path => _indexEntryPointer.ref.path.toDartString();
 
   set path(String path) {
-    using((arena) {
-      _indexEntryPointer.ref.path = path.toChar(arena);
-    });
+    _indexEntryPointer.ref.path = path.toCharAlloc();
   }
 
   /// UNIX file attributes of a index entry.

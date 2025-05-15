@@ -151,7 +151,6 @@ class Repository extends Equatable {
       repositoryCallback: repositoryCallback,
       checkoutBranch: checkoutBranch,
       callbacks: callbacks,
-      
     );
 
     _finalizer.attach(this, _repoPointer, detach: this);
@@ -485,17 +484,11 @@ class Repository extends Equatable {
         index: i,
       );
 
+      var delta = entry.ref.index_to_workdir;
       if (entry.ref.head_to_index != nullptr) {
-        path =
-            entry.ref.head_to_index.ref.old_file.path
-                .cast<Utf8>()
-                .toDartString();
-      } else {
-        path =
-            entry.ref.index_to_workdir.ref.old_file.path
-                .cast<Utf8>()
-                .toDartString();
+        delta = entry.ref.head_to_index;
       }
+      path = delta.ref.old_file.path.cast<Utf8>().toDartString();
 
       // Skipping GitStatus.current because entry that is in the list can't be
       // without changes but `&` on `0` value falsly adds it to the set of flags

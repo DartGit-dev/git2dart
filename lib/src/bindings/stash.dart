@@ -76,6 +76,7 @@ void apply({
     );
 
     final checkoutOptions = checkout_bindings.initOptions(
+      arena: arena,
       strategy: strategy,
       directory: directory,
       paths: paths,
@@ -134,6 +135,7 @@ void pop({
     );
 
     final checkoutOptions = checkout_bindings.initOptions(
+      arena: arena,
       strategy: strategy,
       directory: directory,
       paths: paths,

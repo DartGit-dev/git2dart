@@ -90,11 +90,11 @@ void main() {
     });
 
     test('throws if provided entry position is out of bounds', () {
-      expect(() => index[10], throwsA(isA<RangeError>()));
+      expect(() => index[10], throwsA(isA<Git2DartError>()));
     });
 
     test('throws if provided entry path is not found', () {
-      expect(() => index[10], throwsA(isA<ArgumentError>()));
+      expect(() => index[10], throwsA(isA<Git2DartError>()));
     });
 
     test('changes attributes', () {
