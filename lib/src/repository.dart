@@ -181,7 +181,7 @@ class Repository extends Equatable {
   /// Throws [ArgumentError] if provided [sha] hex string is not valid or
   /// [LibGit2Error] if error occured.
   Oid operator [](String sha) {
-    return Oid.fromSHA(repo: this, sha: sha);
+    return Oid.fromSHA(this, sha);
   }
 
   /// Path to the ".git" folder for normal repositories or path to the

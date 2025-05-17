@@ -155,7 +155,7 @@ final oid = repo['821ed6e'];
 
 // Using named constructor from Oid class (rules for SHA-1 string length is
 // the same)
-final oid = Oid.fromSHA(repo: repo, sha: '821ed6e');
+final oid = Oid.fromSHA(repo, '821ed6e');
 ```
 
 ### Commit

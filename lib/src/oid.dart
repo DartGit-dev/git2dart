@@ -52,8 +52,8 @@ class Oid extends Equatable {
   /// - The object with the given SHA cannot be found in the repository
   /// - The partial SHA is ambiguous (matches multiple objects)
   /// - Other Git-related errors occur
-  Oid.fromSHA({required Repository repo, required String sha}) {
-    if (sha.isValidSHA()) {
+  Oid.fromSHA(Repository repo, String sha) {
+    if (sha.isValidSHA1()) {
       if (sha.length == 40) {
         _oidPointer = bindings.fromSHA(sha);
       } else {

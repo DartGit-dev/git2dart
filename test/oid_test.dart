@@ -27,28 +27,25 @@ void main() {
   group('Oid', () {
     group('fromSHA()', () {
       test('initializes from 40-char hex string', () {
-        final oid = Oid.fromSHA(repo: repo, sha: sha);
+        final oid = Oid.fromSHA(repo, sha);
         expect(oid, isA<Oid>());
         expect(oid.sha, sha);
       });
 
       test('initializes from short hex string', () {
-        final oid = Oid.fromSHA(repo: repo, sha: sha.substring(0, 5));
+        final oid = Oid.fromSHA(repo, sha.substring(0, 5));
 
         expect(oid, isA<Oid>());
         expect(oid.sha, sha);
       });
 
       test('throws when sha hex string is too short', () {
-        expect(
-          () => Oid.fromSHA(repo: repo, sha: 'sha'),
-          throwsA(isA<ArgumentError>()),
-        );
+        expect(() => Oid.fromSHA(repo, 'sha'), throwsA(isA<ArgumentError>()));
       });
 
       test('throws when sha hex string is invalid', () {
         expect(
-          () => Oid.fromSHA(repo: repo, sha: '0000000'),
+          () => Oid.fromSHA(repo, '0000000'),
           throwsA(isA<LibGit2Error>()),
         );
       });
@@ -56,7 +53,7 @@ void main() {
 
     group('fromRaw()', () {
       test('initializes successfully', () {
-        final sourceOid = Oid.fromSHA(repo: repo, sha: sha);
+        final sourceOid = Oid.fromSHA(repo, sha);
         final oid = Oid.fromRaw(sourceOid.pointer.ref);
         expect(oid, isA<Oid>());
         expect(oid.sha, sha);
@@ -64,27 +61,27 @@ void main() {
     });
 
     test('returns sha hex string', () {
-      final oid = Oid.fromSHA(repo: repo, sha: sha);
+      final oid = Oid.fromSHA(repo, sha);
       expect(oid.sha, equals(sha));
     });
 
     group('compare', () {
       test('< and <=', () {
-        final oid1 = Oid.fromSHA(repo: repo, sha: sha);
-        final oid2 = Oid.fromSHA(repo: repo, sha: biggerSha);
+        final oid1 = Oid.fromSHA(repo, sha);
+        final oid2 = Oid.fromSHA(repo, biggerSha);
         expect(oid1 < oid2, true);
         expect(oid1 <= oid2, true);
       });
 
       test('==', () {
-        final oid1 = Oid.fromSHA(repo: repo, sha: sha);
-        final oid2 = Oid.fromSHA(repo: repo, sha: sha);
+        final oid1 = Oid.fromSHA(repo, sha);
+        final oid2 = Oid.fromSHA(repo, sha);
         expect(oid1 == oid2, true);
       });
 
       test('> and >=', () {
-        final oid1 = Oid.fromSHA(repo: repo, sha: sha);
-        final oid2 = Oid.fromSHA(repo: repo, sha: lesserSha);
+        final oid1 = Oid.fromSHA(repo, sha);
+        final oid2 = Oid.fromSHA(repo, lesserSha);
         expect(oid1 > oid2, true);
         expect(oid1 >= oid2, true);
       });

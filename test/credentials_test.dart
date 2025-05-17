@@ -87,7 +87,7 @@ void main() {
         username: 'git',
         pubKey: p.join('test', 'assets', 'keys', 'id_rsa.pub'),
         privateKey: p.join('test', 'assets', 'keys', 'id_rsa'),
-        passPhrase: '',
+        passPhrase: 'empty',
       );
       final callbacks = Callbacks(credentials: keypair);
 
@@ -191,7 +191,7 @@ void main() {
         username: 'git',
         pubKey: pubKey,
         privateKey: privateKey,
-        passPhrase: '',
+        passPhrase: 'empty',
       );
       final callbacks = Callbacks(credentials: keypair);
 

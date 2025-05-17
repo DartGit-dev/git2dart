@@ -33,18 +33,18 @@ Pointer<git_oid> mergeBase({
 /// merging.
 ///
 /// Throws a [LibGit2Error] if error occurred.
-Pointer<git_oid> mergeBaseMany({
+Pointer<git_oidarray> mergeBasesMany({
   required Pointer<git_repository> repoPointer,
-  required List<git_oid> commits,
+  required List<Pointer<git_oid>> commits,
 }) {
   return using((arena) {
-    final out = calloc<git_oid>();
+    final out = calloc<git_oidarray>();
     final commitsC = arena<git_oid>(commits.length);
     for (var i = 0; i < commits.length; i++) {
-      commitsC[i].id = commits[i].id;
+      commitsC[i] = commits[i].ref;
     }
 
-    final error = libgit2.git_merge_base_many(
+    final error = libgit2.git_merge_bases_many(
       out,
       repoPointer,
       commits.length,
@@ -66,13 +66,13 @@ Pointer<git_oid> mergeBaseMany({
 /// Throws a [LibGit2Error] if error occurred.
 Pointer<git_oid> mergeBaseOctopus({
   required Pointer<git_repository> repoPointer,
-  required List<git_oid> commits,
+  required List<Pointer<git_oid>> commits,
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
     final commitsC = arena<git_oid>(commits.length);
     for (var i = 0; i < commits.length; i++) {
-      commitsC[i].id = commits[i].id;
+      commitsC[i] = commits[i].ref;
     }
 
     final error = libgit2.git_merge_base_octopus(

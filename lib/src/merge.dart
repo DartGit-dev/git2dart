@@ -23,21 +23,39 @@ class Merge {
   /// Returns the OID of the merge base commit.
   ///
   /// Throws a [LibGit2Error] if an error occurs.
-  static Oid base({required Repository repo, required List<Oid> commits}) {
-    return commits.length == 2
-        ? Oid(
-          bindings.mergeBase(
-            repoPointer: repo.pointer,
-            aPointer: commits[0].pointer,
-            bPointer: commits[1].pointer,
-          ),
-        )
-        : Oid(
-          bindings.mergeBaseMany(
-            repoPointer: repo.pointer,
-            commits: commits.map((e) => e.pointer.ref).toList(),
-          ),
-        );
+  static Oid base(Repository repo, Oid commitA, Oid commitB) {
+    return Oid(
+      bindings.mergeBase(
+        repoPointer: repo.pointer,
+        aPointer: commitA.pointer,
+        bPointer: commitB.pointer,
+      ),
+    );
+  }
+
+  /// Finds a merge base between two or more commits.
+  ///
+  /// A merge base is a common ancestor of two or more commits that can be used
+  /// as a reference point for merging.
+  ///
+  /// [repo] is the repository containing the commits.
+  /// [commits] is a list of commit OIDs to find the merge base for.
+  ///
+  /// Returns the OID of the merge base commit.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  static List<Oid> baseMany(Repository repo, List<Oid> commits) {
+    final oidArray = bindings.mergeBasesMany(
+      repoPointer: repo.pointer,
+      commits: commits.map((e) => e.pointer).toList(),
+    );
+
+    final result = List.generate(
+      oidArray.ref.c,
+      (i) => Oid(oidArray.ref.ids + i),
+    );
+
+    return result;
   }
 
   /// Finds a merge base in preparation for an octopus merge.
@@ -58,7 +76,7 @@ class Merge {
     return Oid(
       bindings.mergeBaseOctopus(
         repoPointer: repo.pointer,
-        commits: commits.map((e) => e.pointer.ref).toList(),
+        commits: commits.map((e) => e.pointer).toList(),
       ),
     );
   }

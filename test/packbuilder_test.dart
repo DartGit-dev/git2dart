@@ -53,7 +53,7 @@ void main() {
 
     test('adds object recursively', () {
       final packbuilder = PackBuilder(repo);
-      final oid = Oid.fromSHA(repo: repo, sha: 'f17d0d48');
+      final oid = Oid.fromSHA(repo, 'f17d0d48');
 
       packbuilder.addRecursively(oid);
       expect(packbuilder.length, 3);
@@ -74,7 +74,7 @@ void main() {
     });
 
     test('throws when trying to add commit with invalid oid', () {
-      final oid = Oid.fromSHA(repo: repo, sha: '0' * 40);
+      final oid = Oid.fromSHA(repo, '0' * 40);
 
       expect(
         () => PackBuilder(repo).addCommit(oid),
@@ -90,7 +90,7 @@ void main() {
     });
 
     test('throws when trying to add tree with invalid oid', () {
-      final oid = Oid.fromSHA(repo: repo, sha: '0' * 40);
+      final oid = Oid.fromSHA(repo, '0' * 40);
 
       expect(
         () => PackBuilder(repo).addTree(oid),

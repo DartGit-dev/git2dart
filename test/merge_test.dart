@@ -348,46 +348,42 @@ theirs content
 
     test('finds merge base for two commits', () {
       expect(
-        Merge.base(repo: repo, commits: [repo['1490545'], repo['5aecfa0']]).sha,
+        Merge.base(repo, repo['1490545'], repo['5aecfa0']).sha,
         'fc38877b2552ab554752d9a77e1f48f738cca79b',
       );
 
       expect(
-        Merge.base(repo: repo, commits: [repo['f17d0d4'], repo['5aecfa0']]).sha,
+        Merge.base(repo, repo['f17d0d4'], repo['5aecfa0']).sha,
         'f17d0d48eae3aa08cecf29128a35e310c97b3521',
       );
     });
 
     test('finds merge base for many commits', () {
-      expect(
-        Merge.base(
-          repo: repo,
-          commits: [repo['1490545'], repo['0e409d6'], repo['5aecfa0']],
-        ).sha,
-        'fc38877b2552ab554752d9a77e1f48f738cca79b',
-      );
+      final bases = Merge.baseMany(repo, [
+        repo['1490545'],
+        repo['5aecfa0'],
+        repo['0e409d6'],
+      ]);
+      expect(bases.first.sha, 'fc38877b2552ab554752d9a77e1f48f738cca79b');
 
       expect(
-        Merge.base(
-          repo: repo,
-          commits: [repo['f17d0d4'], repo['5aecfa0'], repo['0e409d6']],
-        ).sha,
+        Merge.base(repo, repo['f17d0d4'], repo['5aecfa0']).sha,
         'f17d0d48eae3aa08cecf29128a35e310c97b3521',
       );
     });
 
     test('throws when trying to find merge base for invalid oid', () {
       expect(
-        () =>
-            Merge.base(repo: repo, commits: [repo['0' * 40], repo['5aecfa0']]),
+        () => Merge.base(repo, repo['0' * 40], repo['5aecfa0']),
         throwsA(isA<LibGit2Error>()),
       );
 
       expect(
-        () => Merge.base(
-          repo: repo,
-          commits: [repo['0' * 40], repo['5aecfa0'], repo['0e409d6']],
-        ),
+        () => Merge.baseMany(repo, [
+          repo['0' * 40],
+          repo['5aecfa0'],
+          repo['0e409d6'],
+        ]),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -418,10 +414,7 @@ theirs content
         final ourCommit = Commit.lookup(repo: repo, oid: repo['1490545']);
         final baseCommit = Commit.lookup(
           repo: repo,
-          oid: Merge.base(
-            repo: repo,
-            commits: [ourCommit.oid, theirCommit.oid],
-          ),
+          oid: Merge.base(repo, ourCommit.oid, theirCommit.oid),
         );
 
         final mergeIndex = Merge.trees(
@@ -449,10 +442,7 @@ theirs content
         final ourCommit = Commit.lookup(repo: repo, oid: repo['1490545']);
         final baseCommit = Commit.lookup(
           repo: repo,
-          oid: Merge.base(
-            repo: repo,
-            commits: [ourCommit.oid, theirCommit.oid],
-          ),
+          oid: Merge.base(repo, ourCommit.oid, theirCommit.oid),
         );
 
         final mergeIndex = Merge.trees(

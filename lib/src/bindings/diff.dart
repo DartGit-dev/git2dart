@@ -239,7 +239,7 @@ Pointer<git_diff> parse(String content) {
 
     final opts = arena<git_diff_parse_options>();
     opts.ref.version = GIT_DIFF_PARSE_OPTIONS_VERSION;
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
 
     final error = libgit2.git_diff_from_buffer(
       out,

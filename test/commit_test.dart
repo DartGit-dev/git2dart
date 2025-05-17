@@ -120,7 +120,7 @@ void main() {
         repo: repo,
         commit: AnnotatedCommit.lookup(
           repo: repo,
-          oid: Oid.fromSHA(repo: repo, sha: masterTip.sha),
+          oid: Oid.fromSHA(repo, masterTip.sha),
         ),
       );
 

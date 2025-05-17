@@ -17,7 +17,7 @@ Pointer<git_odb> create() {
     final out = arena<Pointer<git_odb>>();
     final opts = arena<git_odb_options>();
     opts.ref.version = GIT_ODB_OPTIONS_VERSION;
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
 
     final error = libgit2.git_odb_new(out, opts);
     checkErrorAndThrow(error);
@@ -53,17 +53,15 @@ Pointer<git_oid> existsPrefix({
   required Pointer<git_oid> shortOidPointer,
   required int length,
 }) {
-  return using((arena) {
-    final out = calloc<git_oid>();
-    final error = libgit2.git_odb_exists_prefix(
-      out,
-      odbPointer,
-      shortOidPointer,
-      length,
-    );
-    checkErrorAndThrow(error);
-    return out;
-  });
+  final out = calloc<git_oid>();
+  final error = libgit2.git_odb_exists_prefix(
+    out,
+    odbPointer,
+    shortOidPointer,
+    length,
+  );
+  checkErrorAndThrow(error);
+  return out;
 }
 
 /// Determine if the given object can be found in the object database.

@@ -15,8 +15,8 @@ Pointer<git_index> newInMemory() {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_index_options>();
-    libgit2.git_index_options_init(opts, GIT_INDEX_OPTIONS_VERSION);
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+    opts.ref.version = GIT_INDEX_OPTIONS_VERSION;
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
 
     final error = libgit2.git_index_new(out, opts);
 
