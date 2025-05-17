@@ -52,24 +52,22 @@ Pointer<git_credential> sshKey({
   required String privateKey,
   required String passPhrase,
 }) {
-  return using((arena) {
-    final out = arena<Pointer<git_credential>>();
-    final usernameC = username.toChar(arena);
-    final publicKeyC = publicKey.toChar(arena);
-    final privateKeyC = privateKey.toChar(arena);
-    final passPhraseC = passPhrase.toChar(arena);
+  final out = calloc<Pointer<git_credential>>();
+  final usernameC = username.toCharAlloc();
+  final publicKeyC = publicKey.toCharAlloc();
+  final privateKeyC = privateKey.toCharAlloc();
+  final passPhraseC = passPhrase.toCharAlloc();
 
-    final error = libgit2.git_credential_ssh_key_new(
-      out,
-      usernameC,
-      publicKeyC,
-      privateKeyC,
-      passPhraseC,
-    );
-    checkErrorAndThrow(error);
+  final error = libgit2.git_credential_ssh_key_new(
+    out,
+    usernameC,
+    publicKeyC,
+    privateKeyC,
+    passPhraseC,
+  );
+  checkErrorAndThrow(error);
 
-    return out.value;
-  });
+  return out.value;
 }
 
 /// Creates a new SSH key credential object that uses an SSH agent.

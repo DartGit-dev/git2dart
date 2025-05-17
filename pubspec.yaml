@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  git2dart_binaries: ^1.9.7
+  git2dart_binaries: ^1.9.9
   meta: ^1.8.0
   path: ^1.8.1
 

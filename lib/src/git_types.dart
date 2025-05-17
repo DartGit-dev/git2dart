@@ -1308,6 +1308,9 @@ enum GitCredential {
     64 => sshMemory,
     _ => throw ArgumentError('Unknown value for GitCredential: $value'),
   };
+
+  static Set<GitCredential> fromFlag(int value) =>
+      GitCredential.values.where((e) => value & e.value == e.value).toSet();
 }
 
 /// Combinations of these values describe the features with which libgit2

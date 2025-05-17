@@ -8,14 +8,17 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Create an in-memory index object.
 ///
-/// This index object cannot be read/written to the filesystem, but may be
-/// used to perform in-memory index operations.
-///
 /// The returned index must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
 Pointer<git_index> newInMemory() {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
-    final error = libgit2.git_index_new(out);
+    final opts = arena<git_index_options>();
+    libgit2.git_index_options_init(opts, GIT_INDEX_OPTIONS_VERSION);
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+
+    final error = libgit2.git_index_new(out, opts);
 
     checkErrorAndThrow(error);
 
@@ -422,27 +425,27 @@ void updateByPath({
   });
 }
 
-/// Update the contents of an index entry in the index from a buffer in memory.
-///
-/// This method will create a blob in the repository that owns the index and
-/// then update the index entry to point to the new blob.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void updateByBuffer({
-  required Pointer<git_index> indexPointer,
-  required Pointer<git_index_entry> entry,
-  required Pointer<Void> buffer,
-  required int len,
-}) {
-  final error = libgit2.git_index_add_frombuffer(
-    indexPointer,
-    entry,
-    buffer,
-    len,
-  );
+// /// Update the contents of an index entry in the index from a buffer in memory.
+// ///
+// /// This method will create a blob in the repository that owns the index and
+// /// then update the index entry to point to the new blob.
+// ///
+// /// Throws a [LibGit2Error] if error occurred.
+// void updateByBuffer({
+//   required Pointer<git_index> indexPointer,
+//   required Pointer<git_index_entry> entry,
+//   required Pointer<Void> buffer,
+//   required int len,
+// }) {
+//   final error = libgit2.git_index_add_frombuffer(
+//     indexPointer,
+//     entry,
+//     buffer,
+//     len,
+//   );
 
-  checkErrorAndThrow(error);
-}
+//   checkErrorAndThrow(error);
+// }
 
 /// Determine if the index contains entries representing file conflicts.
 bool hasConflicts(Pointer<git_index> index) =>

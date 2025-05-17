@@ -488,7 +488,10 @@ class Repository extends Equatable {
       if (entry.ref.head_to_index != nullptr) {
         delta = entry.ref.head_to_index;
       }
-      path = delta.ref.old_file.path.cast<Utf8>().toDartString();
+      path =
+          (delta.ref.flags & git_delta_t.GIT_DELTA_RENAMED.value) != 0
+              ? delta.ref.new_file.path.cast<Utf8>().toDartString()
+              : delta.ref.old_file.path.cast<Utf8>().toDartString();
 
       // Skipping GitStatus.current because entry that is in the list can't be
       // without changes but `&` on `0` value falsly adds it to the set of flags

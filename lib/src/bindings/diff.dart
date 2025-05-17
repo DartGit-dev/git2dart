@@ -236,7 +236,17 @@ Pointer<git_diff> parse(String content) {
   return using((arena) {
     final out = arena<Pointer<git_diff>>();
     final contentC = content.toChar(arena);
-    final error = libgit2.git_diff_from_buffer(out, contentC, content.length);
+
+    final opts = arena<git_diff_parse_options>();
+    opts.ref.version = GIT_DIFF_PARSE_OPTIONS_VERSION;
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+
+    final error = libgit2.git_diff_from_buffer(
+      out,
+      contentC,
+      content.length,
+      opts,
+    );
 
     checkErrorAndThrow(error);
 
@@ -500,23 +510,25 @@ Pointer<git_diff_options> _diffOptionsInit({
   return opts;
 }
 
-/// Format a patch into an email.
-///
-/// The returned string must be freed with [free].
-///
-/// Throws a [LibGit2Error] if error occurred.
-String formatEmail({
-  required Pointer<git_diff> diffPointer,
-  required Pointer<git_diff_format_email_options> options,
-}) {
-  return using((arena) {
-    final out = arena<git_buf>();
-    final error = libgit2.git_diff_format_email(out, diffPointer, options);
-    checkErrorAndThrow(error);
+// /// Format a patch into an email.
+// ///
+// /// The returned string must be freed with [free].
+// ///
+// /// Throws a [LibGit2Error] if error occurred.
+// String formatEmail({
+//   required Pointer<git_diff> diffPointer,
+//   required Pointer<git_email_create_options> options,
+// }) {
+//   return using((arena) {
+//     final out = arena<git_buf>();
+//     final error = libgit2.git_email_create_from_diff(out, diff, patch_idx, patch_count, commit_id, summary, body, author, opts)
 
-    final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+//     git_diff_format_email(out, diffPointer, options);
+//     checkErrorAndThrow(error);
 
-    return result;
-  });
-}
+//     final result = out.ref.ptr.toDartString(length: out.ref.size);
+//     libgit2.git_buf_dispose(out);
+
+//     return result;
+//   });
+// }

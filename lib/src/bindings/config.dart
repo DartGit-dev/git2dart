@@ -283,7 +283,7 @@ String getStringBuf({
 
     checkErrorAndThrow(error);
 
-    libgit2.git_buf_free(out);
+    libgit2.git_buf_dispose(out);
 
     return out.ref.ptr.toDartString(length: out.ref.size);
   });

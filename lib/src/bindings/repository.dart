@@ -149,7 +149,6 @@ Pointer<git_repository> clone({
     RemoteCallbacks.plug(
       callbacksOptions: fetchOptions.ref.callbacks,
       callbacks: callbacks,
-      arena: arena,
     );
 
     const except = -1;

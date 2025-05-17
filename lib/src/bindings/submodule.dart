@@ -120,7 +120,6 @@ void update({
     RemoteCallbacks.plug(
       callbacksOptions: options.ref.fetch_opts.callbacks,
       callbacks: callbacks,
-      arena: arena,
     );
 
     final error = libgit2.git_submodule_update(
@@ -218,7 +217,6 @@ void clone({
     RemoteCallbacks.plug(
       callbacksOptions: options.ref.fetch_opts.callbacks,
       callbacks: callbacks,
-      arena: arena,
     );
 
     final error = libgit2.git_submodule_clone(out, submodule, options);

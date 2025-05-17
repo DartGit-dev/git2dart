@@ -23,15 +23,15 @@ void main() {
     test('initializes keypair credentials', () {
       final credentials = const Keypair(
         username: 'user',
-        pubKey: 'id_ed25519.pub',
-        privateKey: 'id_ed25519',
+        pubKey: 'id_rsa.pub',
+        privateKey: 'id_rsa',
         passPhrase: 'passphrase',
       );
 
       expect(credentials, isA<Credentials>());
       expect(credentials.username, 'user');
-      expect(credentials.pubKey, 'id_ed25519.pub');
-      expect(credentials.privateKey, 'id_ed25519');
+      expect(credentials.pubKey, 'id_rsa.pub');
+      expect(credentials.privateKey, 'id_rsa');
       expect(credentials.passPhrase, 'passphrase');
       expect(credentials.credentialType, GitCredential.sshKey);
       expect(credentials.toString(), contains('Keypair{'));
@@ -85,14 +85,14 @@ void main() {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
-        pubKey: p.join('test', 'assets', 'keys', 'id_ed25519.pub'),
-        privateKey: p.join('test', 'assets', 'keys', 'id_ed25519'),
-        passPhrase: 'empty',
+        pubKey: p.join('test', 'assets', 'keys', 'id_rsa.pub'),
+        privateKey: p.join('test', 'assets', 'keys', 'id_rsa'),
+        passPhrase: '',
       );
       final callbacks = Callbacks(credentials: keypair);
 
       final repo = Repository.clone(
-        url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+        url: 'ssh://git@github.com/libgit2/TestGitRepository',
         localPath: cloneDir.path,
         callbacks: callbacks,
       );
@@ -109,7 +109,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
         ),
         throwsA(isA<LibGit2Error>()),
@@ -130,7 +130,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
           callbacks: callbacks,
         ),
@@ -144,7 +144,7 @@ void main() {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
-        pubKey: p.join('test', 'assets', 'keys', 'id_ed25519.pub'),
+        pubKey: p.join('test', 'assets', 'keys', 'id_rsa.pub'),
         privateKey: 'incorrect',
         passPhrase: 'empty',
       );
@@ -152,7 +152,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
           callbacks: callbacks,
         ),
@@ -169,7 +169,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
           callbacks: callbacks,
         ),
@@ -183,22 +183,20 @@ void main() {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final pubKey =
           File(
-            p.join('test', 'assets', 'keys', 'id_ed25519.pub'),
+            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
           ).readAsStringSync();
       final privateKey =
-          File(
-            p.join('test', 'assets', 'keys', 'id_ed25519'),
-          ).readAsStringSync();
+          File(p.join('test', 'assets', 'keys', 'id_rsa')).readAsStringSync();
       final keypair = KeypairFromMemory(
         username: 'git',
         pubKey: pubKey,
         privateKey: privateKey,
-        passPhrase: 'empty',
+        passPhrase: '',
       );
       final callbacks = Callbacks(credentials: keypair);
 
       final repo = Repository.clone(
-        url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+        url: 'ssh://git@github.com/libgit2/TestGitRepository',
         localPath: cloneDir.path,
         callbacks: callbacks,
       );
@@ -214,7 +212,7 @@ void main() {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final pubKey =
           File(
-            p.join('test', 'assets', 'keys', 'id_ed25519.pub'),
+            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
           ).readAsStringSync();
       final keypair = KeypairFromMemory(
         username: 'git',
@@ -226,7 +224,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
           callbacks: callbacks,
         ),
@@ -242,7 +240,7 @@ void main() {
 
       expect(
         () => Repository.clone(
-          url: 'ssh://git@github.com/DartGit-dev/TestGitRepository',
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
           localPath: cloneDir.path,
           callbacks: callbacks,
         ),

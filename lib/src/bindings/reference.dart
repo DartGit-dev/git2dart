@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';

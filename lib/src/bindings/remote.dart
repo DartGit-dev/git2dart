@@ -334,7 +334,6 @@ void connect({
     RemoteCallbacks.plug(
       callbacksOptions: callbacksOptions.ref,
       callbacks: callbacks,
-      arena: arena,
     );
 
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
@@ -439,7 +438,6 @@ void fetch({
     RemoteCallbacks.plug(
       callbacksOptions: opts.ref.callbacks,
       callbacks: callbacks,
-      arena: arena,
     );
     opts.ref.pruneAsInt = prune;
     opts.ref.proxy_opts = proxyOptions.ref;
@@ -492,7 +490,6 @@ void push({
     RemoteCallbacks.plug(
       callbacksOptions: opts.ref.callbacks,
       callbacks: callbacks,
-      arena: arena,
     );
     opts.ref.proxy_opts = proxyOptions.ref;
 

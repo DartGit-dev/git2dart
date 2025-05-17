@@ -338,7 +338,6 @@ class Remote extends Equatable {
       RemoteCallbacks.plug(
         callbacksOptions: remoteCallbacks.ref,
         callbacks: callbacks,
-        arena: arena,
       );
       remote_bindings.prune(
         remotePointer: _remotePointer,

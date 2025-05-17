@@ -14,7 +14,7 @@ Pointer<git_commit> lookup({
   required Pointer<git_oid> oidPointer,
 }) {
   return using((arena) {
-    final out = calloc<Pointer<git_commit>>();
+    final out = arena<Pointer<git_commit>>();
 
     final error = libgit2.git_commit_lookup(out, repoPointer, oidPointer);
     checkErrorAndThrow(error);

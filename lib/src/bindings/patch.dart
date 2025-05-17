@@ -22,7 +22,7 @@ Pointer<git_patch> fromBuffers({
     final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
     final oldLen = oldBuffer?.length ?? 0;
     final newBufferC = newBuffer?.toCharAlloc() ?? nullptr;
-    final newAsPathC = oldAsPath?.toCharAlloc() ?? nullptr;
+    final newAsPathC = newAsPath?.toCharAlloc() ?? nullptr;
     final newLen = newBuffer?.length ?? 0;
     final opts = _diffOptionsInit(
       arena: arena,

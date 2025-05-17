@@ -22,7 +22,12 @@ Pointer<git_oid> fromStrN(String hex) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstrn(out, hexC, hex.length);
+    final error = libgit2.git_oid_fromstrn(
+      out,
+      hexC,
+      hex.length,
+      git_oid_t.GIT_OID_SHA256,
+    );
     checkErrorAndThrow(error);
 
     return out;
@@ -47,7 +52,7 @@ Pointer<git_oid> fromSHA(String hex) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstr(out, hexC);
+    final error = libgit2.git_oid_fromstr(out, hexC, git_oid_t.GIT_OID_SHA256);
     checkErrorAndThrow(error);
 
     return out;
@@ -78,7 +83,7 @@ Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
       rawC[i] = raw[i];
     }
 
-    libgit2.git_oid_fromraw(out, rawC);
+    libgit2.git_oid_fromraw(out, rawC, git_oid_t.GIT_OID_SHA256);
     return out;
   });
 }

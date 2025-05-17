@@ -15,7 +15,11 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_odb> create() {
   return using((arena) {
     final out = arena<Pointer<git_odb>>();
-    final error = libgit2.git_odb_new(out);
+    final opts = arena<git_odb_options>();
+    opts.ref.version = GIT_ODB_OPTIONS_VERSION;
+    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA256.value;
+
+    final error = libgit2.git_odb_new(out, opts);
     checkErrorAndThrow(error);
     return out.value;
   });

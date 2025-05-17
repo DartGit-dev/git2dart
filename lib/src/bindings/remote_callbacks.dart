@@ -1,10 +1,11 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show Arena;
+import 'package:ffi/ffi.dart' show calloc;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
+import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// A class that manages callbacks for remote operations in Git.
@@ -27,7 +28,7 @@ class RemoteCallbacks {
 
   /// Callback function that reports textual progress messages from the remote.
   /// Used for receiving status messages during remote operations.
-  static int Function(Pointer<Char>, int, Pointer<Void>)? sidebandProgress;
+  static void Function(String message, int len, void payload)? sidebandProgress;
 
   /// Native callback that handles sideband progress messages from the remote.
   /// Converts C string data to Dart format.
@@ -36,7 +37,7 @@ class RemoteCallbacks {
     int length,
     Pointer<Void> payload,
   ) {
-    sidebandProgress!(progressOutput, length, payload);
+    sidebandProgress!(progressOutput.toDartString(), length, payload);
     return 0;
   }
 
@@ -155,14 +156,23 @@ class RemoteCallbacks {
     int allowedTypes,
     Pointer<Void> payload,
   ) {
-    if (payload.cast<Int8>().value == 2) {
-      throw Git2DartError('A lot of tries authentication');
+    if (payload.cast<Char>().value == 2) {
+      libgit2.git_error_set_str(
+        git_error_t.GIT_ERROR_INVALID.value,
+        'Incorrect credentials.'.toCharAlloc(),
+      );
+      throw LibGit2Error(libgit2.git_error_last());
     }
 
     final credentialType = credentials!.credentialType;
+    final allowedTypesSet = GitCredential.fromFlag(allowedTypes);
 
-    if (allowedTypes & credentialType.value != credentialType.value) {
-      throw Git2DartError('Invalid credential type');
+    if (!allowedTypesSet.contains(credentialType)) {
+      libgit2.git_error_set_str(
+        git_error_t.GIT_ERROR_INVALID.value,
+        'Invalid credential type $credentialType'.toCharAlloc(),
+      );
+      throw LibGit2Error(libgit2.git_error_last());
     }
 
     if (credentials is UserPass) {
@@ -210,7 +220,6 @@ class RemoteCallbacks {
   static void plug({
     required git_remote_callbacks callbacksOptions,
     required Callbacks callbacks,
-    required Arena arena,
   }) {
     const except = -1;
 
@@ -223,10 +232,8 @@ class RemoteCallbacks {
     }
 
     if (callbacks.sidebandProgress != null) {
-      sidebandProgress = (message, len, payload) {
-        callbacks.sidebandProgress!(message.toDartString(), len, payload);
-        return 0;
-      };
+      sidebandProgress = callbacks.sidebandProgress;
+
       callbacksOptions.sideband_progress = Pointer.fromFunction(
         sidebandProgressCb,
         except,
@@ -248,7 +255,7 @@ class RemoteCallbacks {
 
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
-      final withUser = arena<Int8>()..value = 1;
+      final withUser = calloc<Int8>()..value = 1;
       callbacksOptions.payload = withUser.cast();
       callbacksOptions.credentials = Pointer.fromFunction(
         credentialsCb,
