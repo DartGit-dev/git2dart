@@ -13,20 +13,7 @@ env:
   PUB_ENVIRONMENT: bot.github
 
 jobs:
-  # analyze:
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v3
-     
-  #     - name: Install flutter
-  #       uses: subosito/flutter-action@v2
-  #     - run:  flutter config --no-cli-animations
-  #     - run:  flutter pub get
-  #     - run:  dart format --output=none --set-exit-if-changed .
-  #     - run: flutter analyze --fatal-infos
-
   test:
-    # needs: analyze
     strategy:
       fail-fast: false
       matrix:
@@ -35,46 +22,48 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - name: Setup git
-        env:
-          GIT_TRACE: 1
-          LIBGIT2_TRACE: 1
-          GIT_SSH: "ssh -v -o IdentitiesOnly=yes"
+      - name: Setup environment
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
+    
+      - uses: actions/checkout@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: |
+          flutter pub get 
+          dart format --output=none --set-exit-if-changed .
+          flutter analyze --fatal-infos
+          flutter test 
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: flutter pub get
-      - run: flutter test  --reporter expanded /mnt/e/projects/git2dart/test/credentials_test.dart
 
-  # publish:
-  #   needs: test
-  #   runs-on: ubuntu-latest
+      - name: Install dependencies
+        run: flutter pub get
 
-  #   steps:
-  #     - name: Set git to use LF
-  #       run: |
-  #         git config --global core.autocrlf false
-  #         git config --global core.eol lf
-
-  #     - uses: actions/checkout@v3
-  #     - uses: subosito/flutter-action@v2
-  #       with:
-  #         channel: stable
-
-  #     - name: Install dependencies
-  #       run: flutter pub get
-
-  #     - name: Publish
-  #       uses: k-paxian/dart-package-publisher@master
-  #       with:
-  #         credentialJson: ${{ secrets.CREDENTIALS_JSON }}
-  #         skipTests: true
-  #         suppressBuildRunner: true
-  #         flutter: true
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@master
+        with:
+          accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
+          flutter: true
+          format: true
+          dryRunOnly: true
+          

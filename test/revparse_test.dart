@@ -112,10 +112,7 @@ void main() {
       expect(revspec.from.oid.sha, headSHA);
       expect(revspec.to?.oid.sha, '5aecfa0fb97eadaac050ccb99f03c3fb65460ad4');
       expect(revspec.flags, {GitRevSpec.range, GitRevSpec.mergeBase});
-      expect(
-        Merge.base(repo: repo, commits: [revspec.from.oid, revspec.to!.oid]),
-        isA<Oid>(),
-      );
+      expect(Merge.base(repo, revspec.from.oid, revspec.to!.oid), isA<Oid>());
     });
 
     test('throws on invalid range spec', () {
