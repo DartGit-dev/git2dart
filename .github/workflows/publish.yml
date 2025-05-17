@@ -22,6 +22,11 @@ jobs:
 
     steps:
       - name: Setup environment
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -o Acquire::Retries=3 && sudo DEBIAN_FRONTEND=noninteractive apt-get install  -o Acquire::Retries=3 -y --no-install-recommends libssl-dev
+
+      - name: Setup environment
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
