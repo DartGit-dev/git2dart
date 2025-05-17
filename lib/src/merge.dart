@@ -51,7 +51,7 @@ class Merge {
     );
 
     final result = List.generate(
-      oidArray.ref.c,
+      oidArray.ref.count,
       (i) => Oid(oidArray.ref.ids + i),
     );
 
