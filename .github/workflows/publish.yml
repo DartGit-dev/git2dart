@@ -17,15 +17,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # platform: [ubuntu-latest, macos-latest, windows-latest]
-        platform: [windows-latest]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - name: Setup dependencies
+      - name: Setup dependencies ubuntu
         if: ${{ matrix.platform == 'ubuntu-latest' }}
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -o Acquire::Retries=3 && sudo DEBIAN_FRONTEND=noninteractive apt-get install  -o Acquire::Retries=3 -y --no-install-recommends libssl-dev libpcre3
+
+      - name: Setup dependencies macos
+        if: ${{ matrix.platform == 'macos-latest' }}
+        run: |
+          brew install openssl
+
+      - name: Setup dependencies windows
+        if: ${{ matrix.platform == 'windows-latest' }}
+        run: |
+          choco install openssl -y
 
       - name: Setup environment
         run: |
