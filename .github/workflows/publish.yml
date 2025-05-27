@@ -38,8 +38,6 @@ jobs:
 
       - name: Setup environment
         run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
     
@@ -49,8 +47,6 @@ jobs:
         with:
           channel: stable
       - run: |
-          dart format --output=none --set-exit-if-changed .
-          flutter analyze --fatal-infos
           flutter test 
 
   publish:
@@ -70,6 +66,10 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - run: |
+          dart format --output=none --set-exit-if-changed .
+          flutter analyze --fatal-infos
 
       - name: Publish
         uses: k-paxian/dart-package-publisher@master
