@@ -411,7 +411,10 @@ void main() {
         void sideband(String message, int len, void payload) =>
             sidebandOutput.write(message);
 
-        remote.fetch(callbacks: Callbacks(sidebandProgress: sideband));
+        remote.fetch(
+          callbacks: Callbacks(sidebandProgress: sideband),
+          proxy: 'auto',
+        );
         expect(
           sidebandOutput.toString(),
           contains("Enumerating objects: 69, done"),
