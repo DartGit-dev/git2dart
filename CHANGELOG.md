@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.1] - 2025-05-29
+### Changes
+* Add missing API sections to README:
+  * Remote
+  * Reset
+  * Blame
+  * Describe
+  * Note
+  * Rebase
+  * Mailmap
+  * Credentials
+  * ODB
+  * Packbuilder
+  * Signature
+  * RevParse
+  * AnnotatedCommit
+* Add system dependencies section to README for Linux, macOS and Windows
+
 ## [0.2.0] - 2025-05-17
 
 ### Breaking Changes
