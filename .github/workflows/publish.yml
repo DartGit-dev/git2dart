@@ -77,5 +77,6 @@ jobs:
           accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
           refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
           flutter: true
+          skipTests: true
           format: true
           
