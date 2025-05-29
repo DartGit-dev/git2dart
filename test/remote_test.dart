@@ -397,7 +397,6 @@ void main() {
       },
     );
     test(
-
       tags: 'remote_fetch',
       'fetches data with provided sideband progress callback',
       () {
@@ -416,18 +415,9 @@ void main() {
           callbacks: Callbacks(sidebandProgress: sideband),
           proxy: 'auto',
         );
-        expect(
-          sidebandOutput,
-          contains("Enumerating objects: 69, done"),
-        );
-        expect(
-          sidebandOutput,
-          contains("Counting objects: 100% (1/1)"),
-        );
-        expect(
-          sidebandOutput,
-          contains("Counting objects: 100% (1/1), done"),
-        );
+        expect(sidebandOutput, contains("Enumerating objects: 69, done"));
+        expect(sidebandOutput, contains("Counting objects: 100% (1/1)"));
+        expect(sidebandOutput, contains("Counting objects: 100% (1/1), done"));
         expect(
           sidebandOutput,
           contains(

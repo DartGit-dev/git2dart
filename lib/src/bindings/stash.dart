@@ -172,7 +172,11 @@ int _stashCb(
   Pointer<Void> payload,
 ) {
   _stashList.add(
-    Stash(index: index, message: message.toDartString(), oid: Oid.fromRaw(oid.ref)),
+    Stash(
+      index: index,
+      message: message.toDartString(),
+      oid: Oid.fromRaw(oid.ref),
+    ),
   );
   return 0;
 }
@@ -199,5 +203,5 @@ List<Stash> list(Pointer<git_repository> repo) {
     return _stashList.toList(growable: false);
   } finally {
     _stashList.clear();
-  } 
+  }
 }
