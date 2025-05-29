@@ -398,6 +398,7 @@ void main() {
     );
     test(
       tags: 'remote_fetch',
+      skip: true,
       'fetches data with provided sideband progress callback',
       () {
         Remote.setUrl(

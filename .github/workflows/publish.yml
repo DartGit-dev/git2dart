@@ -78,5 +78,4 @@ jobs:
           refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
           flutter: true
           format: true
-          dryRunOnly: true
           
