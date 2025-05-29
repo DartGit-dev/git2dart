@@ -408,10 +408,9 @@ void main() {
         final remote = Remote.lookup(repo: repo, name: 'libgit2');
 
         var sidebandOutput = "";
-        void sideband(String message, int len, void payload) =>
-        {
+        void sideband(String message, int len, void payload) {
           print(message);
-            sidebandOutput += message;
+          sidebandOutput += message;
         }
 
         remote.fetch(
