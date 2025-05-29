@@ -409,7 +409,6 @@ void main() {
 
         var sidebandOutput = "";
         void sideband(String message, int len, void payload) {
-          print(message);
           sidebandOutput += message;
         }
 
