@@ -1,7 +1,7 @@
 name: git2dart
 description: Dart bindings to libgit2, provides ability to use libgit2 library in Dart and Flutter.
 repository: https://github.com/DartGit-dev/git2dart
-version: 0.2.0
+version: 0.2.1
 
 environment:
   sdk: ">=3.7.2 <4.0.0"
@@ -13,13 +13,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-  git2dart_binaries: ^1.9.12
+  git2dart_binaries: ^1.9.14
   meta: ^1.8.0
   path: ^1.8.1
 
 dev_dependencies:
   lints: ^5.1.1
-  test: ^1.20.0
+  test: ^1.26.2
 
 platforms:
   linux:
