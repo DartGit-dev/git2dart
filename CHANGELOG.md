@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.2] - 2025-06-07
+### Changes
+*  upgrade version libgit2 to 1.9.1
+
 ## [0.2.1] - 2025-05-29
 ### Changes
 * Add missing API sections to README:
