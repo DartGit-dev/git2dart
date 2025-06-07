@@ -172,7 +172,11 @@ int _stashCb(
   Pointer<Void> payload,
 ) {
   _stashList.add(
-    Stash(index: index, message: message.toDartString(), oid: Oid(oid)),
+    Stash(
+      index: index,
+      message: message.toDartString(),
+      oid: Oid.fromRaw(oid.ref),
+    ),
   );
   return 0;
 }

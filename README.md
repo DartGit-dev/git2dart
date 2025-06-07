@@ -9,6 +9,7 @@ This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 Currently supported platforms are 64-bit Windows, Linux, MacOS on both Flutter and Dart VM.
 
 - [Getting Started](#getting-started)
+- [System Dependencies](#system-dependencies)
 - [Usage](#usage)
   - [Repository](#repository)
   - [Commit](#commit)
@@ -27,6 +28,19 @@ Currently supported platforms are 64-bit Windows, Linux, MacOS on both Flutter a
   - [Stashes](#stashes)
   - [Worktrees](#worktrees)
   - [Submodules](#submodules)
+  - [Remote](#remote)
+  - [Reset](#reset)
+  - [Blame](#blame)
+  - [Describe](#describe)
+  - [Note](#note)
+  - [Rebase](#rebase)
+  - [Mailmap](#mailmap)
+  - [Credentials](#credentials)
+  - [ODB](#odb-object-database)
+  - [Packbuilder](#packbuilder)
+  - [Signature](#signature)
+  - [RevParse](#revparse)
+  - [AnnotatedCommit](#annotatedcommit)
 - [Contributing](#contributing)
 - [Development](#development)
 
@@ -49,7 +63,27 @@ print(Libgit2.version);
 
 **Note**: The following steps only required if you are using package in Dart application (Flutter application will have libgit2 library bundled automatically when you build for release).
 
-After adding the package as dependency you should run:
+## System Dependencies
+
+To use git2dart, you need to have the following system dependencies installed:
+
+### Linux
+
+```shell
+sudo apt-get install libssl-dev libpcre3
+```
+
+### macOS
+
+```shell
+brew install openssl
+```
+
+### Windows
+
+```powershell
+choco install openssl -y
+```
 
 ## Usage
 
@@ -638,6 +672,442 @@ submodule.url; // => 'https://some.url'
 // Set URL for the submodule in the configuration
 submodule.url = 'https://updated.url';
 submodule.sync();
+```
+
+---
+
+### Remote
+
+Some API methods for remote management:
+
+```dart
+// Get list of all remotes
+Remote.list(repo); // => ['origin', 'upstream', ...]
+
+// Lookup remote
+final remote = Remote.lookup(repo: repo, name: 'origin'); // => Remote
+remote.name; // => 'origin'
+remote.url; // => 'https://github.com/user/repo.git'
+
+// Create remote
+final remote = Remote.create(
+  repo: repo,
+  name: 'upstream',
+  url: 'https://github.com/upstream/repo.git',
+); // => Remote
+
+// Delete remote
+Remote.delete(repo: repo, name: 'upstream');
+
+// Rename remote
+Remote.rename(repo: repo, oldName: 'origin', newName: 'github');
+
+// Fetch from remote
+final remote = Remote.lookup(repo: repo, name: 'origin');
+final stats = remote.fetch(
+  callbacks: Callbacks(transferProgress: (stats) {
+    print('Progress: ${stats.receivedObjects}/${stats.totalObjects}');
+  }),
+); // => TransferProgress
+
+// Get remote references
+final refs = remote.ls(); // => [RemoteReference, RemoteReference, ...]
+```
+
+---
+
+### Reset
+
+Some API methods for reset operations:
+
+```dart
+// Reset repository to specific commit with different reset types
+// Hard reset - updates index and working directory
+repo.reset(oid: repo['821ed6e'], resetType: GitReset.hard);
+
+// Soft reset - only moves HEAD
+repo.reset(oid: repo['821ed6e'], resetType: GitReset.soft);
+
+// Mixed reset - updates index but not working directory
+repo.reset(oid: repo['821ed6e'], resetType: GitReset.mixed);
+
+// Reset specific paths in index to match commit
+repo.resetDefault(oid: repo.head.target, pathspec: ['file.txt']);
+```
+
+---
+
+### Blame
+
+Show what revision and author last modified each line of a file:
+
+```dart
+// Get blame for file
+final blame = Blame.file(
+  repo: repo,
+  path: 'path/to/file.txt',
+); // => Blame
+
+// Get blame hunk for specific line
+final hunk = blame.forLine(5); // => BlameHunk
+hunk.finalCommitOid; // => Oid
+hunk.finalCommitter; // => Signature
+hunk.originalPath; // => 'path/to/file.txt'
+
+// Get blame with options
+final blame = Blame.file(
+  repo: repo,
+  path: 'file.txt',
+  newestCommit: repo['fc38877'],
+  oldestCommit: repo['f17d0d4'],
+  minLine: 1,
+  maxLine: 10,
+);
+
+// Get blame for buffer
+final blame = Blame.buffer(
+  reference: existingBlame,
+  buffer: 'new content',
+);
+```
+
+---
+
+### Describe
+
+Generate human-readable name for any commit:
+
+```dart
+// Describe current working tree state
+repo.describe(); // => 'v0.2-10-g821ed6e'
+
+// Describe specific commit
+repo.describe(
+  commit: Commit.lookup(repo: repo, oid: repo['821ed6e']),
+); // => 'v0.1-1-g821ed6e'
+
+// Describe with options
+repo.describe(
+  describeStrategy: GitDescribeStrategy.tags, // only consider tags
+  abbreviatedSize: 7, // length of abbreviated commit id
+  alwaysUseLongFormat: true,
+  dirtySuffix: '-dirty',
+); // => 'v0.1-1-g821ed6e-dirty'
+```
+
+---
+
+### Note
+
+Add, remove and read notes attached to objects:
+
+```dart
+// Get list of all notes
+final notes = Note.list(repo); // => [Note, Note, ...]
+
+// Lookup note for object
+final note = Note.lookup(
+  repo: repo,
+  annotatedOid: repo.head.target,
+); // => Note
+note.message; // => 'Note content\n'
+note.oid; // => Oid
+
+// Create note
+final noteOid = Note.create(
+  repo: repo,
+  author: signature,
+  committer: signature,
+  annotatedOid: repo.head.target,
+  note: 'New note content',
+  force: true, // overwrite existing note
+); // => Oid
+
+// Delete note
+Note.delete(
+  repo: repo,
+  annotatedOid: repo.head.target,
+  author: signature,
+  committer: signature,
+);
+```
+
+---
+
+### Rebase
+
+Reapply commits on top of another base commit:
+
+```dart
+// Initialize rebase
+final rebase = Rebase.init(
+  repo: repo,
+  branch: AnnotatedCommit.fromReference(repo: repo, reference: branchRef),
+  onto: AnnotatedCommit.fromReference(repo: repo, reference: ontoRef),
+);
+
+// Get operations to be performed
+final operations = rebase.operations; // => [RebaseOperation, ...]
+
+// Perform rebase operations
+for (final operation in operations) {
+  // Apply next operation
+  rebase.next();
+  
+  // Commit the changes
+  rebase.commit(
+    committer: signature,
+    message: 'Rebased commit',
+  );
+}
+
+// Finish rebase
+rebase.finish();
+
+// Or abort rebase
+rebase.abort();
+
+// Open existing rebase
+final rebase = Rebase.open(repo);
+```
+
+---
+
+### Mailmap
+
+Map author/committer names and emails:
+
+```dart
+// Create empty mailmap
+final mailmap = Mailmap.empty();
+
+// Create from buffer
+final mailmap = Mailmap.fromBuffer('''
+Joe Developer <joe@example.com> <joe@old.com>
+Jane Doe <jane@example.com> <jane.doe@old.com>
+''');
+
+// Create from repository
+final mailmap = Mailmap.fromRepository(repo);
+
+// Add entry
+mailmap.addEntry(
+  realName: 'Joe Developer',
+  realEmail: 'joe@example.com',
+  replaceName: 'joe',
+  replaceEmail: 'joe@old.com',
+);
+
+// Resolve name and email
+final resolved = mailmap.resolve(
+  name: 'joe',
+  email: 'joe@old.com',
+); // => ['Joe Developer', 'joe@example.com']
+
+// Resolve signature
+final resolvedSig = mailmap.resolveSignature(signature);
+```
+
+---
+
+### Credentials
+
+Handle authentication for remote operations:
+
+```dart
+// Username/password credentials
+const credentials = UserPass(
+  username: 'user',
+  password: 'password',
+);
+
+// SSH key from files
+const credentials = Keypair(
+  username: 'git',
+  pubKey: 'path/to/id_rsa.pub',
+  privateKey: 'path/to/id_rsa',
+  passPhrase: 'key passphrase',
+);
+
+// SSH key from memory
+final credentials = KeypairFromMemory(
+  username: 'git',
+  pubKey: publicKeyContent,
+  privateKey: privateKeyContent,
+  passPhrase: 'key passphrase',
+);
+
+// SSH key from agent
+const credentials = KeypairFromAgent('git');
+
+// Use credentials with clone/fetch/push
+final repo = Repository.clone(
+  url: 'ssh://git@github.com/user/repo.git',
+  localPath: 'path/to/clone',
+  callbacks: Callbacks(credentials: credentials),
+);
+```
+
+---
+
+### ODB (Object Database)
+
+Direct access to Git object database:
+
+```dart
+// Get ODB from repository
+final odb = repo.odb; // => Odb
+
+// Check if object exists
+odb.contains(oid); // => true/false
+
+// Read object
+final obj = odb.read(oid); // => OdbObject
+obj.type; // => GitObject.blob
+obj.data; // => 'content'
+obj.size; // => 7
+
+// Write object
+final oid = odb.write(
+  type: GitObject.blob,
+  data: 'new content',
+); // => Oid
+
+// Get all objects
+final objects = odb.objects; // => [Oid, Oid, ...]
+
+// Add alternate ODB
+odb.addDiskAlternate('path/to/alternate/objects');
+```
+
+---
+
+### Packbuilder
+
+Build pack files:
+
+```dart
+// Create packbuilder
+final packbuilder = PackBuilder(repo);
+
+// Add objects
+packbuilder.add(oid);
+packbuilder.addRecursively(commitOid);
+packbuilder.addCommit(commitOid);
+packbuilder.addTree(treeOid);
+
+// Add objects from revwalk
+final walker = RevWalk(repo);
+walker.push(repo.head.target);
+packbuilder.addWalk(walker);
+
+// Write pack file
+packbuilder.write('path/to/pack');
+
+// Pack all objects in repository
+final written = repo.pack(); // => number of objects written
+
+// Pack with options
+repo.pack(
+  path: 'path/to/packdir',
+  threads: 4,
+  packDelegate: (builder) {
+    // custom logic to add objects
+    builder.addCommit(someOid);
+  },
+);
+```
+
+---
+
+### Signature
+
+Create and manage signatures for commits and tags:
+
+```dart
+// Create signature with current time
+final sig = Signature.create(
+  name: 'Author Name',
+  email: 'author@example.com',
+);
+
+// Create signature with specific time
+final sig = Signature.create(
+  name: 'Author Name',
+  email: 'author@example.com',
+  time: 1234567890, // seconds since epoch
+  offset: 120, // timezone offset in minutes
+);
+
+// Access signature properties
+sig.name; // => 'Author Name'
+sig.email; // => 'author@example.com'
+sig.time; // => 1234567890
+sig.offset; // => 120
+sig.sign; // => '+0200'
+```
+
+---
+
+### RevParse
+
+Parse revision specifications:
+
+```dart
+// Parse single revision spec
+final commit = RevParse.single(repo: repo, spec: 'HEAD') as Commit;
+final tree = RevParse.single(repo: repo, spec: 'HEAD^{tree}') as Tree;
+final blob = RevParse.single(repo: repo, spec: 'HEAD:README.md') as Blob;
+
+// Parse extended revision spec (returns object and reference)
+final result = RevParse.ext(repo: repo, spec: 'master');
+result.object; // => Commit
+result.reference; // => Reference
+
+// Parse revision range
+final range = RevParse.range(repo: repo, spec: 'HEAD~10..HEAD');
+range.from; // => Commit
+range.to; // => Commit
+range.flags; // => {GitRevSpec.range}
+
+// Parse merge base
+final range = RevParse.range(repo: repo, spec: 'HEAD...feature');
+range.flags; // => {GitRevSpec.range, GitRevSpec.mergeBase}
+```
+
+---
+
+### AnnotatedCommit
+
+Annotated commits carry additional information for merge/rebase operations:
+
+```dart
+// Create from oid
+final annotated = AnnotatedCommit.lookup(repo: repo, oid: commitOid);
+
+// Create from reference
+final annotated = AnnotatedCommit.fromReference(
+  repo: repo,
+  reference: branchRef,
+);
+
+// Create from revision spec
+final annotated = AnnotatedCommit.fromRevSpec(
+  repo: repo,
+  spec: '@{-1}', // previous branch
+);
+
+// Create from fetch head
+final annotated = AnnotatedCommit.fromFetchHead(
+  repo: repo,
+  branchName: 'master',
+  remoteUrl: 'https://github.com/user/repo.git',
+  oid: commitOid,
+);
+
+// Access properties
+annotated.oid; // => Oid
+annotated.refName; // => 'refs/heads/master'
 ```
 
 ---

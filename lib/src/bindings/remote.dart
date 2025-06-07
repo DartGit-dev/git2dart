@@ -1,6 +1,7 @@
 import 'dart:ffi';
+import 'dart:ffi' as ffi;
 
-import 'package:ffi/ffi.dart' show Arena, using;
+import 'package:ffi/ffi.dart' show Arena, calloc, using;
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart/src/callbacks.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -418,9 +419,9 @@ void fetch({
   String? proxyOption,
 }) {
   using((arena) {
-    final refspecsC = arena<git_strarray>();
+    final refspecsC = calloc<git_strarray>();
     final refspecsPointers = refspecs.map((e) => e.toChar(arena)).toList();
-    final strArray = arena<Pointer<Char>>(refspecs.length);
+    final strArray = calloc<Pointer<Char>>(refspecs.length);
 
     for (var i = 0; i < refspecs.length; i++) {
       strArray[i] = refspecsPointers[i];
@@ -432,7 +433,7 @@ void fetch({
 
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
-    final opts = arena<git_fetch_options>();
+    final opts = calloc<git_fetch_options>();
     libgit2.git_fetch_options_init(opts, GIT_FETCH_OPTIONS_VERSION);
 
     RemoteCallbacks.plug(
