@@ -1,5 +1,4 @@
 import 'dart:ffi';
-
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
@@ -38,8 +37,8 @@ bool isBinary(Pointer<git_blob> blob) {
 /// Get a read-only buffer with the raw content of a blob.
 ///
 /// Returns the raw content as a UTF-8 string.
-String content(Pointer<git_blob> blob) {
-  return libgit2.git_blob_rawcontent(blob).cast<Utf8>().toDartString();
+Pointer<Utf8> content(Pointer<git_blob> blob) {
+  return libgit2.git_blob_rawcontent(blob).cast<Utf8>();
 }
 
 /// Get the size in bytes of the contents of a blob.

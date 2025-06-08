@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:ffi';
-
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
-import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/patch.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -235,6 +235,10 @@ class Patch extends Equatable {
           hunkIndex: index,
           lineOfHunk: i,
         );
+        final data = linePointer.ref.content.cast<Uint8>().asTypedList(
+          linePointer.ref.content_len,
+        );
+        final content = utf8.decode(data, allowMalformed: true);
         lines.add(
           DiffLine._(
             origin: GitDiffLine.fromValue(linePointer.ref.origin),
@@ -242,9 +246,8 @@ class Patch extends Equatable {
             newLineNumber: linePointer.ref.new_lineno,
             numLines: linePointer.ref.num_lines,
             contentOffset: linePointer.ref.content_offset,
-            content: linePointer.ref.content.cast<Utf8>().toDartString(
-              length: linePointer.ref.content_len,
-            ),
+            content: content,
+            contentBytes: data,
           ),
         );
       }
@@ -395,6 +398,7 @@ class DiffLine extends Equatable {
     required this.numLines,
     required this.contentOffset,
     required this.content,
+    required this.contentBytes,
   });
 
   /// Type of the line (addition, deletion, or context).
@@ -414,6 +418,8 @@ class DiffLine extends Equatable {
 
   /// Content of the diff line.
   final String content;
+
+  final Uint8List contentBytes;
 
   @override
   String toString() {

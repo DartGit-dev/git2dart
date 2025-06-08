@@ -1,6 +1,6 @@
 import 'dart:ffi';
-
 import 'package:equatable/equatable.dart';
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/blob.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -82,7 +82,7 @@ class Blob extends Equatable {
   bool get isBinary => bindings.isBinary(_blobPointer);
 
   /// Read-only buffer with the raw content of a blob.
-  String get content => bindings.content(_blobPointer);
+  Pointer<Utf8> get contentBytes => bindings.content(_blobPointer);
 
   /// Size in bytes of the contents of a blob.
   int get size => bindings.size(_blobPointer);
