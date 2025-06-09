@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Extension methods for String to C char pointer conversion.
 extension ToChar on String {
@@ -21,5 +22,16 @@ extension ToChar on String {
     nativeString.setAll(0, units);
     nativeString[units.length] = 0;
     return result.cast();
+  }
+}
+
+/// Extension methods for validating SHA-256 strings.
+extension IsValidSHA256 on String {
+  /// Returns `true` if the string is a valid SHA-256 hex string.
+  bool isValidSHA256() {
+    final hexRegExp = RegExp(r'^[0-9a-fA-F]+$');
+    return hexRegExp.hasMatch(this) &&
+        (GIT_OID_MINPREFIXLEN <= length &&
+            GIT_OID_SHA256_HEXSIZE >= length);
   }
 }

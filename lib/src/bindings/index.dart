@@ -11,12 +11,12 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// The returned index must be freed with [free].
 ///
 /// Throws a [LibGit2Error] if error occurred.
-Pointer<git_index> newInMemory() {
+Pointer<git_index> newInMemory({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_index_options>();
     opts.ref.version = GIT_INDEX_OPTIONS_VERSION;
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
+    opts.ref.oid_typeAsInt = oidType.value;
 
     final error = libgit2.git_index_new(out, opts);
 

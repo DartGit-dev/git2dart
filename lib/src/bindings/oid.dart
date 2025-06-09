@@ -7,7 +7,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Parse N characters of a hex formatted object id into a git_oid.
 ///
-/// This function is useful when working with partial SHA-1 hashes.
+/// This function is useful when working with partial SHA-1 or SHA-256 hashes.
 /// It will parse the first [hex.length] characters of the provided [hex] string.
 ///
 /// Example:
@@ -17,7 +17,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Note: The function assumes the input string contains valid hexadecimal
 /// characters. Input validation should be done before calling this function.
-Pointer<git_oid> fromStrN(String hex) {
+Pointer<git_oid> fromStrN(
+  String hex, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
@@ -26,7 +29,7 @@ Pointer<git_oid> fromStrN(String hex) {
       out,
       hexC,
       hex.length,
-      git_oid_t.GIT_OID_SHA1,
+      type,
     );
     checkErrorAndThrow(error);
 
@@ -34,39 +37,43 @@ Pointer<git_oid> fromStrN(String hex) {
   });
 }
 
-/// Parse a full 40-character hex formatted object id into a git_oid.
+/// Parse a full hex formatted object id into a git_oid.
 ///
-/// This function expects a full 40-character SHA-1 hash string.
-/// For partial hashes, use [fromStrN] instead.
+/// This function expects a full SHA-1 or SHA-256 hash string. For
+/// partial hashes, use [fromStrN] instead.
 ///
 /// Example:
 /// ```dart
 /// final oid = fromSHA('1234567890123456789012345678901234567890');
 /// ```
 ///
-/// Note: The function assumes the input string is exactly 40 characters long
-/// and contains valid hexadecimal characters. Input validation should be done
+/// Note: The function assumes the input string is the correct length for the
+/// provided [type] (40 characters for SHA-1 and 64 characters for SHA-256) and
+/// contains valid hexadecimal characters. Input validation should be done
 /// before calling this function.
-Pointer<git_oid> fromSHA(String hex) {
+Pointer<git_oid> fromSHA(
+  String hex, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstr(out, hexC, git_oid_t.GIT_OID_SHA1);
+    final error = libgit2.git_oid_fromstr(out, hexC, type);
     checkErrorAndThrow(error);
 
     return out;
   });
 }
 
-/// Copy a raw 20-byte SHA-1 hash into a git_oid structure.
+/// Copy a raw hash into a git_oid structure.
 ///
-/// This function is useful when working with raw SHA-1 hash values,
-/// typically obtained from internal Git operations or when implementing
-/// custom Git functionality.
+/// This function is useful when working with raw SHA-1 or SHA-256 hash
+/// values, typically obtained from internal Git operations or when
+/// implementing custom Git functionality.
 ///
-/// The input [raw] must be exactly 20 bytes long, as this is the size
-/// of a SHA-1 hash.
+/// The input [raw] must be of the correct length for the chosen [type]
+/// (20 bytes for SHA-1, 32 bytes for SHA-256).
 ///
 /// Example:
 /// ```dart
@@ -74,24 +81,30 @@ Pointer<git_oid> fromSHA(String hex) {
 /// // Fill raw with hash bytes...
 /// final oid = fromRaw(raw);
 /// ```
-Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
+Pointer<git_oid> fromRaw(
+  Array<UnsignedChar> raw, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final rawC = arena<UnsignedChar>(20);
+  final length =
+      type == git_oid_t.GIT_OID_SHA256 ? 32 : 20;
+  final rawC = arena<UnsignedChar>(length);
 
-    for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < length; i++) {
       rawC[i] = raw[i];
     }
 
-    libgit2.git_oid_fromraw(out, rawC, git_oid_t.GIT_OID_SHA1);
+    libgit2.git_oid_fromraw(out, rawC, type);
     return out;
   });
 }
 
-/// Format a git_oid into a 40-character hex string.
+/// Format a git_oid into a hexadecimal string.
 ///
-/// This function converts a git_oid structure into its string representation,
-/// which is a 40-character hexadecimal string.
+/// This function converts a git_oid structure into its string representation.
+/// The resulting length depends on the underlying hash type (40 characters for
+/// SHA-1, 64 characters for SHA-256).
 ///
 /// Example:
 /// ```dart
@@ -99,9 +112,14 @@ Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
 /// ```
 String toSHA(Pointer<git_oid> id) {
   return using((arena) {
-    final out = arena<Char>(40);
+    final type = id.ref.type;
+    final length =
+        type == git_oid_t.GIT_OID_SHA256.value
+            ? GIT_OID_SHA256_HEXSIZE
+            : GIT_OID_SHA1_HEXSIZE;
+    final out = arena<Char>(length);
     libgit2.git_oid_fmt(out, id);
-    return out.toDartString(length: 40);
+    return out.toDartString(length: length);
   });
 }
 

@@ -261,7 +261,10 @@ void main() {
       );
     });
 
-    test("returns remote repo's reference list", () {
+    test(
+      "returns remote repo's reference list",
+      tags: 'remote_fetch',
+      () {
       Remote.setUrl(
         repo: repo,
         remote: 'libgit2',
