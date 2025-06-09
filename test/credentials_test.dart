@@ -63,7 +63,10 @@ void main() {
       expect(credentials.toString(), contains('KeypairFromAgent{'));
     });
 
-    test('throws when provided username and password are incorrect', () {
+    test(
+      'throws when provided username and password are incorrect',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(
         credentials: UserPass(username: 'libgit2', password: 'libgit2'),
@@ -81,7 +84,10 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test('clones repository with provided keypair', () {
+    test(
+      'clones repository with provided keypair',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
@@ -104,7 +110,10 @@ void main() {
       }
     });
 
-    test('throws when no credentials is provided', () {
+    test(
+      'throws when no credentials is provided',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
 
       expect(
@@ -118,7 +127,10 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test('throws when provided keypair is invalid', () {
+    test(
+      'throws when provided keypair is invalid',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = const Keypair(
         username: 'git',
@@ -140,7 +152,10 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test('throws when provided keypair is incorrect', () {
+    test(
+      'throws when provided keypair is incorrect',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
@@ -161,7 +176,10 @@ void main() {
 
       cloneDir.deleteSync(recursive: true);
     });
-    test('throws when provided credential type is invalid', () {
+    test(
+      'throws when provided credential type is invalid',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(
         credentials: UserPass(username: 'libgit2', password: 'libgit2'),
@@ -179,7 +197,10 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test('clones repository with provided keypair from memory', () {
+    test(
+      'clones repository with provided keypair from memory',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final pubKey =
           File(
@@ -208,7 +229,10 @@ void main() {
       }
     });
 
-    test('throws when provided keypair from memory is incorrect', () {
+    test(
+      'throws when provided keypair from memory is incorrect',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final pubKey =
           File(
@@ -234,7 +258,10 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test('throws when provided keypair from agent is incorrect', () {
+    test(
+      'throws when provided keypair from agent is incorrect',
+      tags: 'remote_fetch',
+      () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final callbacks = const Callbacks(credentials: KeypairFromAgent('git'));
 

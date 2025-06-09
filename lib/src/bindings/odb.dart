@@ -12,12 +12,12 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Before the ODB can be used for read/writing, a custom database backend must be
 /// manually added.
-Pointer<git_odb> create() {
+Pointer<git_odb> create({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
   return using((arena) {
     final out = arena<Pointer<git_odb>>();
     final opts = arena<git_odb_options>();
     opts.ref.version = GIT_ODB_OPTIONS_VERSION;
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
+    opts.ref.oid_typeAsInt = oidType.value;
 
     final error = libgit2.git_odb_new(out, opts);
     checkErrorAndThrow(error);

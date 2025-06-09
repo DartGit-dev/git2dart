@@ -17,7 +17,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 ///
 /// Note: The function assumes the input string contains valid hexadecimal
 /// characters. Input validation should be done before calling this function.
-Pointer<git_oid> fromStrN(String hex) {
+Pointer<git_oid> fromStrN(
+  String hex, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
@@ -26,7 +29,7 @@ Pointer<git_oid> fromStrN(String hex) {
       out,
       hexC,
       hex.length,
-      git_oid_t.GIT_OID_SHA1,
+      type,
     );
     checkErrorAndThrow(error);
 
@@ -47,12 +50,15 @@ Pointer<git_oid> fromStrN(String hex) {
 /// Note: The function assumes the input string is exactly 40 characters long
 /// and contains valid hexadecimal characters. Input validation should be done
 /// before calling this function.
-Pointer<git_oid> fromSHA(String hex) {
+Pointer<git_oid> fromSHA(
+  String hex, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstr(out, hexC, git_oid_t.GIT_OID_SHA1);
+    final error = libgit2.git_oid_fromstr(out, hexC, type);
     checkErrorAndThrow(error);
 
     return out;
@@ -74,7 +80,10 @@ Pointer<git_oid> fromSHA(String hex) {
 /// // Fill raw with hash bytes...
 /// final oid = fromRaw(raw);
 /// ```
-Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
+Pointer<git_oid> fromRaw(
+  Array<UnsignedChar> raw, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = calloc<git_oid>();
     final rawC = arena<UnsignedChar>(20);
@@ -83,7 +92,7 @@ Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
       rawC[i] = raw[i];
     }
 
-    libgit2.git_oid_fromraw(out, rawC, git_oid_t.GIT_OID_SHA1);
+    libgit2.git_oid_fromraw(out, rawC, type);
     return out;
   });
 }
@@ -99,9 +108,14 @@ Pointer<git_oid> fromRaw(Array<UnsignedChar> raw) {
 /// ```
 String toSHA(Pointer<git_oid> id) {
   return using((arena) {
-    final out = arena<Char>(40);
+    final type = id.ref.type;
+    final length =
+        type == git_oid_t.GIT_OID_SHA256.value
+            ? GIT_OID_SHA256_HEXSIZE
+            : GIT_OID_SHA1_HEXSIZE;
+    final out = arena<Char>(length);
     libgit2.git_oid_fmt(out, id);
-    return out.toDartString(length: 40);
+    return out.toDartString(length: length);
   });
 }
 

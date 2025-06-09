@@ -232,14 +232,17 @@ void merge({
 /// This function will only read patch files created by a git implementation,
 /// it will not read unified diffs produced by the `diff` program, nor any
 /// other types of patch files.
-Pointer<git_diff> parse(String content) {
+Pointer<git_diff> parse(
+  String content, {
+  git_oid_t oidType = git_oid_t.GIT_OID_SHA1,
+}) {
   return using((arena) {
     final out = arena<Pointer<git_diff>>();
     final contentC = content.toChar(arena);
 
     final opts = arena<git_diff_parse_options>();
     opts.ref.version = GIT_DIFF_PARSE_OPTIONS_VERSION;
-    opts.ref.oid_typeAsInt = git_oid_t.GIT_OID_SHA1.value;
+    opts.ref.oid_typeAsInt = oidType.value;
 
     final error = libgit2.git_diff_from_buffer(
       out,
