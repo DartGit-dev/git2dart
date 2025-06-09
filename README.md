@@ -1,4 +1,7 @@
 # git2dart
+![Pub Version](https://img.shields.io/pub/v/git2dart)
+![Pub Monthly Downloads](https://img.shields.io/pub/dm/git2dart)
+![Pub Likes](https://img.shields.io/pub/likes/git2dart)
 
 ## Dart bindings to libgit2
 
@@ -1158,3 +1161,6 @@ open coverage/index.html
 ## Licence
 
 MIT. See [LICENSE](LICENSE) file for more information.
+
+
+[![Star History Chart](https://api.star-history.com/svg?repos=DartGit-dev/git2dart&type=Date)](https://www.star-history.com/#DartGit-dev/git2dart&Date)
