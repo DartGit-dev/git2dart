@@ -3,5 +3,5 @@ tags:
   # be skipped in CI, because of the "read only file system" that is
   # possibly related to https://github.com/libgit2/libgit2/pull/5935.
   # Revisit later.
-
+  remote_fetch:
 
