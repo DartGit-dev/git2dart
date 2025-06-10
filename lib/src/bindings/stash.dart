@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show calloc, using;
+import 'package:ffi/ffi.dart' show Arena, calloc, using;
 import 'package:git2dart/src/bindings/checkout.dart' as checkout_bindings;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
@@ -41,6 +41,30 @@ Pointer<git_oid> save({
       flags,
     );
 
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Initialize [git_stash_save_options] structure with default values.
+Pointer<git_stash_save_options> saveOptionsInit(Arena arena) {
+  final opts = arena<git_stash_save_options>();
+  libgit2.git_stash_save_options_init(opts, GIT_STASH_SAVE_OPTIONS_VERSION);
+  return opts;
+}
+
+/// Save local modifications to a stash using options.
+Pointer<git_oid> saveWithOpts({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_stash_save_options> optionsPointer,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final error = libgit2.git_stash_save_with_opts(
+      out,
+      repoPointer,
+      optionsPointer,
+    );
     checkErrorAndThrow(error);
     return out;
   });

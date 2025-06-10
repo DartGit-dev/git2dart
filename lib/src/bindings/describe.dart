@@ -142,6 +142,55 @@ Pointer<git_describe_options> _initOpts({
   return opts;
 }
 
+/// Allocate and initialize `git_describe_options` with optional fields.
+Pointer<git_describe_options> initOptions({
+  int? maxCandidatesTags,
+  int? describeStrategy,
+  String? pattern,
+  bool? onlyFollowFirstParent,
+  bool? showCommitOidAsFallback,
+}) {
+  return using((arena) {
+    final opts = _initOpts(
+      arena: arena,
+      maxCandidatesTags: maxCandidatesTags,
+      describeStrategy: describeStrategy,
+      pattern: pattern,
+      onlyFollowFirstParent: onlyFollowFirstParent,
+      showCommitOidAsFallback: showCommitOidAsFallback,
+    );
+    // Ownership of opts is transferred to caller
+    return opts; // allocated with calloc
+  });
+}
+
+/// Allocate and initialize `git_describe_format_options` with optional fields.
+Pointer<git_describe_format_options> initFormatOptions({
+  int? abbreviatedSize,
+  bool? alwaysUseLongFormat,
+  String? dirtySuffix,
+}) {
+  return using((arena) {
+    final opts = arena<git_describe_format_options>();
+    libgit2.git_describe_format_options_init(
+      opts,
+      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    );
+
+    if (abbreviatedSize != null) {
+      opts.ref.abbreviated_size = abbreviatedSize;
+    }
+    if (alwaysUseLongFormat != null) {
+      opts.ref.always_use_long_format = alwaysUseLongFormat ? 1 : 0;
+    }
+    if (dirtySuffix != null) {
+      opts.ref.dirty_suffix = dirtySuffix.toChar(arena);
+    }
+
+    return opts;
+  });
+}
+
 /// Format a describe result into a string.
 ///
 /// The returned string must be freed with [free].

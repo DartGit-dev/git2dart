@@ -361,6 +361,70 @@ Pointer<git_refdb> refdb(Pointer<git_repository> repo) {
   });
 }
 
+/// Assign a custom reference database to the repository.
+void setRefdb({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_refdb> refdbPointer,
+}) {
+  final error = libgit2.git_repository_set_refdb(repoPointer, refdbPointer);
+  checkErrorAndThrow(error);
+}
+
+/// Create a repository wrapper around an existing object database.
+Pointer<git_repository> wrapOdb(Pointer<git_odb> odbPointer) {
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final error = libgit2.git_repository_wrap_odb(out, odbPointer);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Retrieve the path for a repository item.
+String itemPath({
+  required Pointer<git_repository> repoPointer,
+  required git_repository_item_t item,
+}) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_repository_item_path(out, repoPointer, item);
+    checkErrorAndThrow(error);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
+/// Cache all submodule information for the repository.
+void submoduleCacheAll(Pointer<git_repository> repo) {
+  final error = libgit2.git_repository_submodule_cache_all(repo);
+  checkErrorAndThrow(error);
+}
+
+/// Clear the repository's submodule cache.
+void submoduleCacheClear(Pointer<git_repository> repo) {
+  final error = libgit2.git_repository_submodule_cache_clear(repo);
+  checkErrorAndThrow(error);
+}
+
+/// Reinitialize a repository's filesystem structure.
+void reinitFilesystem({
+  required Pointer<git_repository> repoPointer,
+  required bool recurseSubmodules,
+}) {
+  final error = libgit2.git_repository_reinit_filesystem(
+    repoPointer,
+    recurseSubmodules ? 1 : 0,
+  );
+  checkErrorAndThrow(error);
+}
+
+/// Toggle the repository's bare status.
+void setBare({required Pointer<git_repository> repoPointer}) {
+  final error = libgit2.git_repository_set_bare(repoPointer);
+  checkErrorAndThrow(error);
+}
+
 /// Free a repository object.
 ///
 /// This will free the repository and all associated resources. The repository

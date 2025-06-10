@@ -396,6 +396,35 @@ void cherryPick({
   });
 }
 
+/// Cherry-pick the given commit against another commit and produce an index.
+///
+/// The returned index must be freed.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_index> cherryPickCommit({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_commit> cherrypickCommitPointer,
+  required Pointer<git_commit> ourCommitPointer,
+  required int mainline,
+  Pointer<git_merge_options>? mergeOptionsPointer,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final error = libgit2.git_cherrypick_commit(
+      out,
+      repoPointer,
+      cherrypickCommitPointer,
+      ourCommitPointer,
+      mainline,
+      mergeOptionsPointer ?? nullptr,
+    );
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
 Pointer<git_merge_options> _initMergeOptions({
   required Arena arena,
   required int favor,

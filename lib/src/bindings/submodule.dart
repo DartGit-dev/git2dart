@@ -195,6 +195,32 @@ Pointer<git_submodule> addSetup({
   });
 }
 
+/// Duplicate an existing submodule object.
+Pointer<git_submodule> duplicate(Pointer<git_submodule> source) {
+  return using((arena) {
+    final out = arena<Pointer<git_submodule>>();
+    final error = libgit2.git_submodule_dup(out, source);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Resolve a URL relative to the submodule.
+String resolveUrl({
+  required Pointer<git_repository> repoPointer,
+  required String url,
+}) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final urlC = url.toChar(arena);
+    final error = libgit2.git_submodule_resolve_url(out, repoPointer, urlC);
+    checkErrorAndThrow(error);
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
 /// Perform the clone step for a newly created submodule.
 ///
 /// This is used after calling [addSetup] to do the clone step for adding
