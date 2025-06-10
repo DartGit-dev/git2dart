@@ -1152,7 +1152,7 @@ dart pub global activate coverage
 And run:
 
 ```sh
-./coverage.sh
+dart pub global run coverage:test_with_coverage
 open coverage/index.html
 ```
 
