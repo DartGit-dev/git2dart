@@ -1705,6 +1705,57 @@ enum GitBlobFilter {
   };
 }
 
+/// Modes used when applying filters.
+enum GitFilterMode {
+  /// Apply filters when checking out to the worktree (smudge).
+  toWorktree(0),
+
+  /// Apply filters when writing to the object database (clean).
+  toOdb(1);
+
+  const GitFilterMode(this.value);
+  final int value;
+
+  static const GitFilterMode smudge = GitFilterMode.toWorktree;
+  static const GitFilterMode clean = GitFilterMode.toOdb;
+
+  static GitFilterMode fromValue(int value) => switch (value) {
+    0 => toWorktree,
+    1 => toOdb,
+    _ => throw ArgumentError('Unknown value for GitFilterMode: $value'),
+  };
+}
+
+/// Flags controlling filter loading behavior.
+enum GitFilterFlag {
+  /// Default options.
+  defaults(0),
+
+  /// Don't error for `safecrlf` violations.
+  allowUnsafe(1),
+
+  /// Don't load system attributes file.
+  noSystemAttributes(2),
+
+  /// Load attributes from `.gitattributes` in HEAD.
+  attributesFromHead(4),
+
+  /// Load attributes from `.gitattributes` in a specific commit.
+  attributesFromCommit(8);
+
+  const GitFilterFlag(this.value);
+  final int value;
+
+  static GitFilterFlag fromValue(int value) => switch (value) {
+    0 => defaults,
+    1 => allowUnsafe,
+    2 => noSystemAttributes,
+    4 => attributesFromHead,
+    8 => attributesFromCommit,
+    _ => throw ArgumentError('Unknown value for GitFilterFlag: $value'),
+  };
+}
+
 /// Flags for APIs that add files matching pathspec.
 enum GitIndexAddOption {
   /// Default options.
