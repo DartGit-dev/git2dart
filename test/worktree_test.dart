@@ -187,8 +187,10 @@ void main() {
       final repoWt = Repository.open(worktreeDir.path);
       final worktree = Worktree.openFromRepository(repo: repoWt);
 
+      final resolved = Directory(worktreeDir.path).resolveSymbolicLinksSync();
+
       expect(worktree.name, worktreeName);
-      expect(worktree.path, worktreeDir.path);
+      expect(worktree.path, resolved);
       expect(worktree.isValid, true);
     });
 
