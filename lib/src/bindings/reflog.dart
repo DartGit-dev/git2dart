@@ -121,6 +121,27 @@ void drop({
   checkErrorAndThrow(error);
 }
 
+/// Drop an entry from the reflog with optional history rewrite.
+///
+/// [rewritePrevious] controls whether the previous entry should be patched
+/// with the current entry's new oid. Defaults to `true` to mimic git's
+/// behaviour.
+///
+/// Throws a [LibGit2Error] if error occured.
+void drop({
+  required Pointer<git_reflog> reflogPointer,
+  required int index,
+  bool rewritePrevious = true,
+}) {
+  final error = libgit2.git_reflog_drop(
+    reflogPointer,
+    index,
+    rewritePrevious ? 1 : 0,
+  );
+
+  checkErrorAndThrow(error);
+}
+
 /// Get the number of log entries in a reflog.
 int entryCount(Pointer<git_reflog> reflog) =>
     libgit2.git_reflog_entrycount(reflog);

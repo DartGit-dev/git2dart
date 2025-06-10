@@ -15,6 +15,13 @@ Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
   return callbacks;
 }
 
+/// Allocate and initialize a [git_remote_callbacks] structure.
+Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
+  final callbacks = arena<git_remote_callbacks>();
+  libgit2.git_remote_init_callbacks(callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+  return callbacks;
+}
+
 /// A class that manages callbacks for remote operations in Git.
 /// These callbacks are used during fetch, push, and clone operations
 /// to provide progress updates and handle authentication.
