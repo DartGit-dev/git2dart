@@ -11,7 +11,9 @@ import 'package:meta/meta.dart';
 class BlobWriteStream {
   /// Initialize a new instance from the underlying pointer.
   @internal
-  const BlobWriteStream(this._pointer);
+  BlobWriteStream(this._pointer) {
+    _finalizer.attach(this, _pointer, detach: this);
+  }
 
   final Pointer<git_writestream> _pointer;
 
@@ -40,4 +42,23 @@ class BlobWriteStream {
   void writeString(String text) {
     write(Uint8List.fromList(text.codeUnits));
   }
+
+  /// Manually free the underlying stream if it wasn't committed.
+  void free() {
+    final freeFn =
+        _pointer.ref.free.asFunction<void Function(Pointer<git_writestream>)>();
+    freeFn(_pointer);
+    _finalizer.detach(this);
+  }
+
+  @internal
+  void detach() => _finalizer.detach(this);
 }
+
+// coverage:ignore-start
+final _finalizer = Finalizer<Pointer<git_writestream>>((pointer) {
+  final freeFn =
+      pointer.ref.free.asFunction<void Function(Pointer<git_writestream>)>();
+  freeFn(pointer);
+});
+// coverage:ignore-end

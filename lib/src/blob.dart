@@ -91,7 +91,9 @@ class Blob extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occured.
   static Oid createFromStreamCommit(BlobWriteStream stream) {
-    return Oid(bindings.createFromStreamCommit(stream.pointer));
+    final oid = Oid(bindings.createFromStreamCommit(stream.pointer));
+    stream.detach();
+    return oid;
   }
 
   /// Determine if the given content is most certainly binary or not.
