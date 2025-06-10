@@ -23,6 +23,25 @@ Pointer<git_commit> lookup({
   });
 }
 
+/// Lookup a commit object from a repository by its short [oid].
+/// The returned commit must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_commit> lookupPrefix({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> oidPointer,
+  required int len,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_commit>>();
+    final error =
+        libgit2.git_commit_lookup_prefix(out, repoPointer, oidPointer, len);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Create new commit in the repository.
 ///
 /// The [message] will not be cleaned up automatically. I.e. excess whitespace
@@ -118,6 +137,114 @@ String createBuffer({
 
     checkErrorAndThrow(error);
     return out.ref.ptr.toDartString(length: out.ref.size);
+  });
+}
+
+/// Create a new commit with precomputed parent oids and tree oid.
+/// The created commit will be written to the Object Database and the given
+/// reference will be updated to point to it.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_oid> createFromIds({
+  required Pointer<git_repository> repoPointer,
+  required String updateRef,
+  required Pointer<git_signature> authorPointer,
+  required Pointer<git_signature> committerPointer,
+  String? messageEncoding,
+  required String message,
+  required Pointer<git_oid> treeOidPointer,
+  required int parentCount,
+  required List<Pointer<git_oid>> parents,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final updateRefC = updateRef.toChar(arena);
+    final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
+    final messageC = message.toChar(arena);
+    final parentsC = arena<Pointer<git_oid>>(parentCount);
+
+    if (parents.isNotEmpty) {
+      for (var i = 0; i < parentCount; i++) {
+        parentsC[i] = parents[i];
+      }
+    } else {
+      parentsC[0] = nullptr;
+    }
+
+    final error = libgit2.git_commit_create_from_ids(
+      out,
+      repoPointer,
+      updateRefC,
+      authorPointer,
+      committerPointer,
+      messageEncodingC,
+      messageC,
+      treeOidPointer,
+      parentCount,
+      parentsC,
+    );
+
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Create a new commit from a serialized commit content and signature.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_oid> createWithSignature({
+  required Pointer<git_repository> repoPointer,
+  required String commitContent,
+  String? signature,
+  String? signatureField,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final commitContentC = commitContent.toChar(arena);
+    final signatureC = signature?.toChar(arena) ?? nullptr;
+    final fieldC = signatureField?.toChar(arena) ?? nullptr;
+
+    final error = libgit2.git_commit_create_with_signature(
+      out,
+      repoPointer,
+      commitContentC,
+      signatureC,
+      fieldC,
+    );
+
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Extract the signature and signed data from a commit.
+///
+/// Throws a [LibGit2Error] if error occured.
+MapEntry<String, String> extractSignature({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> commitOid,
+  String? field,
+}) {
+  return using((arena) {
+    final signatureOut = arena<git_buf>();
+    final signedDataOut = arena<git_buf>();
+    final fieldC = field?.toChar(arena) ?? nullptr;
+
+    final error = libgit2.git_commit_extract_signature(
+      signatureOut,
+      signedDataOut,
+      repoPointer,
+      commitOid,
+      fieldC,
+    );
+
+    checkErrorAndThrow(error);
+
+    final signatureStr =
+        signatureOut.ref.ptr.toDartString(length: signatureOut.ref.size);
+    final signedDataStr =
+        signedDataOut.ref.ptr.toDartString(length: signedDataOut.ref.size);
+    return MapEntry(signatureStr, signedDataStr);
   });
 }
 

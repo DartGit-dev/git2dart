@@ -102,6 +102,33 @@ Pointer<git_reference> create({
   });
 }
 
+/// Create a new branch pointing at an [annotated] commit. The returned
+/// reference must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_reference> createFromAnnotated({
+  required Pointer<git_repository> repoPointer,
+  required String branchName,
+  required Pointer<git_annotated_commit> annotated,
+  required bool force,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final branchNameC = branchName.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final error = libgit2.git_branch_create_from_annotated(
+      out,
+      repoPointer,
+      branchNameC,
+      annotated,
+      forceC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Delete an existing branch reference.
 ///
 /// Note that if the deletion succeeds, the reference object will not be valid

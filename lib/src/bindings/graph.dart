@@ -50,3 +50,29 @@ List<int> aheadBehind({
     return [ahead.value, behind.value];
   });
 }
+
+/// Determine if a commit is reachable from any in the provided list.
+bool reachableFromAny({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> commitPointer,
+  required List<Pointer<git_oid>> descendants,
+}) {
+  return using((arena) {
+    final arr = arena<git_oid>(descendants.length);
+    for (var i = 0; i < descendants.length; i++) {
+      arr[i] = descendants[i].ref;
+    }
+
+    final result = libgit2.git_graph_reachable_from_any(
+      repoPointer,
+      commitPointer,
+      arr,
+      descendants.length,
+    );
+
+    if (result < 0) {
+      checkErrorAndThrow(result);
+    }
+    return result == 1;
+  });
+}

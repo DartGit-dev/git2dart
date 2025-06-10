@@ -93,7 +93,7 @@ class Blame with IterableMixin<BlameHunk> {
   /// Throws [RangeError] if index out of range.
   BlameHunk operator [](int index) {
     return BlameHunk._(
-      bindings.getHunkByindex(blamePointer: _blamePointer, index: index),
+      bindings.getHunkByIndex(blamePointer: _blamePointer, index: index),
     );
   }
 
@@ -225,7 +225,7 @@ class _BlameIterator implements Iterator<BlameHunk> {
       return false;
     } else {
       currentHunk = BlameHunk._(
-        bindings.getHunkByindex(blamePointer: _blamePointer, index: index),
+        bindings.getHunkByIndex(blamePointer: _blamePointer, index: index),
       );
       index++;
       return true;

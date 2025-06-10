@@ -53,6 +53,24 @@ class Branch extends Equatable {
     _finalizer.attach(this, _branchPointer, detach: this);
   }
 
+  /// Creates a new branch pointing at an [AnnotatedCommit].
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  Branch.createFromAnnotated({
+    required Repository repo,
+    required String name,
+    required AnnotatedCommit target,
+    bool force = false,
+  }) {
+    _branchPointer = bindings.createFromAnnotated(
+      repoPointer: repo.pointer,
+      branchName: name,
+      annotated: target.pointer,
+      force: force,
+    );
+    _finalizer.attach(this, _branchPointer, detach: this);
+  }
+
   /// Lookups a branch by its [name] and [type] in a [repo]sitory.
   ///
   /// The branch name will be checked for validity.

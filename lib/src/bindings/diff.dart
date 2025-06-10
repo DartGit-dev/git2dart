@@ -284,13 +284,30 @@ void findSimilar({
 /// git project does.
 ///
 /// Throws a [LibGit2Error] if error occured.
-Pointer<git_oid> patchOid(Pointer<git_diff> diff) {
+Pointer<git_oid> patchOid(
+  Pointer<git_diff> diff, {
+  Pointer<git_diff_patchid_options>? options,
+}) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_diff_patchid(out, diff, nullptr);
+  final error = libgit2.git_diff_patchid(
+    out,
+    diff,
+    options ?? nullptr,
+  );
 
   checkErrorAndThrow(error);
 
   return out;
+}
+
+/// Allocate and initialize `git_diff_patchid_options` structure.
+Pointer<git_diff_patchid_options> initPatchIdOptions() {
+  final opts = calloc<git_diff_patchid_options>();
+  libgit2.git_diff_patchid_options_init(
+    opts,
+    GIT_DIFF_PATCHID_OPTIONS_VERSION,
+  );
+  return opts;
 }
 
 /// Return the diff delta for an entry in the diff list.

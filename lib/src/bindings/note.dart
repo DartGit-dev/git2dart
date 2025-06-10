@@ -138,3 +138,137 @@ String message(Pointer<git_note> note) {
 
 /// Free memory allocated for note object.
 void free(Pointer<git_note> note) => libgit2.git_note_free(note);
+
+/// Create an iterator over notes from a specific commit.
+///
+/// The returned iterator must be freed with [iteratorFree].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_note_iterator> commitIteratorNew(Pointer<git_commit> notesCommit) {
+  return using((arena) {
+    final out = arena<Pointer<git_note_iterator>>();
+    final error =
+        libgit2.git_note_commit_iterator_new(out, notesCommit);
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
+/// Read the note for an object from a notes commit. The returned note must be
+/// freed with [free].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_note> commitRead({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_commit> notesCommitPointer,
+  required Pointer<git_oid> oidPointer,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_note>>();
+    final error = libgit2.git_note_commit_read(
+      out,
+      repoPointer,
+      notesCommitPointer,
+      oidPointer,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Create a note in a new commit.
+///
+/// The returned commit and note id pointers must be freed by the caller.
+///
+/// Throws a [LibGit2Error] if error occured.
+List<Pointer<git_oid>> commitCreate({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_commit> parentPointer,
+  required Pointer<git_signature> authorPointer,
+  required Pointer<git_signature> committerPointer,
+  required Pointer<git_oid> oidPointer,
+  required String note,
+  bool allowOverwrite = false,
+}) {
+  return using((arena) {
+    final commitOut = calloc<git_oid>();
+    final blobOut = calloc<git_oid>();
+    final noteC = note.toChar(arena);
+    final allowC = allowOverwrite ? 1 : 0;
+    final error = libgit2.git_note_commit_create(
+      commitOut,
+      blobOut,
+      repoPointer,
+      parentPointer,
+      authorPointer,
+      committerPointer,
+      oidPointer,
+      noteC,
+      allowC,
+    );
+    checkErrorAndThrow(error);
+    return [commitOut, blobOut];
+  });
+}
+
+/// Remove the note for an object in a notes commit.
+///
+/// The returned commit id must be freed by the caller.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_oid> commitRemove({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_commit> notesCommitPointer,
+  required Pointer<git_signature> authorPointer,
+  required Pointer<git_signature> committerPointer,
+  required Pointer<git_oid> oidPointer,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final error = libgit2.git_note_commit_remove(
+      out,
+      repoPointer,
+      notesCommitPointer,
+      authorPointer,
+      committerPointer,
+      oidPointer,
+    );
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Get the default notes reference for a repository.
+///
+/// Throws a [LibGit2Error] if error occured.
+String defaultRef(Pointer<git_repository> repo) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_note_default_ref(out, repo);
+    checkErrorAndThrow(error);
+    return out.ref.ptr.toDartString(length: out.ref.size);
+  });
+}
+
+/// Iterate over all notes within the specified namespace.
+///
+/// Throws a [LibGit2Error] if error occured.
+void foreach({
+  required Pointer<git_repository> repoPointer,
+  required String notesRef,
+  required git_note_foreach_cb callback,
+  required Pointer<Void> payload,
+}) {
+  return using((arena) {
+    final notesRefC = notesRef.toChar(arena);
+    final error = libgit2.git_note_foreach(
+      repoPointer,
+      notesRefC,
+      callback,
+      payload,
+    );
+    checkErrorAndThrow(error);
+  });
+}

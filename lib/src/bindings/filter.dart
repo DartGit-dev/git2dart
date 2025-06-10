@@ -88,6 +88,66 @@ String applyToBlob({
   });
 }
 
+/// Load the filter list for a given file path.
+Pointer<git_filter_list> load({
+  required Pointer<git_repository> repoPointer,
+  Pointer<git_blob>? blobPointer,
+  required String path,
+  required git_filter_mode_t mode,
+  required int flags,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_filter_list>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_filter_list_load(
+      out,
+      repoPointer,
+      blobPointer ?? nullptr,
+      pathC,
+      mode,
+      flags,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Load the filter list with extended options.
+Pointer<git_filter_list> loadExt({
+  required Pointer<git_repository> repoPointer,
+  Pointer<git_blob>? blobPointer,
+  required String path,
+  required git_filter_mode_t mode,
+  required Pointer<git_filter_options> options,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_filter_list>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_filter_list_load_ext(
+      out,
+      repoPointer,
+      blobPointer ?? nullptr,
+      pathC,
+      mode,
+      options,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Query whether a given filter will run.
+bool contains({
+  required Pointer<git_filter_list> filterListPointer,
+  required String name,
+}) {
+  return using((arena) {
+    final nameC = name.toChar(arena);
+    final result = libgit2.git_filter_list_contains(filterListPointer, nameC);
+    return result == 1;
+  });
+}
+
 /// Free a filter list.
 void free(Pointer<git_filter_list> filterList) =>
     libgit2.git_filter_list_free(filterList);
