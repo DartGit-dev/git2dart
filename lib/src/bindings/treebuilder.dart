@@ -124,7 +124,7 @@ void filter({
 }) {
   const except = -1;
   final cb = Pointer.fromFunction<git_treebuilder_filter_cbFunction>(
-    (entry, payload) => predicate(entry),
+    (Pointer<git_tree_entry> entry, Pointer<Void> payload) => predicate(entry),
     except,
   );
   final error = libgit2.git_treebuilder_filter(builderPointer, cb, nullptr);

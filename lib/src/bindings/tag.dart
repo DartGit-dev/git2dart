@@ -202,7 +202,7 @@ void foreach({
     return 0;
   }
 
-  final git_tag_foreach_cb c = Pointer.fromFunction(cb, except);
+  final c = Pointer.fromFunction<git_tag_foreach_cbFunction>(cb, except);
   final error = libgit2.git_tag_foreach(repoPointer, c, nullptr);
   checkErrorAndThrow(error);
 }

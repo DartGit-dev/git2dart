@@ -73,18 +73,10 @@ Pointer<git_worktree> lookup({
 }
 
 /// Open a worktree from a repository by path.
-Pointer<git_worktree> openFromRepository({
-  required Pointer<git_repository> repoPointer,
-  required String path,
-}) {
+Pointer<git_worktree> openFromRepository(Pointer<git_repository> repoPointer) {
   return using((arena) {
     final out = arena<Pointer<git_worktree>>();
-    final pathC = path.toChar(arena);
-    final error = libgit2.git_worktree_open_from_repository(
-      out,
-      repoPointer,
-      pathC,
-    );
+    final error = libgit2.git_worktree_open_from_repository(out, repoPointer);
     checkErrorAndThrow(error);
     return out.value;
   });

@@ -408,17 +408,20 @@ void submoduleCacheClear(Pointer<git_repository> repo) {
 }
 
 /// Reinitialize a repository's filesystem structure.
-void reinitFilesystem(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_reinit_filesystem(repo);
+void reinitFilesystem({
+  required Pointer<git_repository> repoPointer,
+  required bool recurseSubmodules,
+}) {
+  final error = libgit2.git_repository_reinit_filesystem(
+    repoPointer,
+    recurseSubmodules ? 1 : 0,
+  );
   checkErrorAndThrow(error);
 }
 
 /// Toggle the repository's bare status.
-void setBare({
-  required Pointer<git_repository> repoPointer,
-  required bool bare,
-}) {
-  final error = libgit2.git_repository_set_bare(repoPointer, bare ? 1 : 0);
+void setBare({required Pointer<git_repository> repoPointer}) {
+  final error = libgit2.git_repository_set_bare(repoPointer);
   checkErrorAndThrow(error);
 }
 
