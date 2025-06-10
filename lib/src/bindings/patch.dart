@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -248,6 +249,20 @@ String text(Pointer<git_patch> patch) {
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
+/// Get the content of a patch as bytes.
+Uint8List textBytes(Pointer<git_patch> patch) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_patch_to_buf(out, patch);
+    checkErrorAndThrow(error);
+
+    final data = out.ref.ptr.cast<Uint8>().asTypedList(out.ref.size);
+    final result = Uint8List.fromList(data);
     libgit2.git_buf_dispose(out);
     return result;
   });

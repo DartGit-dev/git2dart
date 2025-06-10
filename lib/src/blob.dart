@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
@@ -83,6 +84,9 @@ class Blob extends Equatable {
 
   /// Read-only buffer with the raw content of a blob.
   String get content => bindings.content(_blobPointer);
+
+  /// Raw content of a blob as bytes.
+  Uint8List get contentBytes => bindings.contentBytes(_blobPointer);
 
   /// Size in bytes of the contents of a blob.
   int get size => bindings.size(_blobPointer);

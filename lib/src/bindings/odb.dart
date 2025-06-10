@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/bindings/oid.dart' as oid_bindings;
@@ -209,6 +210,17 @@ git_object_t objectType(Pointer<git_odb_object> object) {
 /// leading header.
 String objectData(Pointer<git_odb_object> object) {
   return libgit2.git_odb_object_data(object).cast<Utf8>().toDartString();
+}
+
+/// Return the data of an ODB object as bytes.
+Uint8List objectDataBytes(Pointer<git_odb_object> object) {
+  final size = libgit2.git_odb_object_size(object);
+  if (size == 0) return Uint8List(0);
+  final data = libgit2
+      .git_odb_object_data(object)
+      .cast<Uint8>()
+      .asTypedList(size);
+  return Uint8List.fromList(data);
 }
 
 /// Return the size of an ODB object.

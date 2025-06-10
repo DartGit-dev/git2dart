@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -44,6 +45,7 @@ void main() {
       expect(blob.isBinary, false);
       expect(blob.size, 13);
       expect(blob.content, blobContent);
+      expect(blob.contentBytes, utf8.encode(blobContent));
     });
 
     test('creates new blob with provided content', () {
@@ -144,6 +146,19 @@ void main() {
         () => Blob(nullptr).filterContent(asPath: ''),
         throwsA(isA<LibGit2Error>()),
       );
+    });
+
+    test('reads binary blob correctly', () {
+      final bytes = [0x68, 0x69, 0x00, 0xff, 0xfe];
+      final file = File(p.join(repo.workdir, 'binary.bin'))
+        ..writeAsBytesSync(bytes);
+      final oid = Blob.createFromDisk(repo: repo, path: file.path);
+      final blob = Blob.lookup(repo: repo, oid: oid);
+
+      expect(blob.isBinary, true);
+      expect(blob.size, bytes.length);
+      expect(blob.content, 'hi');
+      expect(blob.contentBytes, bytes);
     });
 
     test('manually releases allocated memory', () {

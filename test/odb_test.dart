@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -50,8 +51,21 @@ void main() {
       expect(object.oid, repo[blobSha]);
       expect(object.type, GitObject.blob);
       expect(object.data, blobContent);
+      expect(object.dataBytes, utf8.encode(blobContent));
       expect(object.size, 13);
       expect(object, equals(repo.odb.read(repo[blobSha])));
+    });
+
+    test('reads binary object', () {
+      final bytes = [0x68, 0x69, 0x00, 0xff, 0xfe];
+      final file = File(p.join(repo.workdir, 'binary.bin'))
+        ..writeAsBytesSync(bytes);
+      final oid = Blob.createFromDisk(repo: repo, path: file.path);
+      final object = repo.odb.read(oid);
+
+      expect(object.type, GitObject.blob);
+      expect(object.size, bytes.length);
+      expect(object.dataBytes, bytes);
     });
 
     test('throws when trying to read object and error occurs', () {
