@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -258,8 +258,10 @@ index e69de29..0000000
     test('creates patch from binary blobs', () {
       final bytes1 = [0x00, 0x01, 0x02, 0x03];
       final bytes2 = [0x00, 0x01, 0x02, 0x04];
-      final oldFile = File(p.join(repo.workdir, 'old.bin'))..writeAsBytesSync(bytes1);
-      final newFile = File(p.join(repo.workdir, 'new.bin'))..writeAsBytesSync(bytes2);
+      final oldFile = File(p.join(repo.workdir, 'old.bin'))
+        ..writeAsBytesSync(bytes1);
+      final newFile = File(p.join(repo.workdir, 'new.bin'))
+        ..writeAsBytesSync(bytes2);
       final oldBlob = Blob.lookup(
         repo: repo,
         oid: Blob.createFromDisk(repo: repo, path: oldFile.path),

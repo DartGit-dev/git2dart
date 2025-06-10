@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -150,7 +150,8 @@ void main() {
 
     test('reads binary blob correctly', () {
       final bytes = [0x68, 0x69, 0x00, 0xff, 0xfe];
-      final file = File(p.join(repo.workdir, 'binary.bin'))..writeAsBytesSync(bytes);
+      final file = File(p.join(repo.workdir, 'binary.bin'))
+        ..writeAsBytesSync(bytes);
       final oid = Blob.createFromDisk(repo: repo, path: file.path);
       final blob = Blob.lookup(repo: repo, oid: oid);
 

@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -327,15 +326,6 @@ String messageEncoding(Pointer<git_commit> commit) {
 /// leading newlines.
 String message(Pointer<git_commit> commit) {
   return libgit2.git_commit_message(commit).toDartString();
-}
-
-/// Get the full raw message of a commit as bytes.
-Uint8List messageBytes(Pointer<git_commit> commit) {
-  final ptr = libgit2.git_commit_message_raw(commit);
-  if (ptr == nullptr) return Uint8List(0);
-  final len = ptr.cast<Utf8>().length;
-  final data = ptr.cast<Uint8>().asTypedList(len);
-  return Uint8List.fromList(data);
 }
 
 /// Get the short "summary" of the git commit message.

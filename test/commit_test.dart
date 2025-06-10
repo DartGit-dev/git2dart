@@ -1,6 +1,5 @@
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -242,7 +241,6 @@ void main() {
 
       expect(commit.oid, oid);
       expect(commit.message, message);
-      expect(commit.messageBytes, utf8.encode(message));
       expect(commit.messageEncoding, 'utf-8');
       expect(commit.summary, 'Commit message.');
       expect(commit.body, 'Some description.');
@@ -369,7 +367,6 @@ Some description.
       final commit = Commit.lookup(repo: repo, oid: oid);
 
       expect(commit.message, nonAscii);
-      expect(commit.messageBytes, utf8.encode(nonAscii));
     });
 
     test('throws when trying to create commit and error occurs', () {
