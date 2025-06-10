@@ -414,7 +414,10 @@ void reinitFilesystem(Pointer<git_repository> repo) {
 }
 
 /// Toggle the repository's bare status.
-void setBare({required Pointer<git_repository> repoPointer, required bool bare}) {
+void setBare({
+  required Pointer<git_repository> repoPointer,
+  required bool bare,
+}) {
   final error = libgit2.git_repository_set_bare(repoPointer, bare ? 1 : 0);
   checkErrorAndThrow(error);
 }

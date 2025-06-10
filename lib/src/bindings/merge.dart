@@ -392,7 +392,7 @@ void cherryPick({
 
     final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
   });
 }
 

@@ -80,7 +80,11 @@ Pointer<git_worktree> openFromRepository({
   return using((arena) {
     final out = arena<Pointer<git_worktree>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_worktree_open_from_repository(out, repoPointer, pathC);
+    final error = libgit2.git_worktree_open_from_repository(
+      out,
+      repoPointer,
+      pathC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });

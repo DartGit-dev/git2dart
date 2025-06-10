@@ -6,7 +6,8 @@ import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 typedef CheckoutProgress = void Function(String path, int completed, int total);
-typedef CheckoutPerfdata = void Function(Pointer<git_checkout_perfdata> perfdata);
+typedef CheckoutPerfdata =
+    void Function(Pointer<git_checkout_perfdata> perfdata);
 
 CheckoutProgress? _progress;
 CheckoutPerfdata? _perfdata;

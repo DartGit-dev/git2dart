@@ -24,13 +24,10 @@ class Packbuilder {
     return _progress?.call(stage, current, total) ?? 0;
   }
 
-  static int _foreachCb(
-    Pointer<Void> buf,
-    int size,
-    Pointer<Void> payload,
-  ) {
+  static int _foreachCb(Pointer<Void> buf, int size, Pointer<Void> payload) {
     return _foreach?.call(buf, size) ?? 0;
   }
+
   /// Initialize a new packbuilder for the given repository.
   ///
   /// The returned packbuilder must be freed with [free] when no longer needed.

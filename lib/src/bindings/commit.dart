@@ -34,8 +34,12 @@ Pointer<git_commit> lookupPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
-    final error =
-        libgit2.git_commit_lookup_prefix(out, repoPointer, oidPointer, len);
+    final error = libgit2.git_commit_lookup_prefix(
+      out,
+      repoPointer,
+      oidPointer,
+      len,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -240,10 +244,12 @@ MapEntry<String, String> extractSignature({
 
     checkErrorAndThrow(error);
 
-    final signatureStr =
-        signatureOut.ref.ptr.toDartString(length: signatureOut.ref.size);
-    final signedDataStr =
-        signedDataOut.ref.ptr.toDartString(length: signedDataOut.ref.size);
+    final signatureStr = signatureOut.ref.ptr.toDartString(
+      length: signatureOut.ref.size,
+    );
+    final signedDataStr = signedDataOut.ref.ptr.toDartString(
+      length: signedDataOut.ref.size,
+    );
     return MapEntry(signatureStr, signedDataStr);
   });
 }

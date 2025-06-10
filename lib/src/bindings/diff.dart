@@ -289,11 +289,7 @@ Pointer<git_oid> patchOid(
   Pointer<git_diff_patchid_options>? options,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_diff_patchid(
-    out,
-    diff,
-    options ?? nullptr,
-  );
+  final error = libgit2.git_diff_patchid(out, diff, options ?? nullptr);
 
   checkErrorAndThrow(error);
 
@@ -303,10 +299,7 @@ Pointer<git_oid> patchOid(
 /// Allocate and initialize `git_diff_patchid_options` structure.
 Pointer<git_diff_patchid_options> initPatchIdOptions() {
   final opts = calloc<git_diff_patchid_options>();
-  libgit2.git_diff_patchid_options_init(
-    opts,
-    GIT_DIFF_PATCHID_OPTIONS_VERSION,
-  );
+  libgit2.git_diff_patchid_options_init(opts, GIT_DIFF_PATCHID_OPTIONS_VERSION);
   return opts;
 }
 

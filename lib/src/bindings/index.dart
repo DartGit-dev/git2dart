@@ -38,11 +38,7 @@ Pointer<git_index> open(
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_open(
-      out,
-      pathC,
-      optionsPointer ?? nullptr,
-    );
+    final error = libgit2.git_index_open(out, pathC, optionsPointer ?? nullptr);
 
     checkErrorAndThrow(error);
 

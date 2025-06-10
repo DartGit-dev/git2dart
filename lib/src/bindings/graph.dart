@@ -71,7 +71,7 @@ bool reachableFromAny({
     );
 
     checkErrorAndThrow(result);
-    
+
     return result == 1;
   });
 }

@@ -127,11 +127,7 @@ void filter({
     (entry, payload) => predicate(entry),
     except,
   );
-  final error = libgit2.git_treebuilder_filter(
-    builderPointer,
-    cb,
-    nullptr,
-  );
+  final error = libgit2.git_treebuilder_filter(builderPointer, cb, nullptr);
   checkErrorAndThrow(error);
 }
 

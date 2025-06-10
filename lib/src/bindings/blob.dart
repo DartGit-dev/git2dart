@@ -34,8 +34,12 @@ Pointer<git_blob> lookupPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_blob>>();
-    final error =
-        libgit2.git_blob_lookup_prefix(out, repoPointer, oidPointer, len);
+    final error = libgit2.git_blob_lookup_prefix(
+      out,
+      repoPointer,
+      oidPointer,
+      len,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -176,8 +180,7 @@ Pointer<git_writestream> createFromStream({
 Pointer<git_oid> createFromStreamCommit(Pointer<git_writestream> stream) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final error =
-        libgit2.git_blob_create_from_stream_commit(out, stream);
+    final error = libgit2.git_blob_create_from_stream_commit(out, stream);
 
     checkErrorAndThrow(error);
     return out;

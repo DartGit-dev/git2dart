@@ -147,8 +147,7 @@ void free(Pointer<git_note> note) => libgit2.git_note_free(note);
 Pointer<git_note_iterator> commitIteratorNew(Pointer<git_commit> notesCommit) {
   return using((arena) {
     final out = arena<Pointer<git_note_iterator>>();
-    final error =
-        libgit2.git_note_commit_iterator_new(out, notesCommit);
+    final error = libgit2.git_note_commit_iterator_new(out, notesCommit);
 
     checkErrorAndThrow(error);
 

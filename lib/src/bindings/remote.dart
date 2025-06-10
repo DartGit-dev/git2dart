@@ -649,33 +649,34 @@ void download({
     final refspecsC = arena<git_strarray>();
     final pointers = refspecs.map((e) => e.toChar(arena)).toList();
 
-/// Initialize [git_remote_create_options] structure with default values.
-Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
-  final opts = arena<git_remote_create_options>();
-  libgit2.git_remote_create_options_init(
-    opts,
-    GIT_REMOTE_CREATE_OPTIONS_VERSION,
-  );
-  return opts;
-}
+    /// Initialize [git_remote_create_options] structure with default values.
+    Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
+      final opts = arena<git_remote_create_options>();
+      libgit2.git_remote_create_options_init(
+        opts,
+        GIT_REMOTE_CREATE_OPTIONS_VERSION,
+      );
+      return opts;
+    }
 
-/// Create a remote using the provided options.
-Pointer<git_remote> createWithOpts({
-  required Pointer<git_repository> repoPointer,
-  required Pointer<git_remote_create_options> optionsPointer,
-}) {
-  return using((arena) {
-    final out = arena<Pointer<git_remote>>();
-    final error = libgit2.git_remote_create_with_opts(
-      out,
-      repoPointer,
-      optionsPointer,
-    );
+    /// Create a remote using the provided options.
+    Pointer<git_remote> createWithOpts({
+      required Pointer<git_repository> repoPointer,
+      required Pointer<git_remote_create_options> optionsPointer,
+    }) {
+      return using((arena) {
+        final out = arena<Pointer<git_remote>>();
+        final error = libgit2.git_remote_create_with_opts(
+          out,
+          repoPointer,
+          optionsPointer,
+        );
 
-    checkErrorAndThrow(error);
-    return out.value;
-  });
-}
+        checkErrorAndThrow(error);
+        return out.value;
+      });
+    }
+
     final arr = arena<Pointer<Char>>(refspecs.length);
     for (var i = 0; i < refspecs.length; i++) {
       arr[i] = pointers[i];

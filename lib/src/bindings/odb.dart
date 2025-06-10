@@ -99,7 +99,8 @@ bool existsExt({
   required Pointer<git_oid> oidPointer,
   required int flags,
 }) {
-  return libgit2.git_odb_exists_ext(odbPointer, oidPointer, flags) == 1 || false;
+  return libgit2.git_odb_exists_ext(odbPointer, oidPointer, flags) == 1 ||
+      false;
 }
 
 /// List of objects in the database.

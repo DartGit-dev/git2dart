@@ -186,7 +186,7 @@ List<String> listMatch({
     final error = libgit2.git_tag_list_match(out, patternC, repoPointer);
     checkErrorAndThrow(error);
     return [
-      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString()
+      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
   });
 }
