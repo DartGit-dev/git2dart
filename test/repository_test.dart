@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
+
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
@@ -227,6 +228,82 @@ void main() {
       expect(repo.getAttribute(path: 'file.dart', name: 'text'), true);
       expect(repo.getAttribute(path: 'file.jpg', name: 'text'), false);
       expect(repo.getAttribute(path: 'file.sh', name: 'eol'), 'lf');
+    });
+
+    test('returns multiple attribute values', () {
+      File(
+        p.join(repo.workdir, '.gitattributes'),
+      ).writeAsStringSync('*.dart text\n*.jpg -text\n*.sh eol=lf\n');
+
+      File(p.join(repo.workdir, 'file.dart')).createSync();
+      File(p.join(repo.workdir, 'file.sh')).createSync();
+
+      final values = repo.getAttributesMany(
+        path: 'file.sh',
+        names: ['text', 'eol'],
+      );
+      expect(values, [null, 'lf']);
+    });
+
+    test('iterates over attributes', () {
+      File(
+        p.join(repo.workdir, '.gitattributes'),
+      ).writeAsStringSync('*.dart text\n*.jpg -text\n*.sh eol=lf\n');
+
+      File(p.join(repo.workdir, 'file.dart')).createSync();
+      File(p.join(repo.workdir, 'file.jpg')).createSync();
+      File(p.join(repo.workdir, 'file.sh')).createSync();
+
+      final dartAttrs = repo.foreachAttributes(path: 'file.dart').toList();
+      expect(dartAttrs.length, 1);
+      expect(dartAttrs[0].key, 'text');
+      expect(dartAttrs[0].value, '[internal]__TRUE__');
+
+      final jpgAttrs = repo.foreachAttributes(path: 'file.jpg').toList();
+      expect(jpgAttrs.length, 1);
+      expect(jpgAttrs[0].key, 'text');
+      expect(jpgAttrs[0].value, '[internal]__FALSE__');
+
+      final shAttrs = repo.foreachAttributes(path: 'file.sh').toList();
+      expect(shAttrs.length, 1);
+      expect(shAttrs[0].key, 'eol');
+      expect(shAttrs[0].value, 'lf');
+    });
+
+    test('attribute helper extensions', () {
+      File(
+        p.join(repo.workdir, '.gitattributes'),
+      ).writeAsStringSync('*.dart text\n');
+
+      File(p.join(repo.workdir, 'file.dart')).createSync();
+
+      final opts = AttrOptions();
+
+      expect(
+        repo.getAttributesManyExt(
+          options: opts,
+          path: 'file.dart',
+          names: ['text'],
+        ),
+        [true],
+      );
+
+      final extAttrs = repo.foreachAttributesExt(
+        options: opts,
+        path: 'file.dart',
+      );
+      expect(extAttrs.first.key, 'text');
+
+      // Update attributes and flush cache
+      File(
+        p.join(repo.workdir, '.gitattributes'),
+      ).writeAsStringSync('*.dart -text\n');
+      repo.cacheFlush();
+      expect(repo.getAttribute(path: 'file.dart', name: 'text'), false);
+
+      // Add macro definition
+      repo.addMacro(name: 'newmacro', values: '-text');
+      opts.free();
     });
 
     test('returns number of ahead behind commits', () {
