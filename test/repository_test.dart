@@ -251,10 +251,23 @@ void main() {
       ).writeAsStringSync('*.dart text\n*.jpg -text\n*.sh eol=lf\n');
 
       File(p.join(repo.workdir, 'file.dart')).createSync();
+      File(p.join(repo.workdir, 'file.jpg')).createSync();
+      File(p.join(repo.workdir, 'file.sh')).createSync();
 
-      final attrs = repo.foreachAttributes(path: 'file.dart');
-      expect(attrs.first.key, 'text');
-      expect(attrs.first.value, 'set');
+      final dartAttrs = repo.foreachAttributes(path: 'file.dart').toList();
+      expect(dartAttrs.length, 1);
+      expect(dartAttrs[0].key, 'text');
+      expect(dartAttrs[0].value, '[internal]__TRUE__');
+
+      final jpgAttrs = repo.foreachAttributes(path: 'file.jpg').toList();
+      expect(jpgAttrs.length, 1);
+      expect(jpgAttrs[0].key, 'text');
+      expect(jpgAttrs[0].value, '[internal]__FALSE__');
+
+      final shAttrs = repo.foreachAttributes(path: 'file.sh').toList();
+      expect(shAttrs.length, 1);
+      expect(shAttrs[0].key, 'eol');
+      expect(shAttrs[0].value, 'lf');
     });
 
     test('attribute helper extensions', () {
