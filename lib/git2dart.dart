@@ -14,6 +14,7 @@ export 'src/credentials.dart';
 export 'src/diff.dart';
 export 'src/error.dart';
 export 'src/extensions/repository.dart';
+export 'src/filter.dart';
 export 'src/git_types.dart';
 export 'src/index.dart';
 export 'src/libgit2.dart';
