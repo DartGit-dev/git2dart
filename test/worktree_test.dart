@@ -180,5 +180,47 @@ void main() {
       );
       expect(worktree, equals(Worktree.lookup(repo: repo, name: worktreeName)));
     });
+
+    test('opens worktree from repository', () {
+      Worktree.create(repo: repo, name: worktreeName, path: worktreeDir.path);
+
+      final repoWt = Repository.open(worktreeDir.path);
+      final worktree = Worktree.openFromRepository(repo: repoWt);
+
+      final resolved = Directory(worktreeDir.path).resolveSymbolicLinksSync();
+
+      expect(worktree.name, worktreeName);
+      expect(p.normalize(worktree.path), p.normalize(resolved));
+      expect(worktree.isValid, true);
+    });
+
+    test('returns repository from worktree', () {
+      final worktree = Worktree.create(
+        repo: repo,
+        name: worktreeName,
+        path: worktreeDir.path,
+      );
+
+      final repoFromWt = worktree.repositoryFromWorktree();
+
+      expect(
+        p.normalize(repoFromWt.path),
+        contains(p.normalize(p.join('.git', 'worktrees', worktreeName))),
+      );
+    });
+
+    test('validates worktree configuration', () {
+      final worktree = Worktree.create(
+        repo: repo,
+        name: worktreeName,
+        path: worktreeDir.path,
+      );
+
+      expect(() => worktree.validate(), returnsNormally);
+
+      worktreeDir.deleteSync(recursive: true);
+
+      expect(() => worktree.validate(), throwsA(isA<LibGit2Error>()));
+    });
   });
 }

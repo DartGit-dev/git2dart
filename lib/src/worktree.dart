@@ -47,6 +47,14 @@ class Worktree extends Equatable {
     _finalizer.attach(this, _worktreePointer, detach: this);
   }
 
+  /// Opens the main worktree belonging to the provided [repo].
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  Worktree.openFromRepository({required Repository repo}) {
+    _worktreePointer = bindings.openFromRepository(repo.pointer);
+    _finalizer.attach(this, _worktreePointer, detach: this);
+  }
+
   /// Pointer to the memory address for the allocated worktree object.
   late final Pointer<git_worktree> _worktreePointer;
 
@@ -100,6 +108,19 @@ class Worktree extends Equatable {
       flags: flags?.fold(0, (acc, e) => acc! | e.value),
     );
   }
+
+  /// Opens the repository that belongs to this worktree.
+  ///
+  /// Throws a [LibGit2Error] if an error occurs.
+  Repository repositoryFromWorktree() {
+    final pointer = bindings.repositoryFromWorktree(_worktreePointer);
+    return Repository(pointer);
+  }
+
+  /// Validates the worktree configuration.
+  ///
+  /// Throws a [LibGit2Error] if the worktree is invalid.
+  void validate() => bindings.validate(_worktreePointer);
 
   /// Checks if the worktree is valid.
   ///
