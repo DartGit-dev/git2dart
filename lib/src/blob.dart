@@ -72,6 +72,35 @@ class Blob extends Equatable {
     return Oid(bindings.createFromDisk(repoPointer: repo.pointer, path: path));
   }
 
+  /// Create a stream to write a new blob into the object database.
+  ///
+  /// The returned stream should be passed to [createFromStreamCommit]
+  /// to finalize the blob creation.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static BlobWriteStream createFromStream({
+    required Repository repo,
+    String? hintPath,
+  }) {
+    return BlobWriteStream(
+      bindings.createFromStream(repoPointer: repo.pointer, hintPath: hintPath),
+    );
+  }
+
+  /// Close the stream and finalize writing the blob to the object database.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static Oid createFromStreamCommit(BlobWriteStream stream) {
+    final oid = Oid(bindings.createFromStreamCommit(stream.pointer));
+    stream.detach();
+    return oid;
+  }
+
+  /// Determine if the given content is most certainly binary or not.
+  static bool dataIsBinary(Uint8List data) {
+      return bindings.dataIsBinary(data: data, len: data.length);
+  }
+
   /// [Oid] of the blob.
   Oid get oid => Oid(bindings.id(_blobPointer));
 
