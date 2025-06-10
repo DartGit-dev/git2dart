@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -11,6 +12,25 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// or recursively, and then writing them to disk. It's particularly useful for
 /// creating packfiles for pushing to remotes or creating backups.
 class Packbuilder {
+  static int Function(int stage, int current, int total)? _progress;
+  static int Function(Pointer<Void> buf, int size)? _foreach;
+
+  static int _progressCb(
+    int stage,
+    int current,
+    int total,
+    Pointer<Void> payload,
+  ) {
+    return _progress?.call(stage, current, total) ?? 0;
+  }
+
+  static int _foreachCb(
+    Pointer<Void> buf,
+    int size,
+    Pointer<Void> payload,
+  ) {
+    return _foreach?.call(buf, size) ?? 0;
+  }
   /// Initialize a new packbuilder for the given repository.
   ///
   /// The returned packbuilder must be freed with [free] when no longer needed.
@@ -156,6 +176,59 @@ class Packbuilder {
 
       checkErrorAndThrow(error);
     });
+  }
+
+  /// Write the pack to an in-memory buffer and return its contents.
+  static Uint8List writeToBuffer(Pointer<git_packbuilder> packbuilderPointer) {
+    return using((arena) {
+      final buf = arena<git_buf>();
+      final error = libgit2.git_packbuilder_write_buf(buf, packbuilderPointer);
+      checkErrorAndThrow(error);
+      final list = buf.ref.ptr.cast<Uint8>().asTypedList(buf.ref.size);
+      final result = Uint8List.fromList(list);
+      libgit2.git_buf_dispose(buf);
+      return result;
+    });
+  }
+
+  /// Set a progress callback to receive pack building progress updates.
+  static void setCallbacks({
+    required Pointer<git_packbuilder> packbuilderPointer,
+    required int Function(int stage, int current, int total) progress,
+  }) {
+    _progress = progress;
+    const except = -1;
+    final cb = Pointer.fromFunction<git_packbuilder_progressFunction>(
+      _progressCb,
+      except,
+    );
+    final error = libgit2.git_packbuilder_set_callbacks(
+      packbuilderPointer,
+      cb,
+      nullptr,
+    );
+    checkErrorAndThrow(error);
+    _progress = null;
+  }
+
+  /// Iterate over each packed object's data.
+  static void forEach({
+    required Pointer<git_packbuilder> packbuilderPointer,
+    required int Function(Pointer<Void> buf, int size) callback,
+  }) {
+    _foreach = callback;
+    const except = -1;
+    final cb = Pointer.fromFunction<git_packbuilder_foreach_cbFunction>(
+      _foreachCb,
+      except,
+    );
+    final error = libgit2.git_packbuilder_foreach(
+      packbuilderPointer,
+      cb,
+      nullptr,
+    );
+    checkErrorAndThrow(error);
+    _foreach = null;
   }
 
   /// Get the total number of objects the packbuilder will write out.

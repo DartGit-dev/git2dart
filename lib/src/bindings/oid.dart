@@ -167,3 +167,35 @@ Pointer<git_oid> copy(Pointer<git_oid> src) {
 
   return out;
 }
+
+/// Check two oid structures for equality.
+bool equal({
+  required Pointer<git_oid> aPointer,
+  required Pointer<git_oid> bPointer,
+}) {
+  return libgit2.git_oid_equal(aPointer, bPointer) == 1;
+}
+
+/// Compare the first [length] hexadecimal characters of two oid structures.
+int ncmp({
+  required Pointer<git_oid> aPointer,
+  required Pointer<git_oid> bPointer,
+  required int length,
+}) {
+  return libgit2.git_oid_ncmp(aPointer, bPointer, length);
+}
+
+/// Check if an oid is all zeros.
+bool isZero(Pointer<git_oid> id) => libgit2.git_oid_is_zero(id) == 1;
+
+/// Convert an oid into its loose-object path string (e.g. `aa/bb...`).
+String pathFormat(Pointer<git_oid> id) {
+  return using((arena) {
+    final length = id.ref.type == git_oid_t.GIT_OID_SHA256.value
+        ? GIT_OID_SHA256_HEXSIZE + 1
+        : GIT_OID_SHA1_HEXSIZE + 1;
+    final out = arena<Char>(length + 1);
+    libgit2.git_oid_pathfmt(out, id);
+    return out.toDartString(length: length);
+  });
+}

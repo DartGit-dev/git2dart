@@ -153,6 +153,10 @@ Pointer<git_patch> fromDiff({
 Pointer<git_diff_delta> delta(Pointer<git_patch> patch) =>
     libgit2.git_patch_get_delta(patch);
 
+/// Get the repository that owns this patch.
+Pointer<git_repository> owner(Pointer<git_patch> patch) =>
+    libgit2.git_patch_owner(patch);
+
 /// Get the number of hunks in a patch.
 int numHunks(Pointer<git_patch> patch) => libgit2.git_patch_num_hunks(patch);
 
@@ -181,6 +185,14 @@ Map<String, Object> hunk({
 
     return {'hunk': hunk, 'linesN': linesN};
   });
+}
+
+/// Get the number of lines in a hunk of a patch.
+int numLinesInHunk({
+  required Pointer<git_patch> patchPointer,
+  required int hunkIndex,
+}) {
+  return libgit2.git_patch_num_lines_in_hunk(patchPointer, hunkIndex);
 }
 
 /// Get line counts of each type in a patch.
