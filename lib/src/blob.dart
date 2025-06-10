@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/blob.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -70,6 +71,37 @@ class Blob extends Equatable {
   /// Throws a [LibGit2Error] if error occured.
   static Oid createFromDisk({required Repository repo, required String path}) {
     return Oid(bindings.createFromDisk(repoPointer: repo.pointer, path: path));
+  }
+
+  /// Create a stream to write a new blob into the object database.
+  ///
+  /// The returned stream should be passed to [createFromStreamCommit]
+  /// to finalize the blob creation.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static BlobWriteStream createFromStream({
+    required Repository repo,
+    String? hintPath,
+  }) {
+    return BlobWriteStream(
+      bindings.createFromStream(repoPointer: repo.pointer, hintPath: hintPath),
+    );
+  }
+
+  /// Close the stream and finalize writing the blob to the object database.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static Oid createFromStreamCommit(BlobWriteStream stream) {
+    return Oid(bindings.createFromStreamCommit(stream.pointer));
+  }
+
+  /// Determine if the given content is most certainly binary or not.
+  static bool dataIsBinary(Uint8List data) {
+    return using((arena) {
+      final buffer = arena<Uint8>(data.length);
+      buffer.asTypedList(data.length).setAll(0, data);
+      return bindings.dataIsBinary(data: buffer.cast<Char>(), len: data.length);
+    });
   }
 
   /// [Oid] of the blob.

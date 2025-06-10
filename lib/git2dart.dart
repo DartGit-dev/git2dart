@@ -39,3 +39,4 @@ export 'src/tag.dart';
 export 'src/tree.dart';
 export 'src/treebuilder.dart';
 export 'src/worktree.dart';
+export 'src/writestream.dart';

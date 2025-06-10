@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -159,6 +160,24 @@ void main() {
       expect(blob.size, bytes.length);
       expect(blob.content, 'hi');
       expect(blob.contentBytes, bytes);
+    });
+
+    test('creates blob from stream', () {
+      final stream = Blob.createFromStream(repo: repo);
+
+      stream.writeString(newBlobContent);
+      final oid = Blob.createFromStreamCommit(stream);
+      final blob = Blob.lookup(repo: repo, oid: oid);
+
+      expect(blob.content, newBlobContent);
+    });
+
+    test('detects binary data', () {
+      final binary = Uint8List.fromList([0x00, 0xff]);
+      final text = Uint8List.fromList([0x61, 0x62, 0x63]);
+
+      expect(Blob.dataIsBinary(binary), isTrue);
+      expect(Blob.dataIsBinary(text), isFalse);
     });
 
     test('manually releases allocated memory', () {
