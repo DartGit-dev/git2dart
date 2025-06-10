@@ -4,7 +4,7 @@ on:
   push:
     # tags:
     #   - "v[0-9]+.[0-9]+.[0-9]+*"
-    branches: [main]
+    branches: [main, release/*]
   pull_request:
     branches: ['*']
   workflow_dispatch:
@@ -57,7 +57,7 @@ jobs:
   publish:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
 
     steps:
       - uses: actions/checkout@v3
@@ -80,4 +80,5 @@ jobs:
           flutter: true
           skipTests: true
           format: true
+          dryRunOnly: ${{ github.ref != 'refs/heads/main' }}
           

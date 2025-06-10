@@ -31,7 +31,6 @@ extension IsValidSHA256 on String {
   bool isValidSHA256() {
     final hexRegExp = RegExp(r'^[0-9a-fA-F]+$');
     return hexRegExp.hasMatch(this) &&
-        (GIT_OID_MINPREFIXLEN <= length &&
-            GIT_OID_SHA256_HEXSIZE >= length);
+        (GIT_OID_MINPREFIXLEN <= length && GIT_OID_SHA256_HEXSIZE >= length);
   }
 }
