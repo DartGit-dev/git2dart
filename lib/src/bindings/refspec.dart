@@ -25,6 +25,24 @@ String string(Pointer<git_refspec> refspec) =>
 git_direction direction(Pointer<git_refspec> refspec) =>
     libgit2.git_refspec_direction(refspec);
 
+/// Parse a refspec string into a [git_refspec] instance. The returned refspec
+/// must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_refspec> parse(String spec) {
+  return using((arena) {
+    final out = arena<Pointer<git_refspec>>();
+    final specC = spec.toChar(arena);
+    final error = libgit2.git_refspec_parse(out, specC, 0);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Free a refspec created by [parse].
+void free(Pointer<git_refspec> refspec) => libgit2.git_refspec_free(refspec);
+
 /// Check if a refspec's source descriptor matches a reference.
 bool matchesSource({
   required Pointer<git_refspec> refspecPointer,
@@ -44,6 +62,18 @@ bool matchesDestination({
   return using((arena) {
     final refnameC = refname.toChar(arena);
     return libgit2.git_refspec_dst_matches(refspecPointer, refnameC) == 1;
+  });
+}
+
+/// Check if a refspec's source descriptor matches a reference negatively.
+bool matchesSourceNegative({
+  required Pointer<git_refspec> refspecPointer,
+  required String refname,
+}) {
+  return using((arena) {
+    final refnameC = refname.toChar(arena);
+    return libgit2.git_refspec_src_matches_negative(refspecPointer, refnameC) ==
+        1;
   });
 }
 
