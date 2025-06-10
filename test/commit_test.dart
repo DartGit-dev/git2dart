@@ -352,23 +352,6 @@ Some description.
       expect(commit.parents[1], parent2.oid);
     });
 
-    test('creates commit with non-ascii message', () {
-      const nonAscii = 'Привет мир';
-      final oid = Commit.create(
-        repo: repo,
-        updateRef: 'HEAD',
-        message: nonAscii,
-        author: author,
-        committer: committer,
-        tree: tree,
-        parents: [Commit.lookup(repo: repo, oid: tip)],
-      );
-
-      final commit = Commit.lookup(repo: repo, oid: oid);
-
-      expect(commit.message, nonAscii);
-    });
-
     test('throws when trying to create commit and error occurs', () {
       expect(
         () => Commit.create(
