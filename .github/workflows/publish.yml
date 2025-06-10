@@ -80,5 +80,5 @@ jobs:
           flutter: true
           skipTests: true
           format: true
-          dryRunOnly: ${{ github.ref == 'refs/heads/main' }}
+          dryRunOnly: ${{ github.ref != 'refs/heads/main' }}
           
