@@ -70,9 +70,8 @@ bool reachableFromAny({
       descendants.length,
     );
 
-    if (result < 0) {
-      checkErrorAndThrow(result);
-    }
+    checkErrorAndThrow(result);
+    
     return result == 1;
   });
 }
