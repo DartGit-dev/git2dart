@@ -117,17 +117,26 @@ void remove({
   });
 }
 
+/// Global callback function for tree builder filter
+int Function(Pointer<git_tree_entry>)? _currentPredicate;
+
+int _filterCallback(Pointer<git_tree_entry> entry, Pointer<Void> payload) {
+  return _currentPredicate?.call(entry) ?? 0;
+}
+
 /// Filter tree builder entries using a callback.
 void filter({
   required Pointer<git_treebuilder> builderPointer,
   required int Function(Pointer<git_tree_entry> entry) predicate,
 }) {
   const except = -1;
+  _currentPredicate = predicate;
   final cb = Pointer.fromFunction<git_treebuilder_filter_cbFunction>(
-    (Pointer<git_tree_entry> entry, Pointer<Void> payload) => predicate(entry),
+    _filterCallback,
     except,
   );
   final error = libgit2.git_treebuilder_filter(builderPointer, cb, nullptr);
+  _currentPredicate = null;
   checkErrorAndThrow(error);
 }
 

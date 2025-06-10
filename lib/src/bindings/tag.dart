@@ -191,19 +191,32 @@ List<String> listMatch({
   });
 }
 
+/// Global callback function for tag foreach
+void Function(String name, Pointer<git_oid> oid)? _currentTagCallback;
+
+/// Top-level callback function for tag foreach
+int _tagForeachCallback(
+  Pointer<Char> name,
+  Pointer<git_oid> oid,
+  Pointer<Void> payload,
+) {
+  _currentTagCallback?.call(name.toDartString(), oid);
+  return 0;
+}
+
 /// Iterate over all tags using a callback.
 void foreach({
   required Pointer<git_repository> repoPointer,
   required void Function(String name, Pointer<git_oid> oid) callback,
 }) {
   const except = -1;
-  int cb(Pointer<Char> name, Pointer<git_oid> oid, Pointer<Void> payload) {
-    callback(name.toDartString(), oid);
-    return 0;
-  }
-
-  final c = Pointer.fromFunction<git_tag_foreach_cbFunction>(cb, except);
+  _currentTagCallback = callback;
+  final c = Pointer.fromFunction<git_tag_foreach_cbFunction>(
+    _tagForeachCallback,
+    except,
+  );
   final error = libgit2.git_tag_foreach(repoPointer, c, nullptr);
+  _currentTagCallback = null;
   checkErrorAndThrow(error);
 }
 
