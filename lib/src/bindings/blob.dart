@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -63,6 +64,17 @@ bool isBinary(Pointer<git_blob> blob) {
 /// Returns the raw content as a UTF-8 string.
 String content(Pointer<git_blob> blob) {
   return libgit2.git_blob_rawcontent(blob).cast<Utf8>().toDartString();
+}
+
+/// Get a read-only buffer with the raw content of a blob as bytes.
+Uint8List contentBytes(Pointer<git_blob> blob) {
+  final size = libgit2.git_blob_rawsize(blob);
+  if (size == 0) return Uint8List(0);
+  final data = libgit2
+      .git_blob_rawcontent(blob)
+      .cast<Uint8>()
+      .asTypedList(size);
+  return Uint8List.fromList(data);
 }
 
 /// Get the size in bytes of the contents of a blob.

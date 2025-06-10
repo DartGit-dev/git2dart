@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
@@ -254,6 +255,9 @@ class Commit extends Equatable {
   /// The returned message will be slightly prettified by removing any potential
   /// leading newlines.
   String get message => bindings.message(_commitPointer);
+
+  /// Raw commit message bytes.
+  Uint8List get messageBytes => bindings.messageBytes(_commitPointer);
 
   /// Gets the short "summary" of the commit message.
   ///

@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -241,6 +242,7 @@ void main() {
 
       expect(commit.oid, oid);
       expect(commit.message, message);
+      expect(commit.messageBytes, utf8.encode(message));
       expect(commit.messageEncoding, 'utf-8');
       expect(commit.summary, 'Commit message.');
       expect(commit.body, 'Some description.');
@@ -350,6 +352,24 @@ Some description.
       expect(commit.parents.length, 2);
       expect(commit.parents[0], parent1.oid);
       expect(commit.parents[1], parent2.oid);
+    });
+
+    test('creates commit with non-ascii message', () {
+      const nonAscii = 'Привет мир';
+      final oid = Commit.create(
+        repo: repo,
+        updateRef: 'HEAD',
+        message: nonAscii,
+        author: author,
+        committer: committer,
+        tree: tree,
+        parents: [Commit.lookup(repo: repo, oid: tip)],
+      );
+
+      final commit = Commit.lookup(repo: repo, oid: oid);
+
+      expect(commit.message, nonAscii);
+      expect(commit.messageBytes, utf8.encode(nonAscii));
     });
 
     test('throws when trying to create commit and error occurs', () {
