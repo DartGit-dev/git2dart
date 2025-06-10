@@ -67,27 +67,25 @@ void main() {
       'throws when provided username and password are incorrect',
       tags: 'remote_fetch',
       () {
-      final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final callbacks = const Callbacks(
-        credentials: UserPass(username: 'libgit2', password: 'libgit2'),
-      );
+        final cloneDir = Directory.systemTemp.createTempSync('clone');
+        final callbacks = const Callbacks(
+          credentials: UserPass(username: 'libgit2', password: 'libgit2'),
+        );
 
-      expect(
-        () => Repository.clone(
-          url: 'https://github.com/github/github',
-          localPath: cloneDir.path,
-          callbacks: callbacks,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
+        expect(
+          () => Repository.clone(
+            url: 'https://github.com/github/github',
+            localPath: cloneDir.path,
+            callbacks: callbacks,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
 
-      cloneDir.deleteSync(recursive: true);
-    });
+        cloneDir.deleteSync(recursive: true);
+      },
+    );
 
-    test(
-      'clones repository with provided keypair',
-      tags: 'remote_fetch',
-      () {
+    test('clones repository with provided keypair', tags: 'remote_fetch', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
@@ -110,10 +108,7 @@ void main() {
       }
     });
 
-    test(
-      'throws when no credentials is provided',
-      tags: 'remote_fetch',
-      () {
+    test('throws when no credentials is provided', tags: 'remote_fetch', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
 
       expect(
@@ -127,10 +122,7 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test(
-      'throws when provided keypair is invalid',
-      tags: 'remote_fetch',
-      () {
+    test('throws when provided keypair is invalid', tags: 'remote_fetch', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = const Keypair(
         username: 'git',
@@ -152,10 +144,7 @@ void main() {
       cloneDir.deleteSync(recursive: true);
     });
 
-    test(
-      'throws when provided keypair is incorrect',
-      tags: 'remote_fetch',
-      () {
+    test('throws when provided keypair is incorrect', tags: 'remote_fetch', () {
       final cloneDir = Directory.systemTemp.createTempSync('clone');
       final keypair = Keypair(
         username: 'git',
@@ -180,101 +169,105 @@ void main() {
       'throws when provided credential type is invalid',
       tags: 'remote_fetch',
       () {
-      final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final callbacks = const Callbacks(
-        credentials: UserPass(username: 'libgit2', password: 'libgit2'),
-      );
+        final cloneDir = Directory.systemTemp.createTempSync('clone');
+        final callbacks = const Callbacks(
+          credentials: UserPass(username: 'libgit2', password: 'libgit2'),
+        );
 
-      expect(
-        () => Repository.clone(
-          url: 'ssh://git@github.com/libgit2/TestGitRepository',
-          localPath: cloneDir.path,
-          callbacks: callbacks,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
+        expect(
+          () => Repository.clone(
+            url: 'ssh://git@github.com/libgit2/TestGitRepository',
+            localPath: cloneDir.path,
+            callbacks: callbacks,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
 
-      cloneDir.deleteSync(recursive: true);
-    });
+        cloneDir.deleteSync(recursive: true);
+      },
+    );
 
     test(
       'clones repository with provided keypair from memory',
       tags: 'remote_fetch',
       () {
-      final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final pubKey =
-          File(
-            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
-          ).readAsStringSync();
-      final privateKey =
-          File(p.join('test', 'assets', 'keys', 'id_rsa')).readAsStringSync();
-      final keypair = KeypairFromMemory(
-        username: 'git',
-        pubKey: pubKey,
-        privateKey: privateKey,
-        passPhrase: 'empty',
-      );
-      final callbacks = Callbacks(credentials: keypair);
+        final cloneDir = Directory.systemTemp.createTempSync('clone');
+        final pubKey =
+            File(
+              p.join('test', 'assets', 'keys', 'id_rsa.pub'),
+            ).readAsStringSync();
+        final privateKey =
+            File(p.join('test', 'assets', 'keys', 'id_rsa')).readAsStringSync();
+        final keypair = KeypairFromMemory(
+          username: 'git',
+          pubKey: pubKey,
+          privateKey: privateKey,
+          passPhrase: 'empty',
+        );
+        final callbacks = Callbacks(credentials: keypair);
 
-      final repo = Repository.clone(
-        url: 'ssh://git@github.com/libgit2/TestGitRepository',
-        localPath: cloneDir.path,
-        callbacks: callbacks,
-      );
+        final repo = Repository.clone(
+          url: 'ssh://git@github.com/libgit2/TestGitRepository',
+          localPath: cloneDir.path,
+          callbacks: callbacks,
+        );
 
-      expect(repo.isEmpty, false);
+        expect(repo.isEmpty, false);
 
-      if (Platform.isLinux || Platform.isMacOS) {
-        cloneDir.deleteSync(recursive: true);
-      }
-    });
+        if (Platform.isLinux || Platform.isMacOS) {
+          cloneDir.deleteSync(recursive: true);
+        }
+      },
+    );
 
     test(
       'throws when provided keypair from memory is incorrect',
       tags: 'remote_fetch',
       () {
-      final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final pubKey =
-          File(
-            p.join('test', 'assets', 'keys', 'id_rsa.pub'),
-          ).readAsStringSync();
-      final keypair = KeypairFromMemory(
-        username: 'git',
-        pubKey: pubKey,
-        privateKey: 'incorrect',
-        passPhrase: 'empty',
-      );
-      final callbacks = Callbacks(credentials: keypair);
+        final cloneDir = Directory.systemTemp.createTempSync('clone');
+        final pubKey =
+            File(
+              p.join('test', 'assets', 'keys', 'id_rsa.pub'),
+            ).readAsStringSync();
+        final keypair = KeypairFromMemory(
+          username: 'git',
+          pubKey: pubKey,
+          privateKey: 'incorrect',
+          passPhrase: 'empty',
+        );
+        final callbacks = Callbacks(credentials: keypair);
 
-      expect(
-        () => Repository.clone(
-          url: 'ssh://git@github.com/libgit2/TestGitRepository',
-          localPath: cloneDir.path,
-          callbacks: callbacks,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
+        expect(
+          () => Repository.clone(
+            url: 'ssh://git@github.com/libgit2/TestGitRepository',
+            localPath: cloneDir.path,
+            callbacks: callbacks,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
 
-      cloneDir.deleteSync(recursive: true);
-    });
+        cloneDir.deleteSync(recursive: true);
+      },
+    );
 
     test(
       'throws when provided keypair from agent is incorrect',
       tags: 'remote_fetch',
       () {
-      final cloneDir = Directory.systemTemp.createTempSync('clone');
-      final callbacks = const Callbacks(credentials: KeypairFromAgent('git'));
+        final cloneDir = Directory.systemTemp.createTempSync('clone');
+        final callbacks = const Callbacks(credentials: KeypairFromAgent('git'));
 
-      expect(
-        () => Repository.clone(
-          url: 'ssh://git@github.com/libgit2/TestGitRepository',
-          localPath: cloneDir.path,
-          callbacks: callbacks,
-        ),
-        throwsA(isA<LibGit2Error>()),
-      );
+        expect(
+          () => Repository.clone(
+            url: 'ssh://git@github.com/libgit2/TestGitRepository',
+            localPath: cloneDir.path,
+            callbacks: callbacks,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
 
-      cloneDir.deleteSync(recursive: true);
-    });
+        cloneDir.deleteSync(recursive: true);
+      },
+    );
   });
 }

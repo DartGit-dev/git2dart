@@ -25,12 +25,7 @@ Pointer<git_oid> fromStrN(
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstrn(
-      out,
-      hexC,
-      hex.length,
-      type,
-    );
+    final error = libgit2.git_oid_fromstrn(out, hexC, hex.length, type);
     checkErrorAndThrow(error);
 
     return out;
@@ -87,11 +82,10 @@ Pointer<git_oid> fromRaw(
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-  final length =
-      type == git_oid_t.GIT_OID_SHA256 ? 32 : 20;
-  final rawC = arena<UnsignedChar>(length);
+    final length = type == git_oid_t.GIT_OID_SHA256 ? 32 : 20;
+    final rawC = arena<UnsignedChar>(length);
 
-  for (var i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       rawC[i] = raw[i];
     }
 
