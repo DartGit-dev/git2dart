@@ -2,7 +2,6 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
-import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/blob.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -97,11 +96,7 @@ class Blob extends Equatable {
 
   /// Determine if the given content is most certainly binary or not.
   static bool dataIsBinary(Uint8List data) {
-    return using((arena) {
-      final buffer = arena<Uint8>(data.length);
-      buffer.asTypedList(data.length).setAll(0, data);
-      return bindings.dataIsBinary(data: buffer.cast<Char>(), len: data.length);
-    });
+      return bindings.dataIsBinary(data: data, len: data.length);
   }
 
   /// [Oid] of the blob.

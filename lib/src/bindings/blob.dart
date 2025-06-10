@@ -200,8 +200,13 @@ Pointer<git_oid> createFromStreamCommit(Pointer<git_writestream> stream) {
 }
 
 /// Determine if the given content is most certainly binary or not.
-bool dataIsBinary({required Pointer<Char> data, required int len}) {
-  return libgit2.git_blob_data_is_binary(data, len) == 1;
+bool dataIsBinary({required Uint8List data, required int len}) {
+ return using((arena) {
+      final buffer = arena<Uint8>(data.length);
+      buffer.asTypedList(data.length).setAll(0, data);
+      
+      return libgit2.git_blob_data_is_binary(buffer.cast<Char>(), len) == 1;
+    });
 }
 
 /// Get a buffer with the filtered content of a blob.
