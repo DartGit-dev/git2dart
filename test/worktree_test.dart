@@ -190,7 +190,7 @@ void main() {
       final resolved = Directory(worktreeDir.path).resolveSymbolicLinksSync();
 
       expect(worktree.name, worktreeName);
-      expect(worktree.path, resolved);
+      expect(p.normalize(worktree.path), p.normalize(resolved));
       expect(worktree.isValid, true);
     });
 
@@ -204,8 +204,8 @@ void main() {
       final repoFromWt = worktree.repositoryFromWorktree();
 
       expect(
-        repoFromWt.path,
-        contains(p.join('.git', 'worktrees', worktreeName)),
+        p.normalize(repoFromWt.path),
+        contains(p.normalize(p.join('.git', 'worktrees', worktreeName))),
       );
     });
 
