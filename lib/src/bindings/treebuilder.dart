@@ -117,6 +117,24 @@ void remove({
   });
 }
 
+/// Filter tree builder entries using a callback.
+void filter({
+  required Pointer<git_treebuilder> builderPointer,
+  required int Function(Pointer<git_tree_entry> entry) predicate,
+}) {
+  const except = -1;
+  final cb = Pointer.fromFunction<git_treebuilder_filter_cbFunction>(
+    (entry, payload) => predicate(entry),
+    except,
+  );
+  final error = libgit2.git_treebuilder_filter(
+    builderPointer,
+    cb,
+    nullptr,
+  );
+  checkErrorAndThrow(error);
+}
+
 /// Free a tree builder and all the entries.
 ///
 /// This will clear all the entries and free the builder.

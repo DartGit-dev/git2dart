@@ -61,6 +61,46 @@ void reset({
   });
 }
 
+/// Perform a reset based on an annotated commit.
+void resetFromAnnotated({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_annotated_commit> annotatedPointer,
+  required git_reset_t resetType,
+  int? strategy,
+  String? checkoutDirectory,
+  List<String>? pathspec,
+}) {
+  using((arena) {
+    final opts = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(opts, GIT_CHECKOUT_OPTIONS_VERSION);
+
+    if (strategy != null) {
+      opts.ref.checkout_strategy = strategy;
+    }
+    if (checkoutDirectory != null) {
+      opts.ref.target_directory = checkoutDirectory.toChar(arena);
+    }
+
+    if (pathspec != null) {
+      final ptrs = pathspec.map((e) => e.toChar(arena)).toList();
+      final arr = arena<Pointer<Char>>(pathspec.length);
+      for (var i = 0; i < pathspec.length; i++) {
+        arr[i] = ptrs[i];
+      }
+      opts.ref.paths.strings = arr;
+      opts.ref.paths.count = pathspec.length;
+    }
+
+    final error = libgit2.git_reset_from_annotated(
+      repoPointer,
+      annotatedPointer,
+      resetType,
+      opts,
+    );
+    checkErrorAndThrow(error);
+  });
+}
+
 /// Updates specific entries in the index from the target commit tree.
 ///
 /// This function allows for more granular control over the reset operation by

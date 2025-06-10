@@ -5,6 +5,28 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
+typedef CheckoutProgress = void Function(String path, int completed, int total);
+typedef CheckoutPerfdata = void Function(Pointer<git_checkout_perfdata> perfdata);
+
+CheckoutProgress? _progress;
+CheckoutPerfdata? _perfdata;
+
+void _progressCb(
+  Pointer<Char> path,
+  int completed,
+  int total,
+  Pointer<Void> payload,
+) {
+  _progress?.call(path == nullptr ? '' : path.toDartString(), completed, total);
+}
+
+void _perfdataCb(
+  Pointer<git_checkout_perfdata> perfdata,
+  Pointer<Void> payload,
+) {
+  _perfdata?.call(perfdata);
+}
+
 /// Updates files in the index and the working tree to match the content of the
 /// commit pointed at by HEAD.
 ///
@@ -42,6 +64,36 @@ void head({
     }
 
     final error = libgit2.git_checkout_head(repoPointer, optsC);
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Checkout HEAD with optional progress and performance callbacks.
+void headWithCallbacks({
+  required Pointer<git_repository> repoPointer,
+  required int strategy,
+  CheckoutProgress? progress,
+  CheckoutPerfdata? perfdata,
+}) {
+  using((arena) {
+    final optsC = arena<git_checkout_options>();
+    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+    optsC.ref.checkout_strategy = strategy;
+
+    if (progress != null) {
+      _progress = progress;
+      optsC.ref.progress_cb =
+          Pointer.fromFunction<git_checkout_progress_cbFunction>(_progressCb);
+    }
+    if (perfdata != null) {
+      _perfdata = perfdata;
+      optsC.ref.perfdata_cb =
+          Pointer.fromFunction<git_checkout_perfdata_cbFunction>(_perfdataCb);
+    }
+
+    final error = libgit2.git_checkout_head(repoPointer, optsC);
+    _progress = null;
+    _perfdata = null;
     checkErrorAndThrow(error);
   });
 }

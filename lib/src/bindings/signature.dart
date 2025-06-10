@@ -82,5 +82,19 @@ Pointer<git_signature> duplicate(Pointer<git_signature> sig) {
   });
 }
 
+/// Create a signature from a buffer.
+///
+/// The buffer should contain a signature in the standard git format.
+/// Throws a [LibGit2Error] if parsing fails.
+Pointer<git_signature> fromBuffer(String buffer) {
+  return using((arena) {
+    final out = arena<Pointer<git_signature>>();
+    final bufC = buffer.toChar(arena);
+    final error = libgit2.git_signature_from_buffer(out, bufC);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Free an existing signature.
 void free(Pointer<git_signature> sig) => libgit2.git_signature_free(sig);

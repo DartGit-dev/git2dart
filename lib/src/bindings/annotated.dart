@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
+import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
+import 'package:git2dart/src/bindings/reference.dart' as reference_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Creates an annotated commit from the given commit id.
@@ -111,6 +113,20 @@ Pointer<git_annotated_commit> fromFetchHead({
     checkErrorAndThrow(error);
     return out.value;
   });
+}
+
+/// Creates an annotated commit from the repository's HEAD reference.
+///
+/// The returned annotated commit must be freed with [free].
+///
+/// Throws a [LibGit2Error] if an error occurs.
+Pointer<git_annotated_commit> fromHead(Pointer<git_repository> repoPointer) {
+  final head = repository_bindings.head(repoPointer);
+  try {
+    return fromRef(repoPointer: repoPointer, referencePointer: head);
+  } finally {
+    reference_bindings.free(head);
+  }
 }
 
 /// Gets the commit ID that the given annotated commit refers to.

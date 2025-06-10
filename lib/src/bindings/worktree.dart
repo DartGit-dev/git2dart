@@ -72,6 +72,30 @@ Pointer<git_worktree> lookup({
   });
 }
 
+/// Open a worktree from a repository by path.
+Pointer<git_worktree> openFromRepository({
+  required Pointer<git_repository> repoPointer,
+  required String path,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_worktree>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_worktree_open_from_repository(out, repoPointer, pathC);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Open a repository from an existing worktree.
+Pointer<git_repository> repositoryFromWorktree(Pointer<git_worktree> wt) {
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final error = libgit2.git_repository_open_from_worktree(out, wt);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Checks if a worktree is prunable.
 ///
 /// A worktree is not prunable in the following scenarios:

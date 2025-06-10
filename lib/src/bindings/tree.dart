@@ -91,6 +91,26 @@ int entryCount(Pointer<git_tree> tree) => libgit2.git_tree_entrycount(tree);
 Pointer<git_oid> entryId(Pointer<git_tree_entry> entry) =>
     libgit2.git_tree_entry_id(entry);
 
+/// Duplicate a tree entry owned by the user.
+Pointer<git_tree_entry> duplicateEntry(Pointer<git_tree_entry> entry) {
+  return using((arena) {
+    final out = arena<Pointer<git_tree_entry>>();
+    final error = libgit2.git_tree_entry_dup(out, entry);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Duplicate a tree object.
+Pointer<git_tree> duplicateTree(Pointer<git_tree> tree) {
+  return using((arena) {
+    final out = arena<Pointer<git_tree>>();
+    final error = libgit2.git_tree_dup(out, tree);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Get the filename of a tree entry.
 String entryName(Pointer<git_tree_entry> entry) =>
     libgit2.git_tree_entry_name(entry).toDartString();
