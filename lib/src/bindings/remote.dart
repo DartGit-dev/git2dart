@@ -625,111 +625,31 @@ String defaultBranch(Pointer<git_remote> remotePointer) {
   });
 }
 
-/// Validate that the provided remote name is well formed.
-bool nameIsValid(String name) {
-  return using((arena) {
-    final out = arena<Int>();
-    final nameC = name.toChar(arena);
-    final error = libgit2.git_remote_name_is_valid(out, nameC);
-
-    checkErrorAndThrow(error);
-    return out.value == 1;
-  });
+/// Initialize [git_remote_create_options] structure with default values.
+Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
+  final opts = arena<git_remote_create_options>();
+  libgit2.git_remote_create_options_init(
+    opts,
+    GIT_REMOTE_CREATE_OPTIONS_VERSION,
+  );
+  return opts;
 }
 
-/// Download new data from the remote without updating tracking refs.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void download({
-  required Pointer<git_remote> remotePointer,
-  required List<String> refspecs,
-  required Pointer<git_fetch_options> optionsPointer,
+/// Create a remote using the provided options.
+Pointer<git_remote> createWithOpts({
+  required String url,
+  required Pointer<git_remote_create_options> optionsPointer,
 }) {
-  using((arena) {
-    final refspecsC = arena<git_strarray>();
-    final pointers = refspecs.map((e) => e.toChar(arena)).toList();
-
-    /// Initialize [git_remote_create_options] structure with default values.
-    Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
-      final opts = arena<git_remote_create_options>();
-      libgit2.git_remote_create_options_init(
-        opts,
-        GIT_REMOTE_CREATE_OPTIONS_VERSION,
-      );
-      return opts;
-    }
-
-    /// Create a remote using the provided options.
-    Pointer<git_remote> createWithOpts({
-      required Pointer<git_repository> repoPointer,
-      required Pointer<git_remote_create_options> optionsPointer,
-    }) {
-      return using((arena) {
-        final out = arena<Pointer<git_remote>>();
-        final error = libgit2.git_remote_create_with_opts(
-          out,
-          repoPointer,
-          optionsPointer,
-        );
-
-        checkErrorAndThrow(error);
-        return out.value;
-      });
-    }
-
-    final arr = arena<Pointer<Char>>(refspecs.length);
-    for (var i = 0; i < refspecs.length; i++) {
-      arr[i] = pointers[i];
-    }
-    refspecsC.ref.count = refspecs.length;
-    refspecsC.ref.strings = arr;
-
-    final error = libgit2.git_remote_download(
-      remotePointer,
-      refspecsC,
+  return using((arena) {
+    final out = arena<Pointer<git_remote>>();
+    final error = libgit2.git_remote_create_with_opts(
+      out,
+      url.toChar(arena),
       optionsPointer,
     );
 
     checkErrorAndThrow(error);
-  });
-}
-
-/// Update the tips after a fetch operation.
-///
-/// Throws a [LibGit2Error] if error occurred.
-void updateTips({
-  required Pointer<git_remote> remotePointer,
-  required Pointer<git_remote_callbacks> callbacksPointer,
-  required int updateFlags,
-  required git_remote_autotag_option_t downloadTags,
-  String? reflogMessage,
-}) {
-  using((arena) {
-    final msgC = reflogMessage?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_remote_update_tips(
-      remotePointer,
-      callbacksPointer,
-      updateFlags,
-      downloadTags,
-      msgC,
-    );
-
-    checkErrorAndThrow(error);
-  });
-}
-
-/// Return the remote's default branch as a reference name.
-///
-/// Throws a [LibGit2Error] if the information is not available.
-String defaultBranch(Pointer<git_remote> remotePointer) {
-  return using((arena) {
-    final out = arena<git_buf>();
-    final error = libgit2.git_remote_default_branch(out, remotePointer);
-
-    checkErrorAndThrow(error);
-    final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
-    return result;
+    return out.value;
   });
 }
 
