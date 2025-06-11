@@ -1,4 +1,5 @@
 /// Abstractions for manipulating the Git index (staging area).
+library;
 import 'dart:collection';
 import 'dart:ffi';
 

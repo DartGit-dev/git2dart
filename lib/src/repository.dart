@@ -1,4 +1,5 @@
 /// Core class for interacting with Git repositories.
+library;
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
