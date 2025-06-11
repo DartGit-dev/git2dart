@@ -11,17 +11,60 @@ This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 
 Currently supported platforms are 64-bit Windows, Linux and macOS on both Flutter and Dart VM.
 
+## Usage
+
+git2dart provides you ability to manage Git repository. You can read and write objects (commit, tag, tree and blob), walk a tree, access the staging area, manage config and lots more.
+
+Let's look at some of the classes and methods (you can also check [example](example/example.dart)).
+
 # Documentation
 
 See the [docs directory](docs/README.md) for full documentation and usage examples.
-
----
 
 ## Contributing
 
 Fork git2dart, improve git2dart, send a pull request.
 
----
+ ## System Dependencies
+
+To use git2dart, you need to have the following system dependencies installed:
+
+### Linux
+
+```shell
+sudo apt-get install libssl-dev libpcre3
+```
+
+### macOS
+
+```shell
+brew install openssl
+```
+
+### Windows
+
+```powershell
+choco install openssl -y
+```
+
+## Getting Started
+
+1. Add package as a dependency in your `pubspec.yaml`
+2. Import:
+
+```dart
+import 'package:git2dart/git2dart.dart';
+```
+
+3. Verify installation (should return string with version of libgit2 shipped with package):
+
+```dart
+...
+print(Libgit2.version);
+...
+```
+
+**Note**: The following steps only required if you are using package in Dart application (Flutter application will have libgit2 library bundled automatically when you build for release).
 
 ## Development
 
@@ -50,9 +93,6 @@ To run all tests and generate coverage report make sure to have activated packag
 ```sh
 dart pub global activate coverage
 ```
-
-
----
 
 ## Licence
 
