@@ -468,7 +468,7 @@ void main() {
     test('peels to non-tag object when no type is provided', () {
       final ref = Reference.lookup(repo: repo, name: 'refs/heads/master');
       final commit = Commit.lookup(repo: repo, oid: ref.target);
-      final peeled = ref.peel(GitObject.commit) as Commit;
+      final peeled = ref.peel(GitObjectType.commit) as Commit;
 
       expect(peeled.oid, commit.oid);
     });
@@ -483,10 +483,10 @@ void main() {
       final tagRef = Reference.lookup(repo: repo, name: 'refs/tags/v0.2');
       final commit = Commit.lookup(repo: repo, oid: ref.target);
 
-      final peeledCommit = ref.peel(GitObject.commit) as Commit;
-      final peeledTree = ref.peel(GitObject.tree) as Tree;
-      final peeledBlob = blobRef.peel(GitObject.blob) as Blob;
-      final peeledTag = tagRef.peel(GitObject.tag) as Tag;
+      final peeledCommit = ref.peel(GitObjectType.commit) as Commit;
+      final peeledTree = ref.peel(GitObjectType.tree) as Tree;
+      final peeledBlob = blobRef.peel(GitObjectType.blob) as Blob;
+      final peeledTag = tagRef.peel(GitObjectType.tag) as Tag;
 
       expect(peeledCommit.oid, commit.oid);
       expect(peeledTree.oid, commit.tree.oid);

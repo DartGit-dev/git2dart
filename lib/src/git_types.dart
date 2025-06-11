@@ -90,7 +90,7 @@ enum GitSort {
 }
 
 /// Basic type (loose or packed) of any Git object.
-enum GitObject {
+enum GitObjectType {
   /// Object can be any of the following.
   any(-2),
 
@@ -115,10 +115,10 @@ enum GitObject {
   /// A delta, base is given by object id.
   refDelta(7);
 
-  const GitObject(this.value);
+  const GitObjectType(this.value);
   final int value;
 
-  static GitObject fromValue(int value) => switch (value) {
+  static GitObjectType fromValue(int value) => switch (value) {
     -2 => any,
     -1 => invalid,
     1 => commit,
@@ -127,7 +127,7 @@ enum GitObject {
     4 => tag,
     6 => offsetDelta,
     7 => refDelta,
-    _ => throw ArgumentError('Unknown value for GitObject: $value'),
+    _ => throw ArgumentError('Unknown value for GitObjectType: $value'),
   };
 }
 

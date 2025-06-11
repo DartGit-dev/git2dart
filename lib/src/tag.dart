@@ -61,9 +61,9 @@ class Tag extends Equatable {
   Signature get tagger => Signature(bindings.tagger(_tagPointer));
 
   /// Gets the type of the tagged object.
-  GitObject get targetType {
+  GitObjectType get targetType {
     final type = bindings.targetType(_tagPointer);
-    return GitObject.fromValue(type.value);
+    return GitObjectType.fromValue(type.value);
   }
 
   /// Gets the [Oid] of the tagged object.
@@ -71,20 +71,20 @@ class Tag extends Equatable {
 
   /// Gets the tagged object.
   ///
-  /// Returns a [GitObject] representing the tagged object.
+  /// Returns a [GitObjectType] representing the tagged object.
   ///
   /// Throws a [LibGit2Error] if an error occurs.
   Object get target {
     final type = bindings.targetType(_tagPointer);
     final object = bindings.target(_tagPointer);
 
-    if (type.value == GitObject.commit.value) {
+    if (type.value == GitObjectType.commit.value) {
       return Commit(object.cast());
-    } else if (type.value == GitObject.tree.value) {
+    } else if (type.value == GitObjectType.tree.value) {
       return Tree(object.cast());
-    } else if (type.value == GitObject.blob.value) {
+    } else if (type.value == GitObjectType.blob.value) {
       return Blob(object.cast());
-    } else if (type.value == GitObject.tag.value) {
+    } else if (type.value == GitObjectType.tag.value) {
       return Tag(object.cast());
     } else {
       throw ArgumentError('Unsupported tag target type: ${type.value}');
@@ -108,7 +108,7 @@ class Tag extends Equatable {
     required Repository repo,
     required String tagName,
     required Oid target,
-    required GitObject targetType,
+    required GitObjectType targetType,
     required Signature tagger,
     required String message,
     bool force = false,
@@ -149,13 +149,13 @@ class Tag extends Equatable {
     required Repository repo,
     required String tagName,
     required Oid target,
-    required GitObject targetType,
+    required GitObjectType targetType,
     bool force = false,
   }) {
     final object = object_bindings.lookup(
       repoPointer: repo.pointer,
       oidPointer: target.pointer,
-      type: git_object_t.fromValue(GitObject.any.value),
+      type: git_object_t.fromValue(GitObjectType.any.value),
     );
 
     final result = bindings.createLightweight(

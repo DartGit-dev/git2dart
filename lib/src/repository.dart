@@ -564,7 +564,7 @@ class Repository extends Equatable {
     final object = object_bindings.lookup(
       repoPointer: _repoPointer,
       oidPointer: oid.pointer,
-      type: git_object_t.fromValue(GitObject.any.value),
+      type: git_object_t.fromValue(GitObjectType.any.value),
     );
 
     reset_bindings.reset(
@@ -594,7 +594,7 @@ class Repository extends Equatable {
       object = object_bindings.lookup(
         repoPointer: _repoPointer,
         oidPointer: oid.pointer,
-        type: git_object_t.fromValue(GitObject.commit.value),
+        type: git_object_t.fromValue(GitObjectType.commit.value),
       );
     }
 

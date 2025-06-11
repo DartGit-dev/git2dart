@@ -49,7 +49,7 @@ void main() {
       expect(tag.oid, tagOid);
       expect(tag.name, 'v0.2');
       expect(tag.message, 'annotated tag\n');
-      expect(tag.targetType, GitObject.commit);
+      expect(tag.targetType, GitObjectType.commit);
       expect(target.message, 'add subdirectory file\n');
       expect(tag.tagger, signature);
       expect(tag.toString(), contains('Tag{'));
@@ -70,7 +70,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.commit,
+        targetType: GitObjectType.commit,
         tagger: signature,
         message: message,
       );
@@ -94,7 +94,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.commit,
+        targetType: GitObjectType.commit,
       );
 
       final newTag = Reference.lookup(repo: repo, name: 'refs/tags/$tagName');
@@ -117,7 +117,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.tree,
+        targetType: GitObjectType.tree,
         tagger: signature,
         message: message,
       );
@@ -140,7 +140,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.tree,
+        targetType: GitObjectType.tree,
       );
 
       final newTag = Reference.lookup(repo: repo, name: 'refs/tags/$tagName');
@@ -163,7 +163,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.blob,
+        targetType: GitObjectType.blob,
         tagger: signature,
         message: message,
       );
@@ -186,7 +186,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.blob,
+        targetType: GitObjectType.blob,
       );
 
       final newTag = Reference.lookup(repo: repo, name: 'refs/tags/$tagName');
@@ -208,7 +208,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: tag.oid,
-        targetType: GitObject.tag,
+        targetType: GitObjectType.tag,
         tagger: signature,
         message: message,
       );
@@ -230,7 +230,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: tag.oid,
-        targetType: GitObject.tag,
+        targetType: GitObjectType.tag,
       );
 
       final newTag = Reference.lookup(repo: repo, name: 'refs/tags/$tagName');
@@ -258,7 +258,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.commit,
+        targetType: GitObjectType.commit,
         tagger: signature,
         message: message,
         force: true,
@@ -289,7 +289,7 @@ void main() {
         repo: repo,
         tagName: tagName,
         target: target,
-        targetType: GitObject.commit,
+        targetType: GitObjectType.commit,
         force: true,
       );
 
@@ -306,7 +306,7 @@ void main() {
           repo: repo,
           tagName: '',
           target: repo['9c78c21'],
-          targetType: GitObject.any,
+          targetType: GitObjectType.any,
           tagger: Signature(nullptr),
           message: '',
         ),
@@ -320,7 +320,7 @@ void main() {
           repo: repo,
           tagName: '',
           target: repo['9c78c21'],
-          targetType: GitObject.any,
+          targetType: GitObjectType.any,
         ),
         throwsA(isA<LibGit2Error>()),
       );
@@ -332,7 +332,7 @@ void main() {
           repo: repo,
           tagName: '',
           target: repo['0' * 40],
-          targetType: GitObject.commit,
+          targetType: GitObjectType.commit,
           tagger: Signature(nullptr),
           message: '',
         ),
@@ -348,7 +348,7 @@ void main() {
             repo: repo,
             tagName: '',
             target: repo['0' * 40],
-            targetType: GitObject.commit,
+            targetType: GitObjectType.commit,
           ),
           throwsA(isA<LibGit2Error>()),
         );

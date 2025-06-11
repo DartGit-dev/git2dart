@@ -78,16 +78,16 @@ class Odb extends Equatable {
 
   /// Writes raw [data] into the object database.
   ///
-  /// [type] should be one of [GitObject.blob], [GitObject.commit],
-  /// [GitObject.tag] or [GitObject.tree].
+  /// [type] should be one of [GitObjectType.blob], [GitObjectType.commit],
+  /// [GitObjectType.tag] or [GitObjectType.tree].
   ///
   /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
-  Oid write({required GitObject type, required String data}) {
-    if (type == GitObject.any ||
-        type == GitObject.invalid ||
-        type == GitObject.offsetDelta ||
-        type == GitObject.refDelta) {
+  Oid write({required GitObjectType type, required String data}) {
+    if (type == GitObjectType.any ||
+        type == GitObjectType.invalid ||
+        type == GitObjectType.offsetDelta ||
+        type == GitObjectType.refDelta) {
       throw ArgumentError.value('$type is invalid type');
     } else {
       return Oid(
@@ -134,9 +134,9 @@ class OdbObject extends Equatable {
   Oid get oid => Oid(bindings.objectId(_odbObjectPointer));
 
   /// Type of an ODB object.
-  GitObject get type {
+  GitObjectType get type {
     final typeInt = bindings.objectType(_odbObjectPointer);
-    return GitObject.fromValue(typeInt.value);
+    return GitObjectType.fromValue(typeInt.value);
   }
 
   /// Uncompressed, raw data as read from the ODB, without the leading header.

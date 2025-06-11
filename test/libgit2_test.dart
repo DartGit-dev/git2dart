@@ -70,12 +70,12 @@ void main() {
     test('sets the maximum data size for the given type of object '
         'to be considered eligible for caching in memory', () {
       expect(
-        () => Libgit2.setCacheObjectLimit(type: GitObject.blob, value: 420),
+        () => Libgit2.setCacheObjectLimit(type: GitObjectType.blob, value: 420),
         returnsNormally,
       );
 
       // Reset to avoid side effects in later tests
-      Libgit2.setCacheObjectLimit(type: GitObject.blob, value: 0);
+      Libgit2.setCacheObjectLimit(type: GitObjectType.blob, value: 0);
     });
 
     test('sets the maximum cache size', () {

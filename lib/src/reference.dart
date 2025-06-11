@@ -233,27 +233,27 @@ class Reference extends Equatable {
   /// object types.
   ///
   /// ```dart
-  /// final commit = ref.peel(GitObject.commit) as Commit;
-  /// final tree = ref.peel(GitObject.tree) as Tree;
-  /// final blob = ref.peel(GitObject.blob) as Blob;
-  /// final tag = ref.peel(GitObject.tag) as Tag;
+  /// final commit = ref.peel(GitObjectType.commit) as Commit;
+  /// final tree = ref.peel(GitObjectType.tree) as Tree;
+  /// final blob = ref.peel(GitObjectType.blob) as Blob;
+  /// final tag = ref.peel(GitObjectType.tag) as Tag;
   /// ```
   ///
   /// Throws a [LibGit2Error] if error occured.
-  Object peel([GitObject type = GitObject.any]) {
+  Object peel([GitObjectType type = GitObjectType.any]) {
     final object = bindings.peel(
       refPointer: _refPointer,
       type: git_object_t.fromValue(type.value),
     );
     final objectType = object_bindings.type(object);
 
-    if (objectType.value == GitObject.commit.value) {
+    if (objectType.value == GitObjectType.commit.value) {
       return Commit(object.cast());
-    } else if (objectType.value == GitObject.tree.value) {
+    } else if (objectType.value == GitObjectType.tree.value) {
       return Tree(object.cast());
-    } else if (objectType.value == GitObject.blob.value) {
+    } else if (objectType.value == GitObjectType.blob.value) {
       return Blob(object.cast());
-    } else if (objectType.value == GitObject.tag.value) {
+    } else if (objectType.value == GitObjectType.tag.value) {
       return Tag(object.cast());
     } else {
       throw ArgumentError.value('Invalid object type: $objectType');

@@ -113,7 +113,7 @@ class Checkout {
     final treeish = object_bindings.lookup(
       repoPointer: repo.pointer,
       oidPointer: ref.target.pointer,
-      type: git_object_t.fromValue(GitObject.any.value),
+      type: git_object_t.fromValue(GitObjectType.any.value),
     );
 
     bindings.tree(
@@ -157,7 +157,7 @@ class Checkout {
     final treeish = object_bindings.lookup(
       repoPointer: repo.pointer,
       oidPointer: commit.oid.pointer,
-      type: git_object_t.fromValue(GitObject.any.value),
+      type: git_object_t.fromValue(GitObjectType.any.value),
     );
 
     bindings.tree(

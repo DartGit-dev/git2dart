@@ -138,7 +138,7 @@ class Libgit2 {
   /// Setting [value] to zero means objects of that type won't be cached.
   /// Defaults to 0 for blobs and 4k for commits, trees and tags.
   static void setCacheObjectLimit({
-    required GitObject type,
+    required GitObjectType type,
     required int value,
   }) {
     libgit2.git_libgit2_init();

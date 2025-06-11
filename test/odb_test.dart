@@ -48,7 +48,7 @@ void main() {
       final object = repo.odb.read(repo[blobSha]);
 
       expect(object.oid, repo[blobSha]);
-      expect(object.type, GitObject.blob);
+      expect(object.type, GitObjectType.blob);
       expect(object.data, blobContent);
       expect(object.size, 13);
       expect(object, equals(repo.odb.read(repo[blobSha])));
@@ -74,7 +74,7 @@ void main() {
 
     test('writes data', () {
       final odb = repo.odb;
-      final oid = odb.write(type: GitObject.blob, data: 'testing');
+      final oid = odb.write(type: GitObjectType.blob, data: 'testing');
       final object = odb.read(oid);
 
       expect(odb.contains(oid), true);
@@ -83,7 +83,7 @@ void main() {
 
     test('throws when trying to write with invalid object type', () {
       expect(
-        () => repo.odb.write(type: GitObject.any, data: 'testing'),
+        () => repo.odb.write(type: GitObjectType.any, data: 'testing'),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -93,7 +93,7 @@ void main() {
       odb.addDiskAlternate(p.join(repo.path, 'objects'));
 
       expect(
-        () => odb.write(type: GitObject.blob, data: ''),
+        () => odb.write(type: GitObjectType.blob, data: ''),
         throwsA(isA<LibGit2Error>()),
       );
     });

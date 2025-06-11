@@ -39,18 +39,18 @@ void main() {
       expect(actual, expected);
     });
 
-    test('GitObject returns correct values', () {
+    test('GitObjectType returns correct values', () {
       const expected = {
-        GitObject.any: -2,
-        GitObject.invalid: -1,
-        GitObject.commit: 1,
-        GitObject.tree: 2,
-        GitObject.blob: 3,
-        GitObject.tag: 4,
-        GitObject.offsetDelta: 6,
-        GitObject.refDelta: 7,
+        GitObjectType.any: -2,
+        GitObjectType.invalid: -1,
+        GitObjectType.commit: 1,
+        GitObjectType.tree: 2,
+        GitObjectType.blob: 3,
+        GitObjectType.tag: 4,
+        GitObjectType.offsetDelta: 6,
+        GitObjectType.refDelta: 7,
       };
-      final actual = {for (final e in GitObject.values) e: e.value};
+      final actual = {for (final e in GitObjectType.values) e: e.value};
       expect(actual, expected);
     });
 

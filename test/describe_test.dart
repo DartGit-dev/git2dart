@@ -81,7 +81,7 @@ void main() {
         repo: repo,
         tagName: 'test/tag1',
         target: repo['f17d0d4'],
-        targetType: GitObject.commit,
+        targetType: GitObjectType.commit,
         tagger: signature,
         message: 'message',
       );
