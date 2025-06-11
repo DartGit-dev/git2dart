@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
@@ -141,6 +142,9 @@ class OdbObject extends Equatable {
 
   /// Uncompressed, raw data as read from the ODB, without the leading header.
   String get data => bindings.objectData(_odbObjectPointer);
+
+  /// Raw data of the ODB object as bytes.
+  Uint8List get dataBytes => bindings.objectDataBytes(_odbObjectPointer);
 
   /// Real size of the `data` buffer, not the actual size of the object.
   int get size => bindings.objectSize(_odbObjectPointer);

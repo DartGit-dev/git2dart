@@ -26,6 +26,26 @@ Pointer<git_index> newInMemory({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
   });
 }
 
+/// Open an index file from disk.
+///
+/// The returned index must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_index> open(
+  String path, {
+  Pointer<git_index_options>? optionsPointer,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_open(out, pathC, optionsPointer ?? nullptr);
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
 /// Read index capabilities flags.
 int capabilities(Pointer<git_index> index) => libgit2.git_index_caps(index);
 

@@ -5,6 +5,8 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
+const int maxNameLength = 1024;
+
 /// Get the type of a reference.
 ///
 /// Returns either [GIT_REFERENCE_DIRECT] for direct references (pointing to an OID)
@@ -505,6 +507,54 @@ Pointer<git_reference> duplicate(Pointer<git_reference> source) {
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
     libgit2.git_reference_dup(out, source);
+    return out.value;
+  });
+}
+
+/// Validate a reference name according to Git rules.
+bool nameIsValid(String name) {
+  return using((arena) {
+    final out = arena<Int>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reference_name_is_valid(out, nameC);
+
+    checkErrorAndThrow(error);
+    return out.value == 1;
+  });
+}
+
+/// Normalize a reference name. Returns the normalized name if valid.
+///
+/// Throws a [LibGit2Error] if the name is invalid.
+String normalizeName(String name) {
+  return using((arena) {
+    final buf = arena<Char>(maxNameLength);
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reference_normalize_name(
+      buf,
+      maxNameLength,
+      nameC,
+      0,
+    );
+
+    checkErrorAndThrow(error);
+    return buf.cast<Char>().toDartString();
+  });
+}
+
+/// Resolve a reference by name, automatically handling shorthand forms.
+///
+/// Throws a [LibGit2Error] if the reference cannot be found.
+Pointer<git_reference> dwim({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reference_dwim(out, repoPointer, nameC);
+
+    checkErrorAndThrow(error);
     return out.value;
   });
 }

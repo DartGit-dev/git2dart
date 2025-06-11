@@ -1,12 +1,19 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show calloc;
+import 'package:ffi/ffi.dart' show Arena, calloc;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
+
+/// Allocate and initialize a [git_remote_callbacks] structure.
+Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
+  final callbacks = arena<git_remote_callbacks>();
+  libgit2.git_remote_init_callbacks(callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+  return callbacks;
+}
 
 /// A class that manages callbacks for remote operations in Git.
 /// These callbacks are used during fetch, push, and clone operations

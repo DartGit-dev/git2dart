@@ -1,4 +1,6 @@
 # Changelog
+## [0.3.0] - TODO
+TODO
 
 ## [0.2.2] - 2025-06-07
 ### Changes
