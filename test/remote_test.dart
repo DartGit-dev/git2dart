@@ -522,7 +522,7 @@ void main() {
             Directory.systemTemp.createTempSync('remote_extended_origin');
 
         copyRepo(
-          from: Directory(p.join('test', 'assets', 'empty_bare.git')),
+          from: Directory(p.join('test', 'assets', 'test_repo')),
           to: originDir,
         );
         final originRepo = Repository.open(originDir.path);
