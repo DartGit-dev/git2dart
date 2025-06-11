@@ -1,3 +1,4 @@
+/// Utilities for working with Git blob objects.
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -98,7 +99,7 @@ class Blob extends Equatable {
 
   /// Determine if the given content is most certainly binary or not.
   static bool dataIsBinary(Uint8List data) {
-      return bindings.dataIsBinary(data: data, len: data.length);
+    return bindings.dataIsBinary(data: data, len: data.length);
   }
 
   /// [Oid] of the blob.

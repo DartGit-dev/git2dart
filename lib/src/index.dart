@@ -1,3 +1,4 @@
+/// Abstractions for manipulating the Git index (staging area).
 import 'dart:collection';
 import 'dart:ffi';
 
