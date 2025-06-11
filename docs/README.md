@@ -1,28 +1,9 @@
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
 - [System Dependencies](#system-dependencies)
+- [Getting Started](#getting-started)
 - [Usage](#usage)
-
-## Getting Started
-
-1. Add package as a dependency in your `pubspec.yaml`
-2. Import:
-
-```dart
-import 'package:git2dart/git2dart.dart';
-```
-
-3. Verify installation (should return string with version of libgit2 shipped with package):
-
-```dart
-...
-print(Libgit2.version);
-...
-```
-
-**Note**: The following steps only required if you are using package in Dart application (Flutter application will have libgit2 library bundled automatically when you build for release).
 
 ## System Dependencies
 
@@ -45,6 +26,26 @@ brew install openssl
 ```powershell
 choco install openssl -y
 ```
+
+## Getting Started
+
+1. Add package as a dependency in your `pubspec.yaml`
+2. Import:
+
+```dart
+import 'package:git2dart/git2dart.dart';
+```
+
+3. Verify installation (should return string with version of libgit2 shipped with package):
+
+```dart
+...
+print(Libgit2.version);
+...
+```
+
+**Note**: The following steps only required if you are using package in Dart application (Flutter application will have libgit2 library bundled automatically when you build for release).
+
 
 ## Usage
 
@@ -86,10 +87,6 @@ Let's look at some of the classes and methods (you can also check [example](exam
 - [Signature](types/signature.md)
 - [RevParse](types/revparse.md)
 - [AnnotatedCommit](types/annotatedcommit.md)
-- [Running Tests](types/running_tests.md)
-- [Contributing](types/contributing.md)
-- [Development](types/development.md)
-- [Licence](types/license.md)
 
 # Troubleshooting
 
