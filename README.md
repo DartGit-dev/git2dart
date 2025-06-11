@@ -51,12 +51,6 @@ To run all tests and generate coverage report make sure to have activated packag
 dart pub global activate coverage
 ```
 
-And run:
-
-```sh
-./coverage.sh
-open coverage/index.html
-```
 
 ---
 
