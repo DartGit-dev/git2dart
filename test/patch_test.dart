@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -65,6 +66,7 @@ index e69de29..0000000
 
       expect(patch.size(), 14);
       expect(patch.text, blobPatch);
+      expect(patch.textBytes, utf8.encode(blobPatch));
     });
 
     test('creates from one buffer (add)', () {
@@ -251,6 +253,32 @@ index e69de29..0000000
 
       final hunk = patch.hunks[0];
       expect(hunk.lines[0], equals(hunk.lines[0]));
+    });
+
+    test('creates patch from binary blobs', () {
+      final bytes1 = [0x00, 0x01, 0x02, 0x03];
+      final bytes2 = [0x00, 0x01, 0x02, 0x04];
+      final oldFile = File(p.join(repo.workdir, 'old.bin'))
+        ..writeAsBytesSync(bytes1);
+      final newFile = File(p.join(repo.workdir, 'new.bin'))
+        ..writeAsBytesSync(bytes2);
+      final oldBlob = Blob.lookup(
+        repo: repo,
+        oid: Blob.createFromDisk(repo: repo, path: oldFile.path),
+      );
+      final newBlob = Blob.lookup(
+        repo: repo,
+        oid: Blob.createFromDisk(repo: repo, path: newFile.path),
+      );
+      final patch = Patch.fromBlobs(
+        oldBlob: oldBlob,
+        newBlob: newBlob,
+        oldBlobPath: 'old.bin',
+        newBlobPath: 'new.bin',
+      );
+
+      expect(patch.text, contains('Binary files'));
+      expect(patch.textBytes, utf8.encode(patch.text));
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -153,6 +154,10 @@ Pointer<git_patch> fromDiff({
 Pointer<git_diff_delta> delta(Pointer<git_patch> patch) =>
     libgit2.git_patch_get_delta(patch);
 
+/// Get the repository that owns this patch.
+Pointer<git_repository> owner(Pointer<git_patch> patch) =>
+    libgit2.git_patch_owner(patch);
+
 /// Get the number of hunks in a patch.
 int numHunks(Pointer<git_patch> patch) => libgit2.git_patch_num_hunks(patch);
 
@@ -181,6 +186,14 @@ Map<String, Object> hunk({
 
     return {'hunk': hunk, 'linesN': linesN};
   });
+}
+
+/// Get the number of lines in a hunk of a patch.
+int numLinesInHunk({
+  required Pointer<git_patch> patchPointer,
+  required int hunkIndex,
+}) {
+  return libgit2.git_patch_num_lines_in_hunk(patchPointer, hunkIndex);
 }
 
 /// Get line counts of each type in a patch.
@@ -236,6 +249,20 @@ String text(Pointer<git_patch> patch) {
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
+/// Get the content of a patch as bytes.
+Uint8List textBytes(Pointer<git_patch> patch) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_patch_to_buf(out, patch);
+    checkErrorAndThrow(error);
+
+    final data = out.ref.ptr.cast<Uint8>().asTypedList(out.ref.size);
+    final result = Uint8List.fromList(data);
     libgit2.git_buf_dispose(out);
     return result;
   });

@@ -145,6 +145,81 @@ Pointer<git_oid> createLightweight({
   });
 }
 
+/// Create a tag from a raw buffer.
+Pointer<git_oid> createFromBuffer({
+  required Pointer<git_repository> repoPointer,
+  required String buffer,
+  required bool force,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final bufferC = buffer.toChar(arena);
+    final error = libgit2.git_tag_create_from_buffer(
+      out,
+      repoPointer,
+      bufferC,
+      force ? 1 : 0,
+    );
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Duplicate an existing tag object.
+Pointer<git_tag> duplicate(Pointer<git_tag> tag) {
+  return using((arena) {
+    final out = arena<Pointer<git_tag>>();
+    final error = libgit2.git_tag_dup(out, tag);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Iterate over all tags matching a pattern.
+List<String> listMatch({
+  required Pointer<git_repository> repoPointer,
+  required String pattern,
+}) {
+  return using((arena) {
+    final out = arena<git_strarray>();
+    final patternC = pattern.toChar(arena);
+    final error = libgit2.git_tag_list_match(out, patternC, repoPointer);
+    checkErrorAndThrow(error);
+    return [
+      for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
+    ];
+  });
+}
+
+/// Global callback function for tag foreach
+void Function(String name, Pointer<git_oid> oid)? _currentTagCallback;
+
+/// Top-level callback function for tag foreach
+int _tagForeachCallback(
+  Pointer<Char> name,
+  Pointer<git_oid> oid,
+  Pointer<Void> payload,
+) {
+  _currentTagCallback?.call(name.toDartString(), oid);
+  return 0;
+}
+
+/// Iterate over all tags using a callback.
+void foreach({
+  required Pointer<git_repository> repoPointer,
+  required void Function(String name, Pointer<git_oid> oid) callback,
+}) {
+  const except = -1;
+  _currentTagCallback = callback;
+  final c = Pointer.fromFunction<git_tag_foreach_cbFunction>(
+    _tagForeachCallback,
+    except,
+  );
+  final error = libgit2.git_tag_foreach(repoPointer, c, nullptr);
+  _currentTagCallback = null;
+  checkErrorAndThrow(error);
+}
+
 /// Delete an existing tag reference.
 ///
 /// The tag name will be checked for validity.

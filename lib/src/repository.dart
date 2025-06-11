@@ -1,3 +1,4 @@
+/// Core class for interacting with Git repositories.
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
@@ -488,18 +489,16 @@ class Repository extends Equatable {
       if (entry.ref.head_to_index != nullptr) {
         delta = entry.ref.head_to_index;
       }
-      path =
-          (delta.ref.flags & git_delta_t.GIT_DELTA_RENAMED.value) != 0
-              ? delta.ref.new_file.path.cast<Utf8>().toDartString()
-              : delta.ref.old_file.path.cast<Utf8>().toDartString();
+      path = (delta.ref.flags & git_delta_t.GIT_DELTA_RENAMED.value) != 0
+          ? delta.ref.new_file.path.cast<Utf8>().toDartString()
+          : delta.ref.old_file.path.cast<Utf8>().toDartString();
 
       // Skipping GitStatus.current because entry that is in the list can't be
       // without changes but `&` on `0` value falsly adds it to the set of flags
-      result[path] =
-          GitStatus.values
-              .skip(1)
-              .where((e) => (entry.ref.statusAsInt & e.value) != 0)
-              .toSet();
+      result[path] = GitStatus.values
+          .skip(1)
+          .where((e) => (entry.ref.statusAsInt & e.value) != 0)
+          .toSet();
     }
 
     status_bindings.listFree(list);
@@ -620,6 +619,73 @@ class Repository extends Equatable {
       flags: flags.fold(0, (acc, e) => acc | e.value),
       path: path,
       name: name,
+    );
+  }
+
+  /// Look up a list of git attributes for [path].
+  ///
+  /// Returns a list of attribute values corresponding to [names]. Each value
+  /// can be either `true`, `false`, `null` or a `String`.
+  List<Object?> getAttributesMany({
+    required String path,
+    required List<String> names,
+    Set<GitAttributeCheck> flags = const {GitAttributeCheck.fileThenIndex},
+  }) {
+    return attr_bindings.getAttributesMany(
+      repoPointer: _repoPointer,
+      flags: flags.fold(0, (acc, e) => acc | e.value),
+      path: path,
+      names: names,
+    );
+  }
+
+  /// Look up a list of git attributes for [path] with extended options.
+  List<Object?> getAttributesManyExt({
+    required AttrOptions options,
+    required String path,
+    required List<String> names,
+  }) {
+    return attr_bindings.getAttributesManyExt(
+      repoPointer: _repoPointer,
+      optionsPointer: options.pointer,
+      path: path,
+      names: names,
+    );
+  }
+
+  /// Loop over all git attributes for [path].
+  List<MapEntry<String, String?>> foreachAttributes({
+    required String path,
+    Set<GitAttributeCheck> flags = const {GitAttributeCheck.fileThenIndex},
+  }) {
+    return attr_bindings.foreachAttributes(
+      repoPointer: _repoPointer,
+      flags: flags.fold(0, (acc, e) => acc | e.value),
+      path: path,
+    );
+  }
+
+  /// Loop over all git attributes for [path] with extended options.
+  List<MapEntry<String, String?>> foreachAttributesExt({
+    required AttrOptions options,
+    required String path,
+  }) {
+    return attr_bindings.foreachAttributesExt(
+      repoPointer: _repoPointer,
+      optionsPointer: options.pointer,
+      path: path,
+    );
+  }
+
+  /// Flush the gitattributes cache.
+  void cacheFlush() => attr_bindings.cacheFlush(_repoPointer);
+
+  /// Add a macro definition.
+  void addMacro({required String name, required String values}) {
+    attr_bindings.addMacro(
+      repoPointer: _repoPointer,
+      name: name,
+      values: values,
     );
   }
 

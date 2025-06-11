@@ -83,3 +83,97 @@ String type2string(git_object_t type) {
   final result = libgit2.git_object_type2string(type);
   return result.toDartString();
 }
+
+/// Lookup an object by prefix of its id.
+///
+/// The returned object must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_object> lookupPrefix({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> oidPointer,
+  required int len,
+  required git_object_t type,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_object_lookup_prefix(
+      out,
+      repoPointer,
+      oidPointer,
+      len,
+      type,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Lookup an object that represents a tree entry.
+///
+/// The returned object must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_object> lookupByPath({
+  required Pointer<git_object> treeishPointer,
+  required String path,
+  required git_object_t type,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_object_lookup_bypath(
+      out,
+      treeishPointer,
+      pathC,
+      type,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Get the id of a repository object.
+Pointer<git_oid> id(Pointer<git_object> object) =>
+    libgit2.git_object_id(object).cast();
+
+/// Get the repository that owns this object.
+Pointer<git_repository> owner(Pointer<git_object> object) =>
+    libgit2.git_object_owner(object);
+
+/// Create an in-memory copy of a Git object.
+///
+/// The returned object must be freed.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_object> duplicate(Pointer<git_object> object) {
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_object_dup(out, object);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Check whether a raw object buffer is valid.
+///
+/// Throws a [LibGit2Error] if error occurred.
+bool rawContentIsValid({
+  required Pointer<Char> buffer,
+  required int length,
+  required git_object_t type,
+  git_oid_t oidType = git_oid_t.GIT_OID_SHA1,
+}) {
+  return using((arena) {
+    final valid = arena<Int>();
+    final error = libgit2.git_object_rawcontent_is_valid(
+      valid,
+      buffer,
+      length,
+      type,
+      oidType,
+    );
+    checkErrorAndThrow(error);
+    return valid.value == 1;
+  });
+}

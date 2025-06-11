@@ -1,5 +1,15 @@
 # Changelog
+## [0.3.0] - 2025-06-11
+### Features
+* Add `BlobWriteStream` for streaming blob writes.
+* Introduce `Filter` API with options.
+* Expose additional `Worktree` operations.
+* Add repository attribute helpers and `AttrOptions`.
+* Expand bindings for ODB, Oid, Packbuilder, Patch and Rebase.
+* Improve tag and tree builder callbacks.
 
+### Fixes
+* Stabilize remote tests.
 ## [0.2.2] - 2025-06-07
 ### Changes
 *  upgrade version libgit2 to 1.9.1

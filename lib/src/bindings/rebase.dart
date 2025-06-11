@@ -135,6 +135,16 @@ void commit({
   });
 }
 
+/// Get the index produced by the last operation when rebasing in-memory.
+Pointer<git_index> inmemoryIndex(Pointer<git_rebase> rebase) {
+  return using((arena) {
+    final out = arena<Pointer<git_index>>();
+    final error = libgit2.git_rebase_inmemory_index(out, rebase);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Finishes a rebase that is currently in progress once all patches have been
 /// applied.
 void finish(Pointer<git_rebase> rebase) =>

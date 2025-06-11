@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -23,6 +24,29 @@ Pointer<git_blob> lookup({
   });
 }
 
+/// Lookup a blob object from a repository by its short [oid]. The returned
+/// blob must be freed with [free].
+///
+/// Throws a [LibGit2Error] if the blob cannot be found or if an error occurs.
+Pointer<git_blob> lookupPrefix({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> oidPointer,
+  required int len,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_blob>>();
+    final error = libgit2.git_blob_lookup_prefix(
+      out,
+      repoPointer,
+      oidPointer,
+      len,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Get the [Oid] of a blob.
 Pointer<git_oid> id(Pointer<git_blob> blob) => libgit2.git_blob_id(blob);
 
@@ -40,6 +64,17 @@ bool isBinary(Pointer<git_blob> blob) {
 /// Returns the raw content as a UTF-8 string.
 String content(Pointer<git_blob> blob) {
   return libgit2.git_blob_rawcontent(blob).cast<Utf8>().toDartString();
+}
+
+/// Get a read-only buffer with the raw content of a blob as bytes.
+Uint8List contentBytes(Pointer<git_blob> blob) {
+  final size = libgit2.git_blob_rawsize(blob);
+  if (size == 0) return Uint8List(0);
+  final data = libgit2
+      .git_blob_rawcontent(blob)
+      .cast<Uint8>()
+      .asTypedList(size);
+  return Uint8List.fromList(data);
 }
 
 /// Get the size in bytes of the contents of a blob.
@@ -125,6 +160,53 @@ Pointer<git_blob> duplicate(Pointer<git_blob> source) {
     libgit2.git_blob_dup(out, source);
     return out.value;
   });
+}
+
+/// Create a stream to write a new blob into the object database.
+///
+/// The returned stream should be passed to [createFromStreamCommit] to
+/// finalize the blob creation.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_writestream> createFromStream({
+  required Pointer<git_repository> repoPointer,
+  String? hintPath,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_writestream>>();
+    final hintPathC = hintPath?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_blob_create_from_stream(
+      out,
+      repoPointer,
+      hintPathC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Close the stream and finalize writing the blob to the object database.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_oid> createFromStreamCommit(Pointer<git_writestream> stream) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final error = libgit2.git_blob_create_from_stream_commit(out, stream);
+
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Determine if the given content is most certainly binary or not.
+bool dataIsBinary({required Uint8List data, required int len}) {
+ return using((arena) {
+      final buffer = arena<Uint8>(data.length);
+      buffer.asTypedList(data.length).setAll(0, data);
+      
+      return libgit2.git_blob_data_is_binary(buffer.cast<Char>(), len) == 1;
+    });
 }
 
 /// Get a buffer with the filtered content of a blob.

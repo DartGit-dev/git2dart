@@ -543,6 +543,24 @@ void main() {
       final actual = {for (final e in GitBlobFilter.values) e: e.value};
       expect(actual, expected);
     });
+
+    test('GitFilterMode returns correct values', () {
+      const expected = {GitFilterMode.toWorktree: 0, GitFilterMode.toOdb: 1};
+      final actual = {for (final e in GitFilterMode.values) e: e.value};
+      expect(actual, expected);
+    });
+
+    test('GitFilterFlag returns correct values', () {
+      const expected = {
+        GitFilterFlag.defaults: 0,
+        GitFilterFlag.allowUnsafe: 1,
+        GitFilterFlag.noSystemAttributes: 2,
+        GitFilterFlag.attributesFromHead: 4,
+        GitFilterFlag.attributesFromCommit: 8,
+      };
+      final actual = {for (final e in GitFilterFlag.values) e: e.value};
+      expect(actual, expected);
+    });
   });
 
   test('GitIndexAddOption returns correct values', () {

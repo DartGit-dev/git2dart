@@ -2,6 +2,7 @@
 library;
 
 export 'src/annotated.dart';
+export 'src/attr_options.dart';
 export 'src/blame.dart';
 export 'src/blob.dart';
 export 'src/branch.dart';
@@ -13,6 +14,7 @@ export 'src/credentials.dart';
 export 'src/diff.dart';
 export 'src/error.dart';
 export 'src/extensions/repository.dart';
+export 'src/filter.dart';
 export 'src/git_types.dart';
 export 'src/index.dart';
 export 'src/libgit2.dart';
@@ -38,3 +40,4 @@ export 'src/tag.dart';
 export 'src/tree.dart';
 export 'src/treebuilder.dart';
 export 'src/worktree.dart';
+export 'src/writestream.dart';
