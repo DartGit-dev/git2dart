@@ -1,3 +1,4 @@
+/// Support for working with Git submodules.
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
