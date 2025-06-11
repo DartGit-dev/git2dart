@@ -215,6 +215,62 @@ class Remote extends Equatable {
   /// Returns all refspecs that are used for pushing to the remote.
   List<String> get pushRefspecs => remote_bindings.pushRefspecs(_remotePointer);
 
+  /// Checks whether the remote is currently connected.
+  bool get connected => remote_bindings.connected(_remotePointer);
+
+  /// Opens a connection to the remote.
+  ///
+  /// [direction] specifies whether the connection will be used for fetching or
+  /// pushing.
+  /// [proxy] can be 'auto' to try to auto-detect the proxy from git
+  /// configuration or some specified url. By default connection isn't done
+  /// through proxy.
+  /// [callbacks] is the combination of callback functions from [Callbacks]
+  /// object.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  void connect({
+    GitDirection direction = GitDirection.fetch,
+    String? proxy,
+    Callbacks callbacks = const Callbacks(),
+  }) {
+    remote_bindings.connect(
+      remotePointer: _remotePointer,
+      direction: git_direction.fromValue(direction.value),
+      callbacks: callbacks,
+      proxyOption: proxy,
+    );
+  }
+
+  /// Gets the remote repository's reference list.
+  ///
+  /// The remote must be connected before calling this method.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  List<RemoteReference> lsRemotes() {
+    final refs = remote_bindings.lsRemotes(_remotePointer);
+
+    return <RemoteReference>[
+      for (final ref in refs)
+        RemoteReference._(
+          isLocal: ref['local']! as bool,
+          localId: ref['loid'] as Oid?,
+          name: ref['name']! as String,
+          oid: ref['oid']! as Oid,
+          symRef: ref['symref']! as String,
+        ),
+    ];
+  }
+
+  /// Closes the connection to the remote.
+  void disconnect() => remote_bindings.disconnect(_remotePointer);
+
+  /// Prunes tracking refs that are no longer present on remote.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  void pruneRefs() =>
+      remote_bindings.pruneRefs(remotePointer: _remotePointer);
+
   /// Returns the remote repository's reference list and their associated
   /// commit ids.
   ///

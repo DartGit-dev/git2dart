@@ -515,6 +515,65 @@ void main() {
       );
     });
 
+    test(
+      'connect, lsRemotes, fetch, push, disconnect and pruneRefs',
+      () {
+        final originDir =
+            Directory.systemTemp.createTempSync('remote_extended_origin');
+
+        copyRepo(
+          from: Directory(p.join('test', 'assets', 'empty_bare.git')),
+          to: originDir,
+        );
+        final originRepo = Repository.open(originDir.path);
+
+        Remote.create(repo: repo, name: 'local', url: originDir.path);
+        final remote = Remote.lookup(repo: repo, name: 'local');
+
+        remote.connect(direction: GitDirection.fetch);
+        expect(remote.connected, isTrue);
+
+        final refs = remote.lsRemotes();
+        expect(refs, isNotEmpty);
+
+        remote.disconnect();
+        expect(remote.connected, isFalse);
+
+        remote.fetch();
+
+        remote.push(refspecs: ['refs/heads/master']);
+        expect(
+          Commit.lookup(repo: originRepo, oid: originRepo.head.target).oid.sha,
+          '821ed6e80627b8769d170a293862f9fc60825226',
+        );
+
+        remote.pruneRefs();
+
+        remote.free();
+        originRepo.free();
+        originDir.deleteSync(recursive: true);
+      },
+    );
+
+    test('throws LibGit2Error for invalid connection arguments', () {
+      final invalid =
+          Remote.create(repo: repo, name: 'invalid', url: 'https://wrong.url');
+
+      expect(
+        () => invalid.connect(direction: GitDirection.fetch),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(() => invalid.lsRemotes(), throwsA(isA<LibGit2Error>()));
+      expect(() => invalid.fetch(), throwsA(isA<LibGit2Error>()));
+      expect(
+        () => invalid.push(refspecs: ['refs/heads/master']),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(() => invalid.pruneRefs(), throwsA(isA<LibGit2Error>()));
+
+      invalid.free();
+    });
+
     test('manually releases allocated memory', () {
       final remote = Remote.lookup(repo: repo, name: 'origin');
       expect(() => remote.free(), returnsNormally);

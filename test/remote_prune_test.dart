@@ -81,6 +81,25 @@ void main() {
       );
     });
 
+    test('pruneRefs() prunes branches', () {
+      remote.fetch(prune: GitFetchPrune.noPrune);
+      expect(
+        clonedRepo.branches.any((branch) => branch.name == 'origin/feature'),
+        true,
+      );
+
+      remote.pruneRefs();
+
+      expect(
+        clonedRepo.branches.any((branch) => branch.name == 'origin/feature'),
+        false,
+      );
+    });
+
+    test('throws when trying to pruneRefs and remote has never connected', () {
+      expect(() => remote.pruneRefs(), throwsA(isA<LibGit2Error>()));
+    });
+
     test('throws when trying to prune remote refs and remote has never '
         'connected', () {
       expect(() => remote.prune(), throwsA(isA<LibGit2Error>()));
