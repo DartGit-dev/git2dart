@@ -19,7 +19,7 @@ Let's look at some of the classes and methods (you can also check [example](exam
 
 # Documentation
 
-See the [docs directory](docs/README.md) for full documentation and usage examples.
+See the [doc directory](doc/README.md) for full documentation and usage examples.
 
 ## Contributing
 
