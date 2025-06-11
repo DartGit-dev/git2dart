@@ -33,6 +33,7 @@ Currently supported platforms are 64-bit Windows, Linux, MacOS on both Flutter a
   - [Submodules](#submodules)
   - [Remote](#remote)
   - [Reset](#reset)
+  - [Attributes](#attributes)
   - [Blame](#blame)
   - [Describe](#describe)
   - [Note](#note)
@@ -740,6 +741,40 @@ repo.resetDefault(oid: repo.head.target, pathspec: ['file.txt']);
 
 ---
 
+### Attributes
+
+Manage gitattributes:
+
+```dart
+// Get multiple attributes for a path
+final values = repo.getAttributesMany(
+  path: 'file.sh',
+  names: ['text', 'eol'],
+); // => [null, 'lf']
+
+// Iterate over attributes
+final attrs = repo.foreachAttributes(path: 'file.dart');
+attrs.first.key; // => 'text'
+attrs.first.value; // => 'set'
+
+// Flush attribute cache
+repo.cacheFlush();
+
+// Add attribute macro
+repo.addMacro(name: 'binary', values: '-diff -text');
+
+// Extended attribute lookup with options
+final opts = AttrOptions();
+repo.getAttributesManyExt(
+  options: opts,
+  path: 'file.dart',
+  names: ['text'],
+);
+opts.free();
+```
+
+---
+
 ### Blame
 
 Show what revision and author last modified each line of a file:
@@ -1152,7 +1187,7 @@ dart pub global activate coverage
 And run:
 
 ```sh
-./coverage.sh
+dart pub global run coverage:test_with_coverage
 open coverage/index.html
 ```
 

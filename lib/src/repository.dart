@@ -623,6 +623,73 @@ class Repository extends Equatable {
     );
   }
 
+  /// Look up a list of git attributes for [path].
+  ///
+  /// Returns a list of attribute values corresponding to [names]. Each value
+  /// can be either `true`, `false`, `null` or a `String`.
+  List<Object?> getAttributesMany({
+    required String path,
+    required List<String> names,
+    Set<GitAttributeCheck> flags = const {GitAttributeCheck.fileThenIndex},
+  }) {
+    return attr_bindings.getAttributesMany(
+      repoPointer: _repoPointer,
+      flags: flags.fold(0, (acc, e) => acc | e.value),
+      path: path,
+      names: names,
+    );
+  }
+
+  /// Look up a list of git attributes for [path] with extended options.
+  List<Object?> getAttributesManyExt({
+    required AttrOptions options,
+    required String path,
+    required List<String> names,
+  }) {
+    return attr_bindings.getAttributesManyExt(
+      repoPointer: _repoPointer,
+      optionsPointer: options.pointer,
+      path: path,
+      names: names,
+    );
+  }
+
+  /// Loop over all git attributes for [path].
+  List<MapEntry<String, String?>> foreachAttributes({
+    required String path,
+    Set<GitAttributeCheck> flags = const {GitAttributeCheck.fileThenIndex},
+  }) {
+    return attr_bindings.foreachAttributes(
+      repoPointer: _repoPointer,
+      flags: flags.fold(0, (acc, e) => acc | e.value),
+      path: path,
+    );
+  }
+
+  /// Loop over all git attributes for [path] with extended options.
+  List<MapEntry<String, String?>> foreachAttributesExt({
+    required AttrOptions options,
+    required String path,
+  }) {
+    return attr_bindings.foreachAttributesExt(
+      repoPointer: _repoPointer,
+      optionsPointer: options.pointer,
+      path: path,
+    );
+  }
+
+  /// Flush the gitattributes cache.
+  void cacheFlush() => attr_bindings.cacheFlush(_repoPointer);
+
+  /// Add a macro definition.
+  void addMacro({required String name, required String values}) {
+    attr_bindings.addMacro(
+      repoPointer: _repoPointer,
+      name: name,
+      values: values,
+    );
+  }
+
   /// Returns list with the `ahead` and `behind` number of unique commits
   /// respectively.
   ///

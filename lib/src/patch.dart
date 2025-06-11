@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:ffi/ffi.dart';
@@ -185,6 +186,9 @@ class Patch extends Equatable {
   /// Returns the complete patch text in unified diff format.
   /// Throws a [LibGit2Error] if error occured.
   String get text => bindings.text(_patchPointer);
+
+  /// Content of a patch as bytes.
+  Uint8List get textBytes => bindings.textBytes(_patchPointer);
 
   /// Size of patch diff data in bytes.
   ///

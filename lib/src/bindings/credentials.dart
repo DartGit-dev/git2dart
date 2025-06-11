@@ -126,3 +126,38 @@ Pointer<git_credential> sshKeyFromMemory({
     return out.value;
   });
 }
+
+/// Creates a new default credential usable for Negotiate mechanisms like NTLM
+/// or Kerberos authentication.
+Pointer<git_credential> defaultCredential() {
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final error = libgit2.git_credential_default_new(out);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Creates a credential object that only contains a username.
+Pointer<git_credential> username(String username) {
+  return using((arena) {
+    final out = arena<Pointer<git_credential>>();
+    final usernameC = username.toChar(arena);
+    final error = libgit2.git_credential_username_new(out, usernameC);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Check whether a credential object contains username information.
+bool hasUsername(Pointer<git_credential> cred) =>
+    libgit2.git_credential_has_username(cred) == 1;
+
+/// Return the username associated with a credential object, if any.
+String? getUsername(Pointer<git_credential> cred) {
+  final result = libgit2.git_credential_get_username(cred);
+  return result == nullptr ? null : result.toDartString();
+}
+
+/// Free a previously allocated credential.
+void free(Pointer<git_credential> cred) => libgit2.git_credential_free(cred);

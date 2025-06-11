@@ -56,10 +56,7 @@ void main() {
       );
     });
 
-    test(
-      'inits and updates',
-      tags: 'remote_fetch',
-      () {
+    test('inits and updates', tags: 'remote_fetch', () {
       final submoduleFilePath = p.join(
         repo.workdir,
         testSubmodule,
@@ -73,10 +70,7 @@ void main() {
       expect(File(submoduleFilePath).existsSync(), true);
     });
 
-    test(
-      'updates with provided init flag',
-      tags: 'remote_fetch',
-      () {
+    test('updates with provided init flag', tags: 'remote_fetch', () {
       final submoduleFilePath = p.join(
         repo.workdir,
         testSubmodule,
@@ -93,16 +87,14 @@ void main() {
       'throws when trying to update not initialized submodule',
       tags: 'remote_fetch',
       () {
-      expect(
-        () => Submodule.update(repo: repo, name: testSubmodule),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+        expect(
+          () => Submodule.update(repo: repo, name: testSubmodule),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
-    test(
-      'opens repository for a submodule',
-      tags: 'remote_fetch',
-      () {
+    test('opens repository for a submodule', tags: 'remote_fetch', () {
       final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
       Submodule.init(repo: repo, name: testSubmodule);
       Submodule.update(repo: repo, name: testSubmodule);
@@ -124,10 +116,7 @@ void main() {
       },
     );
 
-    test(
-      'adds submodule',
-      tags: 'remote_fetch',
-      () {
+    test('adds submodule', tags: 'remote_fetch', () {
       final submodule = Submodule.add(
         repo: repo,
         url: submoduleUrl,
@@ -144,12 +133,16 @@ void main() {
       'throws when trying to add submodule with wrong url',
       tags: 'remote_fetch',
       () {
-      expect(
-        () =>
-            Submodule.add(repo: repo, url: 'https://wrong.url/', path: 'test'),
-        throwsA(isA<LibGit2Error>()),
-      );
-    });
+        expect(
+          () => Submodule.add(
+            repo: repo,
+            url: 'https://wrong.url/',
+            path: 'test',
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      },
+    );
 
     test('throws when trying to add submodule and error occurs', () {
       expect(
@@ -184,10 +177,7 @@ void main() {
       expect(updatedSubmodule.updateRule, GitSubmoduleUpdate.rebase);
     });
 
-    test(
-      'syncs',
-      tags: 'remote_fetch',
-      () {
+    test('syncs', tags: 'remote_fetch', () {
       Submodule.update(repo: repo, name: testSubmodule, init: true);
       final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
       final submRepo = submodule.open();
@@ -228,10 +218,7 @@ void main() {
       expect(submodule.url, 'updated');
     });
 
-    test(
-      'returns status for a submodule',
-      tags: 'remote_fetch',
-      () {
+    test('returns status for a submodule', tags: 'remote_fetch', () {
       final submodule = Submodule.lookup(repo: repo, name: testSubmodule);
       expect(submodule.status(), {
         GitSubmoduleStatus.inHead,

@@ -1,4 +1,4 @@
-import 'dart:ffi';
+import 'dart:ffi'; // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/extensions.dart';

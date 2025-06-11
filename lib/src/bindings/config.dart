@@ -39,6 +39,105 @@ Pointer<git_config> openDefault() {
   });
 }
 
+/// Open the global configuration for writing according to git's rules.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_config> openGlobal(Pointer<git_config> configPointer) {
+  return using((arena) {
+    final out = arena<Pointer<git_config>>();
+    final error = libgit2.git_config_open_global(out, configPointer);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Build a single-level focused config object from a multi-level one.
+/// The returned config must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_config> openLevel({
+  required Pointer<git_config> parentPointer,
+  required int level,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_config>>();
+    final error = libgit2.git_config_open_level(
+      out,
+      parentPointer,
+      git_config_level_t.fromValue(level),
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Add an on-disk config file to an existing config at the given [level].
+///
+/// Throws a [LibGit2Error] if error occured.
+void addFileOndisk({
+  required Pointer<git_config> configPointer,
+  required String path,
+  required int level,
+  required Pointer<git_repository> repoPointer,
+  bool force = false,
+}) {
+  using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_config_add_file_ondisk(
+      configPointer,
+      pathC,
+      git_config_level_t.fromValue(level),
+      repoPointer,
+      force ? 1 : 0,
+    );
+
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Set the write order for configuration backends.
+///
+/// Throws a [LibGit2Error] if error occured.
+void setWriteOrder({
+  required Pointer<git_config> configPointer,
+  required List<int> levels,
+}) {
+  using((arena) {
+    final levelsC = arena<Int>(levels.length);
+    for (var i = 0; i < levels.length; i++) {
+      levelsC[i] = levels[i];
+    }
+    final error = libgit2.git_config_set_writeorder(
+      configPointer,
+      levelsC,
+      levels.length,
+    );
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Get a path value from the config.
+///
+/// Throws a [LibGit2Error] if error occured.
+String getPath({
+  required Pointer<git_config> configPointer,
+  required String name,
+}) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_config_get_path(out, configPointer, nameC);
+
+    checkErrorAndThrow(error);
+
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
 /// Locate the path to the global configuration file.
 ///
 /// The user or global configuration file is usually located in

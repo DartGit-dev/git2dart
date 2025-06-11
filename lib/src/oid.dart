@@ -68,7 +68,9 @@ class Oid extends Equatable {
     }
 
     final fullLength =
-        type == git_oid_t.GIT_OID_SHA1 ? GIT_OID_SHA1_HEXSIZE : GIT_OID_SHA256_HEXSIZE;
+        type == git_oid_t.GIT_OID_SHA1
+            ? GIT_OID_SHA1_HEXSIZE
+            : GIT_OID_SHA256_HEXSIZE;
 
     if (sha.length == fullLength) {
       _oidPointer = bindings.fromSHA(sha, type: type);

@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/src/bindings/oid.dart' as oid_bindings;
@@ -20,6 +21,26 @@ Pointer<git_odb> create({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
     opts.ref.oid_typeAsInt = oidType.value;
 
     final error = libgit2.git_odb_new(out, opts);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Open an existing object database from the given `objects` directory.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_odb> open({
+  required String objectsDir,
+  git_oid_t oidType = git_oid_t.GIT_OID_SHA1,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_odb>>();
+    final pathC = objectsDir.toChar(arena);
+    final opts = arena<git_odb_options>();
+    opts.ref.version = GIT_ODB_OPTIONS_VERSION;
+    opts.ref.oid_typeAsInt = oidType.value;
+
+    final error = libgit2.git_odb_open(out, pathC, opts);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -72,6 +93,17 @@ bool exists({
   return libgit2.git_odb_exists(odbPointer, oidPointer) == 1 || false;
 }
 
+/// Determine if the given object can be found in the object database using
+/// extended lookup flags.
+bool existsExt({
+  required Pointer<git_odb> odbPointer,
+  required Pointer<git_oid> oidPointer,
+  required int flags,
+}) {
+  return libgit2.git_odb_exists_ext(odbPointer, oidPointer, flags) == 1 ||
+      false;
+}
+
 /// List of objects in the database.
 ///
 /// IMPORTANT: make sure to clear that list since it's a global variable.
@@ -102,6 +134,23 @@ List<Oid> objects(Pointer<git_odb> odb) {
   return result;
 }
 
+/// Determine if multiple objects exist in the database based on abbreviated
+/// identifiers.
+void expandIds({
+  required Pointer<git_odb> odbPointer,
+  required Pointer<git_odb_expand_id> idsPointer,
+  required int count,
+}) {
+  final error = libgit2.git_odb_expand_ids(odbPointer, idsPointer, count);
+  checkErrorAndThrow(error);
+}
+
+/// Refresh the object database to load newly added files.
+void refresh(Pointer<git_odb> odbPointer) {
+  final error = libgit2.git_odb_refresh(odbPointer);
+  checkErrorAndThrow(error);
+}
+
 /// Read an object from the database. The returned object must be freed with
 /// [freeObject].
 ///
@@ -118,6 +167,27 @@ Pointer<git_odb_object> read({
 
     checkErrorAndThrow(error);
 
+    return out.value;
+  });
+}
+
+/// Read an object from the database given a prefix of its identifier.
+///
+/// Throws a [LibGit2Error] if error occured.
+Pointer<git_odb_object> readPrefix({
+  required Pointer<git_odb> odbPointer,
+  required Pointer<git_oid> shortOidPointer,
+  required int length,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_odb_object>>();
+    final error = libgit2.git_odb_read_prefix(
+      out,
+      odbPointer,
+      shortOidPointer,
+      length,
+    );
+    checkErrorAndThrow(error);
     return out.value;
   });
 }
@@ -142,12 +212,48 @@ String objectData(Pointer<git_odb_object> object) {
   return libgit2.git_odb_object_data(object).cast<Utf8>().toDartString();
 }
 
+/// Return the data of an ODB object as bytes.
+Uint8List objectDataBytes(Pointer<git_odb_object> object) {
+  final size = libgit2.git_odb_object_size(object);
+  if (size == 0) return Uint8List(0);
+  final data = libgit2
+      .git_odb_object_data(object)
+      .cast<Uint8>()
+      .asTypedList(size);
+  return Uint8List.fromList(data);
+}
+
 /// Return the size of an ODB object.
 ///
 /// This is the real size of the `data` buffer, not the actual size of the
 /// object.
 int objectSize(Pointer<git_odb_object> object) {
   return libgit2.git_odb_object_size(object);
+}
+
+/// Read the header of an object from the database without reading its data.
+///
+/// Returns a map containing `size` and `type` keys.
+/// Throws a [LibGit2Error] if error occured.
+Map<String, Object> readHeader({
+  required Pointer<git_odb> odbPointer,
+  required Pointer<git_oid> oidPointer,
+}) {
+  return using((arena) {
+    final lenOut = arena<Size>();
+    final typeOut = arena<Int>();
+    final error = libgit2.git_odb_read_header(
+      lenOut,
+      typeOut,
+      odbPointer,
+      oidPointer,
+    );
+    checkErrorAndThrow(error);
+    return {
+      'size': lenOut.value,
+      'type': git_object_t.fromValue(typeOut.value),
+    };
+  });
 }
 
 /// Write raw data into the object database.

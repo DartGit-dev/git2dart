@@ -65,6 +65,30 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
   });
 }
 
+/// Check if a file should be ignored according to git rules.
+bool shouldIgnore({
+  required Pointer<git_repository> repoPointer,
+  required String path,
+}) {
+  return using((arena) {
+    final ignored = arena<Int>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_status_should_ignore(ignored, repoPointer, pathC);
+    checkErrorAndThrow(error);
+    return ignored.value == 1;
+  });
+}
+
+/// Retrieve diff performance data for a status list.
+Pointer<git_diff_perfdata> listPerfdata(Pointer<git_status_list> statuslist) {
+  return using((arena) {
+    final out = arena<git_diff_perfdata>();
+    final error = libgit2.git_status_list_get_perfdata(out, statuslist);
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
 /// Free an existing status list.
 ///
 /// This will free all the status entries in the list.
