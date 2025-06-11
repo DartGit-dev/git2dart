@@ -28,7 +28,6 @@ class FilterOptions {
   late final Pointer<git_filter_options> _pointer;
 
   /// Pointer to the underlying C structure.
-  @internal
   Pointer<git_filter_options> get pointer => _pointer;
 
   /// Free memory allocated for these options.
@@ -98,7 +97,6 @@ class Filter {
   }
 
   /// Pointer to memory address for allocated filter list object.
-  @internal
   final Pointer<git_filter_list> _filterListPointer;
 
   /// Apply filter list to arbitrary [data].
