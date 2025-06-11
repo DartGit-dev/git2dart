@@ -98,7 +98,6 @@ class Filter {
   }
 
   /// Pointer to memory address for allocated filter list object.
-  @internal
   final Pointer<git_filter_list> _filterListPointer;
 
   /// Apply filter list to arbitrary [data].

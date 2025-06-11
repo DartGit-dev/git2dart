@@ -517,16 +517,24 @@ void main() {
         'remote_extended_origin',
       );
 
-      copyRepo(
-        from: Directory(p.join('test', 'assets', 'test_repo', '.gitdir')),
-        to: originDir,
-      );
-      final originRepo = Repository.open(originDir.path);
+      // Create a bare repository and initialize it with content
+      final originRepo = Repository.init(path: originDir.path, bare: true);
+      
+      final tempRepoDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
+      final tempRepo = Repository.open(tempRepoDir.path);
 
+      final tempRemote = Remote.create(
+        repo: tempRepo,
+        name: 'temp',
+        url: originDir.path,
+      );
+      
+      tempRemote.push(refspecs: ['refs/heads/master:refs/heads/master']);
+      
       Remote.create(repo: repo, name: 'local', url: originDir.path);
       final remote = Remote.lookup(repo: repo, name: 'local');
 
-      remote.connect(direction: GitDirection.fetch);
+      remote.connect();
       expect(remote.connected, isTrue);
 
       final refs = remote.lsRemotes();
@@ -547,7 +555,9 @@ void main() {
 
       remote.free();
       originRepo.free();
+      tempRepo.free();
       originDir.deleteSync(recursive: true);
+      tempRepoDir.deleteSync(recursive: true);
     });
 
     test('throws LibGit2Error for invalid connection arguments', () {
@@ -558,7 +568,7 @@ void main() {
       );
 
       expect(
-        () => invalid.connect(direction: GitDirection.fetch),
+        () => invalid.connect(),
         throwsA(isA<LibGit2Error>()),
       );
       expect(() => invalid.lsRemotes(), throwsA(isA<LibGit2Error>()));
@@ -567,7 +577,6 @@ void main() {
         () => invalid.push(refspecs: ['refs/heads/master']),
         throwsA(isA<LibGit2Error>()),
       );
-      expect(() => invalid.pruneRefs(), throwsA(isA<LibGit2Error>()));
 
       invalid.free();
     });

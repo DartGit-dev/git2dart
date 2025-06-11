@@ -348,6 +348,7 @@ void connect({
     );
 
     checkErrorAndThrow(error);
+    
     RemoteCallbacks.reset();
   });
 }
