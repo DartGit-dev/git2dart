@@ -512,49 +512,50 @@ void main() {
       );
     });
 
-    test(
-      'connect, lsRemotes, fetch, push, disconnect and pruneRefs',
-      () {
-        final originDir =
-            Directory.systemTemp.createTempSync('remote_extended_origin');
+    test('connect, lsRemotes, fetch, push, disconnect and pruneRefs', () {
+      final originDir = Directory.systemTemp.createTempSync(
+        'remote_extended_origin',
+      );
 
-        copyRepo(
-          from: Directory(p.join('test', 'assets', 'test_repo')),
-          to: originDir,
-        );
-        final originRepo = Repository.open(originDir.path);
+      copyRepo(
+        from: Directory(p.join('test', 'assets', 'test_repo', '.gitdir')),
+        to: originDir,
+      );
+      final originRepo = Repository.open(originDir.path);
 
-        Remote.create(repo: repo, name: 'local', url: originDir.path);
-        final remote = Remote.lookup(repo: repo, name: 'local');
+      Remote.create(repo: repo, name: 'local', url: originDir.path);
+      final remote = Remote.lookup(repo: repo, name: 'local');
 
-        remote.connect(direction: GitDirection.fetch);
-        expect(remote.connected, isTrue);
+      remote.connect(direction: GitDirection.fetch);
+      expect(remote.connected, isTrue);
 
-        final refs = remote.lsRemotes();
-        expect(refs, isNotEmpty);
+      final refs = remote.lsRemotes();
+      expect(refs, isNotEmpty);
 
-        remote.disconnect();
-        expect(remote.connected, isFalse);
+      remote.disconnect();
+      expect(remote.connected, isFalse);
 
-        remote.fetch();
+      remote.fetch();
 
-        remote.push(refspecs: ['refs/heads/master']);
-        expect(
-          Commit.lookup(repo: originRepo, oid: originRepo.head.target).oid.sha,
-          '821ed6e80627b8769d170a293862f9fc60825226',
-        );
+      remote.push(refspecs: ['refs/heads/master']);
+      expect(
+        Commit.lookup(repo: originRepo, oid: originRepo.head.target).oid.sha,
+        '821ed6e80627b8769d170a293862f9fc60825226',
+      );
 
-        remote.pruneRefs();
+      remote.pruneRefs();
 
-        remote.free();
-        originRepo.free();
-        originDir.deleteSync(recursive: true);
-      },
-    );
+      remote.free();
+      originRepo.free();
+      originDir.deleteSync(recursive: true);
+    });
 
     test('throws LibGit2Error for invalid connection arguments', () {
-      final invalid =
-          Remote.create(repo: repo, name: 'invalid', url: 'https://wrong.url');
+      final invalid = Remote.create(
+        repo: repo,
+        name: 'invalid',
+        url: 'https://wrong.url',
+      );
 
       expect(
         () => invalid.connect(direction: GitDirection.fetch),
