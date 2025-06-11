@@ -13,11 +13,11 @@ Provide idiomatic, null-safe Dart bindings for **libgit2** that feel like native
 | Path                 | Purpose                                                   | Visibility |
 | -------------------- | --------------------------------------------------------- | ---------- |
 | `lib/`               | Public API exposed to end users                           | ✅ Public   |
-| `lib/src/`           | Internal implementation classes and helpers               |  Public    |
-| `lib/src/bindings/`  | Auto-generated & hand-tuned FFI bindings (memory-managed) | 🔒 Private |
-| `test/`              | Unit & integration tests                                  | ✅ Public   |
-| `tool/`              | One-off scripts (code-gen, benchmarks, etc.)              | ✅ Public   |
-| `git2dart_binaries/` | Pre-built **libgit2** binaries + generated Dart stubs     | —          |
+| `lib/src/`           | Internal implementation classes and helpers               | ✅ Public   |
+| `lib/src/bindings/`  | Auto-generated & hand-tuned FFI bindings (memory-managed) | 🔒 Private  |
+| `test/`              | Unit & integration tests                                  | 🔒 Private  |
+| `scripts/`           | build scripts                                             | 🔒 Private  |
+| `git2dart_binaries/` | Pre-built **libgit2** binaries + generated Dart stubs     | —           |
 
 ## 4. Quick Start
 
@@ -33,6 +33,8 @@ dart format . --set-exit-if-changed
 dart analyze
 dart test
 ```
+
+if you need to install flutter - use script `scripts/install_flutter.sh`
 
 All targets **must** pass on Linux, macOS & Windows using Dart 3.7+ and Flutter stable.
 

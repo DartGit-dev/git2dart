@@ -1,9 +1,9 @@
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/filter.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
-import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 /// Wrapper around libgit2's [git_filter_options] structure.
