@@ -44,7 +44,7 @@ void main() {
 
       final expectedFlags =
           GitFilterFlag.noSystemAttributes.value |
-              GitFilterFlag.attributesFromCommit.value;
+          GitFilterFlag.attributesFromCommit.value;
       expect(opts.pointer.ref.flags, expectedFlags);
       expect(opts.pointer.ref.commit_id.address, commit.pointer.address);
 

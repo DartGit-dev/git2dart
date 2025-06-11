@@ -46,10 +46,7 @@ void main() {
 
       // attr_commit_id should match commit id
       for (var i = 0; i < 20; i++) {
-        expect(
-          opts.pointer.ref.attr_commit_id.id[i],
-          commit.pointer.ref.id[i],
-        );
+        expect(opts.pointer.ref.attr_commit_id.id[i], commit.pointer.ref.id[i]);
       }
 
       opts.free();
