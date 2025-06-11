@@ -1,5 +1,6 @@
 /// Support for working with Git submodules.
 library;
+
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';

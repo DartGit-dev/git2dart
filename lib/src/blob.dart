@@ -1,5 +1,6 @@
 /// Utilities for working with Git blob objects.
 library;
+
 import 'dart:ffi';
 import 'dart:typed_data';
 

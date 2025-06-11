@@ -1,5 +1,6 @@
 /// Provides access to Git references such as branches and tags.
 library;
+
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';

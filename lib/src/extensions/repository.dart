@@ -1,5 +1,6 @@
 /// Convenience extension methods for [Repository].
 library;
+
 import 'package:git2dart/git2dart.dart';
 
 extension RepositoryExtension on Repository {
