@@ -583,4 +583,122 @@ void main() {
     final actual = {for (final e in GitWorktree.values) e: e.value};
     expect(actual, expected);
   });
+
+  group('fromValue', () {
+    void testEnum<T>(String name, T Function(int) fromValue, List<T> values) {
+      group(name, () {
+        test('returns enum', () {
+          for (final v in values) {
+            expect(fromValue((v as dynamic).value as int), v);
+          }
+        });
+
+        test('throws ArgumentError for invalid value', () {
+          final invalid =
+              values
+                  .map((e) => (e as dynamic).value as int)
+                  .reduce((a, b) => a > b ? a : b) +
+              1;
+          expect(() => fromValue(invalid), throwsArgumentError);
+        });
+      });
+    }
+
+    testEnum('ReferenceType', ReferenceType.fromValue, ReferenceType.values);
+    testEnum('GitFilemode', GitFilemode.fromValue, GitFilemode.values);
+    testEnum('GitSort', GitSort.fromValue, GitSort.values);
+    testEnum('GitObject', GitObject.fromValue, GitObject.values);
+    testEnum('GitRevSpec', GitRevSpec.fromValue, GitRevSpec.values);
+    testEnum('GitBranch', GitBranch.fromValue, GitBranch.values);
+    testEnum('GitStatus', GitStatus.fromValue, GitStatus.values);
+    testEnum(
+      'GitMergeAnalysis',
+      GitMergeAnalysis.fromValue,
+      GitMergeAnalysis.values,
+    );
+    testEnum(
+      'GitMergePreference',
+      GitMergePreference.fromValue,
+      GitMergePreference.values,
+    );
+    testEnum(
+      'GitRepositoryState',
+      GitRepositoryState.fromValue,
+      GitRepositoryState.values,
+    );
+    testEnum('GitMergeFlag', GitMergeFlag.fromValue, GitMergeFlag.values);
+    testEnum(
+      'GitMergeFileFavor',
+      GitMergeFileFavor.fromValue,
+      GitMergeFileFavor.values,
+    );
+    testEnum(
+      'GitMergeFileFlag',
+      GitMergeFileFlag.fromValue,
+      GitMergeFileFlag.values,
+    );
+    testEnum('GitCheckout', GitCheckout.fromValue, GitCheckout.values);
+    testEnum('GitReset', GitReset.fromValue, GitReset.values);
+    testEnum('GitDiff', GitDiff.fromValue, GitDiff.values);
+    testEnum('GitDelta', GitDelta.fromValue, GitDelta.values);
+    testEnum('GitDiffFlag', GitDiffFlag.fromValue, GitDiffFlag.values);
+    testEnum('GitDiffStats', GitDiffStats.fromValue, GitDiffStats.values);
+    testEnum('GitDiffFind', GitDiffFind.fromValue, GitDiffFind.values);
+    testEnum('GitDiffLine', GitDiffLine.fromValue, GitDiffLine.values);
+    testEnum('GitConfigLevel', GitConfigLevel.fromValue, GitConfigLevel.values);
+    testEnum('GitStash', GitStash.fromValue, GitStash.values);
+    testEnum('GitStashApply', GitStashApply.fromValue, GitStashApply.values);
+    testEnum('GitDirection', GitDirection.fromValue, GitDirection.values);
+    testEnum('GitFetchPrune', GitFetchPrune.fromValue, GitFetchPrune.values);
+    testEnum(
+      'GitRepositoryInit',
+      GitRepositoryInit.fromValue,
+      GitRepositoryInit.values,
+    );
+    testEnum('GitCredential', GitCredential.fromValue, GitCredential.values);
+    testEnum('GitFeature', GitFeature.fromValue, GitFeature.values);
+    testEnum(
+      'GitAttributeCheck',
+      GitAttributeCheck.fromValue,
+      GitAttributeCheck.values,
+    );
+    testEnum('GitBlameFlag', GitBlameFlag.fromValue, GitBlameFlag.values);
+    testEnum(
+      'GitRebaseOperation',
+      GitRebaseOperation.fromValue,
+      GitRebaseOperation.values,
+    );
+    testEnum(
+      'GitDescribeStrategy',
+      GitDescribeStrategy.fromValue,
+      GitDescribeStrategy.values,
+    );
+    testEnum(
+      'GitSubmoduleIgnore',
+      GitSubmoduleIgnore.fromValue,
+      GitSubmoduleIgnore.values,
+    );
+    testEnum(
+      'GitSubmoduleUpdate',
+      GitSubmoduleUpdate.fromValue,
+      GitSubmoduleUpdate.values,
+    );
+    testEnum(
+      'GitSubmoduleStatus',
+      GitSubmoduleStatus.fromValue,
+      GitSubmoduleStatus.values,
+    );
+    testEnum(
+      'GitIndexCapability',
+      GitIndexCapability.fromValue,
+      GitIndexCapability.values,
+    );
+    testEnum('GitBlobFilter', GitBlobFilter.fromValue, GitBlobFilter.values);
+    testEnum(
+      'GitIndexAddOption',
+      GitIndexAddOption.fromValue,
+      GitIndexAddOption.values,
+    );
+    testEnum('GitWorktree', GitWorktree.fromValue, GitWorktree.values);
+  });
 }
