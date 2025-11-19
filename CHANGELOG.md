@@ -1,4 +1,8 @@
 # Changelog
+## [0.3.1] - 2025-11-19
+### Changes
+* Set restriction for version git2dart_binaries library
+
 ## [0.3.0] - 2025-06-11
 ### Features
 * Add `BlobWriteStream` for streaming blob writes.
