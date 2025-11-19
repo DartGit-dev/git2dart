@@ -25,6 +25,7 @@ export 'src/odb.dart';
 export 'src/oid.dart';
 export 'src/packbuilder.dart';
 export 'src/patch.dart';
+export 'src/platform_specific.dart';
 export 'src/rebase.dart';
 export 'src/reference.dart';
 export 'src/reflog.dart';

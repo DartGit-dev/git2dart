@@ -1,4 +1,13 @@
 # Changelog
+## [0.4.0] - 2025-11-20
+### Features
+* Add `PlatformSpecific.androidInitialize` to wire up libgit2 SSL certificates automatically on Flutter/Android before cloning or fetching.
+* Re-export the platform helper from `git2dart.dart` so Flutter apps can call it without touching internals.
+
+### Documentation
+* Introduce a dedicated Android guide (`doc/types/android.md`) covering prerequisites, initialization flow, and troubleshooting tips.
+* Expand `README.md` and `doc/README.md` with Flutter-on-Android quick start notes, including supported `arm64-v8a` and `x86_64` ABIs.
+
 ## [0.3.1] - 2025-11-19
 ### Changes
 * Set restriction for version git2dart_binaries library

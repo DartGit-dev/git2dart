@@ -15,7 +15,13 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_status_list>>();
-    final error = libgit2.git_status_list_new(out, repo, nullptr);
+    // Initialize status options instead of passing nullptr
+
+    final opts = arena<git_status_options>();
+    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
+
+    final error = libgit2.git_status_list_new(out, repo, opts);
+
     checkErrorAndThrow(error);
     return out.value;
   });

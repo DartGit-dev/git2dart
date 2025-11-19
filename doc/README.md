@@ -1,4 +1,9 @@
 # git2dart Documentation
+
+## Platform Setup
+
+- [Android Setup](android.md) - Required initialize library for Android
+
 ## Usage Guide
 - [Repository](types/repository.md)
 - [Git Objects](types/git_objects.md)
