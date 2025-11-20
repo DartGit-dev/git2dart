@@ -100,7 +100,7 @@ void main() {
         expect(repo.status[fileName], {GitStatus.indexNew});
 
         repo.resetDefault(oid: null, pathspec: [fileName]);
-        expect(repo.status[fileName], {GitStatus.wtNew});
+        expect(repo.status[fileName], null);
       });
 
       test('throws when pathspec list is empty', () {

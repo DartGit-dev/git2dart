@@ -160,7 +160,7 @@ void main() {
       repo.index.remove('file');
       repo.index.add('new_file.txt');
       expect(repo.status, {
-        'file': {GitStatus.indexDeleted, GitStatus.wtNew},
+        'file': {GitStatus.indexDeleted},
         'new_file.txt': {GitStatus.indexNew},
       });
     });
