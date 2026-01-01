@@ -54,9 +54,18 @@ jobs:
         run: |
           flutter test
 
+      - name: Setup Flutter path for Android
+        if: ${{ matrix.platform == 'android' }}
+        id: flutter-path
+        run: |
+          echo "FLUTTER_PATH=$(which flutter || echo '')" >> $GITHUB_ENV
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          PATH: ${{ env.PATH }}
         with:
           api-level: 30
           arch: x86_64
@@ -64,16 +73,20 @@ jobs:
           ram-size: 2048M
           disk-size: 4096M
           script: |
+            set -e
+            
             mkdir -p ~/.ssh
             ssh-keyscan github.com >> ~/.ssh/known_hosts
             
-            # Install Flutter if not available
+            # Install Flutter if not available in PATH
             if ! command -v flutter &> /dev/null; then
-              echo "Installing Flutter..."
+              echo "Flutter not found in PATH, installing..."
               git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter
               export PATH="$HOME/flutter/bin:$PATH"
-              flutter doctor
             fi
+            
+            # Verify Flutter is available
+            flutter --version
             
             flutter pub get
             flutter test 
