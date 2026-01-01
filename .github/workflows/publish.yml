@@ -23,8 +23,6 @@ jobs:
           - platform: windows-latest
           - platform: android
             arch: x86_64
-          - platform: android
-            arch: arm64-v8a
     runs-on: ${{ matrix.platform == 'android' && 'ubuntu-latest' || matrix.platform }}
 
     steps:
@@ -75,11 +73,10 @@ jobs:
           PATH: ${{ env.PATH }}
         with:
           api-level: 30
-          arch: ${{ matrix.arch }}
+          arch: x86_64
           profile: Nexus 6
-          ram-size: ${{ matrix.arch == 'arm64-v8a' && '3072M' || '2048M' }}
+          ram-size: 2048M
           disk-size: 4096M
-          emulator-boot-timeout: ${{ matrix.arch == 'arm64-v8a' && 900 || 300 }}
           script: |
             
             mkdir -p ~/.ssh
