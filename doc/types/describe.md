@@ -1,26 +1,27 @@
 # Describe
 
-Generate human-readable name for any commit:
+`Repository.describe` produces human-readable names for commits or workdir
+state, similar to `git describe`.
+
+## Commit and Workdir
 
 ```dart
-// Describe current working tree state
-repo.describe(); // => 'v0.2-10-g821ed6e'
-
-// Describe specific commit
-repo.describe(
-  commit: Commit.lookup(repo: repo, oid: repo['821ed6e']),
-); // => 'v0.1-1-g821ed6e'
-
-// Describe with options
-repo.describe(
-  describeStrategy: GitDescribeStrategy.tags, // only consider tags
-  abbreviatedSize: 7, // length of abbreviated commit id
-  alwaysUseLongFormat: true,
-  dirtySuffix: '-dirty',
-); // => 'v0.1-1-g821ed6e-dirty'
+final workdirDescription = repo.describe();
+final commitDescription = repo.describe(commit: commit);
 ```
 
----
+## Formatting
 
+```dart
+final text = repo.describe(
+  commit: commit,
+  abbreviatedSize: 7,
+  alwaysUseLongFormat: true,
+  dirtySuffix: '-dirty',
+);
+```
 
-For more examples see [test/describe_test.dart](../../test/describe_test.dart).
+The public API returns a formatted `String`; temporary native describe results
+are freed internally.
+
+See [test/describe_test.dart](../../test/describe_test.dart).

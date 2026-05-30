@@ -1,30 +1,42 @@
 # Commit
 
-Commit lookup and some of the getters of the object:
+`Commit` represents a Git commit object and exposes commit metadata, parents,
+tree information, and creation helpers.
+
+## Lookup
 
 ```dart
-final commit = Commit.lookup(repo: repo, oid: repo['821ed6e']); // => Commit
+final commit = Commit.lookup(repo: repo, oid: repo.head.target);
 
-commit.message; // => 'initial commit\n'
-commit.time; // => 1635869993 (seconds since epoch)
-commit.author; // => Signature
-commit.tree; // => Tree
+commit.oid;
+commit.message;
+commit.summary;
+commit.body;
+commit.author;
+commit.committer;
+commit.tree;
+commit.parents;
+commit.headerField('encoding');
 ```
 
-### Creating a commit
+## Creating Commits
 
 ```dart
 final oid = Commit.create(
   repo: repo,
   updateRef: 'HEAD',
-  message: 'Initial commit\n',
-  author: author,
-  committer: committer,
+  message: 'Add file\n',
+  author: repo.defaultSignature,
+  committer: repo.defaultSignature,
   tree: tree,
-  parents: [],
+  parents: [parent],
 );
 ```
 
+Use `Commit.createBuffer` to build a commit buffer without writing it to the
+object database. Use `Commit.createWithSignature` for signed commit content.
 
+`Commit` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
 
-For more examples see [test/commit_test.dart](../../test/commit_test.dart).
+See [test/commit_test.dart](../../test/commit_test.dart).

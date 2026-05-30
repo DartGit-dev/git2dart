@@ -56,6 +56,14 @@ void main() {
       expect(tree['.gitignore'].oid.sha, fileSHA);
     });
 
+    test('returns tree entry with provided oid', () {
+      final entry = tree.entryByOid(repo[fileSHA]);
+
+      expect(entry.name, '.gitignore');
+      expect(entry.filemodeRaw, GitFilemode.blob);
+      expect(entry.type, GitObject.blob);
+    });
+
     test('throws when nothing found for provided filename', () {
       expect(() => tree['invalid'], throwsA(isA<Git2DartError>()));
     });

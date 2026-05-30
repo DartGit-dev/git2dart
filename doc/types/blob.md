@@ -1,20 +1,24 @@
 # Blob
 
-Blob create and lookup methods and some of the object getters:
+`Blob` represents file content stored in the Git object database.
+
+## Lookup and Creation
 
 ```dart
-// Create a new blob from the file at provided path
-final oid = Blob.createFromDisk(repo: repo, path: 'path/to/file.txt'); // => Oid
-
-// Lookup blob
-final blob = Blob.lookup(repo: repo, oid: repo['e69de29']); // => Blob
-
-blob.oid; // => Oid
-blob.content; // => 'content of the file'
-blob.size; // => 19
+final blob = Blob.lookup(repo: repo, oid: oid);
+final oidFromContent = Blob.create(repo: repo, content: 'content');
+final oidFromFile = Blob.createFromWorkdir(repo: repo, relativePath: 'file.txt');
 ```
 
----
+## Reading
 
+```dart
+blob.oid;
+blob.content;
+blob.size;
+blob.isBinary;
+```
 
-For more examples see [test/blob_test.dart](../../test/blob_test.dart).
+`Blob` owns a native handle. Call `free()` when deterministic cleanup is needed.
+
+See [test/blob_test.dart](../../test/blob_test.dart).

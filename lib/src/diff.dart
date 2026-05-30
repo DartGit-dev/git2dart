@@ -282,6 +282,17 @@ class Diff extends Equatable {
   /// How many diff records are there in a diff.
   int get length => bindings.length(_diffPointer);
 
+  /// Whether deltas are sorted case-insensitively.
+  bool get isSortedICase => bindings.isSortedICase(_diffPointer);
+
+  /// Returns the number of deltas with [type].
+  int lengthOfType(GitDelta type) {
+    return bindings.lengthOfType(
+      diffPointer: _diffPointer,
+      type: git_delta_t.fromValue(type.value),
+    );
+  }
+
   /// Returns a list of [DiffDelta]s containing file pairs with and old and new
   /// revisions.
   List<DiffDelta> get deltas {
@@ -309,6 +320,15 @@ class Diff extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occured.
   DiffStats get stats => DiffStats(bindings.stats(_diffPointer));
+
+  /// Performance counters for this diff.
+  DiffPerfData get perfData {
+    final data = bindings.perfData(_diffPointer);
+    return DiffPerfData(
+      statCalls: data.statCalls,
+      oidCalculations: data.oidCalculations,
+    );
+  }
 
   /// Merges one diff into another.
   void merge(Diff diff) {
@@ -470,6 +490,22 @@ final _finalizer = Finalizer<Pointer<git_diff>>(
   (pointer) => bindings.free(pointer),
 );
 // coverage:ignore-end
+
+/// Diff performance counters.
+@immutable
+class DiffPerfData extends Equatable {
+  /// Creates diff performance counters.
+  const DiffPerfData({required this.statCalls, required this.oidCalculations});
+
+  /// Number of stat calls performed.
+  final int statCalls;
+
+  /// Number of object ID calculations performed.
+  final int oidCalculations;
+
+  @override
+  List<Object?> get props => [statCalls, oidCalculations];
+}
 
 @immutable
 class DiffDelta extends Equatable {

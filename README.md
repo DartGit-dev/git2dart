@@ -10,7 +10,9 @@ git2dart package provides ability to use [libgit2](https://github.com/libgit2/li
 
 This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 
-Currently supported platforms are 64-bit Windows, Linux, macOS and Android (arm64-v8a, x86_64) on both Flutter and Dart VM.
+Currently supported platforms are 64-bit Windows, Linux, macOS, Android
+(arm64-v8a, x86_64), and iOS on Flutter. Desktop platforms also work on the
+Dart VM when native libraries are available.
 ## Usage
 
 git2dart provides you ability to manage Git repository. You can read and write objects (commit, tag, tree and blob), walk a tree, access the staging area, manage config and lots more.
@@ -50,6 +52,10 @@ choco install openssl -y
 ### Android
 
 [Android Setup Guide](doc/android.md).
+
+### iOS
+
+[iOS Setup Guide](doc/ios.md).
 
 ## Getting Started
 

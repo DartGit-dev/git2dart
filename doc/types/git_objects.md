@@ -1,16 +1,37 @@
-# Git Objects
+# Git Objects and Oid
 
-There are four kinds of base object types in Git: **commits**, **trees**, **tags**, and **blobs**. git2dart have a corresponding class for each of these object types.
+Git objects are addressed by `Oid`. High-level object classes include `Commit`,
+`Tree`, `TreeEntry`, `Blob`, and `Tag`.
 
-Lookups of these objects requires Oid object, which can be instantiated from provided SHA-1 string in two ways:
+## Oid
 
 ```dart
-// Using alias on repository object with SHA-1 string that can be any length
-// between 4 and 40 characters
-final oid = repo['821ed6e'];
+final oid = repo['78b8bf123e3952c970ae5c1ce0a3ea1d1336f6e8'];
+final sameOid = Oid.fromSHA(repo, '78b8bf1');
 
-// Using named constructor from Oid class (rules for SHA-1 string length is
-// the same)
-final oid = Oid.fromSHA(repo, '821ed6e');
+oid.sha;
+oid.toStr(41);
+oid.toStrS();
+oid.equalsHex('78b8bf123e3952c970ae5c1ce0a3ea1d1336f6e8');
+oid.compareToHex('ffffffffffffffffffffffffffffffffffffffff');
 ```
 
+Use `OidShortener` to compute unique hexadecimal prefixes.
+
+```dart
+final shortener = OidShortener(minLength: 7);
+final length = shortener.add(oid);
+shortener.free();
+```
+
+## Lookup
+
+```dart
+final commit = Commit.lookup(repo: repo, oid: oid);
+final tree = commit.tree;
+final blob = Blob.lookup(repo: repo, oid: tree['README.md'].oid);
+```
+
+Objects that wrap native handles provide `free()` and finalizers.
+
+See [test/oid_test.dart](../../test/oid_test.dart).

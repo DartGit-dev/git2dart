@@ -1,42 +1,41 @@
 # Credentials
 
-Handle authentication for remote operations:
+Credentials are used by remote callbacks during fetch, push, clone, and
+submodule operations.
+
+## Supported Credential Types
 
 ```dart
-// Username/password credentials
-const credentials = UserPass(
+final userPass = UserPass(
   username: 'user',
   password: 'password',
 );
 
-// SSH key from files
-const credentials = Keypair(
+final keypair = Keypair(
   username: 'git',
   pubKey: 'path/to/id_rsa.pub',
   privateKey: 'path/to/id_rsa',
-  passPhrase: 'key passphrase',
+  passPhrase: 'optional',
 );
 
-// SSH key from memory
-final credentials = KeypairFromMemory(
+final keypairFromMemory = KeypairFromMemory(
   username: 'git',
-  pubKey: publicKeyContent,
-  privateKey: privateKeyContent,
-  passPhrase: 'key passphrase',
-);
-
-// SSH key from agent
-const credentials = KeypairFromAgent('git');
-
-// Use credentials with clone/fetch/push
-final repo = Repository.clone(
-  url: 'ssh://git@github.com/user/repo.git',
-  localPath: 'path/to/clone',
-  callbacks: Callbacks(credentials: credentials),
+  pubKey: publicKey,
+  privateKey: privateKey,
+  passPhrase: 'optional',
 );
 ```
 
----
+## Usage
 
+```dart
+Repository.clone(
+  url: 'git@example.com:owner/repo.git',
+  localPath: 'repo',
+  callbacks: Callbacks(credentials: keypair),
+);
+```
 
-For more examples see [test/credentials_test.dart](../../test/credentials_test.dart).
+Network-dependent credential tests are skipped unless explicitly enabled.
+
+See [test/credentials_test.dart](../../test/credentials_test.dart).

@@ -1,26 +1,32 @@
 # Commit Walker
 
-There's two ways to traverse a set of commits. Through Repository object alias or by using RevWalk class for finer control:
+`RevWalk` traverses commit history.
+
+## Walking
 
 ```dart
-// Traverse a set of commits starting at provided oid
-final commits = repo.log(oid: repo['821ed6e']); // => [Commit, Commit, ...]
+final walker = RevWalk(repo);
 
-// Use RevWalk object to fine tune traversal
-final walker = RevWalk(repo); // => RevWalk
+walker.sorting({GitSort.time});
+walker.pushHead();
 
-// Set desired sorting (optional)
-walker.sorting({GitSort.topological, GitSort.time});
-
-// Push Oid for the starting point
-walker.push(repo['821ed6e']);
-
-// Hide commits if you are not interested in anything beneath them
-walker.hide(repo['c68ff54']);
-
-// Perform traversal
-final commits = walker.walk(); // => [Commit, Commit, ...]
+final commits = walker.walk(limit: 10);
 ```
 
----
+## Inputs
 
+```dart
+walker.push(commit.oid);
+walker.pushGlob('heads/*');
+walker.pushReference('refs/heads/main');
+walker.pushRange('main..feature');
+
+walker.hide(oldCommit.oid);
+walker.hideHead();
+walker.reset();
+```
+
+`RevWalk` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/revwalk_test.dart](../../test/revwalk_test.dart).

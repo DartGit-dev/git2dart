@@ -110,6 +110,17 @@ class Repository extends Equatable {
     _finalizer.attach(this, _repoPointer, detach: this);
   }
 
+  /// Opens a bare repository at provided [path].
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  Repository.openBare(String path) {
+    libgit2.git_libgit2_init();
+
+    _repoPointer = bindings.openBare(path);
+
+    _finalizer.attach(this, _repoPointer, detach: this);
+  }
+
   /// Clones a remote repository at provided [url] into [localPath].
   ///
   /// By default this creates its repository and initial remote to match git's
@@ -269,6 +280,9 @@ class Repository extends Equatable {
     }
   }
 
+  /// Detaches HEAD from its current branch.
+  void detachHead() => bindings.detachHead(_repoPointer);
+
   /// Whether current branch is unborn.
   ///
   /// An unborn branch is one named from HEAD but which doesn't exist in the
@@ -300,6 +314,25 @@ class Repository extends Equatable {
 
   /// Whether repository was a shallow clone.
   bool get isShallow => bindings.isShallow(_repoPointer);
+
+  /// Object ID type used by this repository.
+  git_oid_t get oidType => bindings.oidType(_repoPointer);
+
+  /// Calculates the object id for [path].
+  Oid hashFile({
+    required String path,
+    GitObject type = GitObject.blob,
+    String? asPath,
+  }) {
+    return Oid(
+      bindings.hashFile(
+        repoPointer: _repoPointer,
+        path: path,
+        type: git_object_t.fromValue(type.value),
+        asPath: asPath,
+      ),
+    );
+  }
 
   /// Whether repository is a linked work tree.
   bool get isWorktree => bindings.isWorktree(_repoPointer);

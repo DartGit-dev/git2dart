@@ -136,6 +136,9 @@ index e69de29..c217c63 100644
       final diff = Diff.indexToWorkdir(repo: repo, index: repo.index);
 
       expect(diff.length, 8);
+      expect(diff.lengthOfType(GitDelta.modified), greaterThan(0));
+      expect(diff.isSortedICase, isA<bool>());
+      expect(diff.perfData.statCalls, greaterThanOrEqualTo(0));
       for (var i = 0; i < diff.deltas.length; i++) {
         expect(diff.deltas[i].newFile.path, indexToWorkdir[i]);
       }

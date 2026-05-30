@@ -1,33 +1,34 @@
 # Patch
 
-Some API methods to generate patch:
+`Patch` represents the textual patch for one file delta or for buffer/blob
+comparisons.
+
+## Creating Patches
 
 ```dart
-// Patch from difference between two blobs
-final patch = Patch.fromBlobs(
-  oldBlob: null, // empty blob
-  newBlob: blob,
-  newBlobPath: 'file.txt',
-); // => Patch
-
-// Patch from entry in the diff list at provided index position
-final patch = Patch.fromDiff(diff: diff, index: 0); // => Patch
+final patch = Patch.fromDiff(diff: diff, index: 0);
+final fromBuffers = Patch.fromBuffers(
+  oldBuffer: 'old\n',
+  newBuffer: 'new\n',
+);
+final fromBlobs = Patch.fromBlobs(oldBlob: oldBlob, newBlob: newBlob);
 ```
 
-Some methods for inspecting Patch object:
+## Inspecting
 
 ```dart
-// Get the content of a patch as a single diff text
-patch.text; // => 'diff --git a/modified_file b/modified_file ...'
+patch.text;
+patch.size();
+patch.delta;
+patch.hunks;
 
-// Get the size of a patch diff data in bytes
-patch.size(); // => 1337
-
-// Get the list of hunks in a patch
-patch.hunks; // => [DiffHunk, DiffHunk, ...]
+for (final hunk in patch.hunks) {
+  hunk.header;
+  hunk.lines;
+}
 ```
 
----
+`Patch` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
 
-
-For more examples see [test/patch_test.dart](../../test/patch_test.dart).
+See [test/patch_test.dart](../../test/patch_test.dart).

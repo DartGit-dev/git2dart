@@ -1,39 +1,33 @@
 # Mailmap
 
-Map author/committer names and emails:
+`Mailmap` resolves author and committer names and emails using Git mailmap
+rules.
+
+## Loading
 
 ```dart
-// Create empty mailmap
-final mailmap = Mailmap.empty();
-
-// Create from buffer
-final mailmap = Mailmap.fromBuffer('''
-Joe Developer <joe@example.com> <joe@old.com>
-Jane Doe <jane@example.com> <jane.doe@old.com>
-''');
-
-// Create from repository
-final mailmap = Mailmap.fromRepository(repo);
-
-// Add entry
-mailmap.addEntry(
-  realName: 'Joe Developer',
-  realEmail: 'joe@example.com',
-  replaceName: 'joe',
-  replaceEmail: 'joe@old.com',
-);
-
-// Resolve name and email
-final resolved = mailmap.resolve(
-  name: 'joe',
-  email: 'joe@old.com',
-); // => ['Joe Developer', 'joe@example.com']
-
-// Resolve signature
-final resolvedSig = mailmap.resolveSignature(signature);
+final empty = Mailmap.empty();
+final fromBuffer = Mailmap.fromBuffer('Correct Name <correct@example.com> <old@example.com>');
+final fromRepo = Mailmap.fromRepository(repo);
 ```
 
----
+## Resolving
 
+```dart
+final resolved = mailmap.resolve(
+  name: 'Old Name',
+  email: 'old@example.com',
+);
 
-For more examples see [test/mailmap_test.dart](../../test/mailmap_test.dart).
+mailmap.addEntry(
+  realName: 'Correct Name',
+  realEmail: 'correct@example.com',
+  replaceName: 'Old Name',
+  replaceEmail: 'old@example.com',
+);
+```
+
+`Mailmap` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/mailmap_test.dart](../../test/mailmap_test.dart).

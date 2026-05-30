@@ -33,6 +33,14 @@ void main() {
       );
     });
 
+    test('opens bare repository', () {
+      final bare = Repository.openBare(
+        p.join('test', 'assets', 'empty_bare.git'),
+      );
+
+      expect(bare.isBare, true);
+    });
+
     test('returns snapshot of repository config', () {
       expect(
         repo.configSnapshot['remote.origin.url'].value,
@@ -153,6 +161,19 @@ void main() {
           throwsA(isA<LibGit2Error>()),
         );
       });
+    });
+
+    test('detaches head from current branch', () {
+      repo.detachHead();
+
+      expect(repo.isHeadDetached, true);
+    });
+
+    test('returns repository oid type and hashes a file', () {
+      final oid = repo.hashFile(path: p.join(repo.workdir, 'file'));
+
+      expect(repo.oidType, git_oid_t.GIT_OID_SHA1);
+      expect(oid.sha, Blob.lookup(repo: repo, oid: oid).oid.sha);
     });
 
     test('returns status of a repository', () {

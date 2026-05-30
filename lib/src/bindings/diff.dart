@@ -207,6 +207,19 @@ Pointer<git_diff> treeToTree({
 /// Query how many diff records are there in a diff.
 int length(Pointer<git_diff> diff) => libgit2.git_diff_num_deltas(diff);
 
+/// Query how many diff records have [type].
+int lengthOfType({
+  required Pointer<git_diff> diffPointer,
+  required git_delta_t type,
+}) {
+  return libgit2.git_diff_num_deltas_of_type(diffPointer, type);
+}
+
+/// Return whether deltas are sorted case-insensitively.
+bool isSortedICase(Pointer<git_diff> diff) {
+  return libgit2.git_diff_is_sorted_icase(diff) == 1;
+}
+
 /// Merge one diff into another.
 ///
 /// This modifies the first diff to include the changes from the second diff.
@@ -333,6 +346,22 @@ Pointer<git_diff_stats> stats(Pointer<git_diff> diff) {
     checkErrorAndThrow(error);
 
     return out.value;
+  });
+}
+
+/// Get performance data for [diff].
+DiffPerfData perfData(Pointer<git_diff> diff) {
+  return using((arena) {
+    final out = arena<git_diff_perfdata>();
+    out.ref.version = GIT_DIFF_PERFDATA_VERSION;
+    final error = libgit2.git_diff_get_perfdata(out, diff);
+
+    checkErrorAndThrow(error);
+
+    return DiffPerfData(
+      statCalls: out.ref.stat_calls,
+      oidCalculations: out.ref.oid_calculations,
+    );
   });
 }
 
@@ -507,6 +536,18 @@ void freeStats(Pointer<git_diff_stats> stats) =>
 
 /// Free a previously allocated diff.
 void free(Pointer<git_diff> diff) => libgit2.git_diff_free(diff);
+
+/// Diff performance counters.
+class DiffPerfData {
+  /// Creates diff performance counters.
+  const DiffPerfData({required this.statCalls, required this.oidCalculations});
+
+  /// Number of stat calls performed.
+  final int statCalls;
+
+  /// Number of object ID calculations performed.
+  final int oidCalculations;
+}
 
 Pointer<git_diff_options> _diffOptionsInit({
   required Arena arena,

@@ -1,31 +1,32 @@
 # Signature
 
-Create and manage signatures for commits and tags:
+`Signature` stores a Git identity and timestamp for commits, tags, reflogs, and
+stash operations.
+
+## Creating Signatures
 
 ```dart
-// Create signature with current time
-final sig = Signature.create(
-  name: 'Author Name',
-  email: 'author@example.com',
+final signature = Signature.create(
+  name: 'A User',
+  email: 'a@example.com',
+  time: 1710000000,
+  offset: 0,
 );
 
-// Create signature with specific time
-final sig = Signature.create(
-  name: 'Author Name',
-  email: 'author@example.com',
-  time: 1234567890, // seconds since epoch
-  offset: 120, // timezone offset in minutes
-);
-
-// Access signature properties
-sig.name; // => 'Author Name'
-sig.email; // => 'author@example.com'
-sig.time; // => 1234567890
-sig.offset; // => 120
-sig.sign; // => '+0200'
+final now = Signature.create(name: 'A User', email: 'a@example.com');
+final defaultSignature = repo.defaultSignature;
 ```
 
----
+## Reading
 
+```dart
+signature.name;
+signature.email;
+signature.time;
+signature.offset;
+```
 
-For more examples see [test/signature_test.dart](../../test/signature_test.dart).
+`Signature` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/signature_test.dart](../../test/signature_test.dart).

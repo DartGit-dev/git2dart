@@ -1,38 +1,30 @@
 # Submodules
 
-Some API methods for submodule management:
+`Submodule` manages Git submodules configured in a repository.
+
+## Lookup and Listing
 
 ```dart
-// Get list with all tracked submodules paths
-repo.submodules; // => ['Submodule1', 'Submodule2'];
+final submodules = Submodule.list(repo);
+final submodule = Submodule.lookup(repo: repo, name: 'vendor/lib');
 
-// Lookup submodule
-Submodule.lookup(repo: repo, name: 'Submodule'); // => Submodule
-
-// Init and update
-Submodule.init(repo: repo, name: 'Submodule');
-Submodule.update(repo: repo, name: 'Submodule');
-
-// Add submodule
-Submodule.add(repo: repo, url: 'https://some.url', path: 'submodule'); // => Submodule
+submodule.name;
+submodule.path;
+submodule.url;
+submodule.branch;
+submodule.status;
 ```
 
-Some methods for inspecting Submodule object:
+## Updating
 
 ```dart
-// Get name of the submodule
-submodule.name; // => 'Submodule'
-
-// Get path to the submodule
-submodule.path; // => 'Submodule'
-
-// Get URL for the submodule
-submodule.url; // => 'https://some.url'
-
-// Set URL for the submodule in the configuration
-submodule.url = 'https://updated.url';
+Submodule.init(repo: repo, name: 'vendor/lib');
+Submodule.update(repo: repo, name: 'vendor/lib', init: true);
 submodule.sync();
+submodule.reload();
 ```
 
----
+Submodule network tests are skipped unless network access is explicitly
+enabled.
 
+See [test/submodule_test.dart](../../test/submodule_test.dart).

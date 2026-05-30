@@ -1,25 +1,27 @@
 # Stashes
 
+`Stash` saves, lists, applies, pops, and drops repository stash entries.
+
+## Saving and Listing
+
 ```dart
-// Get the list of all stashed states (first being the most recent)
-repo.stashes; // => [Stash, Stash, ...]
+final oid = Stash.create(
+  repo: repo,
+  stasher: repo.defaultSignature,
+  message: 'WIP',
+);
 
-// Save local modifications to a new stash
-Stash.create(repo: repo, stasher: signature, message: 'WIP'); // => Oid
-
-// Apply stash (defaults to last saved if index is not provided)
-Stash.apply(repo: repo);
-
-// Apply only specific paths from stash
-Stash.apply(repo: repo, paths: ['file.txt']);
-
-// Drop stash (defaults to last saved if index is not provided)
-Stash.drop(repo: repo);
-
-// Pop stash (apply and drop if successful, defaults to last saved
-// if index is not provided)
-Stash.pop(repo: repo);
+final stashes = Stash.list(repo);
 ```
 
----
+## Applying and Removing
 
+```dart
+Stash.apply(repo: repo, index: 0);
+Stash.pop(repo: repo, index: 0);
+Stash.drop(repo: repo, index: 0);
+```
+
+Stash operations mutate the workdir and index.
+
+See [test/stash_test.dart](../../test/stash_test.dart).

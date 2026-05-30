@@ -1,43 +1,29 @@
 # AnnotatedCommit
 
-Annotated commits carry additional information for merge/rebase operations:
+`AnnotatedCommit` carries commit identity plus the reference context that led to
+that commit. Merge and rebase APIs use it when reference context matters.
+
+## Creating
 
 ```dart
-// Create from oid
-final annotated = AnnotatedCommit.lookup(repo: repo, oid: commitOid);
-
-// Create from reference
-final annotated = AnnotatedCommit.fromReference(
+final annotated = AnnotatedCommit.lookup(repo: repo, oid: commit.oid);
+final fromRef = AnnotatedCommit.fromReference(repo: repo, reference: repo.head);
+final fromRevSpec = AnnotatedCommit.fromRevSpec(repo: repo, spec: 'HEAD');
+final fromFetchHead = AnnotatedCommit.fromFetchHead(
   repo: repo,
-  reference: branchRef,
+  branchName: 'main',
+  remoteUrl: 'https://example.com/repo.git',
+  oid: commit.oid,
 );
-
-// Create from revision spec
-final annotated = AnnotatedCommit.fromRevSpec(
-  repo: repo,
-  spec: '@{-1}', // previous branch
-);
-
-// Create from fetch head
-final annotated = AnnotatedCommit.fromFetchHead(
-  repo: repo,
-  branchName: 'master',
-  remoteUrl: 'https://github.com/user/repo.git',
-  oid: commitOid,
-);
-
-// Access properties
-annotated.oid; // => Oid
-annotated.refName; // => 'refs/heads/master'
 ```
 
----
+## Reading
 
-## Contributing
+```dart
+annotated.oid;
+```
 
-Fork git2dart, improve git2dart, send a pull request.
+`AnnotatedCommit` owns a native handle. Call `free()` when deterministic cleanup
+is needed.
 
----
-
-## Development
-
+See [test/annotated_test.dart](../../test/annotated_test.dart).

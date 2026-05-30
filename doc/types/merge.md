@@ -1,23 +1,24 @@
 # Merge
 
-Some API methods:
+`Merge` exposes merge analysis, merge base lookup, tree merges, and cherry-pick
+helpers.
+
+## Analysis and Bases
 
 ```dart
-// Find a merge base between commits
-final oid = Merge.base(
-  repo: repo,
-  commits: [commit1.oid, commit2.oid],
-); // => Oid
+final analysis = Merge.analysis(repo: repo, theirHead: theirCommitOid);
+final base = Merge.base(repo, ourCommitOid, theirCommitOid);
+```
 
-// Merge commit into HEAD writing the results into the working directory
-Merge.commit(repo: repo, commit: annotatedCommit);
+## Operations
 
-// Cherry-pick the provided commit, producing changes in the index and
-// working directory.
+```dart
+Merge.commit(repo: repo, commit: theirCommit);
+Merge.trees(repo: repo, ancestorTree: ancestor, ourTree: ours, theirTree: theirs);
 Merge.cherryPick(repo: repo, commit: commit);
 ```
 
----
+Merge operations can leave repository state in progress. Use
+`repo.stateCleanup()` after resolving or aborting stateful operations.
 
-
-For more examples see [test/merge_test.dart](../../test/merge_test.dart).
+See [test/merge_test.dart](../../test/merge_test.dart).
