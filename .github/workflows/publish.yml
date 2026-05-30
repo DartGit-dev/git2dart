@@ -21,9 +21,10 @@ jobs:
           - platform: ubuntu-latest
           - platform: macos-latest
           - platform: windows-latest
+          - platform: ios
           - platform: android
             arch: x86_64
-    runs-on: ${{ matrix.platform == 'android' && 'ubuntu-latest' || matrix.platform }}
+    runs-on: ${{ (matrix.platform == 'android' && 'ubuntu-latest') || (matrix.platform == 'ios' && 'macos-latest') || matrix.platform }}
 
     steps:
       - name: Set git to use LF
@@ -55,9 +56,29 @@ jobs:
           channel: stable
       
       - name: Run tests on desktop platforms
-        if: ${{ matrix.platform != 'android' }}
+        if: ${{ matrix.platform != 'android' && matrix.platform != 'ios' }}
         run: |
           flutter test
+
+      - name: Run tests on iOS
+        if: ${{ matrix.platform == 'ios' }}
+        shell: bash
+        run: |
+          IOS_DEVICE_NAME="iPhone 16"
+          if ! xcrun simctl list devices available | grep -q "$IOS_DEVICE_NAME"; then
+            IOS_DEVICE_NAME="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Shutdown/ {print $1; exit}' | xargs)"
+          fi
+
+          if [ -z "$IOS_DEVICE_NAME" ]; then
+            echo "No available iOS simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          xcrun simctl boot "$IOS_DEVICE_NAME" || true
+          xcrun simctl bootstatus "$IOS_DEVICE_NAME" -b
+          flutter devices
+          flutter test -d "$IOS_DEVICE_NAME"
 
       - name: Setup Flutter path for Android
         if: ${{ matrix.platform == 'android' }}
