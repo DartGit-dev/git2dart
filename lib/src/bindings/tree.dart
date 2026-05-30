@@ -64,6 +64,18 @@ Pointer<git_tree_entry> getByName({
   });
 }
 
+/// Lookup a tree entry by its object id.
+Pointer<git_tree_entry> getById({
+  required Pointer<git_tree> treePointer,
+  required Pointer<git_oid> oidPointer,
+}) {
+  final result = libgit2.git_tree_entry_byid(treePointer, oidPointer);
+  if (result == nullptr) {
+    throw Git2DartError('Tree entry was not found');
+  }
+  return result;
+}
+
 /// Retrieve a tree entry contained in a tree or in any of its subtrees, given
 /// its relative path.
 ///
@@ -118,6 +130,15 @@ String entryName(Pointer<git_tree_entry> entry) =>
 /// Get the UNIX file attributes of a tree entry.
 git_filemode_t entryFilemode(Pointer<git_tree_entry> entry) =>
     libgit2.git_tree_entry_filemode(entry);
+
+/// Get the raw UNIX file attributes of a tree entry.
+git_filemode_t entryFilemodeRaw(Pointer<git_tree_entry> entry) =>
+    libgit2.git_tree_entry_filemode_raw(entry);
+
+/// Get the Git object type of a tree entry.
+git_object_t entryType(Pointer<git_tree_entry> entry) {
+  return libgit2.git_tree_entry_type(entry);
+}
 
 /// Free a user-owned tree entry.
 ///

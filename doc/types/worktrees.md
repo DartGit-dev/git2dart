@@ -1,32 +1,32 @@
 # Worktrees
 
+`Worktree` represents a linked Git worktree.
+
+## Creating and Lookup
+
 ```dart
-// Get list of names of linked worktrees
-repo.worktrees; // => ['worktree1', 'worktree2'];
-
-// Lookup existing worktree
-Worktree.lookup(repo: repo, name: 'worktree1'); // => Worktree
-
-// Create new worktree
 final worktree = Worktree.create(
   repo: repo,
-  name: 'worktree3',
-  path: '/worktree3/path/',
-); // => Worktree
+  name: 'feature-worktree',
+  path: 'path/to/worktree',
+);
 
-// Get name of worktree
-worktree.name; // => 'worktree3'
-
-// Get path for the worktree
-worktree.path; // => '/worktree3/path/';
-
-// Lock and unlock worktree
-worktree.lock();
-worktree.unlock();
-
-// Prune the worktree (remove the git data structures on disk)
-worktree.prune();
+final existing = Worktree.lookup(repo: repo, name: 'feature-worktree');
+final list = Worktree.list(repo);
 ```
 
----
+## Operations
 
+```dart
+worktree.lock();
+worktree.unlock();
+worktree.validate();
+worktree.prune();
+
+final worktreeRepo = worktree.repositoryFromWorktree();
+```
+
+`Worktree` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/worktree_test.dart](../../test/worktree_test.dart).

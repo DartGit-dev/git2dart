@@ -1,42 +1,42 @@
 # Remote
 
-Some API methods for remote management:
+`Remote` represents a configured or anonymous remote repository.
+
+## Creating and Lookup
 
 ```dart
-// Get list of all remotes
-Remote.list(repo); // => ['origin', 'upstream', ...]
-
-// Lookup remote
-final remote = Remote.lookup(repo: repo, name: 'origin'); // => Remote
-remote.name; // => 'origin'
-remote.url; // => 'https://github.com/user/repo.git'
-
-// Create remote
+final origin = Remote.lookup(repo: repo, name: 'origin');
 final remote = Remote.create(
   repo: repo,
   name: 'upstream',
-  url: 'https://github.com/upstream/repo.git',
-); // => Remote
+  url: 'https://example.com/repo.git',
+);
 
-// Delete remote
-Remote.delete(repo: repo, name: 'upstream');
-
-// Rename remote
-Remote.rename(repo: repo, oldName: 'origin', newName: 'github');
-
-// Fetch from remote
-final remote = Remote.lookup(repo: repo, name: 'origin');
-final stats = remote.fetch(
-  callbacks: Callbacks(transferProgress: (stats) {
-    print('Progress: ${stats.receivedObjects}/${stats.totalObjects}');
-  }),
-); // => TransferProgress
-
-// Get remote references
-final refs = remote.ls(); // => [RemoteReference, RemoteReference, ...]
+Remote.setUrl(repo: repo, remote: 'origin', url: 'https://example.com/repo.git');
 ```
 
----
+## Inspecting
 
+```dart
+remote.name;
+remote.url;
+remote.pushUrl;
+remote.refspecCount;
+remote.fetchRefspecs;
+remote.pushRefspecs;
+remote.getRefspec(0);
+```
 
-For more examples see [test/remote_test.dart](../../test/remote_test.dart).
+## Network Operations
+
+```dart
+final refs = remote.ls();
+
+remote.fetch();
+remote.push(refspecs: ['refs/heads/main']);
+remote.prune();
+```
+
+Network-dependent tests are skipped in CI unless explicitly enabled.
+
+See [test/remote_test.dart](../../test/remote_test.dart).

@@ -1,4 +1,15 @@
 # Changelog
+## [0.5.0] - 2026-05-30
+### Features
+* Update `git2dart_binaries` constraint to `>=1.11.0 <1.12.0`.
+* Add public APIs for commit graphs, ignore rules, messages, and pathspec matching.
+* Extend config, diff, oid, repository, and tree APIs with additional libgit2-backed helpers.
+* Add Flutter iOS platform support and shared `PlatformSpecific.initialize()`.
+
+### Documentation
+* Refresh public API documentation for consistency.
+* Add platform setup documentation for iOS.
+
 ## [0.4.0] - 2025-11-20
 ### Features
 * Add `PlatformSpecific.androidInitialize` to wire up libgit2 SSL certificates automatically on Flutter/Android before cloning or fetching.

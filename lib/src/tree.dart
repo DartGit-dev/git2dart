@@ -92,6 +92,13 @@ class Tree extends Equatable {
     }
   }
 
+  /// Looks up a tree entry by object [oid].
+  TreeEntry entryByOid(Oid oid) {
+    return TreeEntry(
+      bindings.getById(treePointer: _treePointer, oidPointer: oid.pointer),
+    );
+  }
+
   /// [Oid] of a tree.
   ///
   /// Returns the OID (Object ID) of this tree object.
@@ -171,6 +178,18 @@ class TreeEntry extends Equatable {
   GitFilemode get filemode {
     final modeInt = bindings.entryFilemode(_treeEntryPointer);
     return GitFilemode.fromValue(modeInt.value);
+  }
+
+  /// Raw UNIX file attributes of this tree entry.
+  GitFilemode get filemodeRaw {
+    final modeInt = bindings.entryFilemodeRaw(_treeEntryPointer);
+    return GitFilemode.fromValue(modeInt.value);
+  }
+
+  /// Git object type pointed to by this tree entry.
+  GitObject get type {
+    final type = bindings.entryType(_treeEntryPointer);
+    return GitObject.fromValue(type.value);
   }
 
   /// Releases memory allocated for tree entry object.

@@ -1,30 +1,37 @@
 # Branches
 
+`Branch` provides helpers for local and remote branch references.
+
+## Listing and Lookup
+
 ```dart
-// Get all the branches that can be found in repository
-final branches = repo.branches; // => [Branch, Branch, ...]
+final branches = Branch.list(repo: repo);
+final branch = Branch.lookup(
+  repo: repo,
+  name: 'master',
+  type: GitBranch.local,
+);
 
-// Get only local/remote branches
-final local = repo.branchesLocal; // => [Branch, Branch, ...]
-final remote = repo.branchesRemote; // => [Branch, Branch, ...]
-
-// Lookup branch (lookups in local branches if no value for argument `type`
-// is provided)
-final branch = Branch.lookup(repo: repo, name: 'master'); // => Branch
-
-branch.target; // => Oid
-branch.isHead; // => true
-branch.name; // => 'master'
-
-// Create branch
-Branch.create(repo: repo, name: 'feature', target: commit); // => Branch
-
-// Rename branch
-Branch.rename(repo: repo, oldName: 'feature', newName: 'feature2');
-
-// Delete branch
-Branch.delete(repo: repo, name: 'feature2');
+branch.name;
+branch.target;
+branch.upstream;
+branch.upstreamName;
 ```
 
----
+## Creating and Updating
 
+```dart
+final branch = Branch.create(
+  repo: repo,
+  name: 'feature',
+  target: commit,
+);
+
+Branch.rename(repo: repo, oldName: 'feature', newName: 'feature-renamed');
+Branch.delete(repo: repo, name: 'feature-renamed');
+```
+
+`Branch` owns a reference handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/branch_test.dart](../../test/branch_test.dart).

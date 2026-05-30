@@ -1,54 +1,47 @@
 # Diff
 
-There is multiple ways to get the diff:
+`Diff` represents changes between trees, indexes, workdirs, or patch text.
+
+## Creating Diffs
 
 ```dart
-// Diff between index (staging area) and current working directory
-final diff = Diff.indexToWorkdir(repo: repo, index: repo.index); // => Diff
-
-// Diff between tree and index (staging area)
-final diff = Diff.treeToIndex(repo: repo, tree: tree, index: repo.index); // => Diff
-
-// Diff between tree and current working directory
-final diff = Diff.treeToWorkdir(repo: repo, tree: tree); // => Diff
-
-// Diff between tree and current working directory with index
-final diff = Diff.treeToWorkdirWithIndex(repo: repo, tree: tree); // => Diff
-
-// Diff between two tree objects
-final diff = Diff.treeToTree(repo: repo, oldTree: tree1, newTree: tree2); // => Diff
-
-// Diff between two index objects
-final diff = Diff.indexToIndex(repo: repo, oldIndex: repo.index, newIndex: index); // => Diff
-
-// Read the contents of a git patch file
-final diff = Diff.parse(patch.text); // => Diff
+final workdirDiff = Diff.indexToWorkdir(repo: repo, index: repo.index);
+final indexDiff = Diff.treeToIndex(repo: repo, tree: tree, index: repo.index);
+final workdirTreeDiff = Diff.treeToWorkdir(repo: repo, tree: tree);
+final combined = Diff.treeToWorkdirWithIndex(repo: repo, tree: tree);
+final treeDiff = Diff.treeToTree(repo: repo, oldTree: oldTree, newTree: tree);
+final indexToIndex = Diff.indexToIndex(
+  repo: repo,
+  oldIndex: oldIndex,
+  newIndex: repo.index,
+);
+final parsed = Diff.parse(patchText);
 ```
 
-Some methods for inspecting Diff object:
+## Inspecting Diffs
 
 ```dart
-// Get the number of diff records
-diff.length; // => 3
+diff.length;
+diff.lengthOfType(GitDelta.modified);
+diff.isSortedICase;
+diff.patch;
 
-// Get the patch
-diff.patch; // => 'diff --git a/modified_file b/modified_file ...'
+final perf = diff.perfData;
+perf.statCalls;
+perf.oidCalculations;
 
-// Get the DiffStats object of the diff
-final stats = diff.stats; // => DiffStats
-stats.insertions; // => 69
-stats.deletions; // => 420
-stats.filesChanged; // => 1
+final stats = diff.stats;
+stats.insertions;
+stats.deletions;
+stats.filesChanged;
 
-// Get the list of DiffDelta's containing file pairs with and old and new revisions
-final deltas = diff.deltas; // => [DiffDelta, DiffDelta, ...]
-final delta = deltas.first; // => DiffDelta
-delta.status; // => GitDelta.modified
-delta.oldFile; // => DiffFile
-delta.newFile; // => DiffFile
+for (final delta in diff.deltas) {
+  delta.status;
+  delta.oldFile.path;
+  delta.newFile.path;
+}
 ```
 
----
+`Diff` owns a native `git_diff` handle. Use `free()` for deterministic cleanup.
 
-
-For more examples see [test/diff_test.dart](../../test/diff_test.dart).
+See [test/diff_test.dart](../../test/diff_test.dart).

@@ -199,6 +199,22 @@ String findXdg() {
   });
 }
 
+/// Locate the path to the global programdata configuration file.
+///
+/// Throws a [LibGit2Error] if error occured.
+String findProgramData() {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final error = libgit2.git_config_find_programdata(out);
+
+    checkErrorAndThrow(error);
+
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
+
 /// Create a snapshot of the configuration. The returned config must be freed
 /// with [free].
 ///
@@ -233,6 +249,59 @@ Pointer<git_config_entry> getEntry({
 
     return out.value;
   });
+}
+
+/// Get a boolean config value.
+bool getBool({
+  required Pointer<git_config> configPointer,
+  required String variable,
+}) {
+  return using((arena) {
+    final out = arena<Int>();
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_get_bool(out, configPointer, nameC);
+
+    checkErrorAndThrow(error);
+    return out.value != 0;
+  });
+}
+
+/// Get a 32-bit integer config value.
+int getInt32({
+  required Pointer<git_config> configPointer,
+  required String variable,
+}) {
+  return using((arena) {
+    final out = arena<Int32>();
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_get_int32(out, configPointer, nameC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Get a 64-bit integer config value.
+int getInt64({
+  required Pointer<git_config> configPointer,
+  required String variable,
+}) {
+  return using((arena) {
+    final out = arena<Int64>();
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_get_int64(out, configPointer, nameC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Get a string config value.
+String getString({
+  required Pointer<git_config> configPointer,
+  required String variable,
+}) {
+  return getStringBuf(configPointer: configPointer, name: variable);
 }
 
 /// Set the value of a boolean config variable in the config file with the
@@ -382,9 +451,60 @@ String getStringBuf({
 
     checkErrorAndThrow(error);
 
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
     libgit2.git_buf_dispose(out);
+    return result;
+  });
+}
 
-    return out.ref.ptr.toDartString(length: out.ref.size);
+/// Parse [value] as a Git boolean.
+bool parseBool(String value) {
+  return using((arena) {
+    final out = arena<Int>();
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_parse_bool(out, valueC);
+
+    checkErrorAndThrow(error);
+    return out.value != 0;
+  });
+}
+
+/// Parse [value] as a 32-bit Git integer.
+int parseInt32(String value) {
+  return using((arena) {
+    final out = arena<Int32>();
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_parse_int32(out, valueC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Parse [value] as a 64-bit Git integer.
+int parseInt64(String value) {
+  return using((arena) {
+    final out = arena<Int64>();
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_parse_int64(out, valueC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Parse [value] as a Git path.
+String parsePath(String value) {
+  return using((arena) {
+    final out = arena<git_buf>();
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_parse_path(out, valueC);
+
+    checkErrorAndThrow(error);
+
+    final result = out.ref.ptr.toDartString(length: out.ref.size);
+    libgit2.git_buf_dispose(out);
+    return result;
   });
 }
 

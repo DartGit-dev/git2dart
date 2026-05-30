@@ -1,35 +1,36 @@
 # Tag
 
-Tag create and lookup methods and some of the object getters:
+`Tag` represents annotated Git tags. Lightweight tags are represented by
+references.
+
+## Lookup and Listing
 
 ```dart
-// Create annotated tag
-final annotated = Tag.createAnnotated(
-  repo: repo,
-  tagName: 'v0.1',
-  target: repo['821ed6e'],
-  targetType: GitObject.commit,
-  tagger: repo.defaultSignature,
-  message: 'tag message',
-); // => Oid
-
-// Create lightweight tag
-final lightweight = Tag.createLightweight(
-  repo: repo,
-  tagName: 'v0.1',
-  target: repo['821ed6e'],
-  targetType: GitObject.commit,
-); // => Oid
-
-// Lookup tag
-final tag = Tag.lookup(repo: repo, oid: repo['f0fdbf5']); // => Tag
-
-// Get list of all the tags names in repository
-repo.tags; // => ['v0.1', 'v0.2']
-
-tag.oid; // => Oid
-tag.name; // => 'v0.1'
+final tag = Tag.lookup(repo: repo, oid: oid);
+final names = Tag.list(repo);
 ```
 
+## Creation
 
-For more examples see [test/tag_test.dart](../../test/tag_test.dart).
+```dart
+final tagOid = Tag.createAnnotated(
+  repo: repo,
+  tagName: 'v1.0.0',
+  target: commit.oid,
+  targetType: GitObject.commit,
+  tagger: repo.defaultSignature,
+  message: 'Release v1.0.0\n',
+);
+
+Tag.createLightweight(
+  repo: repo,
+  tagName: 'latest',
+  target: commit.oid,
+  targetType: GitObject.commit,
+  force: true,
+);
+```
+
+`Tag` owns a native handle. Call `free()` when deterministic cleanup is needed.
+
+See [test/tag_test.dart](../../test/tag_test.dart).

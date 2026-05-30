@@ -28,6 +28,18 @@ Pointer<git_repository> open(String path) {
   });
 }
 
+/// Open a bare Git repository at [path].
+Pointer<git_repository> openBare(String path) {
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_repository_open_bare(out, pathC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Discover the path to a Git repository by walking up from [startPath].
 ///
 /// This function searches for a Git repository starting from [startPath] and
@@ -465,6 +477,12 @@ void setHeadDetached({
   checkErrorAndThrow(error);
 }
 
+/// Detach HEAD from its current branch.
+void detachHead(Pointer<git_repository> repo) {
+  final error = libgit2.git_repository_detach_head(repo);
+  checkErrorAndThrow(error);
+}
+
 /// Check if the current branch is unborn.
 ///
 /// An unborn branch is one that exists in HEAD but has no commits yet.
@@ -520,6 +538,35 @@ List<String> identity(Pointer<git_repository> repo) {
 /// Check if the repository was a shallow clone.
 bool isShallow(Pointer<git_repository> repo) {
   return libgit2.git_repository_is_shallow(repo) == 1;
+}
+
+/// Object ID type used by this repository.
+git_oid_t oidType(Pointer<git_repository> repo) {
+  return libgit2.git_repository_oid_type(repo);
+}
+
+/// Calculate the object id for a repository file.
+Pointer<git_oid> hashFile({
+  required Pointer<git_repository> repoPointer,
+  required String path,
+  required git_object_t type,
+  String? asPath,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final pathC = path.toChar(arena);
+    final asPathC = asPath?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_repository_hashfile(
+      out,
+      repoPointer,
+      pathC,
+      type,
+      asPathC,
+    );
+
+    checkErrorAndThrow(error);
+    return out;
+  });
 }
 
 /// Check if the repository is a linked work tree.

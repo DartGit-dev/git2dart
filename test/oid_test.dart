@@ -63,6 +63,18 @@ void main() {
     test('returns sha hex string', () {
       final oid = Oid.fromSHA(repo, sha);
       expect(oid.sha, equals(sha));
+      expect(oid.toStr(41), equals(sha));
+      expect(oid.toStrS(), equals(sha));
+      expect(oid.equalsHex(sha), true);
+      expect(oid.compareToHex(biggerSha), lessThan(0));
+    });
+
+    test('shortens object ids to unique prefixes', () {
+      final shortener = OidShortener(minLength: 7);
+
+      expect(shortener.add(repo[sha]), 7);
+      expect(shortener.addHex(biggerSha), greaterThanOrEqualTo(7));
+      expect(() => shortener.free(), returnsNormally);
     });
 
     group('compare', () {

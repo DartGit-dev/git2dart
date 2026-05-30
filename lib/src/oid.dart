@@ -103,6 +103,18 @@ class Oid extends Equatable {
   /// Returns the hexadecimal string representation of this Oid.
   String get sha => bindings.toSHA(_oidPointer);
 
+  /// Formats this Oid into a string buffer with [length] bytes.
+  String toStr(int length) => bindings.toStr(id: _oidPointer, length: length);
+
+  /// Formats this Oid using libgit2's thread-local formatter.
+  String toStrS() => bindings.toStrS(_oidPointer);
+
+  /// Compares this Oid to a hexadecimal object id string.
+  int compareToHex(String hex) => bindings.strcmp(id: _oidPointer, hex: hex);
+
+  /// Returns whether this Oid equals a hexadecimal object id string.
+  bool equalsHex(String hex) => bindings.streq(id: _oidPointer, hex: hex);
+
   /// Compares this Oid with another for sorting purposes.
   ///
   /// Returns true if this Oid is less than the [other].
@@ -153,3 +165,32 @@ class Oid extends Equatable {
   @override
   List<Object?> get props => [sha];
 }
+
+/// Calculates short unique prefixes for a set of SHA-1 object ids.
+class OidShortener {
+  /// Creates an OID shortener with [minLength] as the minimum abbreviation.
+  OidShortener({int minLength = GIT_OID_MINPREFIXLEN}) {
+    _shortenerPointer = bindings.shortenNew(minLength);
+    _shortenerFinalizer.attach(this, _shortenerPointer, detach: this);
+  }
+
+  late final Pointer<git_oid_shorten> _shortenerPointer;
+
+  /// Adds [oid] and returns the minimum unique prefix length so far.
+  int add(Oid oid) =>
+      bindings.shortenAdd(shortenerPointer: _shortenerPointer, hex: oid.sha);
+
+  /// Adds [sha] and returns the minimum unique prefix length so far.
+  int addHex(String sha) =>
+      bindings.shortenAdd(shortenerPointer: _shortenerPointer, hex: sha);
+
+  /// Releases memory allocated for this shortener.
+  void free() {
+    bindings.shortenFree(_shortenerPointer);
+    _shortenerFinalizer.detach(this);
+  }
+}
+
+final _shortenerFinalizer = Finalizer<Pointer<git_oid_shorten>>(
+  (pointer) => bindings.shortenFree(pointer),
+);

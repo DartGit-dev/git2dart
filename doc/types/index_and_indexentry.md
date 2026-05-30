@@ -1,34 +1,55 @@
 # Index and IndexEntry
 
-Some methods and getters to inspect and manipulate the Git index ("staging area"):
+`Index` represents the Git staging area. `IndexEntry` represents a staged file
+record.
+
+## Reading
 
 ```dart
-// Initialize Index object
-final index = repo.index; // => Index
+final index = repo.index;
 
-// Get number of entries in index
-index.length; // => 69
+index.length;
+index.isEmpty;
+index.hasConflicts;
+index.conflicts;
 
-// Re-read the index from disk
-index.read();
+final first = index[0];
+final byPath = index['lib/git2dart.dart'];
 
-// Write an existing index object to disk
-index.write();
-
-// Iterate over index entries
 for (final entry in index) {
-  print(entry.path); // => 'path/to/file.txt'
+  entry.path;
+  entry.oid;
+  entry.filemode;
+  entry.stage;
 }
-
-// Get a specific entry
-final entry = index['file.txt']; // => IndexEntry
-
-// Stage using path to file or IndexEntry (updates existing entry if there is one)
-index.add('new.txt');
-
-// Unstage entry from index
-index.remove('new.txt');
 ```
 
----
+## Updating
 
+```dart
+index.add('lib/git2dart.dart');
+index.addAll(['lib/**']);
+index.updateAll(['lib/**']);
+index.remove('old.dart');
+index.removeAll(['generated/**']);
+index.write();
+```
+
+## Trees and Conflicts
+
+```dart
+final treeOid = index.writeTree();
+index.readTree(tree);
+
+index.addConflict(
+  ancestorEntry: ancestor,
+  ourEntry: ours,
+  theirEntry: theirs,
+);
+index.cleanupConflict();
+```
+
+`Index` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/index_test.dart](../../test/index_test.dart).

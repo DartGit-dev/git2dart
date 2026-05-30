@@ -1,23 +1,56 @@
-# Config files
+# Config Files
 
-Some methods and getters of Config object:
+`Config` reads and writes Git configuration files and repository configuration.
+
+## Opening Configs
 
 ```dart
-// Open config file at provided path
-final config = Config.open('path/to/config'); // => Config
+final config = Config.open('path/to/config');
+final repoConfig = repo.config;
+final snapshot = repoConfig.snapshot;
 
-// Open configuration file for repository
-final config = repo.config; // => Config
+Config.system();
+Config.global();
+Config.xdg();
+Config.programData();
+```
 
-// Get value of config variable
-config['user.name'].value; // => 'Some Name'
+## Reading Values
 
-// Set value of config variable
-config['user.name'] = 'Another Name';
+```dart
+config['user.name'].value;
+config.getBool('core.bare');
+config.getInt32('core.repositoryformatversion');
+config.getInt64('core.bigfilethreshold');
+config.getString('remote.origin.url');
+config.getPath('core.excludesfile');
+```
 
-// Delete variable from the config
+## Writing Values
+
+```dart
+config['user.name'] = 'A User';
+config['core.bare'] = false;
+config['core.repositoryformatversion'] = 0;
 config.delete('user.name');
 ```
 
----
+## Helpers
 
+```dart
+Config.parseBool('true');
+Config.parseInt32('42');
+Config.parseInt64('42');
+Config.parsePath('~/file');
+
+config.multivar(variable: 'remote.origin.fetch');
+config.setMultivar(
+  variable: 'remote.origin.fetch',
+  regexp: 'main',
+  value: '+refs/heads/main:refs/remotes/origin/main',
+);
+```
+
+Call `free()` when a long-running process no longer needs a config handle.
+
+See [test/config_test.dart](../../test/config_test.dart).

@@ -117,6 +117,21 @@ String toSHA(Pointer<git_oid> id) {
   });
 }
 
+/// Format [id] into a null-terminated string buffer with [length] bytes.
+String toStr({required Pointer<git_oid> id, required int length}) {
+  return using((arena) {
+    final out = arena<Char>(length);
+    libgit2.git_oid_tostr(out, length, id);
+    return out.toDartString();
+  });
+}
+
+/// Format [id] with libgit2's thread-local storage.
+String toStrS(Pointer<git_oid> id) {
+  final result = libgit2.git_oid_tostr_s(id);
+  return result == nullptr ? '' : result.toDartString();
+}
+
 /// Compare two oid structures.
 ///
 /// This function implements a three-way comparison between two object IDs.
@@ -179,6 +194,22 @@ int ncmp({
   return libgit2.git_oid_ncmp(aPointer, bPointer, length);
 }
 
+/// Compare [id] to a hexadecimal object id string.
+int strcmp({required Pointer<git_oid> id, required String hex}) {
+  return using((arena) {
+    final hexC = hex.toChar(arena);
+    return libgit2.git_oid_strcmp(id, hexC);
+  });
+}
+
+/// Return whether [id] equals a hexadecimal object id string.
+bool streq({required Pointer<git_oid> id, required String hex}) {
+  return using((arena) {
+    final hexC = hex.toChar(arena);
+    return libgit2.git_oid_streq(id, hexC) == 0;
+  });
+}
+
 /// Check if an oid is all zeros.
 bool isZero(Pointer<git_oid> id) => libgit2.git_oid_is_zero(id) == 1;
 
@@ -193,4 +224,32 @@ String pathFormat(Pointer<git_oid> id) {
     libgit2.git_oid_pathfmt(out, id);
     return out.toDartString(length: length);
   });
+}
+
+/// Create an OID shortener. The returned pointer must be freed with
+/// [shortenFree].
+Pointer<git_oid_shorten> shortenNew(int minLength) {
+  final result = libgit2.git_oid_shorten_new(minLength);
+  if (result == nullptr) {
+    throw StateError('Unable to allocate git_oid_shorten');
+  }
+  return result;
+}
+
+/// Add [hex] to an OID shortener and return the required unique length.
+int shortenAdd({
+  required Pointer<git_oid_shorten> shortenerPointer,
+  required String hex,
+}) {
+  return using((arena) {
+    final hexC = hex.toChar(arena);
+    final result = libgit2.git_oid_shorten_add(shortenerPointer, hexC);
+    checkErrorAndThrow(result);
+    return result;
+  });
+}
+
+/// Free an OID shortener.
+void shortenFree(Pointer<git_oid_shorten> shortener) {
+  libgit2.git_oid_shorten_free(shortener);
 }

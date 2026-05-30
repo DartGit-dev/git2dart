@@ -1,32 +1,28 @@
 # ODB (Object Database)
 
-Direct access to Git object database:
+`Odb` provides direct access to the Git object database.
+
+## Opening and Reading
 
 ```dart
-// Get ODB from repository
-final odb = repo.odb; // => Odb
+final odb = repo.odb;
+final object = odb.read(oid);
 
-// Check if object exists
-odb.contains(oid); // => true/false
-
-// Read object
-final obj = odb.read(oid); // => OdbObject
-obj.type; // => GitObject.blob
-obj.data; // => 'content'
-obj.size; // => 7
-
-// Write object
-final oid = odb.write(
-  type: GitObject.blob,
-  data: 'new content',
-); // => Oid
-
-// Get all objects
-final objects = odb.objects; // => [Oid, Oid, ...]
-
-// Add alternate ODB
-odb.addDiskAlternate('path/to/alternate/objects');
+object.oid;
+object.type;
+object.data;
+object.size;
 ```
 
----
+## Writing and Listing
 
+```dart
+final oid = odb.write(type: GitObject.blob, data: 'content');
+final allObjects = odb.objects;
+odb.addDiskAlternate('path/to/objects');
+```
+
+`Odb` and `OdbObject` own native handles. Call `free()` when deterministic
+cleanup is needed.
+
+See [test/odb_test.dart](../../test/odb_test.dart).

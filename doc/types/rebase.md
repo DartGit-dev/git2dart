@@ -1,41 +1,35 @@
 # Rebase
 
-Reapply commits on top of another base commit:
+`Rebase` represents an in-progress rebase operation.
+
+## Starting and Opening
 
 ```dart
-// Initialize rebase
 final rebase = Rebase.init(
   repo: repo,
-  branch: AnnotatedCommit.fromReference(repo: repo, reference: branchRef),
-  onto: AnnotatedCommit.fromReference(repo: repo, reference: ontoRef),
+  branch: branch,
+  upstream: upstream,
+  onto: onto,
 );
 
-// Get operations to be performed
-final operations = rebase.operations; // => [RebaseOperation, ...]
-
-// Perform rebase operations
-for (final operation in operations) {
-  // Apply next operation
-  rebase.next();
-  
-  // Commit the changes
-  rebase.commit(
-    committer: signature,
-    message: 'Rebased commit',
-  );
-}
-
-// Finish rebase
-rebase.finish();
-
-// Or abort rebase
-rebase.abort();
-
-// Open existing rebase
-final rebase = Rebase.open(repo);
+final existing = Rebase.open(repo);
 ```
 
----
+## Iterating
 
+```dart
+final operation = rebase.next();
+rebase.commit(committer: repo.defaultSignature, message: 'Apply change\n');
+rebase.finish();
+```
 
-For more examples see [test/rebase_test.dart](../../test/rebase_test.dart).
+Use `abort()` to stop an in-progress rebase.
+
+```dart
+rebase.abort();
+```
+
+`Rebase` owns a native handle. Call `free()` when deterministic cleanup is
+needed.
+
+See [test/rebase_test.dart](../../test/rebase_test.dart).

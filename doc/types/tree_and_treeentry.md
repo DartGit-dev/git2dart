@@ -1,40 +1,43 @@
 # Tree and TreeEntry
 
-Tree and TreeEntry lookup and some of their getters and methods:
+`Tree` represents a Git directory snapshot. `TreeEntry` represents a single
+entry in a tree.
+
+## Lookup
 
 ```dart
-final tree = Tree.lookup(repo: repo, oid: repo['a8ae3dd']); // => Tree
+final tree = Commit.lookup(repo: repo, oid: repo.head.target).tree;
+final sameTree = Tree.lookup(repo: repo, oid: tree.oid);
 
-tree.entries; // => [TreeEntry, TreeEntry, ...]
-tree.length; // => 3
-tree.oid; // => Oid
-
-// You can lookup single tree entry in the tree with index
-final entry = tree[0]; // => TreeEntry
-
-// You can lookup single tree entry in the tree with path to file
-final entry = tree['some/file.txt']; // => TreeEntry
-
-// Or you can lookup single tree entry in the tree with filename
-final entry = tree['file.txt']; // => TreeEntry
-
-entry.oid; // => Oid
-entry.name // => 'file.txt'
-entry.filemode // => GitFilemode.blob
+tree.length;
+tree.entries;
+tree[0];
+tree['README.md'];
+tree['lib/src/file.dart'];
+tree.entryByOid(repo['1377554ebea6f98a2c748183bc5a96852af12ac2']);
 ```
 
-You can also write trees with TreeBuilder:
+## Tree Entries
 
 ```dart
-final builder = TreeBuilder(repo: repo); // => TreeBuilder
-builder.add(
-  filename: 'file.txt',
-  oid: index['file.txt'].oid,
-  filemode: GitFilemode.blob,
-);
-final treeOid = builder.write(); // => Oid
+final entry = tree['README.md'];
 
-// Perform commit using that tree in arguments
-...
+entry.name;
+entry.oid;
+entry.filemode;
+entry.filemodeRaw;
+entry.type;
 ```
 
+Use `TreeBuilder` to create new trees.
+
+```dart
+final builder = TreeBuilder(repo: repo);
+builder.add(filename: 'file.txt', oid: blobOid, filemode: GitFilemode.blob);
+final treeOid = builder.write();
+```
+
+`Tree` and path-looked-up `TreeEntry` instances own native memory. Call `free()`
+when deterministic cleanup is needed.
+
+See [test/tree_test.dart](../../test/tree_test.dart).

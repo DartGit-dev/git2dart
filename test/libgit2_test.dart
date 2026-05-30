@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('Libgit2', () {
     test('returns up to date version of libgit2', () {
-      expect(Libgit2.version, '1.9.1');
+      expect(Libgit2.version, '1.9.4');
     });
 
     test('returns list of options libgit2 was compiled with', () {
@@ -221,6 +221,7 @@ void main() {
         'noop',
         'objectformat',
         "preciousobjects",
+        "relativeworktrees",
         "worktreeconfig",
       ]);
 

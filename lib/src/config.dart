@@ -82,6 +82,16 @@ class Config with IterableMixin<ConfigEntry> {
     _finalizer.attach(this, _configPointer, detach: this);
   }
 
+  /// Opens the global programdata configuration file.
+  ///
+  /// Throws a [LibGit2Error] if error occurred.
+  Config.programData() {
+    libgit2.git_libgit2_init();
+
+    _configPointer = bindings.open(bindings.findProgramData());
+    _finalizer.attach(this, _configPointer, detach: this);
+  }
+
   /// Pointer to memory address for allocated config object.
   late final Pointer<git_config> _configPointer;
 
@@ -109,6 +119,34 @@ class Config with IterableMixin<ConfigEntry> {
       includeDepth: includeDepth,
       level: level,
     );
+  }
+
+  /// Returns [variable] parsed as a boolean.
+  bool getBool(String variable) {
+    return bindings.getBool(configPointer: _configPointer, variable: variable);
+  }
+
+  /// Returns [variable] parsed as a 32-bit integer.
+  int getInt32(String variable) {
+    return bindings.getInt32(configPointer: _configPointer, variable: variable);
+  }
+
+  /// Returns [variable] parsed as a 64-bit integer.
+  int getInt64(String variable) {
+    return bindings.getInt64(configPointer: _configPointer, variable: variable);
+  }
+
+  /// Returns [variable] as a string.
+  String getString(String variable) {
+    return bindings.getString(
+      configPointer: _configPointer,
+      variable: variable,
+    );
+  }
+
+  /// Returns [variable] as a path with Git path expansion applied.
+  String getPath(String variable) {
+    return bindings.getPath(configPointer: _configPointer, name: variable);
   }
 
   /// Sets the [value] of config [variable].
@@ -199,6 +237,18 @@ class Config with IterableMixin<ConfigEntry> {
   @override
   Iterator<ConfigEntry> get iterator =>
       _ConfigIterator(bindings.iterator(_configPointer));
+
+  /// Parses [value] as a Git boolean.
+  static bool parseBool(String value) => bindings.parseBool(value);
+
+  /// Parses [value] as a 32-bit Git integer.
+  static int parseInt32(String value) => bindings.parseInt32(value);
+
+  /// Parses [value] as a 64-bit Git integer.
+  static int parseInt64(String value) => bindings.parseInt64(value);
+
+  /// Parses [value] as a Git path.
+  static String parsePath(String value) => bindings.parsePath(value);
 }
 
 final _finalizer = Finalizer<Pointer<git_config>>(

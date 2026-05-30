@@ -100,6 +100,31 @@ void main() {
       test("throws when variable isn't found", () {
         expect(() => config['not.there'], throwsA(isA<LibGit2Error>()));
       });
+
+      test('returns typed values', () {
+        expect(config.getBool('core.bare'), false);
+        expect(config.getInt32('core.repositoryformatversion'), 0);
+        expect(config.getInt64('core.repositoryformatversion'), 0);
+        expect(config.getString('remote.origin.url'), 'someurl');
+      });
+
+      test('throws when typed variable is missing', () {
+        expect(() => config.getBool('not.there'), throwsA(isA<LibGit2Error>()));
+      });
+    });
+
+    group('parse helpers', () {
+      test('parse typed config values', () {
+        expect(Config.parseBool('true'), true);
+        expect(Config.parseInt32('42'), 42);
+        expect(Config.parseInt64('42'), 42);
+        expect(Config.parsePath('/tmp'), '/tmp');
+      });
+
+      test('throw when typed config values are invalid', () {
+        expect(() => Config.parseBool('maybe'), throwsA(isA<LibGit2Error>()));
+        expect(() => Config.parseInt32('nope'), throwsA(isA<LibGit2Error>()));
+      });
     });
 
     group('set value', () {
