@@ -1,11 +1,22 @@
 import 'package:git2dart/git2dart.dart';
 
+/// Callback for validating a remote certificate.
+///
+/// Return `true` to accept the certificate, or `false` to reject it.
+typedef CertificateCheck =
+    bool Function(
+      GitCertificate certificate,
+      String host, {
+      required bool valid,
+    });
+
 /// A class that encapsulates various callback functions used in Git operations.
 ///
 /// This class is primarily used with [Remote] methods and [Repository.clone]
 /// operations to handle different aspects of Git operations:
 /// - Authentication
 /// - Progress tracking
+/// - Certificate checks
 /// - Reference updates
 /// - Push status updates
 class Callbacks {
@@ -15,12 +26,14 @@ class Callbacks {
   /// Git operation requirements:
   ///
   /// * [credentials] - Authentication credentials (see [Credentials] implementations)
+  /// * [certificateCheck] - Remote certificate trust decision
   /// * [transferProgress] - Progress tracking for data transfers
   /// * [sidebandProgress] - Textual progress updates from remote
   /// * [updateTips] - Reference update notifications
   /// * [pushUpdateReference] - Push operation status updates
   const Callbacks({
     this.credentials,
+    this.certificateCheck,
     this.transferProgress,
     this.sidebandProgress,
     this.updateTips,
@@ -35,6 +48,15 @@ class Callbacks {
   /// * [KeypairFromAgent] - SSH agent-based authentication
   /// * [KeypairFromMemory] - In-memory SSH key pair authentication
   final Credentials? credentials;
+
+  /// Callback for validating a remote certificate.
+  ///
+  /// Return `true` to accept the certificate, or `false` to reject it. Leave
+  /// this unset to use libgit2's default certificate validation behavior.
+  ///
+  /// This is especially useful on platforms such as Android where SSH
+  /// `known_hosts` lookup may not be available.
+  final CertificateCheck? certificateCheck;
 
   /// Callback for tracking data transfer progress.
   ///

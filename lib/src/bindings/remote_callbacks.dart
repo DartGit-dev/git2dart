@@ -80,6 +80,25 @@ class RemoteCallbacks {
     return 0;
   }
 
+  /// Callback function used to validate a remote certificate.
+  static CertificateCheck? certificateCheck;
+
+  /// Native callback that handles remote certificate validation.
+  static int certificateCheckCb(
+    Pointer<git_cert> cert,
+    int valid,
+    Pointer<Char> host,
+    Pointer<Void> payload,
+  ) {
+    final accepted = certificateCheck!(
+      GitCertificate(cert),
+      host == nullptr ? '' : host.toDartString(),
+      valid: valid == 1,
+    );
+
+    return accepted ? 0 : -1;
+  }
+
   /// Values used to override the remote creation and customization process
   /// during a clone operation.
   static RemoteCallback? remoteCbData;
@@ -260,6 +279,14 @@ class RemoteCallbacks {
       );
     }
 
+    if (callbacks.certificateCheck != null) {
+      certificateCheck = callbacks.certificateCheck;
+      callbacksOptions.certificate_check = Pointer.fromFunction(
+        certificateCheckCb,
+        except,
+      );
+    }
+
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
       final withUser = calloc<Int8>()..value = 1;
@@ -278,6 +305,7 @@ class RemoteCallbacks {
     sidebandProgress = null;
     updateTips = null;
     pushUpdateReference = null;
+    certificateCheck = null;
     remoteCbData = null;
     repositoryCbData = null;
     credentials = null;
