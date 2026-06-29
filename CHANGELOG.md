@@ -1,4 +1,18 @@
 # Changelog
+## [0.5.2] - 2026-06-29
+### Features
+* Expand libgit2 binding coverage across repository, remote, status, tree,
+  tag, signature, submodule, config, diff, index, ODB, reference, and related
+  APIs.
+* Add public wrappers for extended repository opening, basic repository
+  initialization, annotated HEAD detaching, remote instance URL overrides,
+  remote autotag configuration, tree walking, tree updates, status callbacks,
+  and annotation-only tag creation.
+
+### Testing
+* Add focused tests for the newly exposed binding wrappers.
+* Include binding files in coverage by removing file-level coverage ignores.
+
 ## [0.5.1] - 2026-06-29
 ### Fixed
 * Require `git2dart_binaries` `>=1.11.2 <1.12.0` to pick up the latest
