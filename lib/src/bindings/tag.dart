@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show calloc, using;
@@ -14,9 +15,11 @@ List<String> list(Pointer<git_repository> repo) {
     final error = libgit2.git_tag_list(out, repo);
     checkErrorAndThrow(error);
 
-    return <String>[
+    final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 
@@ -31,6 +34,30 @@ Pointer<git_tag> lookup({
   return using((arena) {
     final out = arena<Pointer<git_tag>>();
     final error = libgit2.git_tag_lookup(out, repoPointer, oidPointer);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Lookup a tag object from the repository by its short [oid].
+///
+/// The returned tag must be freed with [free].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_tag> lookupPrefix({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> oidPointer,
+  required int length,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_tag>>();
+    final error = libgit2.git_tag_lookup_prefix(
+      out,
+      repoPointer,
+      oidPointer,
+      length,
+    );
+
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -62,6 +89,10 @@ Pointer<git_oid> targetOid(Pointer<git_tag> tag) =>
 /// Get the id of a tag.
 Pointer<git_oid> id(Pointer<git_tag> tag) => libgit2.git_tag_id(tag);
 
+/// Get the repository that owns this tag.
+Pointer<git_repository> owner(Pointer<git_tag> tag) =>
+    libgit2.git_tag_owner(tag);
+
 /// Get the name of a tag.
 String name(Pointer<git_tag> tag) => libgit2.git_tag_name(tag).toDartString();
 
@@ -71,9 +102,46 @@ String message(Pointer<git_tag> tag) {
   return result == nullptr ? '' : result.toDartString();
 }
 
+/// Check whether a tag name is valid.
+bool nameIsValid(String name) {
+  return using((arena) {
+    final valid = arena<Int>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_tag_name_is_valid(valid, nameC);
+    checkErrorAndThrow(error);
+    return valid.value == 1;
+  });
+}
+
 /// Get the tagger (author) of a tag. The returned signature must be freed.
 Pointer<git_signature> tagger(Pointer<git_tag> tag) =>
     libgit2.git_tag_tagger(tag);
+
+/// Recursively peel a tag until an object of the specified type is found.
+///
+/// The returned object must be freed.
+Pointer<git_object> peel({
+  required Pointer<git_tag> tagPointer,
+  required git_object_t targetType,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_object>>();
+    final error = libgit2.git_tag_peel(out, tagPointer);
+    checkErrorAndThrow(error);
+
+    final object = out.value;
+    if (targetType == git_object_t.GIT_OBJECT_ANY ||
+        libgit2.git_object_type(object).value == targetType.value) {
+      return object;
+    }
+
+    final peeled = arena<Pointer<git_object>>();
+    final peelError = libgit2.git_object_peel(peeled, object, targetType);
+    libgit2.git_object_free(object);
+    checkErrorAndThrow(peelError);
+    return peeled.value;
+  });
+}
 
 /// Create a new annotated tag in the repository from an object.
 ///
@@ -108,6 +176,33 @@ Pointer<git_oid> createAnnotated({
       taggerPointer,
       messageC,
       force ? 1 : 0,
+    );
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Create a new annotated tag object without creating a reference.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_oid> createAnnotation({
+  required Pointer<git_repository> repoPointer,
+  required String tagName,
+  required Pointer<git_object> targetPointer,
+  required Pointer<git_signature> taggerPointer,
+  required String message,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final tagNameC = tagName.toChar(arena);
+    final messageC = message.toChar(arena);
+    final error = libgit2.git_tag_annotation_create(
+      out,
+      repoPointer,
+      tagNameC,
+      targetPointer,
+      taggerPointer,
+      messageC,
     );
     checkErrorAndThrow(error);
     return out;
@@ -185,9 +280,11 @@ List<String> listMatch({
     final patternC = pattern.toChar(arena);
     final error = libgit2.git_tag_list_match(out, patternC, repoPointer);
     checkErrorAndThrow(error);
-    return [
+    final result = [
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 

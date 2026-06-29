@@ -21,6 +21,26 @@ class Oid extends Equatable {
   @internal
   Oid(this._oidPointer);
 
+  /// Initializes a new instance by parsing a possibly shortened hexadecimal
+  /// object id.
+  ///
+  /// Missing trailing digits are zero-filled by libgit2.
+  Oid.fromSHAParse(String sha) {
+    if (!sha.isValidSHA1() && !sha.isValidSHA256()) {
+      throw ArgumentError.value(
+        sha,
+        'sha',
+        'Not a valid SHA hex string. Must be 4-64 hex characters.',
+      );
+    }
+
+    final type =
+        sha.length > GIT_OID_SHA1_HEXSIZE
+            ? git_oid_t.GIT_OID_SHA256
+            : git_oid_t.GIT_OID_SHA1;
+    _oidPointer = bindings.fromStrP(sha, type: type);
+  }
+
   /// Initializes a new instance of [Oid] class by determining if an object can
   /// be found in the ODB of [repo]sitory with provided hexadecimal [sha]
   /// string that is between 4 and 64 characters long.
@@ -105,6 +125,9 @@ class Oid extends Equatable {
 
   /// Formats this Oid into a string buffer with [length] bytes.
   String toStr(int length) => bindings.toStr(id: _oidPointer, length: length);
+
+  /// Formats this Oid into exactly [length] hexadecimal characters.
+  String toStrN(int length) => bindings.toStrN(id: _oidPointer, length: length);
 
   /// Formats this Oid using libgit2's thread-local formatter.
   String toStrS() => bindings.toStrS(_oidPointer);

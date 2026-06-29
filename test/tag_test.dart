@@ -37,6 +37,16 @@ void main() {
       );
     });
 
+    test('lookups tag from oid prefix', () {
+      final prefixTag = Tag.lookupPrefix(repo: repo, oid: tagOid, length: 7);
+
+      expect(prefixTag.oid, tagOid);
+      expect(
+        () => Tag.lookupPrefix(repo: repo, oid: repo['0' * 40], length: 7),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
+
     test('returns correct values', () {
       final signature = Signature.create(
         name: 'Aleksey Kulikov',
@@ -53,6 +63,22 @@ void main() {
       expect(target.message, 'add subdirectory file\n');
       expect(tag.tagger, signature);
       expect(tag.toString(), contains('Tag{'));
+    });
+
+    test('peels tag to target object', () {
+      final peeled = tag.peel(GitObject.commit);
+
+      expect(peeled, isA<Commit>());
+      expect((peeled as Commit).oid, tag.targetOid);
+    });
+
+    test('throws when peeling tag to unavailable type', () {
+      expect(() => tag.peel(GitObject.blob), throwsA(isA<LibGit2Error>()));
+    });
+
+    test('checks if tag name is valid', () {
+      expect(Tag.isNameValid('v1.0.0'), true);
+      expect(Tag.isNameValid('v1..0'), false);
     });
 
     test('creates new annotated tag with commit as target', () {
@@ -84,6 +110,33 @@ void main() {
       expect(newTag.targetOid.sha, targetSHA);
       expect(newTag.tagger, signature);
       expect(newTagTarget.oid, target);
+    });
+
+    test('creates new annotated tag object without reference', () {
+      final signature = Signature.create(
+        name: 'Author',
+        email: 'author@email.com',
+        time: 1234,
+      );
+      const tagName = 'annotation-only';
+      const targetSHA = 'f17d0d48eae3aa08cecf29128a35e310c97b3521';
+      final target = repo[targetSHA];
+      const message = 'annotation only tag\n';
+
+      final oid = Tag.createAnnotation(
+        repo: repo,
+        tagName: tagName,
+        target: target,
+        targetType: GitObject.commit,
+        tagger: signature,
+        message: message,
+      );
+      final annotation = Tag.lookup(repo: repo, oid: oid);
+
+      expect(annotation.name, tagName);
+      expect(annotation.message, message);
+      expect(annotation.targetOid.sha, targetSHA);
+      expect(Tag.list(repo: repo), isNot(contains(tagName)));
     });
 
     test('creates new lightweight tag with commit as target', () {
@@ -124,12 +177,14 @@ void main() {
 
       final newTag = Tag.lookup(repo: repo, oid: oid);
       final newTagTarget = newTag.target as Tree;
+      final peeledTree = newTag.peel(GitObject.tree) as Tree;
 
       expect(newTag.oid, oid);
       expect(newTag.name, tagName);
       expect(newTag.message, message);
       expect(newTag.tagger, signature);
       expect(newTagTarget.oid, target);
+      expect(peeledTree.oid, target);
     });
 
     test('creates new lightweight tag with tree as target', () {
@@ -170,12 +225,14 @@ void main() {
 
       final newTag = Tag.lookup(repo: repo, oid: oid);
       final newTagTarget = newTag.target as Blob;
+      final peeledBlob = newTag.peel(GitObject.blob) as Blob;
 
       expect(newTag.oid, oid);
       expect(newTag.name, tagName);
       expect(newTag.message, message);
       expect(newTag.tagger, signature);
       expect(newTagTarget.oid, target);
+      expect(peeledBlob.oid, target);
     });
 
     test('creates new lightweight tag with blob as target', () {
@@ -215,12 +272,14 @@ void main() {
 
       final newTag = Tag.lookup(repo: repo, oid: oid);
       final newTagTarget = newTag.target as Tag;
+      final peeledCommit = newTag.peel() as Commit;
 
       expect(newTag.oid, oid);
       expect(newTag.name, tagName);
       expect(newTag.message, message);
       expect(newTag.tagger, signature);
       expect(newTagTarget.oid, tag.oid);
+      expect(peeledCommit.oid, tag.targetOid);
     });
 
     test('creates new lightweight tag with tag as target', () {

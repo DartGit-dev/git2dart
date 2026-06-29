@@ -27,6 +27,14 @@ class Config with IterableMixin<ConfigEntry> {
     _finalizer.attach(this, _configPointer, detach: this);
   }
 
+  /// Creates a new empty configuration object.
+  Config.empty() {
+    libgit2.git_libgit2_init();
+
+    _configPointer = bindings.init();
+    _finalizer.attach(this, _configPointer, detach: this);
+  }
+
   /// Opens config file at provided [path].
   ///
   /// If [path] isn't provided, opens global, XDG and system config files.
@@ -95,6 +103,12 @@ class Config with IterableMixin<ConfigEntry> {
   /// Pointer to memory address for allocated config object.
   late final Pointer<git_config> _configPointer;
 
+  /// Pointer to memory address for allocated config object.
+  ///
+  /// Note: For internal use.
+  @internal
+  Pointer<git_config> get pointer => _configPointer;
+
   /// The snapshot of the current state of a configuration, which allows you to
   /// look into a consistent view of the configuration for looking up complex
   /// values (e.g. a remote, submodule).
@@ -129,6 +143,15 @@ class Config with IterableMixin<ConfigEntry> {
   /// Returns [variable] parsed as a 32-bit integer.
   int getInt32(String variable) {
     return bindings.getInt32(configPointer: _configPointer, variable: variable);
+  }
+
+  /// Sets [variable] to a 32-bit integer [value].
+  void setInt32(String variable, int value) {
+    bindings.setInt32(
+      configPointer: _configPointer,
+      variable: variable,
+      value: value,
+    );
   }
 
   /// Returns [variable] parsed as a 64-bit integer.

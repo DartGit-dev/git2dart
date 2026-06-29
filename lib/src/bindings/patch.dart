@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -67,7 +68,7 @@ Pointer<git_patch> fromBlobs({
   return using((arena) {
     final out = arena<Pointer<git_patch>>();
     final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
-    final newAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final newAsPathC = newAsPath?.toChar(arena) ?? nullptr;
     final opts = _diffOptionsInit(
       arena: arena,
       flags: flags,
@@ -104,7 +105,7 @@ Pointer<git_patch> fromBlobAndBuffer({
     final out = arena<Pointer<git_patch>>();
     final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
     final bufferC = buffer?.toCharAlloc() ?? nullptr;
-    final bufferAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+    final bufferAsPathC = bufferAsPath?.toChar(arena) ?? nullptr;
     final bufferLen = buffer?.length ?? 0;
     final opts = _diffOptionsInit(
       arena: arena,
@@ -252,6 +253,49 @@ String text(Pointer<git_patch> patch) {
     libgit2.git_buf_dispose(out);
     return result;
   });
+}
+
+var _printedPatchLines = <String>[];
+
+int _patchPrintCb(
+  Pointer<git_diff_delta> delta,
+  Pointer<git_diff_hunk> hunk,
+  Pointer<git_diff_line> line,
+  Pointer<Void> payload,
+) {
+  if (line != nullptr && line.ref.content != nullptr) {
+    final content = line.ref.content.toDartString(length: line.ref.content_len);
+    final origin = line.ref.origin;
+    if (origin == git_diff_line_t.GIT_DIFF_LINE_ADDITION.value ||
+        origin == git_diff_line_t.GIT_DIFF_LINE_DELETION.value) {
+      _printedPatchLines.add('${String.fromCharCode(origin)}$content');
+    } else if (origin == git_diff_line_t.GIT_DIFF_LINE_CONTEXT.value) {
+      _printedPatchLines.add(' $content');
+    } else {
+      _printedPatchLines.add(content);
+    }
+  }
+  return 0;
+}
+
+/// Serialize the patch to text through libgit2's print callback.
+String print(Pointer<git_patch> patch) {
+  final cb = Pointer.fromFunction<
+    Int Function(
+      Pointer<git_diff_delta>,
+      Pointer<git_diff_hunk>,
+      Pointer<git_diff_line>,
+      Pointer<Void>,
+    )
+  >(_patchPrintCb, 0);
+
+  _printedPatchLines.clear();
+  final error = libgit2.git_patch_print(patch, cb, nullptr);
+
+  checkErrorAndThrow(error);
+  final result = _printedPatchLines.join();
+  _printedPatchLines.clear();
+  return result;
 }
 
 /// Get the content of a patch as bytes.

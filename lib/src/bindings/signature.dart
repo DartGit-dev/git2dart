@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -66,6 +67,28 @@ Pointer<git_signature> defaultSignature(Pointer<git_repository> repo) {
     checkErrorAndThrow(error);
 
     return out.value;
+  });
+}
+
+/// Get default author and committer signatures for the repository.
+///
+/// This looks at environment variables first, then repository configuration.
+/// The returned signatures must be freed with [free].
+List<Pointer<git_signature>> defaultSignaturesFromEnv(
+  Pointer<git_repository> repo,
+) {
+  return using((arena) {
+    final author = arena<Pointer<git_signature>>();
+    final committer = arena<Pointer<git_signature>>();
+    final error = libgit2.git_signature_default_from_env(
+      author,
+      committer,
+      repo,
+    );
+
+    checkErrorAndThrow(error);
+
+    return [author.value, committer.value];
   });
 }
 

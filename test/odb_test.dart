@@ -45,6 +45,11 @@ void main() {
       expect(odb.contains(repo[blobSha]), true);
     });
 
+    test('returns backend count', () {
+      expect(repo.odb.backendCount, greaterThan(0));
+      expect(Odb.create().backendCount, 0);
+    });
+
     test('reads object', () {
       final object = repo.odb.read(repo[blobSha]);
 
@@ -66,6 +71,14 @@ void main() {
       expect(object.type, GitObject.blob);
       expect(object.size, bytes.length);
       expect(object.dataBytes, bytes);
+    });
+
+    test('duplicates object', () {
+      final object = repo.odb.read(repo[blobSha]);
+      final duplicate = object.duplicate();
+
+      expect(duplicate, object);
+      expect(duplicate.data, object.data);
     });
 
     test('throws when trying to read object and error occurs', () {
@@ -95,9 +108,36 @@ void main() {
       expect(object.data, 'testing');
     });
 
+    test('writes data directly', () {
+      final odb = repo.odb;
+      final oid = odb.writeDirect(type: GitObject.blob, data: 'direct');
+      final object = odb.read(oid);
+
+      expect(odb.contains(oid), true);
+      expect(object.data, 'direct');
+    });
+
+    test('hashes data and files', () {
+      final file = File(p.join(repo.workdir, 'feature_file'))
+        ..writeAsStringSync(blobContent);
+
+      expect(Odb.hash(type: GitObject.blob, data: blobContent), repo[blobSha]);
+      expect(
+        Odb.hashFile(type: GitObject.blob, path: file.path),
+        repo[blobSha],
+      );
+    });
+
     test('throws when trying to write with invalid object type', () {
       expect(
         () => repo.odb.write(type: GitObject.any, data: 'testing'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('throws when trying to hash with invalid object type', () {
+      expect(
+        () => Odb.hash(type: GitObject.any, data: 'testing'),
         throwsA(isA<ArgumentError>()),
       );
     });

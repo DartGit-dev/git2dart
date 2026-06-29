@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/submodule.dart' as submodule_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -46,6 +47,12 @@ void main() {
       expect(submodule.workdirOid?.sha, null);
       expect(submodule.ignoreRule, GitSubmoduleIgnore.none);
       expect(submodule.updateRule, GitSubmoduleUpdate.checkout);
+      expect(submodule.fetchRecurseSubmodules, GitSubmoduleRecurse.no);
+      expect(submodule.location, {
+        GitSubmoduleStatus.inHead,
+        GitSubmoduleStatus.inIndex,
+        GitSubmoduleStatus.inConfig,
+      });
       expect(submodule.toString(), contains('Submodule{'));
     });
 
@@ -161,11 +168,13 @@ void main() {
       expect(submodule.branch, '');
       expect(submodule.ignoreRule, GitSubmoduleIgnore.none);
       expect(submodule.updateRule, GitSubmoduleUpdate.checkout);
+      expect(submodule.fetchRecurseSubmodules, GitSubmoduleRecurse.no);
 
       submodule.url = 'updated';
       submodule.branch = 'updated';
       submodule.ignoreRule = GitSubmoduleIgnore.all;
       submodule.updateRule = GitSubmoduleUpdate.rebase;
+      submodule.fetchRecurseSubmodules = GitSubmoduleRecurse.onDemand;
 
       final updatedSubmodule = Submodule.lookup(
         repo: repo,
@@ -175,6 +184,26 @@ void main() {
       expect(updatedSubmodule.branch, 'updated');
       expect(updatedSubmodule.ignoreRule, GitSubmoduleIgnore.all);
       expect(updatedSubmodule.updateRule, GitSubmoduleUpdate.rebase);
+      expect(
+        updatedSubmodule.fetchRecurseSubmodules,
+        GitSubmoduleRecurse.onDemand,
+      );
+    });
+
+    test('throws when submodule fetch recurse and location bindings fail', () {
+      expect(
+        () => submodule_bindings.setFetchRecurseSubmodules(
+          repoPointer: Repository(nullptr).pointer,
+          name: testSubmodule,
+          fetchRecurseSubmodules:
+              git_submodule_recurse_t.GIT_SUBMODULE_RECURSE_YES,
+        ),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(
+        () => submodule_bindings.location(nullptr),
+        throwsA(isA<LibGit2Error>()),
+      );
     });
 
     test('syncs', tags: 'remote_fetch', () {

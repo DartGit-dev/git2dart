@@ -157,6 +157,12 @@ class Note extends Equatable {
   /// The message content of this note.
   String get message => bindings.message(_notePointer);
 
+  /// The signature of this note's author.
+  Signature get author => Signature(bindings.author(_notePointer));
+
+  /// The signature of this note's committer.
+  Signature get committer => Signature(bindings.committer(_notePointer));
+
   /// The [Oid] of the git object being annotated by this note.
   Oid get annotatedOid => Oid(_annotatedOidPointer);
 

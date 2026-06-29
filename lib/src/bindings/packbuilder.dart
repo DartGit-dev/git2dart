@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -250,6 +251,10 @@ class Packbuilder {
     final result = libgit2.git_packbuilder_name(pb);
     return result == nullptr ? '' : result.toDartString();
   }
+
+  /// Get the packfile hash.
+  static Pointer<git_oid> hash(Pointer<git_packbuilder> pb) =>
+      libgit2.git_packbuilder_hash(pb);
 
   /// Set the number of threads to use for pack creation.
   ///

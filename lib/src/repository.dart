@@ -95,6 +95,18 @@ class Repository extends Equatable {
     _finalizer.attach(this, _repoPointer, detach: this);
   }
 
+  /// Creates a new git repository using the basic libgit2 initializer.
+  ///
+  /// This is equivalent to `git init` for non-bare repositories and
+  /// `git init --bare` when [bare] is true.
+  Repository.initBasic({required String path, bool bare = false}) {
+    libgit2.git_libgit2_init();
+
+    _repoPointer = bindings.initBasic(path: path, bare: bare);
+
+    _finalizer.attach(this, _repoPointer, detach: this);
+  }
+
   /// Opens repository at provided [path].
   ///
   /// For a standard repository, [path] should either point to the ".git" folder
@@ -106,6 +118,26 @@ class Repository extends Equatable {
     libgit2.git_libgit2_init();
 
     _repoPointer = bindings.open(path);
+
+    _finalizer.attach(this, _repoPointer, detach: this);
+  }
+
+  /// Opens a repository with extended search [flags].
+  ///
+  /// [path] may point to a repository, a working tree, or a directory inside a
+  /// working tree unless [GitRepositoryOpen.noSearch] is provided.
+  Repository.openExt({
+    String? path,
+    Set<GitRepositoryOpen> flags = const {},
+    String? ceilingDirs,
+  }) {
+    libgit2.git_libgit2_init();
+
+    _repoPointer = bindings.openExt(
+      path: path,
+      flags: flags.fold(0, (int acc, e) => acc | e.value),
+      ceilingDirs: ceilingDirs,
+    );
 
     _finalizer.attach(this, _repoPointer, detach: this);
   }
@@ -283,6 +315,14 @@ class Repository extends Equatable {
   /// Detaches HEAD from its current branch.
   void detachHead() => bindings.detachHead(_repoPointer);
 
+  /// Detaches HEAD to the commit described by [commit].
+  void setHeadDetachedFromAnnotated(AnnotatedCommit commit) {
+    bindings.setHeadDetachedFromAnnotated(
+      repoPointer: _repoPointer,
+      commitPointer: commit.pointer,
+    );
+  }
+
   /// Whether current branch is unborn.
   ///
   /// An unborn branch is one named from HEAD but which doesn't exist in the
@@ -428,6 +468,21 @@ class Repository extends Equatable {
   /// Repository's head.
   Reference get head => Reference(bindings.head(_repoPointer));
 
+  /// Returns the HEAD reference for linked worktree [name].
+  Reference headForWorktree(String name) {
+    return Reference(
+      bindings.headForWorktree(repoPointer: _repoPointer, name: name),
+    );
+  }
+
+  /// Returns whether linked worktree [name] has a detached HEAD.
+  bool isHeadDetachedForWorktree(String name) {
+    return bindings.isHeadDetachedForWorktree(
+      repoPointer: _repoPointer,
+      name: name,
+    );
+  }
+
   /// Index file for this repository.
   Index get index => Index(bindings.index(_repoPointer));
 
@@ -435,6 +490,32 @@ class Repository extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occured.
   Odb get odb => Odb(bindings.odb(_repoPointer));
+
+  /// Sets the configuration object used by this repository.
+  void setConfig(Config config) {
+    bindings.setConfig(
+      repoPointer: _repoPointer,
+      configPointer: config.pointer,
+    );
+  }
+
+  /// Sets the index object used by this repository.
+  void setIndex(Index index) {
+    bindings.setIndex(repoPointer: _repoPointer, indexPointer: index.pointer);
+  }
+
+  /// Sets the object database used by this repository.
+  void setOdb(Odb odb) {
+    bindings.setOdb(repoPointer: _repoPointer, odbPointer: odb.pointer);
+  }
+
+  /// Entries recorded in FETCH_HEAD.
+  List<Map<String, Object>> get fetchHeadEntries {
+    return bindings.fetchHeadEntries(_repoPointer);
+  }
+
+  /// Commit object IDs recorded in MERGE_HEAD.
+  List<String> get mergeHeadOids => bindings.mergeHeadOids(_repoPointer);
 
   /// List of all the references names that can be found in a repository.
   ///

@@ -51,6 +51,20 @@ void main() {
       });
     });
 
+    group('fromSHAParse()', () {
+      test('initializes from partial hex string with zero-filled suffix', () {
+        final oid = Oid.fromSHAParse('78b8');
+        expect(oid.sha, '78b8${'0' * 36}');
+      });
+
+      test('throws when sha hex string is invalid', () {
+        expect(
+          () => Oid.fromSHAParse('not-a-sha'),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+    });
+
     group('fromRaw()', () {
       test('initializes successfully', () {
         final sourceOid = Oid.fromSHA(repo, sha);
@@ -64,6 +78,7 @@ void main() {
       final oid = Oid.fromSHA(repo, sha);
       expect(oid.sha, equals(sha));
       expect(oid.toStr(41), equals(sha));
+      expect(oid.toStrN(7), equals(sha.substring(0, 7)));
       expect(oid.toStrS(), equals(sha));
       expect(oid.equalsHex(sha), true);
       expect(oid.compareToHex(biggerSha), lessThan(0));

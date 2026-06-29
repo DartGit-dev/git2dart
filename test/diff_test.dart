@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/diff.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -363,12 +364,14 @@ index e69de29..c217c63 100644
 
       test('applies diff to repository', () {
         final file = File(p.join(tmpDir.path, 'subdir', 'modified_file'));
+        final expectedContent =
+            Platform.isWindows ? 'Modified content\r\n' : 'Modified content\n';
 
         Checkout.head(repo: repo, strategy: {GitCheckout.force});
         expect(file.readAsStringSync(), '');
 
         Diff.parse(patchText).apply(repo: repo);
-        expect(file.readAsStringSync(), 'Modified content\n');
+        expect(file.readAsStringSync(), expectedContent);
       });
 
       test('throws when trying to apply diff and error occurs', () {
@@ -390,12 +393,14 @@ index e69de29..c217c63 100644
         final diff = Diff.parse(patchText);
         final hunk = diff.patches.first.hunks.first;
         final file = File(p.join(tmpDir.path, 'subdir', 'modified_file'));
+        final expectedContent =
+            Platform.isWindows ? 'Modified content\r\n' : 'Modified content\n';
 
         Checkout.head(repo: repo, strategy: {GitCheckout.force});
         expect(file.readAsStringSync(), '');
 
         diff.apply(repo: repo, hunkIndex: hunk.index);
-        expect(file.readAsStringSync(), 'Modified content\n');
+        expect(file.readAsStringSync(), expectedContent);
       });
 
       test('does not apply hunk with non existing index', () {
@@ -559,6 +564,83 @@ index e69de29..c217c63 100644
 
     test('returns patch diff string', () {
       expect(Diff.parse(patchText).patch, patchText);
+    });
+
+    test('prints diff through callback', () {
+      final diff = Diff.parse(patchText);
+
+      expect(bindings.print(diff.pointer), patchText);
+    });
+
+    test('iterates diff through callbacks', () {
+      final diff = Diff.parse(patchText);
+      final result = bindings.foreach(diff.pointer);
+
+      expect(result['paths'], ['subdir/modified_file']);
+      expect(
+        result['origins'],
+        contains(git_diff_line_t.GIT_DIFF_LINE_ADDITION.value),
+      );
+      expect(result['text'], '+Modified content\n');
+    });
+
+    test('diffs buffers through callbacks', () {
+      expect(
+        bindings.buffers(
+          oldBuffer: '',
+          oldAsPath: 'feature_file',
+          newBuffer: 'Feature edit\n',
+          newAsPath: 'feature_file',
+          flags: git_diff_option_t.GIT_DIFF_NORMAL.value,
+          contextLines: 3,
+          interhunkLines: 0,
+        ),
+        '+Feature edit\n',
+      );
+    });
+
+    test('diffs blobs through callbacks', () {
+      final oldBlob = Blob.lookup(
+        repo: repo,
+        oid: repo['e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'],
+      );
+      final newBlob = Blob.lookup(
+        repo: repo,
+        oid: Blob.create(repo: repo, content: 'Feature edit\n'),
+      );
+
+      expect(
+        bindings.blobs(
+          oldBlobPointer: oldBlob.pointer,
+          oldAsPath: 'feature_file',
+          newBlobPointer: newBlob.pointer,
+          newAsPath: 'feature_file',
+          flags: git_diff_option_t.GIT_DIFF_NORMAL.value,
+          contextLines: 3,
+          interhunkLines: 0,
+        ),
+        '+Feature edit\n',
+      );
+    });
+
+    test('diffs blob to buffer through callbacks', () {
+      final oldBlob = Blob.lookup(
+        repo: repo,
+        oid: repo['e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'],
+      );
+
+      expect(
+        bindings.blobToBuffer(
+          oldBlobPointer: oldBlob.pointer,
+          oldAsPath: 'feature_file',
+          buffer: 'Feature edit\n',
+          bufferAsPath: 'feature_file',
+          flags: git_diff_option_t.GIT_DIFF_NORMAL.value,
+          contextLines: 3,
+          interhunkLines: 0,
+        ),
+        '+Feature edit\n',
+      );
     });
 
     test('manually releases allocated memory', () {

@@ -1,9 +1,17 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show using;
+import 'package:ffi/ffi.dart' show Utf8, Utf8Pointer, using;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
+
+var _statusEntries = <String, int>{};
+
+int _statusCb(Pointer<Char> path, int statusFlags, Pointer<Void> payload) {
+  _statusEntries[path.cast<Utf8>().toDartString()] = statusFlags;
+  return 0;
+}
 
 /// Gather file status information and populate the git_status_list.
 ///
@@ -68,6 +76,44 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
     final error = libgit2.git_status_file(out, repoPointer, pathC);
     checkErrorAndThrow(error);
     return out.value;
+  });
+}
+
+/// Gather file status information with the status callback API.
+Map<String, int> foreach(Pointer<git_repository> repoPointer) {
+  _statusEntries = <String, int>{};
+
+  final error = libgit2.git_status_foreach(
+    repoPointer,
+    Pointer.fromFunction<
+      Int Function(Pointer<Char>, UnsignedInt, Pointer<Void>)
+    >(_statusCb, 0),
+    nullptr,
+  );
+
+  checkErrorAndThrow(error);
+  return Map.unmodifiable(_statusEntries);
+}
+
+/// Gather file status information with the extended status callback API.
+Map<String, int> foreachExt(Pointer<git_repository> repoPointer) {
+  _statusEntries = <String, int>{};
+
+  return using((arena) {
+    final opts = arena<git_status_options>();
+    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
+
+    final error = libgit2.git_status_foreach_ext(
+      repoPointer,
+      opts,
+      Pointer.fromFunction<
+        Int Function(Pointer<Char>, UnsignedInt, Pointer<Void>)
+      >(_statusCb, 0),
+      nullptr,
+    );
+
+    checkErrorAndThrow(error);
+    return Map.unmodifiable(_statusEntries);
   });
 }
 

@@ -1,6 +1,8 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/config.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -39,6 +41,12 @@ void main() {
   group('Config', () {
     test('opens file with provided path', () {
       expect(config, isA<Config>());
+    });
+
+    test('creates empty config', () {
+      final config = Config.empty();
+      expect(config, isA<Config>());
+      expect(config.toList(), isEmpty);
     });
 
     test('opens the global, XDG and system configuration files '
@@ -92,6 +100,105 @@ void main() {
       }
     });
 
+    group('binding iteration helpers', () {
+      late Pointer<git_config> configPointer;
+
+      setUp(() {
+        configPointer = bindings.open(filePath);
+      });
+
+      tearDown(() {
+        bindings.free(configPointer);
+      });
+
+      test('returns config entries using foreach callback', () {
+        final entries = bindings.foreachEntries(configPointer);
+
+        expect(entries.map((entry) => entry['name']), expectedEntries);
+        expect(entries.first['value'], '0');
+        expect(entries.first['level'], GitConfigLevel.local.value);
+      });
+
+      test('returns config entries using foreach match callback', () {
+        final entries = bindings.foreachMatchEntries(
+          configPointer: configPointer,
+          regexp: r'^remote\.',
+        );
+
+        expect(entries.single['name'], 'remote.origin.url');
+        expect(entries.single['value'], 'someurl');
+      });
+
+      test('returns config entries using glob iterator', () {
+        final entries = bindings.globEntries(
+          configPointer: configPointer,
+          regexp: r'^core\.',
+        );
+
+        expect(entries.map((entry) => entry['name']), [
+          'core.repositoryformatversion',
+          'core.bare',
+          'core.gitproxy',
+          'core.gitproxy',
+        ]);
+      });
+
+      test('returns multivar values using foreach callback', () {
+        expect(
+          bindings.multivarValuesForeach(
+            configPointer: configPointer,
+            variable: 'core.gitproxy',
+          ),
+          ['proxy-command for kernel.org', 'default-proxy'],
+        );
+        expect(
+          bindings.multivarValuesForeach(
+            configPointer: configPointer,
+            variable: 'not.there',
+          ),
+          <String>[],
+        );
+      });
+
+      test('maps config values to integer constants', () {
+        const maps = [
+          bindings.ConfigMapSpec(
+            type: git_configmap_t.GIT_CONFIGMAP_FALSE,
+            value: 0,
+          ),
+          bindings.ConfigMapSpec(
+            type: git_configmap_t.GIT_CONFIGMAP_TRUE,
+            value: 1,
+          ),
+          bindings.ConfigMapSpec(
+            type: git_configmap_t.GIT_CONFIGMAP_STRING,
+            match: 'input',
+            value: 2,
+          ),
+        ];
+
+        bindings.setString(
+          configPointer: configPointer,
+          variable: 'core.autocrlf',
+          value: 'input',
+        );
+
+        expect(
+          bindings.getMapped(
+            configPointer: configPointer,
+            name: 'core.autocrlf',
+            maps: maps,
+          ),
+          2,
+        );
+        expect(bindings.lookupMapValue(maps: maps, value: 'true'), 1);
+      });
+
+      test('locks and unlocks config backend', () {
+        expect(() => bindings.lock(configPointer), returnsNormally);
+      });
+    });
+
     group('get value', () {
       test('returns value of variable', () {
         expect(config['core.bare'].value, 'false');
@@ -136,6 +243,11 @@ void main() {
       test('sets integer value for provided variable', () {
         config['core.repositoryformatversion'] = 1;
         expect(config['core.repositoryformatversion'].value, '1');
+      });
+
+      test('sets 32-bit integer value for provided variable', () {
+        config.setInt32('core.repositoryformatversion', 1);
+        expect(config.getInt32('core.repositoryformatversion'), 1);
       });
 
       test('sets string value for provided variable', () {

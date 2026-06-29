@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/index.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -40,11 +41,19 @@ void main() {
 
     group('capabilities', () {
       test('returns index capabilities', () {
-        expect(index.capabilities, isEmpty);
+        final expected =
+            Platform.isWindows
+                ? {GitIndexCapability.noSymlinks}
+                : const <GitIndexCapability>{};
+        expect(index.capabilities, expected);
       });
 
       test('sets index capabilities', () {
-        expect(index.capabilities, isEmpty);
+        final expected =
+            Platform.isWindows
+                ? {GitIndexCapability.noSymlinks}
+                : const <GitIndexCapability>{};
+        expect(index.capabilities, expected);
 
         index.capabilities = {
           GitIndexCapability.ignoreCase,
@@ -67,6 +76,15 @@ void main() {
 
     test('returns number of entries', () {
       expect(index.length, 4);
+    });
+
+    test('returns index paths using native iterator', () {
+      expect(bindings.iteratorPaths(index.pointer), [
+        '.gitignore',
+        'dir/dir_file.txt',
+        'feature_file',
+        'file',
+      ]);
     });
 
     test('returns mode of index entry', () {
@@ -334,6 +352,92 @@ void main() {
       expect(() => Index(nullptr).addConflict(), throwsA(isA<LibGit2Error>()));
     });
 
+    test('adds and clears filename conflict entries', () {
+      expect(index.nameEntries, isEmpty);
+
+      index.addNameEntry(
+        ancestor: 'ancestor.txt',
+        ours: 'ours.txt',
+        theirs: 'theirs.txt',
+      );
+
+      final entry = index.nameEntries.single;
+      expect(entry.ancestor, 'ancestor.txt');
+      expect(entry.ours, 'ours.txt');
+      expect(entry.theirs, 'theirs.txt');
+      expect(entry.toString(), contains('IndexNameEntry{'));
+
+      index.clearNameEntries();
+      expect(index.nameEntries, isEmpty);
+    });
+
+    test(
+      'throws when trying to read filename conflict entry out of bounds',
+      () {
+        expect(index.nameEntries, isEmpty);
+        expect(
+          () =>
+              bindings.nameGetByIndex(indexPointer: index.pointer, position: 0),
+          throwsA(isA<Git2DartError>()),
+        );
+      },
+    );
+
+    test('adds, finds, removes and clears resolve undo entries', () {
+      final ancestor = index['file'];
+      final ours = index['file'];
+      final theirs = index['feature_file'];
+
+      expect(index.reucEntries, isEmpty);
+
+      index.addReucEntry(
+        path: 'resolved_file',
+        ancestorMode: ancestor.mode,
+        ancestorOid: ancestor.oid,
+        ourMode: ours.mode,
+        ourOid: ours.oid,
+        theirMode: theirs.mode,
+        theirOid: theirs.oid,
+      );
+
+      expect(index.findReuc('resolved_file'), 0);
+
+      final entry = index.reucEntry('resolved_file');
+      expect(entry.path, 'resolved_file');
+      expect(entry.ancestorMode, ancestor.mode);
+      expect(entry.ancestorOid, ancestor.oid);
+      expect(entry.ourMode, ours.mode);
+      expect(entry.ourOid, ours.oid);
+      expect(entry.theirMode, theirs.mode);
+      expect(entry.theirOid, theirs.oid);
+      expect(entry.toString(), contains('IndexReucEntry{'));
+      expect(index.reucEntries, [entry]);
+
+      index.removeReucEntry(0);
+      expect(index.reucEntries, isEmpty);
+
+      index.addReucEntry(
+        path: 'resolved_file',
+        ancestorMode: ancestor.mode,
+        ancestorOid: ancestor.oid,
+        ourMode: ours.mode,
+        ourOid: ours.oid,
+        theirMode: theirs.mode,
+        theirOid: theirs.oid,
+      );
+      index.clearReucEntries();
+      expect(index.reucEntries, isEmpty);
+    });
+
+    test('throws when trying to read missing resolve undo entry', () {
+      expect(() => index.findReuc('not-there'), throwsA(isA<LibGit2Error>()));
+      expect(() => index.reucEntry('not-there'), throwsA(isA<ArgumentError>()));
+      expect(
+        () => bindings.reucGetByIndex(indexPointer: index.pointer, position: 0),
+        throwsA(isA<Git2DartError>()),
+      );
+    });
+
     test('returns conflicts with ancestor, our and their present', () {
       final repoDir = setupRepo(Directory(mergeRepoPath));
       final conflictRepo = Repository.open(repoDir.path);
@@ -389,6 +493,36 @@ void main() {
       expect(conflictedFile.toString(), contains('ConflictEntry{'));
 
       repoDir.deleteSync(recursive: true);
+    });
+
+    test('returns conflict by path', () {
+      final repoDir = setupRepo(Directory(mergeRepoPath));
+      final conflictRepo = Repository.open(repoDir.path);
+
+      conflictRepo.reset(
+        oid: conflictRepo.head.target,
+        resetType: GitReset.hard,
+      );
+
+      Merge.commit(
+        repo: conflictRepo,
+        commit: AnnotatedCommit.lookup(
+          repo: conflictRepo,
+          oid:
+              Branch.lookup(repo: conflictRepo, name: 'conflict-branch').target,
+        ),
+      );
+
+      final conflictedFile = conflictRepo.index.conflict('conflict_file');
+      expect(conflictedFile.ancestor, isNull);
+      expect(conflictedFile.our?.path, 'conflict_file');
+      expect(conflictedFile.their?.path, 'conflict_file');
+
+      repoDir.deleteSync(recursive: true);
+    });
+
+    test('throws when conflict path is not found', () {
+      expect(() => index.conflict('not-there'), throwsA(isA<LibGit2Error>()));
     });
 
     test('returns conflicts with ancestor and their present and null our', () {

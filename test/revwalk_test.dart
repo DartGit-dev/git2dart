@@ -199,6 +199,16 @@ void main() {
       );
     });
 
+    test('hides commits matching predicate', () {
+      final walker = RevWalk(repo);
+
+      walker.push(repo[log.first]);
+      walker.hideWhere((oid) => oid.sha == log[2]);
+      final commits = walker.walk();
+
+      expect(commits.map((e) => e.oid.sha), isNot(contains(log[2])));
+    });
+
     test('resets walker', () {
       final walker = RevWalk(repo);
 

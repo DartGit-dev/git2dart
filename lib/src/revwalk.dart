@@ -36,10 +36,12 @@ class RevWalk {
   ///
   /// Throws a [LibGit2Error] if an error occurs.
   RevWalk(Repository repo) {
+    _repo = repo;
     _revWalkPointer = bindings.create(repo.pointer);
     _finalizer.attach(this, _revWalkPointer, detach: this);
   }
 
+  late final Repository _repo;
   late final Pointer<git_revwalk> _revWalkPointer;
 
   /// Pointer to memory address for allocated [RevWalk] object.
@@ -182,6 +184,14 @@ class RevWalk {
   /// Throws a [LibGit2Error] if an error occurs.
   void hideReference(String reference) {
     bindings.hideRef(walkerPointer: _revWalkPointer, refName: reference);
+  }
+
+  /// Hides commits matching [predicate] from the revision walk.
+  void hideWhere(bool Function(Oid oid) predicate) {
+    bindings.addHideCallback(
+      walkerPointer: _revWalkPointer,
+      predicate: (sha) => predicate(Oid.fromSHA(_repo, sha)),
+    );
   }
 
   /// Resets the revision walker for reuse.

@@ -94,27 +94,36 @@ class Index with IterableMixin<IndexEntry> {
     final result = <String, ConflictEntry>{};
 
     for (final entry in conflicts) {
-      IndexEntry? ancestor, our, their;
-      String path;
-
-      entry['ancestor'] == nullptr
-          ? ancestor = null
-          : ancestor = IndexEntry(entry['ancestor']!);
-      entry['our'] == nullptr ? our = null : our = IndexEntry(entry['our']!);
-      entry['their'] == nullptr
-          ? their = null
-          : their = IndexEntry(entry['their']!);
-
-      if (our != null) {
-        path = our.path;
-      } else {
-        path = their!.path;
-      }
-
-      result[path] = ConflictEntry(_indexPointer, path, ancestor, our, their);
+      final conflictEntry = _conflictEntryFromPointers(entry);
+      result[conflictEntry._path] = conflictEntry;
     }
 
     return result;
+  }
+
+  /// Returns the conflict entry for [path].
+  ///
+  /// Throws a [LibGit2Error] if [path] does not have a conflict entry or if an
+  /// error occurred.
+  ConflictEntry conflict(String path) {
+    return _conflictEntryFromPointers(
+      bindings.conflictGet(indexPointer: _indexPointer, path: path),
+      fallbackPath: path,
+    );
+  }
+
+  ConflictEntry _conflictEntryFromPointers(
+    Map<String, Pointer<git_index_entry>> entry, {
+    String? fallbackPath,
+  }) {
+    final ancestor =
+        entry['ancestor'] == nullptr ? null : IndexEntry(entry['ancestor']!);
+    final our = entry['our'] == nullptr ? null : IndexEntry(entry['our']!);
+    final their =
+        entry['their'] == nullptr ? null : IndexEntry(entry['their']!);
+    final path = our?.path ?? their?.path ?? ancestor?.path ?? fallbackPath!;
+
+    return ConflictEntry(_indexPointer, path, ancestor, our, their);
   }
 
   /// Adds or updates index entries to represent a conflict. Any staged entries
@@ -149,6 +158,87 @@ class Index with IterableMixin<IndexEntry> {
   ///
   /// Throws a [LibGit2Error] if error occured.
   void cleanupConflict() => bindings.conflictCleanup(_indexPointer);
+
+  /// Filename conflict entries currently recorded in the index.
+  List<IndexNameEntry> get nameEntries {
+    final count = bindings.nameEntryCount(_indexPointer);
+    return [
+      for (var i = 0; i < count; i++)
+        IndexNameEntry._(
+          bindings.nameGetByIndex(indexPointer: _indexPointer, position: i),
+        ),
+    ];
+  }
+
+  /// Records the filenames involved in a rename conflict.
+  void addNameEntry({
+    required String ancestor,
+    required String ours,
+    required String theirs,
+  }) {
+    bindings.nameAdd(
+      indexPointer: _indexPointer,
+      ancestor: ancestor,
+      ours: ours,
+      theirs: theirs,
+    );
+  }
+
+  /// Removes all filename conflict entries.
+  void clearNameEntries() => bindings.nameClear(_indexPointer);
+
+  /// Resolve undo entries currently recorded in the index.
+  List<IndexReucEntry> get reucEntries {
+    final count = bindings.reucEntryCount(_indexPointer);
+    return [
+      for (var i = 0; i < count; i++)
+        IndexReucEntry._(
+          bindings.reucGetByIndex(indexPointer: _indexPointer, position: i),
+        ),
+    ];
+  }
+
+  /// Returns the zero-based position of the resolve undo entry at [path].
+  int findReuc(String path) {
+    return bindings.reucFind(indexPointer: _indexPointer, path: path);
+  }
+
+  /// Returns the resolve undo entry at [path].
+  IndexReucEntry reucEntry(String path) {
+    return IndexReucEntry._(
+      bindings.reucGetByPath(indexPointer: _indexPointer, path: path),
+    );
+  }
+
+  /// Adds or replaces a resolve undo entry.
+  void addReucEntry({
+    required String path,
+    required GitFilemode ancestorMode,
+    required Oid ancestorOid,
+    required GitFilemode ourMode,
+    required Oid ourOid,
+    required GitFilemode theirMode,
+    required Oid theirOid,
+  }) {
+    bindings.reucAdd(
+      indexPointer: _indexPointer,
+      path: path,
+      ancestorMode: ancestorMode.value,
+      ancestorOid: ancestorOid.pointer,
+      ourMode: ourMode.value,
+      ourOid: ourOid.pointer,
+      theirMode: theirMode.value,
+      theirOid: theirOid.pointer,
+    );
+  }
+
+  /// Removes the resolve undo entry at [position].
+  void removeReucEntry(int position) {
+    bindings.reucRemove(indexPointer: _indexPointer, position: position);
+  }
+
+  /// Removes all resolve undo entries.
+  void clearReucEntries() => bindings.reucClear(_indexPointer);
 
   /// Clears the contents (all the entries) of an index object.
   ///
@@ -477,6 +567,80 @@ class ConflictEntry {
   String toString() =>
       'ConflictEntry{ancestor: $ancestor, our: $our, their: $their, '
       'path: $_path}';
+}
+
+@immutable
+class IndexNameEntry extends Equatable {
+  const IndexNameEntry._(this._indexNameEntryPointer);
+
+  final Pointer<git_index_name_entry> _indexNameEntryPointer;
+
+  /// Path of the file as it existed in the ancestor.
+  String get ancestor => _indexNameEntryPointer.ref.ancestor.toDartString();
+
+  /// Path of the file as it existed in our tree.
+  String get ours => _indexNameEntryPointer.ref.ours.toDartString();
+
+  /// Path of the file as it existed in their tree.
+  String get theirs => _indexNameEntryPointer.ref.theirs.toDartString();
+
+  @override
+  String toString() {
+    return 'IndexNameEntry{ancestor: $ancestor, ours: $ours, '
+        'theirs: $theirs}';
+  }
+
+  @override
+  List<Object?> get props => [ancestor, ours, theirs];
+}
+
+@immutable
+class IndexReucEntry extends Equatable {
+  const IndexReucEntry._(this._indexReucEntryPointer);
+
+  final Pointer<git_index_reuc_entry> _indexReucEntryPointer;
+
+  /// Path of the resolved conflict.
+  String get path => _indexReucEntryPointer.ref.path.toDartString();
+
+  /// File mode of the ancestor side.
+  GitFilemode get ancestorMode =>
+      GitFilemode.fromValue(_indexReucEntryPointer.ref.mode[0]);
+
+  /// File mode of our side.
+  GitFilemode get ourMode =>
+      GitFilemode.fromValue(_indexReucEntryPointer.ref.mode[1]);
+
+  /// File mode of their side.
+  GitFilemode get theirMode =>
+      GitFilemode.fromValue(_indexReucEntryPointer.ref.mode[2]);
+
+  /// Object id of the ancestor side.
+  Oid get ancestorOid => Oid.fromRaw(_indexReucEntryPointer.ref.oid[0]);
+
+  /// Object id of our side.
+  Oid get ourOid => Oid.fromRaw(_indexReucEntryPointer.ref.oid[1]);
+
+  /// Object id of their side.
+  Oid get theirOid => Oid.fromRaw(_indexReucEntryPointer.ref.oid[2]);
+
+  @override
+  String toString() {
+    return 'IndexReucEntry{path: $path, ancestorMode: $ancestorMode, '
+        'ourMode: $ourMode, theirMode: $theirMode, '
+        'ancestorOid: $ancestorOid, ourOid: $ourOid, theirOid: $theirOid}';
+  }
+
+  @override
+  List<Object?> get props => [
+    path,
+    ancestorMode,
+    ourMode,
+    theirMode,
+    ancestorOid,
+    ourOid,
+    theirOid,
+  ];
 }
 
 class _IndexIterator implements Iterator<IndexEntry> {

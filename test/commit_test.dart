@@ -473,6 +473,56 @@ Some description.
       );
     });
 
+    test('returns raw message and header', () {
+      final commit = Commit.lookup(repo: repo, oid: tip);
+
+      expect(commit.messageRaw, commit.message);
+      expect(commit.rawHeader, contains('tree ${commit.treeOid.sha}'));
+      expect(commit.rawHeader, contains('parent ${commit.parents.first.sha}'));
+      expect(commit.rawHeader, contains('author '));
+      expect(commit.rawHeader, contains('committer '));
+    });
+
+    test('returns author and committer resolved with mailmap', () {
+      final mappedAuthor = Signature.create(
+        name: 'nick1',
+        email: 'bugs@company.xx',
+        time: 123,
+      );
+      final mappedCommitter = Signature.create(
+        name: 'nick2',
+        email: 'bugs@company.xx',
+        time: 124,
+      );
+      final oid = Commit.create(
+        repo: repo,
+        updateRef: 'HEAD',
+        message: message,
+        author: mappedAuthor,
+        committer: mappedCommitter,
+        tree: tree,
+        parents: [Commit.lookup(repo: repo, oid: tip)],
+      );
+      final commit = Commit.lookup(repo: repo, oid: oid);
+      final mailmap = Mailmap.fromBuffer('''
+Some Dude <some@dude.xx> nick1 <bugs@company.xx>
+Other Author <other@author.xx> nick2 <bugs@company.xx>
+''');
+
+      expect(
+        commit.authorWithMailmap(mailmap),
+        Signature.create(name: 'Some Dude', email: 'some@dude.xx', time: 123),
+      );
+      expect(
+        commit.committerWithMailmap(mailmap),
+        Signature.create(
+          name: 'Other Author',
+          email: 'other@author.xx',
+          time: 124,
+        ),
+      );
+    });
+
     test('throws when header field not found', () {
       final commit = Commit.lookup(repo: repo, oid: tip);
       expect(

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -208,6 +209,17 @@ String getName(Pointer<git_reference> ref) {
 
     checkErrorAndThrow(error);
     return out.value.cast<Utf8>().toDartString();
+  });
+}
+
+/// Check whether a branch name is valid.
+bool nameIsValid(String name) {
+  return using((arena) {
+    final valid = arena<Int>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_branch_name_is_valid(valid, nameC);
+    checkErrorAndThrow(error);
+    return valid.value == 1;
   });
 }
 

@@ -255,6 +255,9 @@ class Commit extends Equatable {
   /// leading newlines.
   String get message => bindings.message(_commitPointer);
 
+  /// Gets the full raw commit message without cleanup.
+  String get messageRaw => bindings.messageRaw(_commitPointer);
+
   /// Gets the short "summary" of the commit message.
   ///
   /// The returned message is the summary of the commit, comprising the first
@@ -286,8 +289,28 @@ class Commit extends Equatable {
   /// Gets the committer of the commit.
   Signature get committer => Signature(bindings.committer(_commitPointer));
 
+  /// Gets the committer of the commit resolved through [mailmap].
+  Signature committerWithMailmap(Mailmap mailmap) {
+    return Signature.fromOwned(
+      bindings.committerWithMailmap(
+        commitPointer: _commitPointer,
+        mailmapPointer: mailmap.pointer,
+      ),
+    );
+  }
+
   /// Gets the author of the commit.
   Signature get author => Signature(bindings.author(_commitPointer));
+
+  /// Gets the author of the commit resolved through [mailmap].
+  Signature authorWithMailmap(Mailmap mailmap) {
+    return Signature.fromOwned(
+      bindings.authorWithMailmap(
+        commitPointer: _commitPointer,
+        mailmapPointer: mailmap.pointer,
+      ),
+    );
+  }
 
   /// Gets the list of parent commit [Oid]s.
   List<Oid> get parents {
@@ -327,6 +350,9 @@ class Commit extends Equatable {
   String headerField(String field) {
     return bindings.headerField(commitPointer: _commitPointer, field: field);
   }
+
+  /// Gets the full raw commit header.
+  String get rawHeader => bindings.rawHeader(_commitPointer);
 
   /// Gets the nth generation ancestor of the commit.
   ///

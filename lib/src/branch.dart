@@ -152,6 +152,9 @@ class Branch extends Equatable {
     );
   }
 
+  /// Checks whether [name] is a valid branch name.
+  static bool isNameValid(String name) => bindings.nameIsValid(name);
+
   /// [Oid] pointed to by a branch.
   ///
   /// Throws a [LibGit2Error] if error occurred.

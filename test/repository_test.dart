@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/status.dart' as status_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -41,11 +42,62 @@ void main() {
       expect(bare.isBare, true);
     });
 
+    test('initializes repository with basic initializer', () {
+      final repoPath = p.join(tmpDir.path, 'basic_repo');
+      final initialized = Repository.initBasic(path: repoPath);
+
+      expect(initialized.isBare, false);
+      expect(Directory(p.join(repoPath, '.git')).existsSync(), true);
+    });
+
+    test('opens repository with extended search options', () {
+      final nestedPath = p.join(tmpDir.path, 'dir');
+      final opened = Repository.openExt(path: nestedPath);
+
+      expect(opened.path, repo.path);
+      expect(GitRepositoryOpen.fromValue(1), GitRepositoryOpen.noSearch);
+      expect(
+        () => GitRepositoryOpen.fromValue(0),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('throws when extended open cannot find repository', () {
+      expect(
+        () => Repository.openExt(
+          path: p.join(tmpDir.path, 'dir'),
+          flags: {GitRepositoryOpen.noSearch},
+        ),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
+
     test('returns snapshot of repository config', () {
       expect(
         repo.configSnapshot['remote.origin.url'].value,
         'git://github.com/DartGit-dev/git2dart.git',
       );
+    });
+
+    test('sets repository config, index and odb objects', () {
+      final config = repo.config;
+      final index = repo.index;
+      final odb = repo.odb;
+
+      expect(() => repo.setConfig(config), returnsNormally);
+      expect(() => repo.setIndex(index), returnsNormally);
+      expect(() => repo.setOdb(odb), returnsNormally);
+    });
+
+    test('throws when setting repository config, index and odb fails', () {
+      final invalid = Repository(nullptr);
+
+      expect(
+        () => invalid.setConfig(repo.config),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(() => invalid.setIndex(repo.index), throwsA(isA<LibGit2Error>()));
+      expect(() => invalid.setOdb(repo.odb), throwsA(isA<LibGit2Error>()));
     });
 
     test('returns list of commits by walking from provided starting oid', () {
@@ -169,6 +221,30 @@ void main() {
       expect(repo.isHeadDetached, true);
     });
 
+    test('detaches head from annotated commit', () {
+      final annotated = AnnotatedCommit.lookup(
+        repo: repo,
+        oid: repo[featureCommit],
+      );
+
+      repo.setHeadDetachedFromAnnotated(annotated);
+
+      expect(repo.isHeadDetached, true);
+      expect(repo.head.target, repo[featureCommit]);
+    });
+
+    test('throws when detaching head from annotated commit fails', () {
+      final annotated = AnnotatedCommit.lookup(
+        repo: repo,
+        oid: repo.head.target,
+      );
+
+      expect(
+        () => Repository(nullptr).setHeadDetachedFromAnnotated(annotated),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
+
     test('returns repository oid type and hashes a file', () {
       final oid = repo.hashFile(path: p.join(repo.workdir, 'file'));
 
@@ -184,6 +260,37 @@ void main() {
         'file': {GitStatus.indexDeleted},
         'new_file.txt': {GitStatus.indexNew},
       });
+    });
+
+    test('returns status entries through callback APIs', () {
+      File(p.join(tmpDir.path, 'new_file.txt')).createSync();
+      repo.index.remove('file');
+      repo.index.add('new_file.txt');
+
+      final foreachStatus = status_bindings.foreach(repo.pointer);
+      final foreachExtStatus = status_bindings.foreachExt(repo.pointer);
+
+      expect(foreachStatus.keys, containsAll(['file', 'new_file.txt']));
+      expect(foreachExtStatus.keys, containsAll(['file', 'new_file.txt']));
+      expect(
+        foreachStatus['file']! & GitStatus.indexDeleted.value,
+        GitStatus.indexDeleted.value,
+      );
+      expect(
+        foreachExtStatus['new_file.txt']! & GitStatus.indexNew.value,
+        GitStatus.indexNew.value,
+      );
+    });
+
+    test('throws when status callback APIs fail', () {
+      expect(
+        () => status_bindings.foreach(Repository(nullptr).pointer),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(
+        () => status_bindings.foreachExt(Repository(nullptr).pointer),
+        throwsA(isA<LibGit2Error>()),
+      );
     });
 
     test('throws when trying to get status of bare repository', () {
@@ -202,6 +309,11 @@ void main() {
       expect(repo.state, GitRepositoryState.cherrypick);
       repo.stateCleanup();
       expect(repo.state, GitRepositoryState.none);
+    });
+
+    test('returns empty fetch and merge head lists when files are absent', () {
+      expect(repo.fetchHeadEntries, isEmpty);
+      expect(repo.mergeHeadOids, isEmpty);
     });
 
     test('throws when trying to clean up state and error occurs', () {

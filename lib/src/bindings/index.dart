@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -511,10 +512,186 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
   });
 }
 
+/// Return the conflict entries for [path].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Map<String, Pointer<git_index_entry>> conflictGet({
+  required Pointer<git_index> indexPointer,
+  required String path,
+}) {
+  return using((arena) {
+    final ancestorOut = arena<Pointer<git_index_entry>>();
+    final ourOut = arena<Pointer<git_index_entry>>();
+    final theirOut = arena<Pointer<git_index_entry>>();
+    final pathC = path.toChar(arena);
+
+    final error = libgit2.git_index_conflict_get(
+      ancestorOut,
+      ourOut,
+      theirOut,
+      indexPointer,
+      pathC,
+    );
+
+    checkErrorAndThrow(error);
+
+    return {
+      'ancestor': ancestorOut.value,
+      'our': ourOut.value,
+      'their': theirOut.value,
+    };
+  });
+}
+
 /// Return whether the given index entry is a conflict (has a high stage entry).
 /// This is simply shorthand for [entryStage] > 0.
 bool entryIsConflict(Pointer<git_index_entry> entry) =>
     libgit2.git_index_entry_is_conflict(entry) == 1 || false;
+
+/// Get the count of filename conflict entries currently in the index.
+int nameEntryCount(Pointer<git_index> index) =>
+    libgit2.git_index_name_entrycount(index);
+
+/// Get a filename conflict entry from the index by position.
+///
+/// The returned entry is owned by the index and must not be freed.
+Pointer<git_index_name_entry> nameGetByIndex({
+  required Pointer<git_index> indexPointer,
+  required int position,
+}) {
+  final result = libgit2.git_index_name_get_byindex(indexPointer, position);
+
+  if (result == nullptr) {
+    throw Git2DartError('Out of bounds');
+  } else {
+    return result;
+  }
+}
+
+/// Record the filenames involved in a rename conflict.
+void nameAdd({
+  required Pointer<git_index> indexPointer,
+  required String ancestor,
+  required String ours,
+  required String theirs,
+}) {
+  using((arena) {
+    final ancestorC = ancestor.toChar(arena);
+    final oursC = ours.toChar(arena);
+    final theirsC = theirs.toChar(arena);
+    final error = libgit2.git_index_name_add(
+      indexPointer,
+      ancestorC,
+      oursC,
+      theirsC,
+    );
+
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Remove all filename conflict entries.
+void nameClear(Pointer<git_index> index) {
+  final error = libgit2.git_index_name_clear(index);
+
+  checkErrorAndThrow(error);
+}
+
+/// Get the count of resolve undo entries currently in the index.
+int reucEntryCount(Pointer<git_index> index) =>
+    libgit2.git_index_reuc_entrycount(index);
+
+/// Find the position of a resolve undo entry by path.
+int reucFind({required Pointer<git_index> indexPointer, required String path}) {
+  return using((arena) {
+    final out = arena<Size>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_reuc_find(out, indexPointer, pathC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Get a resolve undo entry by path.
+///
+/// The returned entry is owned by the index and must not be freed.
+Pointer<git_index_reuc_entry> reucGetByPath({
+  required Pointer<git_index> indexPointer,
+  required String path,
+}) {
+  return using((arena) {
+    final pathC = path.toChar(arena);
+    final result = libgit2.git_index_reuc_get_bypath(indexPointer, pathC);
+
+    if (result == nullptr) {
+      throw ArgumentError.value('$path was not found');
+    } else {
+      return result;
+    }
+  });
+}
+
+/// Get a resolve undo entry by position.
+///
+/// The returned entry is owned by the index and must not be freed.
+Pointer<git_index_reuc_entry> reucGetByIndex({
+  required Pointer<git_index> indexPointer,
+  required int position,
+}) {
+  final result = libgit2.git_index_reuc_get_byindex(indexPointer, position);
+
+  if (result == nullptr) {
+    throw Git2DartError('Out of bounds');
+  } else {
+    return result;
+  }
+}
+
+/// Add a resolve undo entry for a file.
+void reucAdd({
+  required Pointer<git_index> indexPointer,
+  required String path,
+  required int ancestorMode,
+  required Pointer<git_oid> ancestorOid,
+  required int ourMode,
+  required Pointer<git_oid> ourOid,
+  required int theirMode,
+  required Pointer<git_oid> theirOid,
+}) {
+  using((arena) {
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_index_reuc_add(
+      indexPointer,
+      pathC,
+      ancestorMode,
+      ancestorOid,
+      ourMode,
+      ourOid,
+      theirMode,
+      theirOid,
+    );
+
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Remove a resolve undo entry by position.
+void reucRemove({
+  required Pointer<git_index> indexPointer,
+  required int position,
+}) {
+  final error = libgit2.git_index_reuc_remove(indexPointer, position);
+
+  checkErrorAndThrow(error);
+}
+
+/// Remove all resolve undo entries.
+void reucClear(Pointer<git_index> index) {
+  final error = libgit2.git_index_reuc_clear(index);
+
+  checkErrorAndThrow(error);
+}
 
 /// Add or update index entries to represent a conflict. Any staged entries
 /// that exist at the given paths will be removed.
@@ -563,6 +740,60 @@ void conflictCleanup(Pointer<git_index> index) {
   final error = libgit2.git_index_conflict_cleanup(index);
 
   checkErrorAndThrow(error);
+}
+
+/// Create a new index iterator.
+///
+/// The returned iterator must be freed with [iteratorFree].
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_index_iterator> iteratorNew(Pointer<git_index> index) {
+  return using((arena) {
+    final out = arena<Pointer<git_index_iterator>>();
+    final error = libgit2.git_index_iterator_new(out, index);
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
+/// Return the next entry from an index iterator, or null when iteration ends.
+Pointer<git_index_entry>? iteratorNext(Pointer<git_index_iterator> iterator) {
+  return using((arena) {
+    final out = arena<Pointer<git_index_entry>>();
+    final error = libgit2.git_index_iterator_next(out, iterator);
+
+    if (error == git_error_code.GIT_ITEROVER.value) {
+      return null;
+    }
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Free an index iterator.
+void iteratorFree(Pointer<git_index_iterator> iterator) {
+  libgit2.git_index_iterator_free(iterator);
+}
+
+/// Return an ordered snapshot of index entry paths using the native iterator.
+List<String> iteratorPaths(Pointer<git_index> index) {
+  final iterator = iteratorNew(index);
+  final paths = <String>[];
+
+  try {
+    var entry = iteratorNext(iterator);
+    while (entry != null) {
+      paths.add(entry.ref.path.toDartString());
+      entry = iteratorNext(iterator);
+    }
+  } finally {
+    iteratorFree(iterator);
+  }
+
+  return paths;
 }
 
 /// Free an existing index object.

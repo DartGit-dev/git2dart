@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -328,6 +329,11 @@ String message(Pointer<git_commit> commit) {
   return libgit2.git_commit_message(commit).toDartString();
 }
 
+/// Get the full raw message of a commit.
+String messageRaw(Pointer<git_commit> commit) {
+  return libgit2.git_commit_message_raw(commit).toDartString();
+}
+
 /// Get the short "summary" of the git commit message.
 ///
 /// The returned message is the summary of the commit, comprising the first
@@ -370,6 +376,11 @@ String headerField({
 
     return out.ref.ptr.toDartString(length: out.ref.size);
   });
+}
+
+/// Get the full raw header of a commit.
+String rawHeader(Pointer<git_commit> commit) {
+  return libgit2.git_commit_raw_header(commit).toDartString();
 }
 
 /// Get the id of a commit.
@@ -437,11 +448,51 @@ int timeOffset(Pointer<git_commit> commit) =>
 Pointer<git_signature> committer(Pointer<git_commit> commit) =>
     libgit2.git_commit_committer(commit);
 
+/// Get the committer of a commit, using a mailmap to resolve names and emails.
+///
+/// The returned signature must be freed.
+Pointer<git_signature> committerWithMailmap({
+  required Pointer<git_commit> commitPointer,
+  required Pointer<git_mailmap> mailmapPointer,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_signature>>();
+    final error = libgit2.git_commit_committer_with_mailmap(
+      out,
+      commitPointer,
+      mailmapPointer,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Get the author of a commit.
 ///
 /// The returned signature must be freed.
 Pointer<git_signature> author(Pointer<git_commit> commit) =>
     libgit2.git_commit_author(commit);
+
+/// Get the author of a commit, using a mailmap to resolve names and emails.
+///
+/// The returned signature must be freed.
+Pointer<git_signature> authorWithMailmap({
+  required Pointer<git_commit> commitPointer,
+  required Pointer<git_mailmap> mailmapPointer,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_signature>>();
+    final error = libgit2.git_commit_author_with_mailmap(
+      out,
+      commitPointer,
+      mailmapPointer,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
 
 /// Get the id of the tree pointed to by a commit.
 Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>

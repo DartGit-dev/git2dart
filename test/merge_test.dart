@@ -87,6 +87,7 @@ void main() {
       expect(index.hasConflicts, true);
       expect(index.conflicts.length, 1);
       expect(repo.state, GitRepositoryState.merge);
+      expect(repo.mergeHeadOids, [conflictBranch.target.sha]);
       expect(repo.status, {
         'conflict_file': {GitStatus.conflicted},
       });

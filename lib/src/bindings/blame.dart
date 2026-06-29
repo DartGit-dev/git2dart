@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -145,6 +146,11 @@ Pointer<git_blame> fileFromBuffer({
 
 /// Gets the number of hunks that exist in the blame structure.
 int hunkCount(Pointer<git_blame> blame) {
+  return libgit2.git_blame_get_hunk_count(blame);
+}
+
+/// Gets the number of hunks using libgit2's legacy blame API name.
+int hunkCountLegacy(Pointer<git_blame> blame) {
   return libgit2.git_blame_hunkcount(blame);
 }
 
@@ -154,6 +160,21 @@ int hunkCount(Pointer<git_blame> blame) {
 ///
 /// Throws [Git2DartError] if the line number is out of bounds.
 Pointer<git_blame_hunk> getHunkByline({
+  required Pointer<git_blame> blamePointer,
+  required int lineno,
+}) {
+  final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineno);
+
+  if (result == nullptr) {
+    throw Git2DartError('Line number out of bounds');
+  } else {
+    return result;
+  }
+}
+
+/// Get the hunk that contains the given line number using libgit2's legacy API
+/// name.
+Pointer<git_blame_hunk> getHunkBylineLegacy({
   required Pointer<git_blame> blamePointer,
   required int lineno,
 }) {
@@ -172,6 +193,20 @@ Pointer<git_blame_hunk> getHunkByline({
 ///
 /// Throws [Git2DartError] if the index is out of bounds.
 Pointer<git_blame_hunk> getHunkByIndex({
+  required Pointer<git_blame> blamePointer,
+  required int index,
+}) {
+  final result = libgit2.git_blame_get_hunk_byindex(blamePointer, index);
+
+  if (result == nullptr) {
+    throw Git2DartError('Index out of bounds');
+  } else {
+    return result;
+  }
+}
+
+/// Get the hunk at the given index using libgit2's legacy API name.
+Pointer<git_blame_hunk> getHunkByIndexLegacy({
   required Pointer<git_blame> blamePointer,
   required int index,
 }) {

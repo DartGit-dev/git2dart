@@ -98,6 +98,25 @@ void main() {
       expect(worktree.isLocked, false);
     });
 
+    test('returns head and detached state for linked worktree', () {
+      Worktree.create(repo: repo, name: worktreeName, path: worktreeDir.path);
+
+      final head = repo.headForWorktree(worktreeName);
+      expect(head.name, 'refs/heads/$worktreeName');
+      expect(repo.isHeadDetachedForWorktree(worktreeName), isA<bool>());
+    });
+
+    test('throws when reading head for unknown worktree', () {
+      expect(
+        () => repo.headForWorktree('not-there'),
+        throwsA(isA<LibGit2Error>()),
+      );
+      expect(
+        () => repo.isHeadDetachedForWorktree('not-there'),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
+
     test('throws when trying to lookup and error occurs', () {
       expect(
         () => Worktree.lookup(repo: Repository(nullptr), name: 'name'),

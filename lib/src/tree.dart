@@ -42,6 +42,54 @@ class Tree extends Equatable {
     _finalizer.attach(this, _treePointer, detach: this);
   }
 
+  /// Lookups a tree object by an abbreviated [oid].
+  ///
+  /// [length] is the number of hexadecimal characters to use from [oid].
+  /// Throws [LibGit2Error] if the prefix is invalid, ambiguous, or not found.
+  Tree.lookupPrefix({
+    required Repository repo,
+    required Oid oid,
+    required int length,
+  }) {
+    _treePointer = bindings.lookupPrefix(
+      repoPointer: repo.pointer,
+      oidPointer: oid.pointer,
+      length: length,
+    );
+    _finalizer.attach(this, _treePointer, detach: this);
+  }
+
+  /// Creates a tree from [baseline] with [updates] applied.
+  Tree.createUpdated({
+    required Repository repo,
+    required Tree baseline,
+    required List<TreeUpdate> updates,
+  }) {
+    _treePointer = bindings.lookup(
+      repoPointer: repo.pointer,
+      oidPointer: bindings.createUpdated(
+        repoPointer: repo.pointer,
+        baselinePointer: baseline.pointer,
+        updates: [
+          for (final update in updates)
+            bindings.TreeUpdate(
+              action:
+                  update.oid == null
+                      ? git_tree_update_t.GIT_TREE_UPDATE_REMOVE
+                      : git_tree_update_t.GIT_TREE_UPDATE_UPSERT,
+              path: update.path,
+              oidPointer: update.oid?.pointer,
+              filemode:
+                  update.filemode == null
+                      ? null
+                      : git_filemode_t.fromValue(update.filemode!.value),
+            ),
+        ],
+      ),
+    );
+    _finalizer.attach(this, _treePointer, detach: this);
+  }
+
   late final Pointer<git_tree> _treePointer;
 
   /// Pointer to memory address for allocated tree object.
@@ -109,6 +157,14 @@ class Tree extends Equatable {
   /// Returns the total count of entries (files and subdirectories) in this tree.
   int get length => bindings.entryCount(_treePointer);
 
+  /// Walks this tree and returns relative entry paths.
+  List<String> walk({GitTreeWalk mode = GitTreeWalk.pre}) {
+    return bindings.walk(
+      treePointer: _treePointer,
+      mode: git_treewalk_mode.fromValue(mode.value),
+    );
+  }
+
   /// Releases memory allocated for tree object.
   ///
   /// This method should be called when the tree object is no longer needed
@@ -132,6 +188,32 @@ final _finalizer = Finalizer<Pointer<git_tree>>(
   (pointer) => bindings.free(pointer),
 );
 // coverage:ignore-end
+
+/// A change to apply when creating a tree from a baseline tree.
+@immutable
+class TreeUpdate extends Equatable {
+  /// Adds or replaces [path] with [oid] and [filemode].
+  const TreeUpdate.upsert({
+    required this.path,
+    required this.oid,
+    required this.filemode,
+  });
+
+  /// Removes [path].
+  const TreeUpdate.remove(this.path) : oid = null, filemode = null;
+
+  /// Full path from the root tree.
+  final String path;
+
+  /// Object id to write for an upsert.
+  final Oid? oid;
+
+  /// File mode to write for an upsert.
+  final GitFilemode? filemode;
+
+  @override
+  List<Object?> get props => [path, oid, filemode];
+}
 
 /// A TreeEntry represents a single entry in a Git tree, which can be either
 /// a file (blob) or a subdirectory (tree).
@@ -190,6 +272,35 @@ class TreeEntry extends Equatable {
   GitObject get type {
     final type = bindings.entryType(_treeEntryPointer);
     return GitObject.fromValue(type.value);
+  }
+
+  /// Converts this tree entry to the object it points to.
+  Object toObject(Repository repo) {
+    final type = bindings.entryType(_treeEntryPointer);
+    final object = bindings.entryToObject(
+      repoPointer: repo.pointer,
+      entryPointer: _treeEntryPointer,
+    );
+
+    if (type.value == GitObject.commit.value) {
+      return Commit(object.cast());
+    } else if (type.value == GitObject.tree.value) {
+      return Tree(object.cast());
+    } else if (type.value == GitObject.blob.value) {
+      return Blob(object.cast());
+    } else if (type.value == GitObject.tag.value) {
+      return Tag(object.cast());
+    } else {
+      throw ArgumentError('Unsupported tree entry target type: ${type.value}');
+    }
+  }
+
+  /// Compares this tree entry with [other] for tree ordering.
+  int compareTo(TreeEntry other) {
+    return bindings.entryCompare(
+      aPointer: _treeEntryPointer,
+      bPointer: other._treeEntryPointer,
+    );
   }
 
   /// Releases memory allocated for tree entry object.

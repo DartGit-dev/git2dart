@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/mailmap.dart' as bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
+import 'package:meta/meta.dart';
 
 /// A class representing a Git mailmap, which maps commit author/committer names and emails
 /// to their canonical forms.
@@ -80,6 +81,12 @@ class Mailmap {
   /// Pointer to the underlying Git mailmap object.
   late final Pointer<git_mailmap> _mailmapPointer;
 
+  /// Gets the pointer to the underlying Git mailmap object.
+  ///
+  /// This getter is for internal use only.
+  @internal
+  Pointer<git_mailmap> get pointer => _mailmapPointer;
+
   /// Resolves a name and email to their canonical forms according to the mailmap.
   ///
   /// Returns a list containing two elements:
@@ -115,7 +122,7 @@ class Mailmap {
   /// final resolvedSignature = mailmap.resolveSignature(originalSignature);
   /// ```
   Signature resolveSignature(Signature signature) {
-    return Signature(
+    return Signature.fromOwned(
       bindings.resolveSignature(
         mailmapPointer: _mailmapPointer,
         signaturePointer: signature.pointer,

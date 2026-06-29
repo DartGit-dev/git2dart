@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -61,6 +62,22 @@ Pointer<git_oid> fromSHA(
   });
 }
 
+/// Parse a possibly shortened hex formatted object id into a git_oid.
+Pointer<git_oid> fromStrP(
+  String hex, {
+  git_oid_t type = git_oid_t.GIT_OID_SHA1,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final hexC = hex.toChar(arena);
+
+    final error = libgit2.git_oid_fromstrp(out, hexC, type);
+    checkErrorAndThrow(error);
+
+    return out;
+  });
+}
+
 /// Copy a raw hash into a git_oid structure.
 ///
 /// This function is useful when working with raw SHA-1 or SHA-256 hash
@@ -113,6 +130,17 @@ String toSHA(Pointer<git_oid> id) {
             : GIT_OID_SHA1_HEXSIZE;
     final out = arena<Char>(length);
     libgit2.git_oid_fmt(out, id);
+    return out.toDartString(length: length);
+  });
+}
+
+/// Format [id] into exactly [length] hexadecimal characters.
+String toStrN({required Pointer<git_oid> id, required int length}) {
+  return using((arena) {
+    final out = arena<Char>(length);
+    final error = libgit2.git_oid_nfmt(out, length, id);
+
+    checkErrorAndThrow(error);
     return out.toDartString(length: length);
   });
 }

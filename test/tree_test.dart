@@ -36,6 +36,20 @@ void main() {
       );
     });
 
+    test('lookups tree from oid prefix', () {
+      final prefixTree = Tree.lookupPrefix(
+        repo: repo,
+        oid: tree.oid,
+        length: 7,
+      );
+
+      expect(prefixTree.oid, tree.oid);
+      expect(
+        () => Tree.lookupPrefix(repo: repo, oid: repo['0' * 40], length: 7),
+        throwsA(isA<LibGit2Error>()),
+      );
+    });
+
     test('returns correct values', () {
       expect(tree.length, 4);
       expect(tree.entries.first.oid.sha, fileSHA);
@@ -64,6 +78,24 @@ void main() {
       expect(entry.type, GitObject.blob);
     });
 
+    test('converts tree entry to object', () {
+      final entry = tree['.gitignore'];
+      final object = entry.toObject(repo);
+
+      expect(object, isA<Blob>());
+      expect((object as Blob).oid, entry.oid);
+
+      final dirEntry = tree['dir'];
+      final dirObject = dirEntry.toObject(repo);
+      expect(dirObject, isA<Tree>());
+      expect((dirObject as Tree).oid, dirEntry.oid);
+    });
+
+    test('compares tree entries', () {
+      expect(tree[0].compareTo(tree[0]), 0);
+      expect(tree[0].compareTo(tree[1]), lessThan(0));
+    });
+
     test('throws when nothing found for provided filename', () {
       expect(() => tree['invalid'], throwsA(isA<Git2DartError>()));
     });
@@ -72,6 +104,26 @@ void main() {
       final entry = tree['dir/dir_file.txt'];
       expect(entry.oid.sha, 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391');
       expect(entry.toString(), contains('TreeEntry{'));
+    });
+
+    test('walks tree entries', () {
+      expect(GitTreeWalk.fromValue(0), GitTreeWalk.pre);
+      expect(GitTreeWalk.fromValue(1), GitTreeWalk.post);
+      expect(() => GitTreeWalk.fromValue(-1), throwsA(isA<ArgumentError>()));
+      expect(tree.walk(), [
+        '.gitignore',
+        'dir',
+        'dir/dir_file.txt',
+        'feature_file',
+        'file',
+      ]);
+      expect(tree.walk(mode: GitTreeWalk.post), [
+        '.gitignore',
+        'dir/dir_file.txt',
+        'dir',
+        'feature_file',
+        'file',
+      ]);
     });
 
     test('throws when nothing found for provided path', () {
@@ -98,6 +150,41 @@ void main() {
       expect(entry.name, 'filename');
       expect(entry.filemode, GitFilemode.blob);
       expect(entry.oid, fileOid);
+    });
+
+    test('creates updated tree from baseline', () {
+      final fileOid = Blob.create(repo: repo, content: 'updated content');
+      expect(
+        const TreeUpdate.remove('feature_file'),
+        const TreeUpdate.remove('feature_file'),
+      );
+      final updatedTree = Tree.createUpdated(
+        repo: repo,
+        baseline: tree,
+        updates: [
+          TreeUpdate.upsert(
+            path: 'updated.txt',
+            oid: fileOid,
+            filemode: GitFilemode.blob,
+          ),
+          const TreeUpdate.remove('feature_file'),
+        ],
+      );
+
+      expect(updatedTree['updated.txt'].oid, fileOid);
+      expect(() => updatedTree['feature_file'], throwsA(isA<Git2DartError>()));
+      expect(updatedTree.length, tree.length);
+    });
+
+    test('throws when creating updated tree fails', () {
+      expect(
+        () => Tree.createUpdated(
+          repo: repo,
+          baseline: tree,
+          updates: const [TreeUpdate.remove('not-there')],
+        ),
+        throwsA(isA<LibGit2Error>()),
+      );
     });
 
     test('manually releases allocated memory', () {

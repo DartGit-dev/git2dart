@@ -87,6 +87,11 @@ void main() {
       );
     });
 
+    test('checks if branch name is valid', () {
+      expect(Branch.isNameValid('feature/new-api'), true);
+      expect(Branch.isNameValid('feature..new-api'), false);
+    });
+
     test('checks if branch is current head', () {
       expect(Branch.lookup(repo: repo, name: 'master').isHead, true);
       expect(Branch.lookup(repo: repo, name: 'feature').isHead, false);

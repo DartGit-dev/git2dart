@@ -1212,6 +1212,62 @@ enum GitFetchPrune {
   };
 }
 
+/// Automatic tag following option for remotes.
+enum GitRemoteAutotag {
+  /// Use the setting from the configuration.
+  unspecified(0),
+
+  /// Ask the server for tags pointing to objects already being downloaded.
+  auto(1),
+
+  /// Do not ask for tags beyond the refspecs.
+  none(2),
+
+  /// Ask for all tags.
+  all(3);
+
+  const GitRemoteAutotag(this.value);
+  final int value;
+
+  static GitRemoteAutotag fromValue(int value) => switch (value) {
+    0 => unspecified,
+    1 => auto,
+    2 => none,
+    3 => all,
+    _ => throw ArgumentError('Unknown value for GitRemoteAutotag: $value'),
+  };
+}
+
+/// Option flags for extended repository opening.
+enum GitRepositoryOpen {
+  /// Only open the repository if it can be immediately found at the start path.
+  noSearch(1),
+
+  /// Continue searching across filesystem boundaries.
+  crossFs(2),
+
+  /// Open repository as bare regardless of configuration.
+  bare(4),
+
+  /// Do not check for a repository by appending `.git` to the start path.
+  noDotGit(8),
+
+  /// Find and open a repository using git environment variables.
+  fromEnv(16);
+
+  const GitRepositoryOpen(this.value);
+  final int value;
+
+  static GitRepositoryOpen fromValue(int value) => switch (value) {
+    1 => noSearch,
+    2 => crossFs,
+    4 => bare,
+    8 => noDotGit,
+    16 => fromEnv,
+    _ => throw ArgumentError('Unknown value for GitRepositoryOpen: $value'),
+  };
+}
+
 /// Option flags for [Repository] init.
 enum GitRepositoryInit {
   /// Create a bare repository with no working directory.
@@ -1344,6 +1400,36 @@ enum GitFeature {
     8 => nsec,
     _ => throw ArgumentError('Unknown value for GitFeature: $value'),
   };
+}
+
+/// Git-specific file names recognized by libgit2 path checks.
+enum GitPathGitFile {
+  /// Check for the `.gitignore` file.
+  gitignore(0),
+
+  /// Check for the `.gitmodules` file.
+  gitmodules(1),
+
+  /// Check for the `.gitattributes` file.
+  gitattributes(2);
+
+  const GitPathGitFile(this.value);
+  final int value;
+}
+
+/// Filesystem-specific path checks for gitfile detection.
+enum GitPathFilesystem {
+  /// Perform generic NTFS and HFS checks.
+  generic(0),
+
+  /// Perform NTFS-specific checks.
+  ntfs(1),
+
+  /// Perform HFS-specific checks.
+  hfs(2);
+
+  const GitPathFilesystem(this.value);
+  final int value;
 }
 
 /// Combinations of these values determine the lookup order for attribute.
@@ -1572,6 +1658,50 @@ enum GitSubmoduleUpdate {
     3 => merge,
     4 => none,
     _ => throw ArgumentError('Unknown value for GitSubmoduleUpdate: $value'),
+  };
+}
+
+/// Submodule fetch recurse values.
+///
+/// These values represent settings for the
+/// `submodule.$name.fetchRecurseSubmodules` configuration value.
+enum GitSubmoduleRecurse {
+  /// Do not recurse into submodules when fetching.
+  no(0),
+
+  /// Recurse into submodules when fetching.
+  yes(1),
+
+  /// Recurse into submodules only when a commit is not already in the local
+  /// clone.
+  onDemand(2);
+
+  const GitSubmoduleRecurse(this.value);
+  final int value;
+
+  static GitSubmoduleRecurse fromValue(int value) => switch (value) {
+    0 => no,
+    1 => yes,
+    2 => onDemand,
+    _ => throw ArgumentError('Unknown value for GitSubmoduleRecurse: $value'),
+  };
+}
+
+/// Tree walk traversal mode.
+enum GitTreeWalk {
+  /// Visit each entry before visiting children.
+  pre(0),
+
+  /// Visit each entry after visiting children.
+  post(1);
+
+  const GitTreeWalk(this.value);
+  final int value;
+
+  static GitTreeWalk fromValue(int value) => switch (value) {
+    0 => pre,
+    1 => post,
+    _ => throw ArgumentError('Unknown value for GitTreeWalk: $value'),
   };
 }
 
