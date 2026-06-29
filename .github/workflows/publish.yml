@@ -58,27 +58,27 @@ jobs:
       - name: Run tests on desktop platforms
         if: ${{ matrix.platform != 'android' && matrix.platform != 'ios' }}
         run: |
-          flutter test -j 1
+          flutter test -j 1 --reporter expanded
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         shell: bash
         run: |
-          IOS_DEVICE_NAME="iPhone 16"
-          if ! xcrun simctl list devices available | grep -q "$IOS_DEVICE_NAME"; then
-            IOS_DEVICE_NAME="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Shutdown/ {print $1; exit}' | xargs)"
+          IOS_DEVICE_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 16/ && /Shutdown/ {print $2; exit}')"
+          if [ -z "$IOS_DEVICE_ID" ]; then
+            IOS_DEVICE_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Shutdown/ {print $2; exit}')"
           fi
 
-          if [ -z "$IOS_DEVICE_NAME" ]; then
+          if [ -z "$IOS_DEVICE_ID" ]; then
             echo "No available iOS simulator found"
             xcrun simctl list devices available
             exit 1
           fi
 
-          xcrun simctl boot "$IOS_DEVICE_NAME" || true
-          xcrun simctl bootstatus "$IOS_DEVICE_NAME" -b
+          xcrun simctl boot "$IOS_DEVICE_ID" || true
+          xcrun simctl bootstatus "$IOS_DEVICE_ID" -b
           flutter devices
-          flutter test -d "$IOS_DEVICE_NAME"
+          flutter test -d "$IOS_DEVICE_ID" --reporter expanded
 
       - name: Setup Flutter path for Android
         if: ${{ matrix.platform == 'android' }}
