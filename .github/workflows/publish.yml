@@ -58,7 +58,7 @@ jobs:
       - name: Run tests on desktop platforms
         if: ${{ matrix.platform != 'android' && matrix.platform != 'ios' }}
         run: |
-          flutter test
+          flutter test -j 1
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
