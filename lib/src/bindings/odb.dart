@@ -1,4 +1,3 @@
-// coverage:ignore-file
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';

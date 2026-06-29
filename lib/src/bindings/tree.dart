@@ -1,4 +1,3 @@
-// coverage:ignore-file
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show Utf8, Utf8Pointer, calloc, using;
