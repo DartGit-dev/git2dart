@@ -187,6 +187,12 @@ class Patch extends Equatable {
   /// Throws a [LibGit2Error] if error occured.
   String get text => bindings.text(_patchPointer);
 
+  /// Content of a patch collected through the print callback.
+  ///
+  /// Returns the complete patch text in unified diff format.
+  /// Throws a [LibGit2Error] if error occured.
+  String get printedText => bindings.print(_patchPointer);
+
   /// Content of a patch as bytes.
   Uint8List get textBytes => bindings.textBytes(_patchPointer);
 

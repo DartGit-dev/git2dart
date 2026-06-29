@@ -57,6 +57,10 @@ void main() {
       expect(note.oid.sha, notesExpected[1]['oid']);
       expect(note.message, notesExpected[1]['message']);
       expect(note.annotatedOid.sha, notesExpected[1]['annotatedOid']);
+      expect(note.author.name, 'Aleksey Kulikov');
+      expect(note.author.email, 'skinny.mind@gmail.com');
+      expect(note.committer.name, 'Aleksey Kulikov');
+      expect(note.committer.email, 'skinny.mind@gmail.com');
     });
 
     test('creates note', () {

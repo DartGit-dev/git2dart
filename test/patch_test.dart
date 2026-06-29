@@ -66,6 +66,7 @@ index e69de29..0000000
 
       expect(patch.size(), 14);
       expect(patch.text, blobPatch);
+      expect(patch.printedText, blobPatch);
       expect(patch.textBytes, utf8.encode(blobPatch));
     });
 
@@ -102,6 +103,25 @@ index e69de29..0000000
       expect(patch.text, blobPatch);
     });
 
+    test('creates from blobs with separate path names', () {
+      final patch = Patch.fromBlobs(
+        oldBlob: Blob.lookup(repo: repo, oid: oldBlobOid),
+        newBlob: Blob.lookup(repo: repo, oid: newBlobOid),
+        oldBlobPath: 'old_feature_file',
+        newBlobPath: 'new_feature_file',
+      );
+
+      expect(
+        patch.text,
+        contains(
+          'diff --git a/old_feature_file '
+          'b/new_feature_file',
+        ),
+      );
+      expect(patch.text, contains('--- a/old_feature_file'));
+      expect(patch.text, contains('+++ b/new_feature_file'));
+    });
+
     test('creates from one blob (add)', () {
       final patch = Patch.fromBlobs(
         oldBlob: null,
@@ -133,6 +153,25 @@ index e69de29..0000000
       );
 
       expect(patch.text, blobPatch);
+    });
+
+    test('creates from blob and buffer with separate path names', () {
+      final patch = Patch.fromBlobAndBuffer(
+        blob: Blob.lookup(repo: repo, oid: oldBlobOid),
+        buffer: newBuffer,
+        blobPath: 'old_feature_file',
+        bufferPath: 'new_feature_file',
+      );
+
+      expect(
+        patch.text,
+        contains(
+          'diff --git a/old_feature_file '
+          'b/new_feature_file',
+        ),
+      );
+      expect(patch.text, contains('--- a/old_feature_file'));
+      expect(patch.text, contains('+++ b/new_feature_file'));
     });
 
     test('creates from empty blob and buffer', () {

@@ -75,6 +75,47 @@ class Reference extends Equatable {
     _finalizer.attach(this, _refPointer, detach: this);
   }
 
+  /// Conditionally creates or updates a reference for provided [target].
+  ///
+  /// [currentTarget] must match the value currently stored in the reference,
+  /// otherwise libgit2 reports a modification error.
+  ///
+  /// Throws a [LibGit2Error] if error occured or [ArgumentError] if [target]
+  /// and [currentTarget] are not matching direct or symbolic reference values.
+  Reference.createMatching({
+    required Repository repo,
+    required String name,
+    required Object target,
+    required Object currentTarget,
+    bool force = false,
+    String? logMessage,
+  }) {
+    if (target is Oid && currentTarget is Oid) {
+      _refPointer = bindings.createDirectMatching(
+        repoPointer: repo.pointer,
+        name: name,
+        oidPointer: target.pointer,
+        force: force,
+        currentIdPointer: currentTarget.pointer,
+        logMessage: logMessage,
+      );
+    } else if (target is String && currentTarget is String) {
+      _refPointer = bindings.createSymbolicMatching(
+        repoPointer: repo.pointer,
+        name: name,
+        target: target,
+        force: force,
+        currentValue: currentTarget,
+        logMessage: logMessage,
+      );
+    } else {
+      throw ArgumentError.value(
+        'target and currentTarget must both be Oid or both be String',
+      );
+    }
+    _finalizer.attach(this, _refPointer, detach: this);
+  }
+
   /// Lookups reference [name] in a [repo]sitory.
   ///
   /// The [name] will be checked for validity.
@@ -99,6 +140,11 @@ class Reference extends Equatable {
   static void delete({required Repository repo, required String name}) {
     final ref = Reference.lookup(repo: repo, name: name);
     bindings.delete(ref.pointer);
+  }
+
+  /// Deletes an existing reference by [name] without checking its old value.
+  static void remove({required Repository repo, required String name}) {
+    bindings.remove(repoPointer: repo.pointer, name: name);
   }
 
   /// Renames an existing reference with provided [oldName].
@@ -169,6 +215,54 @@ class Reference extends Equatable {
   /// Throws a [LibGit2Error] if error occured.
   static List<String> list(Repository repo) => bindings.list(repo.pointer);
 
+  /// List of all reference names collected through libgit2's callback API.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listForeach(Repository repo) {
+    return bindings.listForeach(repo.pointer);
+  }
+
+  /// List of all reference names collected through libgit2's name callback API.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listForeachName(Repository repo) {
+    return bindings.listForeachName(repo.pointer);
+  }
+
+  /// List of reference names matching [glob].
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listForeachGlob({
+    required Repository repo,
+    required String glob,
+  }) {
+    return bindings.listForeachGlob(repoPointer: repo.pointer, glob: glob);
+  }
+
+  /// List of all reference names collected through libgit2's iterator API.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listIterator(Repository repo) {
+    return bindings.listIterator(repo.pointer);
+  }
+
+  /// List of all reference names collected through libgit2's name iterator API.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listIteratorNames(Repository repo) {
+    return bindings.listIteratorNames(repo.pointer);
+  }
+
+  /// List of reference names matching [glob] through libgit2's iterator API.
+  ///
+  /// Throws a [LibGit2Error] if error occured.
+  static List<String> listIteratorGlob({
+    required Repository repo,
+    required String glob,
+  }) {
+    return bindings.listIteratorGlob(repoPointer: repo.pointer, glob: glob);
+  }
+
   /// Suggests that the [repo]sitory's refdb compress or optimize its
   /// references. This mechanism is implementation specific. For on-disk
   /// reference databases, for example, this may pack all loose references.
@@ -208,6 +302,14 @@ class Reference extends Equatable {
   /// Creates a copy of an existing reference.
   Reference duplicate() => Reference(bindings.duplicate(_refPointer));
 
+  /// Compares this reference with [other] using libgit2's reference ordering.
+  int compareTo(Reference other) {
+    return bindings.compare(
+      ref1Pointer: _refPointer,
+      ref2Pointer: other.pointer,
+    );
+  }
+
   /// Type of the reference.
   ReferenceType get type {
     return bindings.referenceType(_refPointer).value == 1
@@ -222,6 +324,14 @@ class Reference extends Equatable {
     return type == ReferenceType.direct
         ? Oid(bindings.target(_refPointer))
         : Oid(bindings.target(bindings.resolve(_refPointer)));
+  }
+
+  /// Peeled OID target for a direct reference to an annotated tag.
+  ///
+  /// Returns `null` when the reference has no peeled target.
+  Oid? get peeledTarget {
+    final result = bindings.targetPeel(_refPointer);
+    return result == null ? null : Oid(result);
   }
 
   /// Recursively peel reference until object of the specified [type] is found.

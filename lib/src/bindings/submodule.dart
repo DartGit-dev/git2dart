@@ -321,6 +321,31 @@ void setIgnoreRule({
 git_submodule_update_t updateRule(Pointer<git_submodule> submodule) =>
     libgit2.git_submodule_update_strategy(submodule);
 
+/// Get the fetch recurse submodules rule for a submodule.
+git_submodule_recurse_t fetchRecurseSubmodules(
+  Pointer<git_submodule> submodule,
+) => libgit2.git_submodule_fetch_recurse_submodules(submodule);
+
+/// Set the fetch recurse submodules rule for a submodule.
+///
+/// This setting won't affect any existing instances.
+void setFetchRecurseSubmodules({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required git_submodule_recurse_t fetchRecurseSubmodules,
+}) {
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_submodule_set_fetch_recurse_submodules(
+      repoPointer,
+      nameC,
+      fetchRecurseSubmodules,
+    );
+
+    checkErrorAndThrow(error);
+  });
+}
+
 /// Set the update rule for a submodule.
 ///
 /// This setting won't affect any existing instances.
@@ -410,6 +435,16 @@ Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) =>
 /// Get the repository that owns this submodule.
 Pointer<git_repository> owner(Pointer<git_submodule> submodule) =>
     libgit2.git_submodule_owner(submodule);
+
+/// Get the locations of submodule information.
+int location(Pointer<git_submodule> submodule) {
+  return using((arena) {
+    final out = arena<UnsignedInt>();
+    final error = libgit2.git_submodule_location(out, submodule);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
 
 /// Sync a submodule.
 ///

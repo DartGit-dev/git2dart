@@ -19,9 +19,11 @@ List<String> list(Pointer<git_repository> repo) {
 
     checkErrorAndThrow(error);
 
-    return <String>[
+    final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 
@@ -164,9 +166,11 @@ List<String> rename({
 
     checkErrorAndThrow(error);
 
-    return <String>[
+    final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 
@@ -208,6 +212,43 @@ void setPushUrl({
   });
 }
 
+/// Set the URL for this remote instance without changing configuration.
+void setInstanceUrl({
+  required Pointer<git_remote> remotePointer,
+  required String url,
+}) {
+  using((arena) {
+    final urlC = url.toChar(arena);
+    final error = libgit2.git_remote_set_instance_url(remotePointer, urlC);
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Set the push URL for this remote instance without changing configuration.
+void setInstancePushUrl({
+  required Pointer<git_remote> remotePointer,
+  required String url,
+}) {
+  using((arena) {
+    final urlC = url.toChar(arena);
+    final error = libgit2.git_remote_set_instance_pushurl(remotePointer, urlC);
+    checkErrorAndThrow(error);
+  });
+}
+
+/// Set the remote's tag following setting in the configuration.
+void setAutotag({
+  required Pointer<git_repository> repoPointer,
+  required String remote,
+  required git_remote_autotag_option_t value,
+}) {
+  using((arena) {
+    final remoteC = remote.toChar(arena);
+    final error = libgit2.git_remote_set_autotag(repoPointer, remoteC, value);
+    checkErrorAndThrow(error);
+  });
+}
+
 /// Get the remote's name.
 ///
 /// Returns the name of the remote or an empty string if the remote is anonymous.
@@ -230,6 +271,21 @@ String pushUrl(Pointer<git_remote> remote) {
   return result == nullptr ? '' : result.toDartString();
 }
 
+/// Get the remote's object ID type.
+git_oid_t oidType(Pointer<git_remote> remote) {
+  return using((arena) {
+    final out = arena<UnsignedInt>();
+    final error = libgit2.git_remote_oid_type(out, remote);
+    checkErrorAndThrow(error);
+    return git_oid_t.fromValue(out.value);
+  });
+}
+
+/// Get the remote's automatic tag following option.
+git_remote_autotag_option_t autotag(Pointer<git_remote> remote) {
+  return libgit2.git_remote_autotag(remote);
+}
+
 /// Get the number of refspecs for a remote.
 int refspecCount(Pointer<git_remote> remote) =>
     libgit2.git_remote_refspec_count(remote);
@@ -248,9 +304,11 @@ List<String> fetchRefspecs(Pointer<git_remote> remote) {
 
     checkErrorAndThrow(error);
 
-    return <String>[
+    final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 
@@ -262,9 +320,11 @@ List<String> pushRefspecs(Pointer<git_remote> remote) {
 
     checkErrorAndThrow(error);
 
-    return <String>[
+    final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
+    libgit2.git_strarray_dispose(out);
+    return result;
   });
 }
 

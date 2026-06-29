@@ -2,9 +2,16 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
+import 'package:git2dart/src/bindings/oid.dart' as oid_bindings;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
+
+bool Function(String oid)? _hidePredicate;
+
+int _hideCb(Pointer<git_oid> commitId, Pointer<Void> payload) {
+  return _hidePredicate?.call(oid_bindings.toSHA(commitId)) ?? false ? 1 : 0;
+}
 
 /// Creates a new revision walker to iterate through a repository.
 ///
@@ -225,6 +232,24 @@ void hideRef({
     final error = libgit2.git_revwalk_hide_ref(walkerPointer, refNameC);
     checkErrorAndThrow(error);
   });
+}
+
+/// Adds a callback to hide matching commits from the revision walk.
+void addHideCallback({
+  required Pointer<git_revwalk> walkerPointer,
+  required bool Function(String oid) predicate,
+}) {
+  _hidePredicate = predicate;
+  final error = libgit2.git_revwalk_add_hide_cb(
+    walkerPointer,
+    Pointer.fromFunction<Int Function(Pointer<git_oid>, Pointer<Void>)>(
+      _hideCb,
+      0,
+    ),
+    nullptr,
+  );
+
+  checkErrorAndThrow(error);
 }
 
 /// Resets the revision walker for reuse.

@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show calloc, using;
+import 'package:git2dart/src/bindings/oid.dart' as oid_bindings;
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart/src/callbacks.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -28,12 +29,46 @@ Pointer<git_repository> open(String path) {
   });
 }
 
+/// Open an existing Git repository with extended search options.
+Pointer<git_repository> openExt({
+  String? path,
+  required int flags,
+  String? ceilingDirs,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final pathC = path?.toChar(arena) ?? nullptr;
+    final ceilingDirsC = ceilingDirs?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_repository_open_ext(
+      out,
+      pathC,
+      flags,
+      ceilingDirsC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Open a bare Git repository at [path].
 Pointer<git_repository> openBare(String path) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
     final pathC = path.toChar(arena);
     final error = libgit2.git_repository_open_bare(out, pathC);
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Initialize a new Git repository using libgit2's basic initializer.
+Pointer<git_repository> initBasic({required String path, required bool bare}) {
+  return using((arena) {
+    final out = arena<Pointer<git_repository>>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_repository_init(out, pathC, bare ? 1 : 0);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -268,6 +303,25 @@ Pointer<git_reference> head(Pointer<git_repository> repo) {
   });
 }
 
+/// Get the referenced HEAD for a linked worktree by [name].
+Pointer<git_reference> headForWorktree({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_repository_head_for_worktree(
+      out,
+      repoPointer,
+      nameC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// A repository's HEAD is detached when it points directly to a commit instead
 /// of a branch.
 ///
@@ -276,6 +330,23 @@ bool isHeadDetached(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_head_detached(repo);
   checkErrorAndThrow(error);
   return error == 1;
+}
+
+/// Return whether the named linked worktree's HEAD is detached.
+bool isHeadDetachedForWorktree({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+}) {
+  return using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_repository_head_detached_for_worktree(
+      repoPointer,
+      nameC,
+    );
+
+    checkErrorAndThrow(error);
+    return error == 1;
+  });
 }
 
 /// Get the path to the repository's working directory.
@@ -356,6 +427,33 @@ Pointer<git_odb> odb(Pointer<git_repository> repo) {
     checkErrorAndThrow(error);
     return out.value;
   });
+}
+
+/// Assign a custom config object to the repository.
+void setConfig({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_config> configPointer,
+}) {
+  final error = libgit2.git_repository_set_config(repoPointer, configPointer);
+  checkErrorAndThrow(error);
+}
+
+/// Assign a custom object database to the repository.
+void setOdb({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_odb> odbPointer,
+}) {
+  final error = libgit2.git_repository_set_odb(repoPointer, odbPointer);
+  checkErrorAndThrow(error);
+}
+
+/// Assign a custom index to the repository.
+void setIndex({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_index> indexPointer,
+}) {
+  final error = libgit2.git_repository_set_index(repoPointer, indexPointer);
+  checkErrorAndThrow(error);
 }
 
 /// Get the repository's reference database.
@@ -473,6 +571,18 @@ void setHeadDetached({
   final error = libgit2.git_repository_set_head_detached(
     repoPointer,
     commitishPointer,
+  );
+  checkErrorAndThrow(error);
+}
+
+/// Set the repository's HEAD to the commit described by an annotated commit.
+void setHeadDetachedFromAnnotated({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_annotated_commit> commitPointer,
+}) {
+  final error = libgit2.git_repository_set_head_detached_from_annotated(
+    repoPointer,
+    commitPointer,
   );
   checkErrorAndThrow(error);
 }
@@ -617,6 +727,74 @@ int state(Pointer<git_repository> repo) {
 void stateCleanup(Pointer<git_repository> repo) {
   final error = libgit2.git_repository_state_cleanup(repo);
   checkErrorAndThrow(error);
+}
+
+var _fetchHeadEntries = <Map<String, Object>>[];
+var _mergeHeadOids = <String>[];
+
+int _fetchHeadCb(
+  Pointer<Char> refName,
+  Pointer<Char> remoteUrl,
+  Pointer<git_oid> oid,
+  int isMerge,
+  Pointer<Void> payload,
+) {
+  _fetchHeadEntries.add({
+    'refName': refName == nullptr ? '' : refName.toDartString(),
+    'remoteUrl': remoteUrl == nullptr ? '' : remoteUrl.toDartString(),
+    'oid': oid_bindings.toSHA(oid),
+    'isMerge': isMerge == 1,
+  });
+  return 0;
+}
+
+int _mergeHeadCb(Pointer<git_oid> oid, Pointer<Void> payload) {
+  _mergeHeadOids.add(oid_bindings.toSHA(oid));
+  return 0;
+}
+
+/// Return entries from FETCH_HEAD, or an empty list if FETCH_HEAD is absent.
+List<Map<String, Object>> fetchHeadEntries(Pointer<git_repository> repo) {
+  final cb = Pointer.fromFunction<
+    Int Function(
+      Pointer<Char>,
+      Pointer<Char>,
+      Pointer<git_oid>,
+      UnsignedInt,
+      Pointer<Void>,
+    )
+  >(_fetchHeadCb, 0);
+
+  _fetchHeadEntries.clear();
+  final error = libgit2.git_repository_fetchhead_foreach(repo, cb, nullptr);
+  if (error == git_error_code.GIT_ENOTFOUND.value) {
+    return <Map<String, Object>>[];
+  }
+
+  checkErrorAndThrow(error);
+  final result = _fetchHeadEntries.toList(growable: false);
+  _fetchHeadEntries.clear();
+  return result;
+}
+
+/// Return OIDs from MERGE_HEAD, or an empty list if MERGE_HEAD is absent.
+List<String> mergeHeadOids(Pointer<git_repository> repo) {
+  final cb =
+      Pointer.fromFunction<Int Function(Pointer<git_oid>, Pointer<Void>)>(
+        _mergeHeadCb,
+        0,
+      );
+
+  _mergeHeadOids.clear();
+  final error = libgit2.git_repository_mergehead_foreach(repo, cb, nullptr);
+  if (error == git_error_code.GIT_ENOTFOUND.value) {
+    return <String>[];
+  }
+
+  checkErrorAndThrow(error);
+  final result = _mergeHeadOids.toList(growable: false);
+  _mergeHeadOids.clear();
+  return result;
 }
 
 /// Get a snapshot of the repository's configuration.

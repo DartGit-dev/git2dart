@@ -16,6 +16,44 @@ void main() {
       });
     });
 
+    test('returns prerelease and feature backend metadata', () {
+      expect(Libgit2.prerelease, isNull);
+
+      for (final feature in Libgit2.features) {
+        expect(Libgit2.featureBackend(feature), isNotEmpty);
+      }
+    });
+
+    test('checks whether object type is loose', () {
+      expect(Libgit2.objectTypeIsLoose(GitObject.blob), true);
+      expect(Libgit2.objectTypeIsLoose(GitObject.refDelta), false);
+    });
+
+    test('checks whether paths are protected gitfile names', () {
+      expect(
+        Libgit2.isGitFile(
+          path: '.gitignore',
+          gitfile: GitPathGitFile.gitignore,
+        ),
+        true,
+      );
+      expect(
+        Libgit2.isGitFile(
+          path: '.gitmodules',
+          gitfile: GitPathGitFile.gitmodules,
+          filesystem: GitPathFilesystem.ntfs,
+        ),
+        true,
+      );
+      expect(
+        Libgit2.isGitFile(
+          path: 'README.md',
+          gitfile: GitPathGitFile.gitattributes,
+        ),
+        false,
+      );
+    });
+
     test('sets and returns the owner validation setting for repository '
         'directories', () {
       final oldValue = Libgit2.ownerValidation;

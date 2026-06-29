@@ -162,6 +162,7 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
         continue;
       }
     }
+    libgit2.git_strarray_dispose(out);
     return result;
   });
 }

@@ -423,6 +423,309 @@ String addToBuf(Pointer<git_diff> diff) {
   });
 }
 
+var _printedDiffLines = <String>[];
+var _foreachFilePaths = <String>[];
+var _foreachLineOrigins = <int>[];
+
+String _lineContent(Pointer<git_diff_line> line) {
+  if (line == nullptr || line.ref.content == nullptr) {
+    return '';
+  }
+
+  final content = line.ref.content.toDartString(length: line.ref.content_len);
+  final origin = line.ref.origin;
+  if (origin == git_diff_line_t.GIT_DIFF_LINE_ADDITION.value ||
+      origin == git_diff_line_t.GIT_DIFF_LINE_DELETION.value) {
+    return '${String.fromCharCode(origin)}$content';
+  }
+  if (origin == git_diff_line_t.GIT_DIFF_LINE_CONTEXT.value) {
+    return ' $content';
+  }
+
+  return content;
+}
+
+int _diffPrintCb(
+  Pointer<git_diff_delta> delta,
+  Pointer<git_diff_hunk> hunk,
+  Pointer<git_diff_line> line,
+  Pointer<Void> payload,
+) {
+  _printedDiffLines.add(_lineContent(line));
+  return 0;
+}
+
+int _diffFileCb(
+  Pointer<git_diff_delta> delta,
+  double progress,
+  Pointer<Void> payload,
+) {
+  final path =
+      delta.ref.new_file.path == nullptr
+          ? delta.ref.old_file.path.toDartString()
+          : delta.ref.new_file.path.toDartString();
+  _foreachFilePaths.add(path);
+  return 0;
+}
+
+int _diffHunkCb(
+  Pointer<git_diff_delta> delta,
+  Pointer<git_diff_hunk> hunk,
+  Pointer<Void> payload,
+) {
+  return 0;
+}
+
+int _diffLineCb(
+  Pointer<git_diff_delta> delta,
+  Pointer<git_diff_hunk> hunk,
+  Pointer<git_diff_line> line,
+  Pointer<Void> payload,
+) {
+  _foreachLineOrigins.add(line.ref.origin);
+  _printedDiffLines.add(_lineContent(line));
+  return 0;
+}
+
+git_diff_line_cb _lineCallback() {
+  return Pointer.fromFunction<
+    Int Function(
+      Pointer<git_diff_delta>,
+      Pointer<git_diff_hunk>,
+      Pointer<git_diff_line>,
+      Pointer<Void>,
+    )
+  >(_diffPrintCb, 0);
+}
+
+/// Iterate over a diff and collect formatted text through the print callback.
+String print(Pointer<git_diff> diff) {
+  final cb = _lineCallback();
+
+  _printedDiffLines.clear();
+  final error = libgit2.git_diff_print(
+    diff,
+    git_diff_format_t.GIT_DIFF_FORMAT_PATCH,
+    cb,
+    nullptr,
+  );
+
+  checkErrorAndThrow(error);
+  final result = _printedDiffLines.join();
+  _printedDiffLines.clear();
+  return result;
+}
+
+/// Iterate over a diff and return file paths and line origin codes.
+Map<String, Object> foreach(Pointer<git_diff> diff) {
+  final fileCb = Pointer.fromFunction<
+    Int Function(Pointer<git_diff_delta>, Float, Pointer<Void>)
+  >(_diffFileCb, 0);
+  final hunkCb = Pointer.fromFunction<
+    Int Function(Pointer<git_diff_delta>, Pointer<git_diff_hunk>, Pointer<Void>)
+  >(_diffHunkCb, 0);
+  final lineCb = Pointer.fromFunction<
+    Int Function(
+      Pointer<git_diff_delta>,
+      Pointer<git_diff_hunk>,
+      Pointer<git_diff_line>,
+      Pointer<Void>,
+    )
+  >(_diffLineCb, 0);
+
+  _foreachFilePaths.clear();
+  _foreachLineOrigins.clear();
+  _printedDiffLines.clear();
+
+  final error = libgit2.git_diff_foreach(
+    diff,
+    fileCb,
+    nullptr,
+    hunkCb,
+    lineCb,
+    nullptr,
+  );
+
+  checkErrorAndThrow(error);
+
+  final result = {
+    'paths': _foreachFilePaths.toList(growable: false),
+    'origins': _foreachLineOrigins.toList(growable: false),
+    'text': _printedDiffLines.join(),
+  };
+
+  _foreachFilePaths.clear();
+  _foreachLineOrigins.clear();
+  _printedDiffLines.clear();
+  return result;
+}
+
+String _runDirectDiff({
+  required Arena arena,
+  Pointer<git_blob>? oldBlobPointer,
+  String? oldAsPath,
+  Pointer<git_blob>? newBlobPointer,
+  String? newAsPath,
+  String? oldBuffer,
+  String? newBuffer,
+  required int flags,
+  required int contextLines,
+  required int interhunkLines,
+}) {
+  final oldAsPathC = oldAsPath?.toChar(arena) ?? nullptr;
+  final newAsPathC = newAsPath?.toChar(arena) ?? nullptr;
+  final oldBufferC = oldBuffer?.toChar(arena) ?? nullptr;
+  final newBufferC = newBuffer?.toChar(arena) ?? nullptr;
+  final opts = _diffOptionsInit(
+    arena: arena,
+    flags: flags,
+    contextLines: contextLines,
+    interhunkLines: interhunkLines,
+  );
+  final fileCb = Pointer.fromFunction<
+    Int Function(Pointer<git_diff_delta>, Float, Pointer<Void>)
+  >(_diffFileCb, 0);
+  final hunkCb = Pointer.fromFunction<
+    Int Function(Pointer<git_diff_delta>, Pointer<git_diff_hunk>, Pointer<Void>)
+  >(_diffHunkCb, 0);
+  final lineCb = Pointer.fromFunction<
+    Int Function(
+      Pointer<git_diff_delta>,
+      Pointer<git_diff_hunk>,
+      Pointer<git_diff_line>,
+      Pointer<Void>,
+    )
+  >(_diffLineCb, 0);
+
+  _foreachFilePaths.clear();
+  _foreachLineOrigins.clear();
+  _printedDiffLines.clear();
+
+  int error;
+  if (oldBuffer != null || oldBlobPointer == null) {
+    error = libgit2.git_diff_buffers(
+      oldBufferC.cast(),
+      oldBuffer?.length ?? 0,
+      oldAsPathC,
+      newBufferC.cast(),
+      newBuffer?.length ?? 0,
+      newAsPathC,
+      opts,
+      fileCb,
+      nullptr,
+      hunkCb,
+      lineCb,
+      nullptr,
+    );
+  } else if (newBlobPointer != null) {
+    error = libgit2.git_diff_blobs(
+      oldBlobPointer,
+      oldAsPathC,
+      newBlobPointer,
+      newAsPathC,
+      opts,
+      fileCb,
+      nullptr,
+      hunkCb,
+      lineCb,
+      nullptr,
+    );
+  } else {
+    error = libgit2.git_diff_blob_to_buffer(
+      oldBlobPointer,
+      oldAsPathC,
+      newBufferC,
+      newBuffer?.length ?? 0,
+      newAsPathC,
+      opts,
+      fileCb,
+      nullptr,
+      hunkCb,
+      lineCb,
+      nullptr,
+    );
+  }
+
+  checkErrorAndThrow(error);
+  final result = _printedDiffLines.join();
+  _foreachFilePaths.clear();
+  _foreachLineOrigins.clear();
+  _printedDiffLines.clear();
+  return result;
+}
+
+/// Directly diff two buffers and return collected line text.
+String buffers({
+  String? oldBuffer,
+  String? oldAsPath,
+  String? newBuffer,
+  String? newAsPath,
+  required int flags,
+  required int contextLines,
+  required int interhunkLines,
+}) {
+  return using(
+    (arena) => _runDirectDiff(
+      arena: arena,
+      oldBuffer: oldBuffer,
+      oldAsPath: oldAsPath,
+      newBuffer: newBuffer,
+      newAsPath: newAsPath,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    ),
+  );
+}
+
+/// Directly diff two blobs and return collected line text.
+String blobs({
+  required Pointer<git_blob>? oldBlobPointer,
+  String? oldAsPath,
+  required Pointer<git_blob>? newBlobPointer,
+  String? newAsPath,
+  required int flags,
+  required int contextLines,
+  required int interhunkLines,
+}) {
+  return using(
+    (arena) => _runDirectDiff(
+      arena: arena,
+      oldBlobPointer: oldBlobPointer,
+      oldAsPath: oldAsPath,
+      newBlobPointer: newBlobPointer,
+      newAsPath: newAsPath,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    ),
+  );
+}
+
+/// Directly diff a blob and a buffer and return collected line text.
+String blobToBuffer({
+  Pointer<git_blob>? oldBlobPointer,
+  String? oldAsPath,
+  String? buffer,
+  String? bufferAsPath,
+  required int flags,
+  required int contextLines,
+  required int interhunkLines,
+}) {
+  return using(
+    (arena) => _runDirectDiff(
+      arena: arena,
+      oldBlobPointer: oldBlobPointer,
+      oldAsPath: oldAsPath,
+      newBuffer: buffer,
+      newAsPath: bufferAsPath,
+      flags: flags,
+      contextLines: contextLines,
+      interhunkLines: interhunkLines,
+    ),
+  );
+}
+
 /// Counter for hunk number being applied.
 ///
 /// **IMPORTANT**: make sure to reset it to 0 before using since it's a global

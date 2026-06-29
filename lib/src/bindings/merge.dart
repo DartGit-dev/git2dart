@@ -57,6 +57,53 @@ Pointer<git_oidarray> mergeBasesMany({
   });
 }
 
+/// Find all merge bases between two commits.
+Pointer<git_oidarray> mergeBases({
+  required Pointer<git_repository> repoPointer,
+  required Pointer<git_oid> aPointer,
+  required Pointer<git_oid> bPointer,
+}) {
+  return using((arena) {
+    final out = calloc<git_oidarray>();
+    final error = libgit2.git_merge_bases(out, repoPointer, aPointer, bPointer);
+
+    checkErrorAndThrow(error);
+
+    return out;
+  });
+}
+
+/// Find a merge base given a list of commits using libgit2's singular API.
+Pointer<git_oid> mergeBaseMany({
+  required Pointer<git_repository> repoPointer,
+  required List<Pointer<git_oid>> commits,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final commitsC = arena<git_oid>(commits.length);
+    for (var i = 0; i < commits.length; i++) {
+      commitsC[i] = commits[i].ref;
+    }
+
+    final error = libgit2.git_merge_base_many(
+      out,
+      repoPointer,
+      commits.length,
+      commitsC,
+    );
+
+    checkErrorAndThrow(error);
+
+    return out;
+  });
+}
+
+/// Dispose a libgit2-owned oid array and free its wrapper allocation.
+void oidArrayDispose(Pointer<git_oidarray> array) {
+  libgit2.git_oidarray_dispose(array);
+  calloc.free(array);
+}
+
 /// Find a merge base in preparation for an octopus merge.
 ///
 /// Given a list of commits, find their merge base in preparation for an
@@ -232,7 +279,9 @@ String mergeFile({
     final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
     checkErrorAndThrow(error);
 
-    return out.ref.ptr.toDartString(length: out.ref.len);
+    final result = out.ref.ptr.toDartString(length: out.ref.len);
+    libgit2.git_merge_file_result_free(out);
+    return result;
   });
 }
 
@@ -290,6 +339,7 @@ String mergeFileFromIndex({
     if (out.ref.ptr != nullptr) {
       result = out.ref.ptr.toDartString(length: out.ref.len);
     }
+    libgit2.git_merge_file_result_free(out);
     return result;
   });
 }

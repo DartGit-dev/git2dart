@@ -50,6 +50,10 @@ Pointer<git_blob> lookupPrefix({
 /// Get the [Oid] of a blob.
 Pointer<git_oid> id(Pointer<git_blob> blob) => libgit2.git_blob_id(blob);
 
+/// Get the repository that contains the blob.
+Pointer<git_repository> owner(Pointer<git_blob> blob) =>
+    libgit2.git_blob_owner(blob);
+
 /// Determine if the blob content is most certainly binary or not.
 ///
 /// The heuristic used to guess if a file is binary is taken from core git:

@@ -13,6 +13,7 @@ void main() {
   late Directory tmpDir;
   const lastCommit = '821ed6e80627b8769d170a293862f9fc60825226';
   const newCommit = 'c68ff54aabf660fcdd9a2838d401583fe31249e3';
+  const featureCommit = '5aecfa0fb97eadaac050ccb99f03c3fb65460ad4';
 
   setUp(() {
     tmpDir = setupRepo(Directory(p.join('test', 'assets', 'test_repo')));
@@ -37,6 +38,28 @@ void main() {
       ]);
     });
 
+    test('returns a list with callback iterators', () {
+      final expected = Reference.list(repo);
+
+      expect(Reference.listForeach(repo), unorderedEquals(expected));
+      expect(Reference.listForeachName(repo), unorderedEquals(expected));
+      expect(
+        Reference.listForeachGlob(repo: repo, glob: 'refs/tags/*'),
+        unorderedEquals(['refs/tags/v0.1', 'refs/tags/v0.2']),
+      );
+    });
+
+    test('returns a list with reference iterators', () {
+      final expected = Reference.list(repo);
+
+      expect(Reference.listIterator(repo), unorderedEquals(expected));
+      expect(Reference.listIteratorNames(repo), unorderedEquals(expected));
+      expect(
+        Reference.listIteratorGlob(repo: repo, glob: 'refs/tags/*'),
+        unorderedEquals(['refs/tags/v0.1', 'refs/tags/v0.2']),
+      );
+    });
+
     test('throws when trying to get a list of references and error occurs', () {
       expect(
         () => Reference.list(Repository(nullptr)),
@@ -52,12 +75,42 @@ void main() {
       );
     });
 
+    test('compares references', () {
+      final feature = Reference.lookup(repo: repo, name: 'refs/heads/feature');
+      final master = Reference.lookup(repo: repo, name: 'refs/heads/master');
+
+      expect(feature.compareTo(master), lessThan(0));
+      expect(master.compareTo(feature), greaterThan(0));
+      expect(master.compareTo(master), 0);
+    });
+
     test('returns SHA hex of direct reference', () {
       expect(repo.head.target.sha, lastCommit);
     });
 
     test('returns SHA hex of symbolic reference', () {
       expect(Reference.lookup(repo: repo, name: 'HEAD').target.sha, lastCommit);
+    });
+
+    test('returns peeled target for annotated tag reference', () {
+      final signature = Signature.create(
+        name: 'Tagger',
+        email: 'tagger@example.com',
+        time: 1234,
+      );
+      Tag.createAnnotated(
+        repo: repo,
+        tagName: 'peeled',
+        target: repo[lastCommit],
+        targetType: GitObject.commit,
+        tagger: signature,
+        message: 'message',
+      );
+      Reference.compress(repo);
+
+      final tagRef = Reference.lookup(repo: repo, name: 'refs/tags/peeled');
+      expect(tagRef.peeledTarget?.sha, lastCommit);
+      expect(repo.head.peeledTarget, isNull);
     });
 
     test('returns the full name', () {
@@ -236,6 +289,43 @@ void main() {
           throwsA(isA<LibGit2Error>()),
         );
       });
+
+      test('creates matching reference when current target matches', () {
+        Reference.create(
+          repo: repo,
+          name: 'refs/tags/matching',
+          target: repo[lastCommit],
+        );
+
+        final ref = Reference.createMatching(
+          repo: repo,
+          name: 'refs/tags/matching',
+          target: repo[newCommit],
+          currentTarget: repo[lastCommit],
+          force: true,
+        );
+
+        expect(ref.target.sha, newCommit);
+      });
+
+      test('throws when matching reference current target differs', () {
+        Reference.create(
+          repo: repo,
+          name: 'refs/tags/matching',
+          target: repo[lastCommit],
+        );
+
+        expect(
+          () => Reference.createMatching(
+            repo: repo,
+            name: 'refs/tags/matching',
+            target: repo[newCommit],
+            currentTarget: repo[newCommit],
+            force: true,
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+      });
     });
 
     group('create symbolic', () {
@@ -312,12 +402,77 @@ void main() {
         expect(reflogEntry.committer.name, 'name');
         expect(reflogEntry.committer.email, 'email');
       });
+
+      test('creates matching reference when current target matches', () {
+        Reference.create(
+          repo: repo,
+          name: 'refs/tags/symbolic.matching',
+          target: 'refs/heads/master',
+        );
+
+        final ref = Reference.createMatching(
+          repo: repo,
+          name: 'refs/tags/symbolic.matching',
+          target: 'refs/heads/feature',
+          currentTarget: 'refs/heads/master',
+          force: true,
+        );
+
+        expect(ref.type, ReferenceType.symbolic);
+        expect(ref.target.sha, featureCommit);
+      });
+
+      test(
+        'throws when matching symbolic reference current target differs',
+        () {
+          Reference.create(
+            repo: repo,
+            name: 'refs/tags/symbolic.matching',
+            target: 'refs/heads/master',
+          );
+
+          expect(
+            () => Reference.createMatching(
+              repo: repo,
+              name: 'refs/tags/symbolic.matching',
+              target: 'refs/heads/feature',
+              currentTarget: 'refs/heads/feature',
+              force: true,
+            ),
+            throwsA(isA<LibGit2Error>()),
+          );
+        },
+      );
+
+      test('throws when matching target types differ', () {
+        expect(
+          () => Reference.createMatching(
+            repo: repo,
+            name: 'refs/tags/symbolic.matching',
+            target: 'refs/heads/feature',
+            currentTarget: repo.head.target,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
     });
 
     test('deletes reference', () {
       expect(repo.references, contains('refs/tags/v0.1'));
       Reference.delete(repo: repo, name: 'refs/tags/v0.1');
       expect(repo.references, isNot(contains('refs/tags/v0.1')));
+    });
+
+    test('removes reference by name', () {
+      Reference.create(
+        repo: repo,
+        name: 'refs/tags/test',
+        target: repo[lastCommit],
+      );
+
+      expect(repo.references, contains('refs/tags/test'));
+      Reference.remove(repo: repo, name: 'refs/tags/test');
+      expect(repo.references, isNot(contains('refs/tags/test')));
     });
 
     group('finds', () {

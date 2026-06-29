@@ -251,6 +251,10 @@ class Packbuilder {
     return result == nullptr ? '' : result.toDartString();
   }
 
+  /// Get the packfile hash.
+  static Pointer<git_oid> hash(Pointer<git_packbuilder> pb) =>
+      libgit2.git_packbuilder_hash(pb);
+
   /// Set the number of threads to use for pack creation.
   ///
   /// By default, libgit2 won't spawn any threads at all. When set to 0,

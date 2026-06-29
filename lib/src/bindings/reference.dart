@@ -160,6 +160,91 @@ List<String> list(Pointer<git_repository> repo) {
       result.add(array.ref.strings[i].cast<Char>().toDartString());
     }
 
+    libgit2.git_strarray_dispose(array);
+    return result;
+  });
+}
+
+var _foreachReferences = <String>[];
+
+int _foreachCb(Pointer<git_reference> reference, Pointer<Void> payload) {
+  _foreachReferences.add(name(reference));
+  free(reference);
+  return 0;
+}
+
+/// List all references in a repository using libgit2's reference callback API.
+///
+/// Throws a [LibGit2Error] if the references cannot be listed.
+List<String> listForeach(Pointer<git_repository> repo) {
+  const except = -1;
+  final cb =
+      Pointer.fromFunction<Int Function(Pointer<git_reference>, Pointer<Void>)>(
+        _foreachCb,
+        except,
+      );
+
+  _foreachReferences.clear();
+  final error = libgit2.git_reference_foreach(repo, cb, nullptr);
+  checkErrorAndThrow(error);
+
+  final result = _foreachReferences.toList(growable: false);
+  _foreachReferences.clear();
+  return result;
+}
+
+var _foreachNames = <String>[];
+
+int _foreachNameCb(Pointer<Char> name, Pointer<Void> payload) {
+  _foreachNames.add(name.toDartString());
+  return 0;
+}
+
+/// List all reference names in a repository using libgit2's name callback API.
+///
+/// Throws a [LibGit2Error] if the references cannot be listed.
+List<String> listForeachName(Pointer<git_repository> repo) {
+  const except = -1;
+  final cb = Pointer.fromFunction<Int Function(Pointer<Char>, Pointer<Void>)>(
+    _foreachNameCb,
+    except,
+  );
+
+  _foreachNames.clear();
+  final error = libgit2.git_reference_foreach_name(repo, cb, nullptr);
+  checkErrorAndThrow(error);
+
+  final result = _foreachNames.toList(growable: false);
+  _foreachNames.clear();
+  return result;
+}
+
+/// List reference names matching [glob] using libgit2's glob callback API.
+///
+/// Throws a [LibGit2Error] if the references cannot be listed.
+List<String> listForeachGlob({
+  required Pointer<git_repository> repoPointer,
+  required String glob,
+}) {
+  return using((arena) {
+    const except = -1;
+    final globC = glob.toChar(arena);
+    final cb = Pointer.fromFunction<Int Function(Pointer<Char>, Pointer<Void>)>(
+      _foreachNameCb,
+      except,
+    );
+
+    _foreachNames.clear();
+    final error = libgit2.git_reference_foreach_glob(
+      repoPointer,
+      globC,
+      cb,
+      nullptr,
+    );
+    checkErrorAndThrow(error);
+
+    final result = _foreachNames.toList(growable: false);
+    _foreachNames.clear();
     return result;
   });
 }
@@ -272,6 +357,38 @@ Pointer<git_reference> createDirect({
   });
 }
 
+/// Conditionally create a new direct reference.
+///
+/// If [currentIdPointer] does not match the reference value at update time,
+/// libgit2 returns an error.
+Pointer<git_reference> createDirectMatching({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required Pointer<git_oid> oidPointer,
+  required bool force,
+  required Pointer<git_oid> currentIdPointer,
+  String? logMessage,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_create_matching(
+      out,
+      repoPointer,
+      nameC,
+      oidPointer,
+      forceC,
+      currentIdPointer,
+      logMessageC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
 /// Create a new symbolic reference.
 ///
 /// A symbolic reference points to another reference rather than directly to an
@@ -314,6 +431,40 @@ Pointer<git_reference> createSymbolic({
       nameC,
       targetC,
       forceC,
+      logMessageC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Conditionally create a new symbolic reference.
+///
+/// If [currentValue] does not match the reference value at update time,
+/// libgit2 returns an error.
+Pointer<git_reference> createSymbolicMatching({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+  required String target,
+  required bool force,
+  required String currentValue,
+  String? logMessage,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final nameC = name.toChar(arena);
+    final targetC = target.toChar(arena);
+    final currentValueC = currentValue.toChar(arena);
+    final forceC = force ? 1 : 0;
+    final logMessageC = logMessage?.toChar(arena) ?? nullptr;
+    final error = libgit2.git_reference_symbolic_create_matching(
+      out,
+      repoPointer,
+      nameC,
+      targetC,
+      forceC,
+      currentValueC,
       logMessageC,
     );
 
@@ -401,6 +552,18 @@ void delete(Pointer<git_reference> ref) {
   final error = libgit2.git_reference_delete(ref);
 
   checkErrorAndThrow(error);
+}
+
+/// Delete an existing reference by [name] without looking at its old value.
+void remove({
+  required Pointer<git_repository> repoPointer,
+  required String name,
+}) {
+  using((arena) {
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_reference_remove(repoPointer, nameC);
+    checkErrorAndThrow(error);
+  });
 }
 
 /// Free a reference object.
@@ -511,6 +674,115 @@ Pointer<git_reference> duplicate(Pointer<git_reference> source) {
   });
 }
 
+/// Compare two references.
+int compare({
+  required Pointer<git_reference> ref1Pointer,
+  required Pointer<git_reference> ref2Pointer,
+}) {
+  return libgit2.git_reference_cmp(ref1Pointer, ref2Pointer);
+}
+
+Pointer<git_reference_iterator> iteratorNew(Pointer<git_repository> repo) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference_iterator>>();
+    final error = libgit2.git_reference_iterator_new(out, repo);
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+Pointer<git_reference_iterator> iteratorGlobNew({
+  required Pointer<git_repository> repoPointer,
+  required String glob,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference_iterator>>();
+    final globC = glob.toChar(arena);
+    final error = libgit2.git_reference_iterator_glob_new(
+      out,
+      repoPointer,
+      globC,
+    );
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+Pointer<git_reference>? iteratorNext(Pointer<git_reference_iterator> iterator) {
+  return using((arena) {
+    final out = arena<Pointer<git_reference>>();
+    final error = libgit2.git_reference_next(out, iterator);
+    if (error == git_error_code.GIT_ITEROVER.value) return null;
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+String? iteratorNextName(Pointer<git_reference_iterator> iterator) {
+  return using((arena) {
+    final out = arena<Pointer<Char>>();
+    final error = libgit2.git_reference_next_name(out, iterator);
+    if (error == git_error_code.GIT_ITEROVER.value) return null;
+
+    checkErrorAndThrow(error);
+    return out.value.toDartString();
+  });
+}
+
+void iteratorFree(Pointer<git_reference_iterator> iterator) {
+  libgit2.git_reference_iterator_free(iterator);
+}
+
+/// List all references in a repository using libgit2's iterator API.
+List<String> listIterator(Pointer<git_repository> repo) {
+  final iterator = iteratorNew(repo);
+  final result = <String>[];
+  try {
+    while (true) {
+      final ref = iteratorNext(iterator);
+      if (ref == null) return result;
+      result.add(name(ref));
+      free(ref);
+    }
+  } finally {
+    iteratorFree(iterator);
+  }
+}
+
+/// List all reference names in a repository using libgit2's iterator API.
+List<String> listIteratorNames(Pointer<git_repository> repo) {
+  final iterator = iteratorNew(repo);
+  final result = <String>[];
+  try {
+    while (true) {
+      final refName = iteratorNextName(iterator);
+      if (refName == null) return result;
+      result.add(refName);
+    }
+  } finally {
+    iteratorFree(iterator);
+  }
+}
+
+/// List reference names matching [glob] using libgit2's iterator API.
+List<String> listIteratorGlob({
+  required Pointer<git_repository> repoPointer,
+  required String glob,
+}) {
+  final iterator = iteratorGlobNew(repoPointer: repoPointer, glob: glob);
+  final result = <String>[];
+  try {
+    while (true) {
+      final refName = iteratorNextName(iterator);
+      if (refName == null) return result;
+      result.add(refName);
+    }
+  } finally {
+    iteratorFree(iterator);
+  }
+}
+
 /// Validate a reference name according to Git rules.
 bool nameIsValid(String name) {
   return using((arena) {
@@ -582,4 +854,10 @@ Pointer<git_oid> nameToId({
     checkErrorAndThrow(error);
     return result;
   });
+}
+
+/// Return the peeled OID target of a direct reference to an annotated tag.
+Pointer<git_oid>? targetPeel(Pointer<git_reference> ref) {
+  final result = libgit2.git_reference_target_peel(ref);
+  return result == nullptr ? null : result;
 }

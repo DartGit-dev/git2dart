@@ -211,6 +211,17 @@ String getName(Pointer<git_reference> ref) {
   });
 }
 
+/// Check whether a branch name is valid.
+bool nameIsValid(String name) {
+  return using((arena) {
+    final valid = arena<Int>();
+    final nameC = name.toChar(arena);
+    final error = libgit2.git_branch_name_is_valid(valid, nameC);
+    checkErrorAndThrow(error);
+    return valid.value == 1;
+  });
+}
+
 /// Find the remote name of a remote-tracking branch.
 ///
 /// This will return the name of the remote whose fetch refspec is matching the

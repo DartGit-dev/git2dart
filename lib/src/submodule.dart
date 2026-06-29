@@ -266,6 +266,32 @@ class Submodule extends Equatable {
     );
   }
 
+  /// Fetch recurse submodules rule that will be used for the submodule.
+  GitSubmoduleRecurse get fetchRecurseSubmodules {
+    final rule = bindings.fetchRecurseSubmodules(_submodulePointer);
+    return GitSubmoduleRecurse.fromValue(rule.value);
+  }
+
+  /// Sets the fetch recurse submodules rule for the submodule in the
+  /// configuration.
+  ///
+  /// This setting won't affect any existing instances.
+  set fetchRecurseSubmodules(GitSubmoduleRecurse rule) {
+    bindings.setFetchRecurseSubmodules(
+      repoPointer: bindings.owner(_submodulePointer),
+      name: name,
+      fetchRecurseSubmodules: git_submodule_recurse_t.fromValue(rule.value),
+    );
+  }
+
+  /// Locations where submodule information is present.
+  Set<GitSubmoduleStatus> get location {
+    final resultInt = bindings.location(_submodulePointer);
+    return GitSubmoduleStatus.values
+        .where((e) => resultInt & e.value == e.value)
+        .toSet();
+  }
+
   /// Releases memory allocated for submodule object.
   void free() {
     bindings.free(_submodulePointer);
@@ -276,7 +302,8 @@ class Submodule extends Equatable {
   String toString() {
     return 'Submodule{name: $name, path: $path, url: $url, branch: $branch, '
         'headOid: $headOid, indexOid: $indexOid, workdirOid: $workdirOid, '
-        'ignoreRule: $ignoreRule, updateRule: $updateRule}';
+        'ignoreRule: $ignoreRule, updateRule: $updateRule, '
+        'fetchRecurseSubmodules: $fetchRecurseSubmodules}';
   }
 
   @override
@@ -290,6 +317,7 @@ class Submodule extends Equatable {
     workdirOid,
     ignoreRule,
     updateRule,
+    fetchRecurseSubmodules,
   ];
 }
 

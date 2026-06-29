@@ -8,6 +8,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// Get the object type of an object.
 git_object_t type(Pointer<git_object> obj) => libgit2.git_object_type(obj);
 
+/// Determine if [type] is a valid loose object type.
+bool typeIsLoose(git_object_t type) =>
+    libgit2.git_object_typeisloose(type) == 1;
+
 /// Lookup a reference to one of the objects in a repository. The returned
 /// reference must be freed with [free].
 ///

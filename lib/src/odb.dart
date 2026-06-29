@@ -55,6 +55,9 @@ class Odb extends Equatable {
     bindings.addDiskAlternate(odbPointer: _odbPointer, path: path);
   }
 
+  /// Number of backends configured for this object database.
+  int get backendCount => bindings.backendCount(_odbPointer);
+
   /// List of all objects [Oid]s available in the database.
   ///
   /// Throws a [LibGit2Error] if error occurred.
@@ -85,19 +88,61 @@ class Odb extends Equatable {
   /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
   Oid write({required GitObject type, required String data}) {
+    _checkWritableObjectType(type);
+    return Oid(
+      bindings.write(
+        odbPointer: _odbPointer,
+        type: git_object_t.fromValue(type.value),
+        data: data,
+      ),
+    );
+  }
+
+  /// Writes raw [data] directly into the object database.
+  ///
+  /// This is intended for compatibility with custom backends that do not
+  /// support streaming writes. Prefer [write] for normal object writes.
+  ///
+  /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
+  /// type is invalid.
+  Oid writeDirect({required GitObject type, required String data}) {
+    _checkWritableObjectType(type);
+    return Oid(
+      bindings.writeDirect(
+        odbPointer: _odbPointer,
+        type: git_object_t.fromValue(type.value),
+        data: data,
+      ),
+    );
+  }
+
+  /// Generates an object ID for [data] as a Git object of [type].
+  ///
+  /// Throws [ArgumentError] if provided type is invalid.
+  static Oid hash({required GitObject type, required String data}) {
+    _checkWritableObjectType(type);
+    return Oid(
+      bindings.hash(type: git_object_t.fromValue(type.value), data: data),
+    );
+  }
+
+  /// Determines the object ID of a file on disk as a Git object of [type].
+  ///
+  /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
+  /// type is invalid.
+  static Oid hashFile({required GitObject type, required String path}) {
+    _checkWritableObjectType(type);
+    return Oid(
+      bindings.hashFile(type: git_object_t.fromValue(type.value), path: path),
+    );
+  }
+
+  static void _checkWritableObjectType(GitObject type) {
     if (type == GitObject.any ||
         type == GitObject.invalid ||
         type == GitObject.offsetDelta ||
         type == GitObject.refDelta) {
       throw ArgumentError.value('$type is invalid type');
-    } else {
-      return Oid(
-        bindings.write(
-          odbPointer: _odbPointer,
-          type: git_object_t.fromValue(type.value),
-          data: data,
-        ),
-      );
     }
   }
 
@@ -148,6 +193,11 @@ class OdbObject extends Equatable {
 
   /// Real size of the `data` buffer, not the actual size of the object.
   int get size => bindings.objectSize(_odbObjectPointer);
+
+  /// Creates an in-memory copy of this ODB object.
+  OdbObject duplicate() {
+    return OdbObject._(bindings.duplicateObject(_odbObjectPointer));
+  }
 
   /// Releases memory allocated for odbObject object.
   void free() {

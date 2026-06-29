@@ -137,6 +137,17 @@ class Remote extends Equatable {
     url: url,
   );
 
+  /// Sets the [remote]'s automatic tag following setting in configuration.
+  static void setAutotag({
+    required Repository repo,
+    required String remote,
+    required GitRemoteAutotag value,
+  }) => remote_bindings.setAutotag(
+    repoPointer: repo.pointer,
+    remote: remote,
+    value: git_remote_autotag_option_t.fromValue(value.value),
+  );
+
   /// Adds a fetch [refspec] to the [remote]'s configuration.
   ///
   /// The [refspec] will be checked for validity.
@@ -189,6 +200,23 @@ class Remote extends Equatable {
   ///
   /// Returns empty string if no special url for pushing is set.
   String get pushUrl => remote_bindings.pushUrl(_remotePointer);
+
+  /// Sets the URL for this remote instance without changing configuration.
+  set url(String url) {
+    remote_bindings.setInstanceUrl(remotePointer: _remotePointer, url: url);
+  }
+
+  /// Sets the push URL for this remote instance without changing configuration.
+  set pushUrl(String url) {
+    remote_bindings.setInstancePushUrl(remotePointer: _remotePointer, url: url);
+  }
+
+  /// Remote's automatic tag following option.
+  GitRemoteAutotag get autotag {
+    return GitRemoteAutotag.fromValue(
+      remote_bindings.autotag(_remotePointer).value,
+    );
+  }
 
   /// Number of refspecs for a remote.
   ///

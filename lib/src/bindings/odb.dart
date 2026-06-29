@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -62,6 +63,24 @@ void addDiskAlternate({
   return using((arena) {
     final pathC = path.toChar(arena);
     libgit2.git_odb_add_disk_alternate(odbPointer, pathC);
+  });
+}
+
+/// Return the number of ODB backends.
+int backendCount(Pointer<git_odb> odbPointer) {
+  return libgit2.git_odb_num_backends(odbPointer);
+}
+
+/// Get an ODB backend by position.
+Pointer<git_odb_backend> getBackend({
+  required Pointer<git_odb> odbPointer,
+  required int position,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_odb_backend>>();
+    final error = libgit2.git_odb_get_backend(out, odbPointer, position);
+    checkErrorAndThrow(error);
+    return out.value;
   });
 }
 
@@ -283,6 +302,85 @@ Pointer<git_oid> write({
 
     libgit2.git_odb_stream_free(stream.value);
     return out;
+  });
+}
+
+/// Write raw data directly into the object database.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_oid> writeDirect({
+  required Pointer<git_odb> odbPointer,
+  required git_object_t type,
+  required String data,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final bytes = utf8.encode(data);
+    final buffer = arena<Uint8>(bytes.length);
+    buffer.asTypedList(bytes.length).setAll(0, bytes);
+    final error = libgit2.git_odb_write(
+      out,
+      odbPointer,
+      buffer.cast<Void>(),
+      bytes.length,
+      type,
+    );
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Generate the object ID for a data buffer.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_oid> hash({
+  required String data,
+  required git_object_t type,
+  git_oid_t oidType = git_oid_t.GIT_OID_SHA1,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final bytes = utf8.encode(data);
+    final buffer = arena<Uint8>(bytes.length);
+    buffer.asTypedList(bytes.length).setAll(0, bytes);
+    final error = libgit2.git_odb_hash(
+      out,
+      buffer.cast<Void>(),
+      bytes.length,
+      type,
+      oidType,
+    );
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Determine the object ID of a file on disk.
+///
+/// Throws a [LibGit2Error] if error occurred.
+Pointer<git_oid> hashFile({
+  required String path,
+  required git_object_t type,
+  git_oid_t oidType = git_oid_t.GIT_OID_SHA1,
+}) {
+  return using((arena) {
+    final out = calloc<git_oid>();
+    final pathC = path.toChar(arena);
+    final error = libgit2.git_odb_hashfile(out, pathC, type, oidType);
+    checkErrorAndThrow(error);
+    return out;
+  });
+}
+
+/// Create a copy of an ODB object.
+///
+/// The returned object must be freed with [freeObject].
+Pointer<git_odb_object> duplicateObject(Pointer<git_odb_object> source) {
+  return using((arena) {
+    final out = arena<Pointer<git_odb_object>>();
+    final error = libgit2.git_odb_object_dup(out, source);
+    checkErrorAndThrow(error);
+    return out.value;
   });
 }
 

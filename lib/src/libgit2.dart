@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show calloc, using;
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/object.dart' as object_bindings;
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
@@ -36,6 +37,50 @@ class Libgit2 {
     return GitFeature.values
         .where((e) => featuresInt & e.value == e.value)
         .toSet();
+  }
+
+  /// Prerelease state of the loaded libgit2 library, or `null` for a final
+  /// release build.
+  static String? get prerelease {
+    libgit2.git_libgit2_init();
+    final result = libgit2.git_libgit2_prerelease();
+    return result == nullptr ? null : result.toDartString();
+  }
+
+  /// Backend details for a compile-time [feature], or `null` if unsupported.
+  static String? featureBackend(GitFeature feature) {
+    libgit2.git_libgit2_init();
+    final result = libgit2.git_libgit2_feature_backend(
+      git_feature_t.fromValue(feature.value),
+    );
+    return result == nullptr ? null : result.toDartString();
+  }
+
+  /// Returns whether [type] is a valid loose object type.
+  static bool objectTypeIsLoose(GitObject type) {
+    return object_bindings.typeIsLoose(git_object_t.fromValue(type.value));
+  }
+
+  /// Returns whether [path] matches one of libgit2's protected gitfile names.
+  static bool isGitFile({
+    required String path,
+    required GitPathGitFile gitfile,
+    GitPathFilesystem filesystem = GitPathFilesystem.generic,
+  }) {
+    libgit2.git_libgit2_init();
+    return using((arena) {
+      final pathC = path.toChar(arena);
+      final result = libgit2.git_path_is_gitfile(
+        pathC,
+        path.length,
+        git_path_gitfile.fromValue(gitfile.value),
+        git_path_fs.fromValue(filesystem.value),
+      );
+      if (result < 0) {
+        throw LibGit2Error(libgit2.git_error_last());
+      }
+      return result > 0;
+    });
   }
 
   /// Get or set the maximum mmap window size.

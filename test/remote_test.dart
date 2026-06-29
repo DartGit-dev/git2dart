@@ -35,6 +35,7 @@ void main() {
       expect(remote.name, remoteName);
       expect(remote.url, remoteUrl);
       expect(remote.pushUrl, '');
+      expect(remote.autotag, GitRemoteAutotag.auto);
       expect(remote.toString(), contains('Remote{'));
       expect(remote, equals(Remote.lookup(repo: repo, name: 'origin')));
     });
@@ -168,6 +169,38 @@ void main() {
       Remote.setPushUrl(repo: repo, remote: remoteName, url: newUrl);
 
       expect(Remote.lookup(repo: repo, name: remoteName).pushUrl, newUrl);
+    });
+
+    test('sets instance urls without changing configuration', () {
+      final remote = Remote.lookup(repo: repo, name: remoteName);
+      const instanceUrl = 'git://instance/url.git';
+      const instancePushUrl = 'git://instance/push-url.git';
+
+      remote.url = instanceUrl;
+      remote.pushUrl = instancePushUrl;
+
+      expect(remote.url, instanceUrl);
+      expect(remote.pushUrl, instancePushUrl);
+      expect(Remote.lookup(repo: repo, name: remoteName).url, remoteUrl);
+      expect(Remote.lookup(repo: repo, name: remoteName).pushUrl, '');
+    });
+
+    test('sets automatic tag following option', () {
+      expect(
+        Remote.lookup(repo: repo, name: remoteName).autotag,
+        GitRemoteAutotag.auto,
+      );
+
+      Remote.setAutotag(
+        repo: repo,
+        remote: remoteName,
+        value: GitRemoteAutotag.none,
+      );
+
+      expect(
+        Remote.lookup(repo: repo, name: remoteName).autotag,
+        GitRemoteAutotag.none,
+      );
     });
 
     test('throws when trying to set invalid push url name', () {

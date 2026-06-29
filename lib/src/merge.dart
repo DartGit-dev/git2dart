@@ -52,8 +52,9 @@ class Merge {
 
     final result = List.generate(
       oidArray.ref.count,
-      (i) => Oid(oidArray.ref.ids + i),
+      (i) => Oid.fromRaw(oidArray.ref.ids[i]),
     );
+    bindings.oidArrayDispose(oidArray);
 
     return result;
   }

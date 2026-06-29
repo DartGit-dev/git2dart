@@ -1,6 +1,12 @@
+import 'dart:ffi';
+import 'dart:io';
+
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'helpers/util.dart';
 
 void main() {
   late Signature signature;
@@ -44,6 +50,34 @@ void main() {
       );
       expect(sig.offset, isA<int>());
       expect(sig.sign, isNotEmpty);
+    });
+
+    test(
+      'creates default author and committer signatures from environment',
+      () {
+        final tmpDir = setupRepo(
+          Directory(p.join('test', 'assets', 'test_repo')),
+        );
+        final repo = Repository.open(tmpDir.path);
+        repo.config['user.name'] = 'Config User';
+        repo.config['user.email'] = 'config@example.com';
+
+        final signatures = Signature.defaultSignaturesFromEnv(repo);
+
+        expect(signatures, hasLength(2));
+        expect(signatures[0].name, 'Config User');
+        expect(signatures[0].email, 'config@example.com');
+        expect(signatures[1].name, 'Config User');
+        expect(signatures[1].email, 'config@example.com');
+        tmpDir.deleteSync(recursive: true);
+      },
+    );
+
+    test('throws when default signatures cannot be found', () {
+      expect(
+        () => Signature.defaultSignaturesFromEnv(Repository(nullptr)),
+        throwsA(isA<LibGit2Error>()),
+      );
     });
 
     test('returns correct values', () {

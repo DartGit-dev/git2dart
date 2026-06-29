@@ -5,6 +5,19 @@ import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
+/// Create a new empty config instance. The returned config must be freed with
+/// [free].
+Pointer<git_config> init() {
+  return using((arena) {
+    final out = arena<Pointer<git_config>>();
+    final error = libgit2.git_config_new(out);
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
 /// Create a new config instance containing a single on-disk file. The returned
 /// config must be freed with [free].
 Pointer<git_config> open(String path) {
@@ -304,6 +317,24 @@ String getString({
   return getStringBuf(configPointer: configPointer, name: variable);
 }
 
+/// Get a string config value using libgit2's direct pointer API.
+///
+/// libgit2 rejects this call for live config objects; use [getString] for
+/// normal public reads.
+String getStringPointer({
+  required Pointer<git_config> configPointer,
+  required String variable,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<Char>>();
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_get_string(out, configPointer, nameC);
+
+    checkErrorAndThrow(error);
+    return out.value.toDartString();
+  });
+}
+
 /// Set the value of a boolean config variable in the config file with the
 /// highest level (usually the local one).
 void setBool({
@@ -335,6 +366,21 @@ void setInt({
   });
 }
 
+/// Set the value of a 32-bit integer config variable in the config file with
+/// the highest level (usually the local one).
+void setInt32({
+  required Pointer<git_config> configPointer,
+  required String variable,
+  required int value,
+}) {
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final error = libgit2.git_config_set_int32(configPointer, nameC, value);
+
+    checkErrorAndThrow(error);
+  });
+}
+
 /// Set the value of a string config variable in the config file with the
 /// highest level (usually the local one).
 void setString({
@@ -361,6 +407,117 @@ Pointer<git_config_iterator> iterator(Pointer<git_config> cfg) {
     checkErrorAndThrow(error);
 
     return out.value;
+  });
+}
+
+/// Iterate over all config variables whose name matches [regexp].
+///
+/// The returned iterator must be freed with [freeIterator].
+Pointer<git_config_iterator> globIterator({
+  required Pointer<git_config> configPointer,
+  required String regexp,
+}) {
+  return using((arena) {
+    final out = arena<Pointer<git_config_iterator>>();
+    final regexpC = regexp.toChar(arena);
+    final error = libgit2.git_config_iterator_glob_new(
+      out,
+      configPointer,
+      regexpC,
+    );
+
+    checkErrorAndThrow(error);
+
+    return out.value;
+  });
+}
+
+Map<String, Object?> _entryToMap(Pointer<git_config_entry> entry) {
+  return {
+    'name': entry.ref.name.toDartString(),
+    'value': entry.ref.value.toDartString(),
+    'includeDepth': entry.ref.include_depth,
+    'level': entry.ref.level.value,
+  };
+}
+
+List<Map<String, Object?>> _entriesFromIterator(
+  Pointer<git_config_iterator> iterator,
+) {
+  return using((arena) {
+    final entry = arena<Pointer<git_config_entry>>();
+    final result = <Map<String, Object?>>[];
+
+    while (true) {
+      final error = libgit2.git_config_next(entry, iterator);
+      if (error == git_error_code.GIT_ITEROVER.value) {
+        break;
+      }
+
+      checkErrorAndThrow(error);
+      result.add(_entryToMap(entry.value));
+    }
+
+    return result;
+  });
+}
+
+/// Return all config entries from a glob iterator.
+List<Map<String, Object?>> globEntries({
+  required Pointer<git_config> configPointer,
+  required String regexp,
+}) {
+  final iter = globIterator(configPointer: configPointer, regexp: regexp);
+  try {
+    return _entriesFromIterator(iter);
+  } finally {
+    freeIterator(iter);
+  }
+}
+
+var _foreachEntries = <Map<String, Object?>>[];
+
+int _foreachCb(Pointer<git_config_entry> entry, Pointer<Void> payload) {
+  _foreachEntries.add(_entryToMap(entry));
+  return 0;
+}
+
+/// Return entries by using libgit2's config foreach callback API.
+List<Map<String, Object?>> foreachEntries(Pointer<git_config> configPointer) {
+  final cb = Pointer.fromFunction<
+    Int Function(Pointer<git_config_entry>, Pointer<Void>)
+  >(_foreachCb, 0);
+
+  _foreachEntries.clear();
+  final error = libgit2.git_config_foreach(configPointer, cb, nullptr);
+  checkErrorAndThrow(error);
+  final result = _foreachEntries.toList(growable: false);
+  _foreachEntries.clear();
+  return result;
+}
+
+/// Return matching entries by using libgit2's config foreach-match API.
+List<Map<String, Object?>> foreachMatchEntries({
+  required Pointer<git_config> configPointer,
+  required String regexp,
+}) {
+  return using((arena) {
+    final cb = Pointer.fromFunction<
+      Int Function(Pointer<git_config_entry>, Pointer<Void>)
+    >(_foreachCb, 0);
+    final regexpC = regexp.toChar(arena);
+
+    _foreachEntries.clear();
+    final error = libgit2.git_config_foreach_match(
+      configPointer,
+      regexpC,
+      cb,
+      nullptr,
+    );
+    checkErrorAndThrow(error);
+    final result = _foreachEntries.toList(growable: false);
+    _foreachEntries.clear();
+    return result;
   });
 }
 
@@ -411,16 +568,133 @@ List<String> multivarValues({
     var nextError = 0;
     final entries = <String>[];
 
-    while (nextError == 0) {
-      nextError = libgit2.git_config_next(entry, iterator.value);
-      if (nextError != -31) {
+    try {
+      while (nextError == 0) {
+        nextError = libgit2.git_config_next(entry, iterator.value);
+        if (nextError == git_error_code.GIT_ITEROVER.value) {
+          break;
+        }
+
+        checkErrorAndThrow(nextError);
         entries.add(entry.value.ref.value.toDartString());
-      } else {
-        break;
       }
+    } finally {
+      freeIterator(iterator.value);
     }
 
     return entries;
+  });
+}
+
+/// Return multivar values using libgit2's foreach callback API.
+List<String> multivarValuesForeach({
+  required Pointer<git_config> configPointer,
+  required String variable,
+  String? regexp,
+}) {
+  return using((arena) {
+    final nameC = variable.toChar(arena);
+    final regexpC = regexp?.toChar(arena) ?? nullptr;
+    final cb = Pointer.fromFunction<
+      Int Function(Pointer<git_config_entry>, Pointer<Void>)
+    >(_foreachCb, 0);
+
+    _foreachEntries.clear();
+    final error = libgit2.git_config_get_multivar_foreach(
+      configPointer,
+      nameC,
+      regexpC,
+      cb,
+      nullptr,
+    );
+
+    if (error == git_error_code.GIT_ENOTFOUND.value) {
+      return <String>[];
+    }
+
+    checkErrorAndThrow(error);
+    final result = _foreachEntries
+        .map((entry) => entry['value']! as String)
+        .toList(growable: false);
+    _foreachEntries.clear();
+    return result;
+  });
+}
+
+/// Mapping specification for config value mapping helpers.
+class ConfigMapSpec {
+  /// Creates a config mapping specification.
+  const ConfigMapSpec({required this.type, required this.value, this.match});
+
+  /// Type of value to match.
+  final git_configmap_t type;
+
+  /// String value to match when [type] is [git_configmap_t.GIT_CONFIGMAP_STRING].
+  final String? match;
+
+  /// Integer value returned for this mapping.
+  final int value;
+}
+
+Pointer<git_configmap> _configMaps(Arena arena, List<ConfigMapSpec> maps) {
+  final mapsC = arena<git_configmap>(maps.length);
+  for (var i = 0; i < maps.length; i++) {
+    mapsC[i].typeAsInt = maps[i].type.value;
+    mapsC[i].str_match = maps[i].match?.toChar(arena) ?? nullptr;
+    mapsC[i].map_value = maps[i].value;
+  }
+  return mapsC;
+}
+
+/// Return a config value mapped to an integer constant.
+int getMapped({
+  required Pointer<git_config> configPointer,
+  required String name,
+  required List<ConfigMapSpec> maps,
+}) {
+  return using((arena) {
+    final out = arena<Int>();
+    final nameC = name.toChar(arena);
+    final mapsC = _configMaps(arena, maps);
+    final error = libgit2.git_config_get_mapped(
+      out,
+      configPointer,
+      nameC,
+      mapsC,
+      maps.length,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Return [value] mapped to an integer constant.
+int lookupMapValue({required List<ConfigMapSpec> maps, required String value}) {
+  return using((arena) {
+    final out = arena<Int>();
+    final mapsC = _configMaps(arena, maps);
+    final valueC = value.toChar(arena);
+    final error = libgit2.git_config_lookup_map_value(
+      out,
+      mapsC,
+      maps.length,
+      valueC,
+    );
+
+    checkErrorAndThrow(error);
+    return out.value;
+  });
+}
+
+/// Lock and immediately release the highest-priority config backend.
+void lock(Pointer<git_config> configPointer) {
+  return using((arena) {
+    final out = arena<Pointer<git_transaction>>();
+    final error = libgit2.git_config_lock(out, configPointer);
+
+    checkErrorAndThrow(error);
+    libgit2.git_transaction_free(out.value);
   });
 }
 

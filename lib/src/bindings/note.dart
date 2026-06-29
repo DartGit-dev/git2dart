@@ -136,6 +136,14 @@ String message(Pointer<git_note> note) {
   return libgit2.git_note_message(note).toDartString();
 }
 
+/// Get the note author.
+Pointer<git_signature> author(Pointer<git_note> note) =>
+    libgit2.git_note_author(note);
+
+/// Get the note committer.
+Pointer<git_signature> committer(Pointer<git_note> note) =>
+    libgit2.git_note_committer(note);
+
 /// Free memory allocated for note object.
 void free(Pointer<git_note> note) => libgit2.git_note_free(note);
 

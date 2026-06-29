@@ -40,6 +40,23 @@ class Tag extends Equatable {
     _finalizer.attach(this, _tagPointer, detach: this);
   }
 
+  /// Creates a new tag instance by looking up an abbreviated [oid].
+  ///
+  /// [length] is the number of hexadecimal characters to use from [oid].
+  /// Throws a [LibGit2Error] if the prefix is invalid, ambiguous, or not found.
+  Tag.lookupPrefix({
+    required Repository repo,
+    required Oid oid,
+    required int length,
+  }) {
+    _tagPointer = bindings.lookupPrefix(
+      repoPointer: repo.pointer,
+      oidPointer: oid.pointer,
+      length: length,
+    );
+    _finalizer.attach(this, _tagPointer, detach: this);
+  }
+
   late final Pointer<git_tag> _tagPointer;
 
   /// Gets the pointer to the underlying libgit2 tag object.
@@ -91,6 +108,30 @@ class Tag extends Equatable {
     }
   }
 
+  /// Recursively peels this tag to an object of [type].
+  Object peel([GitObject type = GitObject.any]) {
+    final object = bindings.peel(
+      tagPointer: _tagPointer,
+      targetType: git_object_t.fromValue(type.value),
+    );
+    final objectType = object_bindings.type(object);
+
+    if (objectType.value == GitObject.commit.value) {
+      return Commit(object.cast());
+    } else if (objectType.value == GitObject.tree.value) {
+      return Tree(object.cast());
+    } else if (objectType.value == GitObject.blob.value) {
+      return Blob(object.cast());
+    } else if (objectType.value == GitObject.tag.value) {
+      // coverage:ignore-line
+      // coverage:ignore-start
+      return Tag(object.cast());
+    } else {
+      throw ArgumentError('Unsupported peeled tag target type: ${type.value}');
+      // coverage:ignore-end
+    }
+  }
+
   /// Creates a new annotated tag in the repository.
   ///
   /// [repo] is the repository where to store the tag.
@@ -126,6 +167,36 @@ class Tag extends Equatable {
       taggerPointer: tagger.pointer,
       message: message,
       force: force,
+    );
+
+    object_bindings.free(object);
+
+    return Oid(result);
+  }
+
+  /// Creates a new annotated tag object without creating a tag reference.
+  ///
+  /// Returns the [Oid] of the newly created tag object.
+  static Oid createAnnotation({
+    required Repository repo,
+    required String tagName,
+    required Oid target,
+    required GitObject targetType,
+    required Signature tagger,
+    required String message,
+  }) {
+    final object = object_bindings.lookup(
+      repoPointer: repo.pointer,
+      oidPointer: target.pointer,
+      type: git_object_t.fromValue(targetType.value),
+    );
+
+    final result = bindings.createAnnotation(
+      repoPointer: repo.pointer,
+      tagName: tagName,
+      targetPointer: object,
+      taggerPointer: tagger.pointer,
+      message: message,
     );
 
     object_bindings.free(object);
@@ -189,6 +260,9 @@ class Tag extends Equatable {
   static void delete({required Repository repo, required String tagName}) {
     bindings.delete(repoPointer: repo.pointer, tagName: tagName);
   }
+
+  /// Checks whether [name] is a valid tag name.
+  static bool isNameValid(String name) => bindings.nameIsValid(name);
 
   /// Releases memory allocated for the tag object.
   ///

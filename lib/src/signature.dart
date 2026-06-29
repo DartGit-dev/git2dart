@@ -47,6 +47,15 @@ class Signature extends Equatable {
     _finalizer.attach(this, _signaturePointer, detach: this);
   }
 
+  /// Initializes a new instance from an owned signature pointer.
+  ///
+  /// The provided pointer is not duplicated and will be freed by this object.
+  @internal
+  Signature.fromOwned(Pointer<git_signature> pointer) {
+    _signaturePointer = pointer;
+    _finalizer.attach(this, _signaturePointer, detach: this);
+  }
+
   /// Creates new [Signature] from provided parameters.
   ///
   /// Creates a new signature with the specified name, email, and optional time
@@ -105,6 +114,14 @@ class Signature extends Equatable {
   Signature.defaultSignature(Repository repo) {
     _signaturePointer = bindings.defaultSignature(repo.pointer);
     _finalizer.attach(this, _signaturePointer, detach: this);
+  }
+
+  /// Creates default author and committer signatures from environment or config.
+  static List<Signature> defaultSignaturesFromEnv(Repository repo) {
+    return bindings
+        .defaultSignaturesFromEnv(repo.pointer)
+        .map(Signature.fromOwned)
+        .toList();
   }
 
   late final Pointer<git_signature> _signaturePointer;
