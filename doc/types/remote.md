@@ -37,6 +37,18 @@ remote.push(refspecs: ['refs/heads/main']);
 remote.prune();
 ```
 
+## Certificate Checks
+
+```dart
+final callbacks = Callbacks(
+  certificateCheck: (certificate, host, {required valid}) {
+    return host == 'github.com';
+  },
+);
+
+remote.fetch(callbacks: callbacks);
+```
+
 Network-dependent tests are skipped in CI unless explicitly enabled.
 
 See [test/remote_test.dart](../../test/remote_test.dart).

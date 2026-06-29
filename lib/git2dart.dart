@@ -7,6 +7,7 @@ export 'src/blame.dart';
 export 'src/blob.dart';
 export 'src/branch.dart';
 export 'src/callbacks.dart';
+export 'src/certificate.dart';
 export 'src/checkout.dart';
 export 'src/commit.dart';
 export 'src/commit_graph.dart';

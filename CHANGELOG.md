@@ -3,6 +3,8 @@
 ### Fixed
 * Require `git2dart_binaries` `>=1.11.2 <1.12.0` to pick up the latest
   packaged libgit2 binaries and generated bindings.
+* Add a remote `certificateCheck` callback so SSH clients can supply host key
+  trust decisions without relying on `known_hosts` lookup.
 
 ### Documentation
 * Document the `git2dart_binaries` `1.11.2` dependency baseline in the README.
