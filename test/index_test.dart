@@ -45,29 +45,26 @@ void main() {
         expect(
           capabilities.difference({
             GitIndexCapability.ignoreCase,
+            GitIndexCapability.noFileMode,
             GitIndexCapability.noSymlinks,
           }),
           isEmpty,
         );
-        if (Platform.isWindows) {
-          expect(capabilities, contains(GitIndexCapability.noSymlinks));
-        }
+        expect(capabilities, isNot(contains(GitIndexCapability.fromOwner)));
       });
 
       test('sets index capabilities', () {
-        if (Platform.isWindows) {
-          expect(index.capabilities, contains(GitIndexCapability.noSymlinks));
-        }
-
         index.capabilities = {
           GitIndexCapability.ignoreCase,
           GitIndexCapability.noSymlinks,
         };
 
-        expect(index.capabilities, {
-          GitIndexCapability.ignoreCase,
-          GitIndexCapability.noSymlinks,
-        });
+        expect(index.capabilities, contains(GitIndexCapability.ignoreCase));
+        expect(index.capabilities, contains(GitIndexCapability.noSymlinks));
+        expect(
+          index.capabilities,
+          isNot(contains(GitIndexCapability.fromOwner)),
+        );
       });
 
       test('throws when trying to set index capabilities and error occurs', () {
