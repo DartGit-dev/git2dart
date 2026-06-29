@@ -1,4 +1,12 @@
 # Changelog
+## [0.5.1] - 2026-06-29
+### Fixed
+* Require `git2dart_binaries` `>=1.11.2 <1.12.0` to pick up the latest
+  packaged libgit2 binaries and generated bindings.
+
+### Documentation
+* Document the `git2dart_binaries` `1.11.2` dependency baseline in the README.
+
 ## [0.5.0] - 2026-05-30
 ### Features
 * Update `git2dart_binaries` constraint to `>=1.11.0 <1.12.0`.

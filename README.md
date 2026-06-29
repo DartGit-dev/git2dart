@@ -13,6 +13,9 @@ This is a hardfork of [libgit2dart](https://github.com/SkinnyMind/libgit2dart)
 Currently supported platforms are 64-bit Windows, Linux, macOS, Android
 (arm64-v8a, x86_64), and iOS on Flutter. Desktop platforms also work on the
 Dart VM when native libraries are available.
+
+Version `0.5.1` requires `git2dart_binaries >=1.11.2 <1.12.0`, which provides
+the bundled libgit2 artifacts and generated FFI bindings used by this package.
 ## Usage
 
 git2dart provides you ability to manage Git repository. You can read and write objects (commit, tag, tree and blob), walk a tree, access the staging area, manage config and lots more.
