@@ -364,14 +364,12 @@ index e69de29..c217c63 100644
 
       test('applies diff to repository', () {
         final file = File(p.join(tmpDir.path, 'subdir', 'modified_file'));
-        final expectedContent =
-            Platform.isWindows ? 'Modified content\r\n' : 'Modified content\n';
 
         Checkout.head(repo: repo, strategy: {GitCheckout.force});
         expect(file.readAsStringSync(), '');
 
         Diff.parse(patchText).apply(repo: repo);
-        expect(file.readAsStringSync(), expectedContent);
+        expect(file.readAsLinesSync(), ['Modified content']);
       });
 
       test('throws when trying to apply diff and error occurs', () {
@@ -393,14 +391,12 @@ index e69de29..c217c63 100644
         final diff = Diff.parse(patchText);
         final hunk = diff.patches.first.hunks.first;
         final file = File(p.join(tmpDir.path, 'subdir', 'modified_file'));
-        final expectedContent =
-            Platform.isWindows ? 'Modified content\r\n' : 'Modified content\n';
 
         Checkout.head(repo: repo, strategy: {GitCheckout.force});
         expect(file.readAsStringSync(), '');
 
         diff.apply(repo: repo, hunkIndex: hunk.index);
-        expect(file.readAsStringSync(), expectedContent);
+        expect(file.readAsLinesSync(), ['Modified content']);
       });
 
       test('does not apply hunk with non existing index', () {

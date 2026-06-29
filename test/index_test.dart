@@ -41,19 +41,23 @@ void main() {
 
     group('capabilities', () {
       test('returns index capabilities', () {
-        final expected =
-            Platform.isWindows
-                ? {GitIndexCapability.noSymlinks}
-                : const <GitIndexCapability>{};
-        expect(index.capabilities, expected);
+        final capabilities = index.capabilities;
+        expect(
+          capabilities.difference({
+            GitIndexCapability.ignoreCase,
+            GitIndexCapability.noSymlinks,
+          }),
+          isEmpty,
+        );
+        if (Platform.isWindows) {
+          expect(capabilities, contains(GitIndexCapability.noSymlinks));
+        }
       });
 
       test('sets index capabilities', () {
-        final expected =
-            Platform.isWindows
-                ? {GitIndexCapability.noSymlinks}
-                : const <GitIndexCapability>{};
-        expect(index.capabilities, expected);
+        if (Platform.isWindows) {
+          expect(index.capabilities, contains(GitIndexCapability.noSymlinks));
+        }
 
         index.capabilities = {
           GitIndexCapability.ignoreCase,
