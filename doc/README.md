@@ -9,6 +9,7 @@ inside `lib/src/bindings`.
 | Task | Start with | Then read |
 | --- | --- | --- |
 | Install and run the first repository operation | [Main README](../README.md#installation) | [Repository](types/repository.md), [Git objects](types/git_objects.md) |
+| Explore a full Flutter demo app | [git2dart_examples](https://github.com/DartGit-dev/git2dart_examples/tree/main) | [Platform-specific initialization](types/platform_specific.md), [Remote](types/remote.md) |
 | Build a Flutter mobile app | [Platform-specific initialization](types/platform_specific.md) | [Android setup](android.md), [iOS setup](ios.md) |
 | Work with files, status, and staged changes | [Index and IndexEntry](types/index_and_indexentry.md) | [Checkout](types/checkout.md), [Diff](types/diff.md), [Patch](types/patch.md), [Stashes](types/stashes.md) |
 | Fetch, push, or authenticate with remotes | [Remote](types/remote.md) | [Callbacks](types/callbacks.md), [Credentials](types/credentials.md), [Certificates](types/certificate.md), [Refspec](types/refspec.md) |
@@ -18,6 +19,7 @@ inside `lib/src/bindings`.
 ## Common Entry Points
 
 - [Complete example](../example/example.dart)
+- [Multi-platform Flutter demo app](https://github.com/DartGit-dev/git2dart_examples/tree/main)
 - [Repository](types/repository.md)
 - [Remote](types/remote.md)
 - [Android setup](android.md)

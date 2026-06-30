@@ -1,4 +1,9 @@
 # Changelog
+## [0.5.3] - 2026-06-30
+### Documentation
+* Link to the multi-platform `git2dart_examples` Flutter demo app from the
+  main README and documentation index.
+
 ## [0.5.2] - 2026-06-29
 ### Features
 * Expand libgit2 binding coverage across repository, remote, status, tree,

@@ -19,6 +19,7 @@ without shelling out to the `git` executable.
 | --- | --- |
 | Add git2dart to an app | [Install the package](#installation) |
 | Verify the API quickly | [Run the quick start](#quick-start) or open the [complete example](example/example.dart) |
+| Explore a full Flutter demo | Open the [git2dart_examples app](https://github.com/DartGit-dev/git2dart_examples/tree/main) |
 | Build a mobile Flutter app | Read [mobile initialization](#mobile-initialization), then the [Android](doc/android.md) or [iOS](doc/ios.md) guide |
 | Find a specific API | Use the [documentation index](doc/README.md) |
 | Contribute to the package | Read [development](#development) and [contributing](#contributing) |
@@ -73,6 +74,8 @@ Future<void> main() async {
 ```
 
 The [example application](example/example.dart) shows a longer runnable flow.
+For a full multi-platform Flutter showcase, see the
+[git2dart_examples app](https://github.com/DartGit-dev/git2dart_examples/tree/main).
 
 Most wrapper objects are backed by native libgit2 resources. Finalizers provide
 a safety net, but long-running tools and apps should call `free()` when they are
