@@ -3,7 +3,13 @@
 Credentials are used by remote callbacks during fetch, push, clone, and
 submodule operations.
 
-## Supported Credential Types
+```dart
+import 'package:git2dart/git2dart.dart';
+```
+
+## Core Usage
+
+### Supported Credential Types
 
 ```dart
 final userPass = UserPass(
@@ -26,7 +32,7 @@ final keypairFromMemory = KeypairFromMemory(
 );
 ```
 
-## Usage
+### Usage
 
 ```dart
 Repository.clone(
@@ -38,4 +44,14 @@ Repository.clone(
 
 Network-dependent credential tests are skipped unless explicitly enabled.
 
-See [test/credentials_test.dart](../../test/credentials_test.dart).
+## Important Options
+
+Use the options shown in the example for this API. Related enum and flag details are collected in [Shared Git enums and options](git_types.md).
+
+## Lifecycle and Errors
+
+Credential objects are Dart value objects. Authentication failures from libgit2 surface as `LibGit2Error` from the operation using the credentials.
+
+## See Also
+
+- [credentials_test.dart](../../test/credentials_test.dart)

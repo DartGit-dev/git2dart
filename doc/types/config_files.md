@@ -2,7 +2,13 @@
 
 `Config` reads and writes Git configuration files and repository configuration.
 
-## Opening Configs
+```dart
+import 'package:git2dart/git2dart.dart';
+```
+
+## Core Usage
+
+### Opening Configs
 
 ```dart
 final config = Config.open('path/to/config');
@@ -15,7 +21,7 @@ Config.xdg();
 Config.programData();
 ```
 
-## Reading Values
+### Reading Values
 
 ```dart
 config['user.name'].value;
@@ -26,7 +32,7 @@ config.getString('remote.origin.url');
 config.getPath('core.excludesfile');
 ```
 
-## Writing Values
+### Writing Values
 
 ```dart
 config['user.name'] = 'A User';
@@ -35,7 +41,7 @@ config['core.repositoryformatversion'] = 0;
 config.delete('user.name');
 ```
 
-## Helpers
+### Helpers
 
 ```dart
 Config.parseBool('true');
@@ -53,4 +59,14 @@ config.setMultivar(
 
 Call `free()` when a long-running process no longer needs a config handle.
 
-See [test/config_test.dart](../../test/config_test.dart).
+## Important Options
+
+Use the options shown in the example for this API. Related enum and flag details are collected in [Shared Git enums and options](git_types.md).
+
+## Lifecycle and Errors
+
+Objects that wrap native libgit2 handles use finalizers where available. In long-running code, call `free()` on objects that expose it once you are done with them. libgit2 failures surface as `LibGit2Error`.
+
+## See Also
+
+- [config_test.dart](../../test/config_test.dart)
