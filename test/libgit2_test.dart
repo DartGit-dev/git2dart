@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('Libgit2', () {
     test('returns up to date version of libgit2', () {
-      expect(Libgit2.version, '1.9.4');
+      expect(Libgit2.version, '1.9.6');
     });
 
     test('returns list of options libgit2 was compiled with', () {
@@ -230,6 +230,20 @@ void main() {
 
       // Reset to avoid side effects in later tests
       Libgit2.packMaxObjects = oldValue;
+    });
+
+    test('sets and returns the pack maximum object size', () {
+      final oldValue = Libgit2.packMaxObjectSize;
+      addTearDown(() => Libgit2.packMaxObjectSize = oldValue);
+
+      const newValue = 64 * 1024 * 1024;
+      Libgit2.packMaxObjectSize = newValue;
+
+      expect(Libgit2.packMaxObjectSize, newValue);
+    });
+
+    test('rejects a negative pack maximum object size', () {
+      expect(() => Libgit2.packMaxObjectSize = -1, throwsRangeError);
     });
 
     test('disables and enables check for unsaved changes in index', () {

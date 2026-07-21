@@ -1,0 +1,4 @@
+interface:
+  display_name: "Check git2dart_binaries API"
+  short_description: "Compare git2dart_binaries API versions"
+  default_prompt: "Use $check-git2dart-binaries-api to compare two git2dart_binaries versions and summarize the migration impact."

@@ -4,6 +4,7 @@ import 'package:ffi/ffi.dart' show calloc, using;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/object.dart' as object_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Main class for interacting with libgit2 library.
@@ -446,6 +447,32 @@ class Libgit2 {
   static set packMaxObjects(int value) {
     libgit2.git_libgit2_init();
     libgit2Opts.git_libgit2_opts_set_pack_max_objects(value);
+  }
+
+  /// Get or set the maximum declared object size allowed in a pack file.
+  ///
+  /// This limits memory usage when downloading pack files from untrusted
+  /// remotes. The libgit2 default is 2 GiB.
+  ///
+  /// Setting a negative value throws a [RangeError].
+  static int get packMaxObjectSize {
+    libgit2.git_libgit2_init();
+    return using((arena) {
+      final out = arena<Size>();
+      final error = libgit2Opts.git_libgit2_opts_get_pack_max_object_size(out);
+      checkErrorAndThrow(error);
+      return out.value;
+    });
+  }
+
+  static set packMaxObjectSize(int value) {
+    if (value < 0) {
+      throw RangeError.range(value, 0, null, 'value');
+    }
+
+    libgit2.git_libgit2_init();
+    final error = libgit2Opts.git_libgit2_opts_set_pack_max_object_size(value);
+    checkErrorAndThrow(error);
   }
 
   /// Enable .keep file checks for packfiles.

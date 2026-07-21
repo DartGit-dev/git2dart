@@ -127,3 +127,11 @@ This ensures consistency, maintainability, and accessibility for the internation
 * Open issues or PRs on GitHub
 * Prefix commits with Conventional Commit types (`feat:`, `fix:`, etc.)
 * Breaking-change PRs require approval from a `@DartGit-dev/core` maintainer
+
+## 13. Project Skills
+
+* **check-git2dart-binaries-api**
+  (`.agents/skills/check-git2dart-binaries-api/SKILL.md`) - compare public API
+  declarations between `git2dart_binaries` versions and assess their impact on
+  this repository. Use this skill for dependency upgrades, version-to-version
+  API comparisons, and binding migration analysis.

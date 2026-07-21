@@ -33,6 +33,7 @@ libgit2/
 .pub-cache/
 .pub/
 pubspec.lock
+!tool/api_diff/pubspec.lock
 /build/
 
 # Web related

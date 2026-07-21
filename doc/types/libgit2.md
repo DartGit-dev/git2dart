@@ -51,7 +51,11 @@ Libgit2.userAgent = 'my-app/1.0';
 final cache = Libgit2.cachedMemory;
 Libgit2.setCacheMaxSize(128 * 1024 * 1024);
 
+final oldPackLimit = Libgit2.packMaxObjectSize;
+Libgit2.packMaxObjectSize = 512 * 1024 * 1024;
+
 Libgit2.ownerValidation = false;
+Libgit2.packMaxObjectSize = oldPackLimit;
 Libgit2.userAgent = oldUserAgent;
 ```
 
@@ -66,14 +70,15 @@ Common option groups:
   `enableHttpExpectContinue`, `disableHttpExpectContinue`
 - repository safety: strict object creation, strict symbolic ref creation,
   strict hash verification, unsaved index safety, owner validation
-- pack behavior: offset deltas, fsync gitdir, pack object limits, pack keep
-  file checks
+- pack behavior: offset deltas, fsync gitdir, `packMaxObjects`,
+  `packMaxObjectSize`, and pack keep file checks
 - repository extensions: `extensions`
 
 ### Errors and lifecycle
 
 `setSSLCertLocations` throws `ArgumentError` when both `file` and `path` are
-`null`. libgit2 option failures throw `LibGit2Error`.
+`null`. Setting `packMaxObjectSize` to a negative value throws `RangeError`.
+libgit2 option failures throw `LibGit2Error`.
 
 These options are process-wide. Change them deliberately and restore previous
 values in tests or shared runtimes.
