@@ -1,0 +1,9 @@
+name: git2dart_api_diff_tool
+description: Tooling for comparing git2dart_binaries public APIs.
+publish_to: none
+
+environment:
+  sdk: ">=3.7.2 <4.0.0"
+
+dependencies:
+  dart_apitool: 0.21.1

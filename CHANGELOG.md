@@ -1,4 +1,22 @@
 # Changelog
+## [0.5.4] - 2026-07-21
+### Features
+* Add `Libgit2.packMaxObjectSize` for controlling the maximum declared object
+  size accepted in downloaded packfiles.
+
+### Changed
+* Update `git2dart_binaries` to `1.12.1`, including bundled libgit2 `1.9.6`
+  and typed pack maximum object size options.
+
+### Tooling
+* Add a project skill and comparison command for analyzing public API changes
+  between `git2dart_binaries` versions.
+* Print API comparison results directly to the agent, with optional Markdown
+  export when explicitly requested.
+
+### Documentation
+* Document the `git2dart_binaries` API update and migration workflow.
+
 ## [0.5.3] - 2026-06-30
 ### Documentation
 * Link to the multi-platform `git2dart_examples` Flutter demo app from the

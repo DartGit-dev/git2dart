@@ -136,7 +136,7 @@ Minimum SDK versions:
 - Dart SDK `>=3.7.2 <4.0.0`
 - Flutter `>=3.29.3`
 
-Version `0.5.2` depends on `git2dart_binaries >=1.11.4 <1.12.0`. The companion
+Version `0.5.4` depends on `git2dart_binaries >=1.12.1 <1.13.0`. The companion
 package provides prebuilt libgit2 artifacts and generated FFI bindings, so
 normal git2dart development does not regenerate bindings in this repository.
 
@@ -200,6 +200,10 @@ dart format . --set-exit-if-changed
 flutter analyze
 flutter test
 ```
+
+When updating `git2dart_binaries`, review its public API diff before adapting
+the FFI layer. See
+[Analyzing `git2dart_binaries` API updates](doc/git2dart_binaries_api_updates.md).
 
 If Flutter is not installed on the machine, use `scripts/install_flutter.sh`.
 
