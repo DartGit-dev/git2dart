@@ -131,12 +131,16 @@ bool shouldIgnore({
 }
 
 /// Retrieve diff performance data for a status list.
-Pointer<git_diff_perfdata> listPerfdata(Pointer<git_status_list> statuslist) {
+StatusPerfData listPerfdata(Pointer<git_status_list> statuslist) {
   return using((arena) {
     final out = arena<git_diff_perfdata>();
+    out.ref.version = GIT_DIFF_PERFDATA_VERSION;
     final error = libgit2.git_status_list_get_perfdata(out, statuslist);
     checkErrorAndThrow(error);
-    return out;
+    return StatusPerfData(
+      statCalls: out.ref.stat_calls,
+      oidCalculations: out.ref.oid_calculations,
+    );
   });
 }
 
@@ -145,3 +149,18 @@ Pointer<git_diff_perfdata> listPerfdata(Pointer<git_status_list> statuslist) {
 /// This will free all the status entries in the list.
 void listFree(Pointer<git_status_list> statuslist) =>
     libgit2.git_status_list_free(statuslist);
+
+/// Status list performance counters.
+class StatusPerfData {
+  /// Creates status list performance counters.
+  const StatusPerfData({
+    required this.statCalls,
+    required this.oidCalculations,
+  });
+
+  /// Number of stat calls performed.
+  final int statCalls;
+
+  /// Number of object ID calculations performed.
+  final int oidCalculations;
+}
