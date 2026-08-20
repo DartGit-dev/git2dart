@@ -70,7 +70,7 @@ change_set:
     diff: "fix/CHG-003.diff"
 delivery:
   branch: "0.5.5"
-  commit: null
+  commit: "6d65b30ce2ed7e8e8a531930834195e94328a74b"
   pull_request: null
   merge: pending
   publication: pending
