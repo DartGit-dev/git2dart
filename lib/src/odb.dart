@@ -177,7 +177,7 @@ class OdbObject extends Equatable {
   final Pointer<git_odb_object> _odbObjectPointer;
 
   /// [Oid] of an ODB object.
-  Oid get oid => Oid(bindings.objectId(_odbObjectPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.objectId(_odbObjectPointer));
 
   /// Type of an ODB object.
   GitObject get type {

@@ -276,7 +276,7 @@ class Commit extends Equatable {
   String get body => bindings.body(_commitPointer);
 
   /// Gets the [Oid] of the commit.
-  Oid get oid => Oid(bindings.id(_commitPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_commitPointer));
 
   /// Gets the commit time (i.e. committer time).
   int get time => bindings.time(_commitPointer);
@@ -317,7 +317,9 @@ class Commit extends Equatable {
     final parentCount = bindings.parentCount(_commitPointer);
     return <Oid>[
       for (var i = 0; i < parentCount; i++)
-        Oid(bindings.parentId(commitPointer: _commitPointer, position: i)),
+        Oid.fromBorrowed(
+          bindings.parentId(commitPointer: _commitPointer, position: i),
+        ),
     ];
   }
 
@@ -338,7 +340,7 @@ class Commit extends Equatable {
   Tree get tree => Tree(bindings.tree(_commitPointer));
 
   /// Gets the [Oid] of the tree pointed to by the commit.
-  Oid get treeOid => Oid(bindings.treeOid(_commitPointer));
+  Oid get treeOid => Oid.fromBorrowed(bindings.treeOid(_commitPointer));
 
   /// Gets an arbitrary header field from the commit.
   ///

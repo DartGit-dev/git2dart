@@ -208,14 +208,14 @@ class Submodule extends Equatable {
   /// not in the HEAD.
   Oid? get headOid {
     final result = bindings.headId(_submodulePointer);
-    return result == null ? null : Oid(result);
+    return result == null ? null : Oid.fromBorrowed(result);
   }
 
   /// [Oid] for the submodule in the index or null if submodule is not in the
   /// index.
   Oid? get indexOid {
     final result = bindings.indexId(_submodulePointer);
-    return result == null ? null : Oid(result);
+    return result == null ? null : Oid.fromBorrowed(result);
   }
 
   /// [Oid] for the submodule in the current working directory or null if
@@ -227,7 +227,9 @@ class Submodule extends Equatable {
   /// more complete picture about the state of the working directory.
   Oid? get workdirOid {
     final result = bindings.workdirId(_submodulePointer);
-    return result == nullptr || result == null ? null : Oid(result);
+    return result == nullptr || result == null
+        ? null
+        : Oid.fromBorrowed(result);
   }
 
   /// Ignore rule that will be used for the submodule.

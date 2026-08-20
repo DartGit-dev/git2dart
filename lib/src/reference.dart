@@ -322,8 +322,8 @@ class Reference extends Equatable {
   /// Throws an [Exception] if error occured.
   Oid get target {
     return type == ReferenceType.direct
-        ? Oid(bindings.target(_refPointer))
-        : Oid(bindings.target(bindings.resolve(_refPointer)));
+        ? Oid.fromBorrowed(bindings.target(_refPointer))
+        : Oid.fromBorrowed(bindings.target(bindings.resolve(_refPointer)));
   }
 
   /// Peeled OID target for a direct reference to an annotated tag.
@@ -331,7 +331,7 @@ class Reference extends Equatable {
   /// Returns `null` when the reference has no peeled target.
   Oid? get peeledTarget {
     final result = bindings.targetPeel(_refPointer);
-    return result == null ? null : Oid(result);
+    return result == null ? null : Oid.fromBorrowed(result);
   }
 
   /// Recursively peel reference until object of the specified [type] is found.

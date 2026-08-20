@@ -1,7 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -352,9 +351,9 @@ Some description.
         parentCount: 0,
         parents: [],
       );
-      addTearDown(() => calloc.free(oidPointer));
-
-      final commit = Commit.lookup(repo: repo, oid: Oid(oidPointer));
+      final oid = Oid(oidPointer);
+      final commit = Commit.lookup(repo: repo, oid: oid);
+      oid.free();
 
       expect(commit.parents, isEmpty);
     });

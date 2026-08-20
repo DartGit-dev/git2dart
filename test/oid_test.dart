@@ -84,6 +84,26 @@ void main() {
       expect(oid.compareToHex(biggerSha), lessThan(0));
     });
 
+    test('manually releases owned native memory', () {
+      final oid = Oid.fromSHAParse('78b8');
+
+      expect(() => oid.free(), returnsNormally);
+    });
+
+    test('copies borrowed OID pointers before taking ownership', () {
+      final head = repo.head;
+      final first = head.target;
+      final expectedSha = first.sha;
+
+      first.free();
+      final second = head.target;
+
+      expect(second.sha, expectedSha);
+
+      second.free();
+      head.free();
+    });
+
     test('shortens object ids to unique prefixes', () {
       final shortener = OidShortener(minLength: 7);
 

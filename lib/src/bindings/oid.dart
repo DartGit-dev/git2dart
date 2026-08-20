@@ -204,6 +204,9 @@ Pointer<git_oid> copy(Pointer<git_oid> src) {
   return out;
 }
 
+/// Release memory allocated for an OID.
+void free(Pointer<git_oid> oid) => calloc.free(oid);
+
 /// Check two oid structures for equality.
 bool equal({
   required Pointer<git_oid> aPointer,

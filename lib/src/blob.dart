@@ -105,7 +105,7 @@ class Blob extends Equatable {
   }
 
   /// [Oid] of the blob.
-  Oid get oid => Oid(bindings.id(_blobPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_blobPointer));
 
   /// Whether the blob content is most certainly binary or not.
   ///

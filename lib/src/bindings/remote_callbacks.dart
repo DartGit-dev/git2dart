@@ -60,7 +60,11 @@ class RemoteCallbacks {
     Pointer<git_oid> newOid,
     Pointer<Void> payload,
   ) {
-    updateTips!(refname.toDartString(), Oid(oldOid), Oid(newOid));
+    updateTips!(
+      refname.toDartString(),
+      Oid.fromBorrowed(oldOid),
+      Oid.fromBorrowed(newOid),
+    );
     return 0;
   }
 

@@ -150,7 +150,7 @@ class Tree extends Equatable {
   /// [Oid] of a tree.
   ///
   /// Returns the OID (Object ID) of this tree object.
-  Oid get oid => Oid(bindings.id(_treePointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_treePointer));
 
   /// Number of entries listed in a tree.
   ///
@@ -248,7 +248,7 @@ class TreeEntry extends Equatable {
   /// [Oid] of the object pointed by the entry.
   ///
   /// Returns the OID of the blob or tree that this entry points to.
-  Oid get oid => Oid(bindings.entryId(_treeEntryPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.entryId(_treeEntryPointer));
 
   /// Filename of a tree entry.
   ///
