@@ -135,3 +135,33 @@ This ensures consistency, maintainability, and accessibility for the internation
   declarations between `git2dart_binaries` versions and assess their impact on
   this repository. Use this skill for dependency upgrades, version-to-version
   API comparisons, and binding migration analysis.
+
+
+---
+
+# Reversa
+
+> Reverse-engineering framework installed in this project.
+
+## How to use
+
+Use the appropriate workflow in the chat:
+
+- `reversa` — discover and document an existing system
+- `reversa-new` — create a PRD and specifications for a new project
+- `reversa-forward` — implement or evolve code from specifications
+- `reversa-migrate` — plan the migration of a legacy system
+- `reversa-docs` — generate the visual documentation mini-site
+- `reversa-agents-help` — view the complete agent catalog
+
+## Activation behavior
+
+When the user sends `reversa` as a standalone message:
+
+1. Activate the `reversa` skill at `.agents/skills/reversa/SKILL.md`.
+2. Read the entire `SKILL.md` and follow the Reversa instructions exactly.
+
+## Non-negotiable rule
+
+Never delete, modify, or overwrite pre-existing legacy project files.
+Reversa writes only to `.reversa/`, `_reversa_sdd/`, `_reversa_docs/`, and `_reversa_forward/`.

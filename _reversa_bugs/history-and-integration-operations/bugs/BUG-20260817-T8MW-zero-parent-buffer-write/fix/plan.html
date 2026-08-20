@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fix Plan · BUG-20260817-T8MW</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#151d31;--border:#2b3957;--text:#e8edf8;--muted:#aebbd3;--link:#8fc7ff;--critical:#ff6b7a;--accent:#71e3b2;--warn:#ffd479}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:1080px;margin:auto;padding:28px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin:16px 0}
+    h1,h2,h3{line-height:1.2}h1{margin-bottom:8px}h2{margin-top:0;font-size:19px}a{color:var(--link)}code{background:#0d1427;padding:2px 5px;border-radius:5px}
+    .meta,.grid{display:grid;gap:12px}.meta{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:4px 9px;margin-right:6px}.critical{color:var(--critical)}.confirmed{color:var(--accent)}.medium{color:var(--warn)}
+    table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--border);padding:10px 8px}th{color:var(--muted)}
+    ul,ol{padding-left:22px}.flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}.node{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:#0d1427}.arrow{color:var(--muted);font-size:20px}
+    .bug-node{border:2px solid var(--critical);box-shadow:0 0 0 4px rgba(255,107,122,.08);text-align:center;max-width:440px;margin:18px auto;padding:18px;border-radius:12px;background:#0d1427}
+    .muted{color:var(--muted)}.footer{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Correction Plan · #20 / BUG-20260817-T8MW</h1>
+  <p>Root commit creation writes through a zero-length parent array.</p>
+  <div class="meta">
+    <div><span class="badge critical">critical</span><span class="badge">P0</span></div>
+    <div><strong>Context</strong><br>history-and-integration-operations</div>
+    <div><strong>Date</strong><br>2026-08-20</div>
+    <div><strong>Strategy</strong><br>Direct correction</div>
+  </div>
+
+  <section class="panel">
+    <h2>Defect and confirmed root cause</h2>
+    <p>All three commit serializers allocate <code>parentCount</code> pointer elements. When the parent list is empty, <code>parentCount</code> is zero, but the empty branch still writes <code>parentsC[0] = nullptr</code>.</p>
+    <p><strong class="confirmed">Epistemic state: CONFIRMED.</strong> The complete causal path is present in source and reproduced in 3/3 FFI serializers; both public root-commit routes are reachable.</p>
+    <ul>
+      <li><a href="../evidence/static-analysis.md">Static analysis evidence</a></li>
+      <li><a href="../evidence/reproduction.md">Reproduction capsule</a></li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>Chosen strategy</h2>
+    <p>Apply a direct, minimal correction. Empty parent lists pass a null pointer to libgit2. Non-empty lists allocate exactly the required number of pointer elements and copy the parents. This preserves public behavior and removes the invalid write.</p>
+    <div class="flow" aria-label="Proposed pointer marshalling flow">
+      <div class="node">Parent list</div><div class="arrow">→</div>
+      <div class="node">Empty?</div><div class="arrow">→</div>
+      <div class="node">Yes: <code>nullptr</code><br>No: allocate + copy</div><div class="arrow">→</div>
+      <div class="node">libgit2 serializer</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Proposed Correction Change Set</h2>
+    <table>
+      <thead><tr><th>CHG</th><th>Kind</th><th>Artifact</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>CHG-001</td><td>test</td><td><code>test/commit_test.dart</code></td><td>Add a failing FFI safety invariant and cover the zero-parent <code>createFromIds</code> route; retain the existing public root-commit coverage.</td></tr>
+        <tr><td>CHG-002</td><td>code</td><td><code>lib/src/bindings/commit.dart</code></td><td>Return <code>nullptr</code> for empty parent lists in <code>create</code>, <code>createBuffer</code>, and <code>createFromIds</code>; allocate/copy only non-empty arrays.</td></tr>
+        <tr><td>CHG-003</td><td>specification (conditional)</td><td><code>_reversa_sdd/addenda/bug-BUG-20260817-T8MW-v001.md</code></td><td>Create only if the later human specification verdict is <code>spec-gap</code> or <code>spec-desatualizada</code>.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Planned tests</h2>
+    <div class="grid">
+      <div>
+        <h3>Reproduction proof</h3>
+        <p>A source-level safety invariant rejects the current explicit write to element zero of a zero-count allocation. It must fail before CHG-002 and pass after it.</p>
+      </div>
+      <div>
+        <h3>Regression proof</h3>
+        <ul>
+          <li>Existing <code>Commit.create</code> root-commit test.</li>
+          <li>Existing <code>Commit.createBuffer</code> zero-parent test.</li>
+          <li>New binding-level <code>createFromIds</code> zero-parent test.</li>
+          <li>Targeted commit test file, formatter, and analyzer after the patch.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Risk and boundaries</h2>
+    <p><strong class="medium">Change risk: medium.</strong> The change is narrow and reversible, but it crosses the Dart FFI/native-memory boundary in three serializers.</p>
+    <h3>Risk controls</h3>
+    <ul>
+      <li>Red-before-green proof for the exact unsafe pattern.</li>
+      <li>Functional coverage for all three zero-parent routes.</li>
+      <li>No dependency-version change and no data repair.</li>
+    </ul>
+    <h3>Agent Notes — explicitly out of scope</h3>
+    <ul>
+      <li>No refactor of the redundant <code>parentCount</code> parameter.</li>
+      <li>No changes to libgit2 or <code>git2dart_binaries</code>.</li>
+      <li>No changes to unrelated bugs, including paused E3LU.</li>
+      <li>No commit, push, package publication, or backport in this correction gate.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>Mini bug graph</h2>
+    <div class="bug-node">
+      <a href="../bug.md"><strong>BUG-20260817-T8MW</strong></a><br>
+      <span class="critical">critical / P0</span><br>
+      Root commit zero-parent buffer write
+    </div>
+    <p class="muted">No supported or confirmed relationships are registered for this bug.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Relationship matrix</h2>
+    <table>
+      <thead><tr><th>Origin</th><th>Type</th><th>Target</th><th>State</th></tr></thead>
+      <tbody><tr><td><a href="../bug.md">BUG-20260817-T8MW</a></td><td colspan="3">No registered relationships</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Suggested correction order</h2>
+    <ol>
+      <li>CHG-001 — establish red reproduction/regression evidence.</li>
+      <li>CHG-002 — apply the three-site pointer marshalling correction.</li>
+      <li>Run green verification.</li>
+      <li>Record the human specification verdict; create CHG-003 only if approved.</li>
+    </ol>
+  </section>
+
+  <p class="footer">This plan changes no project source. Source and test edits require the next explicit Reversa gates.</p>
+</main>
+</body>
+</html>

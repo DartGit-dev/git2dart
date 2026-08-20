@@ -1,0 +1,287 @@
+{
+  "generated_at": "2026-08-16T15:26:33Z",
+  "modules": [
+    {
+      "name": "repository-lifecycle",
+      "path": "lib/src/repository.dart",
+      "purpose": "Create, discover, open, clone, inspect, reset, and release repositories and linked worktrees.",
+      "primary_files": [
+        "lib/src/repository.dart",
+        "lib/src/worktree.dart",
+        "lib/src/extensions/repository.dart",
+        "lib/src/bindings/repository.dart",
+        "lib/src/bindings/worktree.dart"
+      ],
+      "functions": [
+        {
+          "name": "Repository.clone",
+          "file": "lib/src/repository.dart",
+          "params": ["url: String", "localPath: String", "bare: bool", "callbacks: Callbacks"],
+          "returns": "Repository",
+          "confidence": "confirmed"
+        },
+        {
+          "name": "Repository.status",
+          "file": "lib/src/repository.dart",
+          "params": [],
+          "returns": "Map<String, Set<GitStatus>>",
+          "confidence": "confirmed"
+        },
+        {
+          "name": "Repository.reset",
+          "file": "lib/src/repository.dart",
+          "params": ["oid: Oid", "resetType: GitReset", "strategy: Set<GitCheckout>?", "pathspec: List<String>?"],
+          "returns": "void",
+          "confidence": "confirmed"
+        },
+        {
+          "name": "Worktree.create",
+          "file": "lib/src/worktree.dart",
+          "params": ["repo: Repository", "name: String", "path: String", "reference: Reference?"],
+          "returns": "Worktree",
+          "confidence": "confirmed"
+        }
+      ],
+      "entities": [
+        {"name": "Repository", "fields": [{"name": "pointer", "type": "Pointer<git_repository>", "required": true}], "confidence": "confirmed"},
+        {"name": "RepositoryCallback", "fields": [{"name": "initialHead", "type": "String?", "required": false}, {"name": "originUrl", "type": "String?", "required": false}], "confidence": "confirmed"},
+        {"name": "Identity", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "email", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Worktree", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "path", "type": "String", "required": true}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "Repository constructors initialize libgit2 before acquiring a native handle.", "location": "lib/src/repository.dart:65", "confidence": "confirmed"},
+        {"description": "setHead accepts only an Oid or a symbolic reference name.", "location": "lib/src/repository.dart:300", "confidence": "confirmed"},
+        {"description": "Status decoding excludes the zero-valued current status.", "location": "lib/src/repository.dart:613", "confidence": "confirmed"}
+      ],
+      "dependencies": ["git-objects-and-object-database", "working-tree-and-index", "references-and-remotes", "native-runtime-and-platform-boundary"],
+      "algorithms": ["native repository lifecycle", "status bitmask decoding", "revision walking", "reset target resolution"],
+      "complexity": "high"
+    },
+    {
+      "name": "git-objects-and-object-database",
+      "path": "lib/src",
+      "purpose": "Represent, create, transform, hash, store, and retrieve immutable Git objects.",
+      "primary_files": [
+        "lib/src/oid.dart",
+        "lib/src/blob.dart",
+        "lib/src/commit.dart",
+        "lib/src/tree.dart",
+        "lib/src/treebuilder.dart",
+        "lib/src/tag.dart",
+        "lib/src/odb.dart",
+        "lib/src/signature.dart",
+        "lib/src/annotated.dart",
+        "lib/src/commit_graph.dart",
+        "lib/src/writestream.dart"
+      ],
+      "functions": [
+        {"name": "Commit.create", "file": "lib/src/commit.dart", "params": ["repo: Repository", "updateRef: String", "author: Signature", "committer: Signature", "message: String", "tree: Tree", "parents: List<Commit>"], "returns": "Oid", "confidence": "confirmed"},
+        {"name": "Commit.amend", "file": "lib/src/commit.dart", "params": ["repo: Repository", "commit: Commit", "updateRef: String?", "optional replacement fields"], "returns": "Oid", "confidence": "confirmed"},
+        {"name": "Tree.createUpdated", "file": "lib/src/tree.dart", "params": ["repo: Repository", "baseline: Tree", "updates: List<TreeUpdate>"], "returns": "Tree", "confidence": "confirmed"},
+        {"name": "Odb.write", "file": "lib/src/odb.dart", "params": ["type: GitObject", "data: String"], "returns": "Oid", "confidence": "confirmed"},
+        {"name": "Blob.createFromStreamCommit", "file": "lib/src/blob.dart", "params": ["stream: BlobWriteStream"], "returns": "Oid", "confidence": "confirmed"}
+      ],
+      "entities": [
+        {"name": "Oid", "fields": [{"name": "sha", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Commit", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "tree", "type": "Tree", "required": true}, {"name": "parents", "type": "List<Commit>", "required": true}], "confidence": "confirmed"},
+        {"name": "Signature", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "email", "type": "String", "required": true}, {"name": "time", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "Tree", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "entries", "type": "List<TreeEntry>", "required": true}], "confidence": "confirmed"},
+        {"name": "TreeUpdate", "fields": [{"name": "path", "type": "String", "required": true}, {"name": "oid", "type": "Oid?", "required": false}, {"name": "filemode", "type": "GitFilemode?", "required": false}], "confidence": "confirmed"},
+        {"name": "TreeEntry", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "name", "type": "String", "required": true}, {"name": "filemode", "type": "GitFilemode", "required": true}], "confidence": "confirmed"},
+        {"name": "Blob", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "contentBytes", "type": "Uint8List", "required": true}], "confidence": "confirmed"},
+        {"name": "Tag", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "targetOid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "Odb", "fields": [{"name": "backendCount", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "OdbObject", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "dataBytes", "type": "Uint8List", "required": true}], "confidence": "confirmed"},
+        {"name": "AnnotatedCommit", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "refName", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "BlobWriteStream", "fields": [{"name": "pointer", "type": "Pointer<git_writestream>", "required": true}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "A root commit has no parents; all other supplied parent pointers are ordered.", "location": "lib/src/commit.dart:70", "confidence": "confirmed"},
+        {"description": "A null TreeUpdate OID encodes removal; a non-null OID encodes upsert.", "location": "lib/src/tree.dart:75", "confidence": "confirmed"},
+        {"description": "ODB rejects any, invalid, offset-delta, and ref-delta as writable types.", "location": "lib/src/odb.dart:140", "confidence": "confirmed"}
+      ],
+      "dependencies": ["repository-lifecycle", "native-runtime-and-platform-boundary"],
+      "algorithms": ["commit serialization", "tree update translation", "object-kind dispatch", "OID validation and shortening", "raw object hashing"],
+      "complexity": "high"
+    },
+    {
+      "name": "working-tree-and-index",
+      "path": "lib/src",
+      "purpose": "Stage and reconcile working-directory state through indexes, diffs, patches, checkout, stash, filters, ignore rules, attributes, and pathspecs.",
+      "primary_files": [
+        "lib/src/index.dart",
+        "lib/src/checkout.dart",
+        "lib/src/diff.dart",
+        "lib/src/patch.dart",
+        "lib/src/stash.dart",
+        "lib/src/ignore.dart",
+        "lib/src/attr_options.dart",
+        "lib/src/filter.dart",
+        "lib/src/pathspec.dart"
+      ],
+      "functions": [
+        {"name": "Index.addAll", "file": "lib/src/index.dart", "params": ["pathspec: List<String>", "flags: Set<GitIndexAddOption>"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Index.writeTree", "file": "lib/src/index.dart", "params": ["repo: Repository?"], "returns": "Oid", "confidence": "confirmed"},
+        {"name": "Diff.treeToTree", "file": "lib/src/diff.dart", "params": ["repo: Repository", "oldTree: Tree?", "newTree: Tree?"], "returns": "Diff", "confidence": "confirmed"},
+        {"name": "Diff.apply", "file": "lib/src/diff.dart", "params": ["repo: Repository", "hunkIndex: int?", "location: GitApplyLocation"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Diff.findSimilar", "file": "lib/src/diff.dart", "params": ["flags and similarity thresholds"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Stash.apply", "file": "lib/src/stash.dart", "params": ["repo: Repository", "index: int", "reinstateIndex: bool", "strategy: Set<GitCheckout>", "paths: List<String>?"], "returns": "void", "confidence": "confirmed"}
+      ],
+      "entities": [
+        {"name": "Index", "fields": [{"name": "path", "type": "String?", "required": false}, {"name": "hasConflicts", "type": "bool", "required": true}], "confidence": "confirmed"},
+        {"name": "IndexEntry", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "path", "type": "String", "required": true}, {"name": "mode", "type": "GitFilemode", "required": true}, {"name": "stage", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "ConflictEntry", "fields": [{"name": "ancestor", "type": "IndexEntry?", "required": false}, {"name": "our", "type": "IndexEntry?", "required": false}, {"name": "their", "type": "IndexEntry?", "required": false}], "confidence": "confirmed"},
+        {"name": "IndexReucEntry", "fields": [{"name": "path", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Diff", "fields": [{"name": "deltas", "type": "List<DiffDelta>", "required": true}, {"name": "patchOid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "DiffDelta", "fields": [{"name": "status", "type": "GitDelta", "required": true}, {"name": "oldFile", "type": "DiffFile", "required": true}, {"name": "newFile", "type": "DiffFile", "required": true}], "confidence": "confirmed"},
+        {"name": "DiffFile", "fields": [{"name": "path", "type": "String", "required": true}, {"name": "oid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "Patch", "fields": [{"name": "delta", "type": "DiffDelta", "required": true}, {"name": "hunks", "type": "List<DiffHunk>", "required": true}], "confidence": "confirmed"},
+        {"name": "DiffHunk", "fields": [{"name": "header", "type": "String", "required": true}, {"name": "lines", "type": "List<DiffLine>", "required": true}], "confidence": "confirmed"},
+        {"name": "Stash", "fields": [{"name": "index", "type": "int", "required": true}, {"name": "message", "type": "String", "required": true}, {"name": "oid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "PathspecMatchList", "fields": [{"name": "entries", "type": "List<String>", "required": true}, {"name": "failedEntries", "type": "List<String>", "required": true}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "addFromBuffer bypasses ignore rules and moves resolved conflict data to REUC.", "location": "lib/src/index.dart:274", "confidence": "confirmed"},
+        {"description": "An index with unresolved conflicts cannot be serialized as a tree.", "location": "lib/src/index.dart:398", "confidence": "confirmed"},
+        {"description": "Both inputs to treeToTree cannot be null.", "location": "lib/src/diff.dart:206", "confidence": "confirmed"},
+        {"description": "Diff applicability can be checked without mutation.", "location": "lib/src/diff.dart:370", "confidence": "confirmed"}
+      ],
+      "dependencies": ["repository-lifecycle", "git-objects-and-object-database", "native-runtime-and-platform-boundary"],
+      "algorithms": ["index pathspec marshalling", "three-way conflict representation", "diff calculation and application", "rename/copy similarity detection", "patch hunk projection"],
+      "complexity": "high"
+    },
+    {
+      "name": "references-and-remotes",
+      "path": "lib/src",
+      "purpose": "Manage references, branches, reflogs, refspec mappings, remote synchronization, authentication, progress, and certificate trust.",
+      "primary_files": [
+        "lib/src/reference.dart",
+        "lib/src/branch.dart",
+        "lib/src/reflog.dart",
+        "lib/src/refspec.dart",
+        "lib/src/remote.dart",
+        "lib/src/callbacks.dart",
+        "lib/src/credentials.dart",
+        "lib/src/certificate.dart"
+      ],
+      "functions": [
+        {"name": "Reference.createMatching", "file": "lib/src/reference.dart", "params": ["repo: Repository", "name: String", "target: Object", "currentTarget: Object", "force: bool", "logMessage: String?"], "returns": "Reference", "confidence": "confirmed"},
+        {"name": "Reference.peel", "file": "lib/src/reference.dart", "params": ["type: GitObject"], "returns": "Commit | Tree | Blob | Tag", "confidence": "confirmed"},
+        {"name": "Branch.setUpstream", "file": "lib/src/branch.dart", "params": ["branchName: String?"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Remote.ls", "file": "lib/src/remote.dart", "params": ["proxy: String?", "callbacks: Callbacks"], "returns": "List<RemoteReference>", "confidence": "confirmed"},
+        {"name": "Remote.fetch", "file": "lib/src/remote.dart", "params": ["refspecs: List<String>", "reflogMessage: String?", "prune: GitFetchPrune", "proxy: String?", "callbacks: Callbacks"], "returns": "TransferProgress", "confidence": "confirmed"},
+        {"name": "Remote.push", "file": "lib/src/remote.dart", "params": ["refspecs: List<String>", "proxy: String?", "callbacks: Callbacks"], "returns": "void", "confidence": "confirmed"}
+      ],
+      "entities": [
+        {"name": "Reference", "fields": [{"name": "type", "type": "ReferenceType", "required": true}, {"name": "target", "type": "Oid", "required": true}, {"name": "name", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Branch", "fields": [{"name": "target", "type": "Oid", "required": true}, {"name": "name", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "RefLogEntry", "fields": [{"name": "oldOid", "type": "Oid", "required": true}, {"name": "newOid", "type": "Oid", "required": true}, {"name": "message", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Refspec", "fields": [{"name": "source", "type": "String", "required": true}, {"name": "destination", "type": "String", "required": true}, {"name": "force", "type": "bool", "required": true}], "confidence": "confirmed"},
+        {"name": "Remote", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "url", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "RemoteReference", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "oid", "type": "Oid", "required": true}, {"name": "localId", "type": "Oid?", "required": false}], "confidence": "confirmed"},
+        {"name": "TransferProgress", "fields": [{"name": "totalObjects", "type": "int", "required": true}, {"name": "receivedObjects", "type": "int", "required": true}, {"name": "receivedBytes", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "Callbacks", "fields": [{"name": "credentials", "type": "Credentials?", "required": false}, {"name": "certificateCheck", "type": "CertificateCheck?", "required": false}], "confidence": "confirmed"},
+        {"name": "UserPass", "fields": [{"name": "username", "type": "String", "required": true}, {"name": "password", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Keypair", "fields": [{"name": "username", "type": "String", "required": true}, {"name": "privateKey", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "KeypairFromAgent", "fields": [{"name": "username", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "GitCertificate", "fields": [{"name": "type", "type": "GitCertificateType", "required": true}], "confidence": "confirmed"},
+        {"name": "GitCertificateHostkey", "fields": [{"name": "typeFlags", "type": "int", "required": true}, {"name": "rawHostkey", "type": "Uint8List?", "required": false}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "Reference target and expected target must both be direct OIDs or both symbolic strings.", "location": "lib/src/reference.dart:93", "confidence": "confirmed"},
+        {"description": "Remote listing connects in fetch direction and disconnects after reading advertisements.", "location": "lib/src/remote.dart:260", "confidence": "confirmed"},
+        {"description": "Certificate data wrappers are valid only during certificate callback execution.", "location": "lib/src/certificate.dart:50", "confidence": "confirmed"},
+        {"description": "Unavailable hostkey fingerprints and raw bytes are returned as null.", "location": "lib/src/certificate.dart:119", "confidence": "confirmed"}
+      ],
+      "dependencies": ["repository-lifecycle", "git-objects-and-object-database", "native-runtime-and-platform-boundary"],
+      "algorithms": ["direct/symbolic reference dispatch", "compare-and-set reference update", "refspec transformation", "remote negotiation", "callback bridging", "certificate projection"],
+      "complexity": "high"
+    },
+    {
+      "name": "history-and-integration-operations",
+      "path": "lib/src",
+      "purpose": "Parse and walk history, merge and rebase changes, derive blame and notes, normalize identities, build packs, and manage submodules.",
+      "primary_files": [
+        "lib/src/revparse.dart",
+        "lib/src/revwalk.dart",
+        "lib/src/merge.dart",
+        "lib/src/rebase.dart",
+        "lib/src/blame.dart",
+        "lib/src/note.dart",
+        "lib/src/mailmap.dart",
+        "lib/src/message.dart",
+        "lib/src/packbuilder.dart",
+        "lib/src/submodule.dart"
+      ],
+      "functions": [
+        {"name": "RevParse.single", "file": "lib/src/revparse.dart", "params": ["repo: Repository", "spec: String"], "returns": "Commit | Tree | Blob | Tag", "confidence": "confirmed"},
+        {"name": "RevWalk.walk", "file": "lib/src/revwalk.dart", "params": ["limit: int"], "returns": "List<Commit>", "confidence": "confirmed"},
+        {"name": "Merge.analysis", "file": "lib/src/merge.dart", "params": ["repo: Repository", "theirHead: Oid", "ourRef: String"], "returns": "MergeAnalysis", "confidence": "confirmed"},
+        {"name": "Merge.commit", "file": "lib/src/merge.dart", "params": ["repo: Repository", "commit: AnnotatedCommit", "favor and merge flags"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Rebase.next", "file": "lib/src/rebase.dart", "params": [], "returns": "RebaseOperation", "confidence": "confirmed"},
+        {"name": "Rebase.commit", "file": "lib/src/rebase.dart", "params": ["committer: Signature", "message: String?", "author: Signature?"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Submodule.update", "file": "lib/src/submodule.dart", "params": ["repo: Repository", "name: String", "init: bool", "callbacks: Callbacks"], "returns": "void", "confidence": "confirmed"}
+      ],
+      "entities": [
+        {"name": "RevSpec", "fields": [{"name": "from", "type": "Commit", "required": true}, {"name": "to", "type": "Commit?", "required": false}, {"name": "flags", "type": "Set<GitRevSpec>", "required": true}], "confidence": "confirmed"},
+        {"name": "RevWalk", "fields": [{"name": "pointer", "type": "Pointer<git_revwalk>", "required": true}], "confidence": "confirmed"},
+        {"name": "MergeAnalysis", "fields": [{"name": "result", "type": "Set<GitMergeAnalysis>", "required": true}, {"name": "mergePreference", "type": "GitMergePreference", "required": true}], "confidence": "confirmed"},
+        {"name": "Rebase", "fields": [{"name": "operations", "type": "List<RebaseOperation>", "required": true}, {"name": "currentOperation", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "RebaseOperation", "fields": [{"name": "type", "type": "GitRebaseOperation", "required": true}, {"name": "oid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "BlameHunk", "fields": [{"name": "linesCount", "type": "int", "required": true}, {"name": "finalCommitOid", "type": "Oid", "required": true}, {"name": "originCommitOid", "type": "Oid", "required": true}], "confidence": "confirmed"},
+        {"name": "Note", "fields": [{"name": "oid", "type": "Oid", "required": true}, {"name": "annotatedOid", "type": "Oid", "required": true}, {"name": "message", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Mailmap", "fields": [{"name": "pointer", "type": "Pointer<git_mailmap>", "required": true}], "confidence": "confirmed"},
+        {"name": "PackBuilder", "fields": [{"name": "length", "type": "int", "required": true}, {"name": "writtenLength", "type": "int", "required": true}, {"name": "name", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "Submodule", "fields": [{"name": "name", "type": "String", "required": true}, {"name": "path", "type": "String", "required": true}, {"name": "url", "type": "String", "required": true}, {"name": "headOid", "type": "Oid?", "required": false}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "A revision walk needs a pushed root and automatically resets after completion.", "location": "lib/src/revwalk.dart:55", "confidence": "confirmed"},
+        {"description": "Merge commit leaves repository in merge state until explicit cleanup.", "location": "lib/src/merge.dart:129", "confidence": "confirmed"},
+        {"description": "Rebase conflicts must be resolved before committing the current operation.", "location": "lib/src/rebase.dart:120", "confidence": "confirmed"},
+        {"description": "Submodule add performs setup, clone, then finalize.", "location": "lib/src/submodule.dart:43", "confidence": "confirmed"},
+        {"description": "Submodule workdir OID is not a complete dirty-state indicator.", "location": "lib/src/submodule.dart:221", "confidence": "confirmed"}
+      ],
+      "dependencies": ["repository-lifecycle", "git-objects-and-object-database", "working-tree-and-index", "references-and-remotes", "native-runtime-and-platform-boundary"],
+      "algorithms": ["revision expression parsing", "graph traversal with hidden ancestry", "merge analysis bitmask decoding", "rebase state machine", "blame hunk projection", "submodule status bitmask decoding"],
+      "complexity": "high"
+    },
+    {
+      "name": "native-runtime-and-platform-boundary",
+      "path": "lib/src/bindings",
+      "purpose": "Bridge idiomatic Dart APIs to generated libgit2 declarations with explicit memory, error, callback, enum, and platform handling.",
+      "primary_files": [
+        "lib/src/libgit2.dart",
+        "lib/src/platform_specific.dart",
+        "lib/src/error.dart",
+        "lib/src/git_types.dart",
+        "lib/src/extensions.dart",
+        "lib/src/helpers/error_helper.dart",
+        "lib/src/bindings/"
+      ],
+      "functions": [
+        {"name": "PlatformSpecific.initialize", "file": "lib/src/platform_specific.dart", "params": [], "returns": "Future<void>", "confidence": "confirmed"},
+        {"name": "checkErrorAndThrow", "file": "lib/src/helpers/error_helper.dart", "params": ["error: int"], "returns": "void", "confidence": "confirmed"},
+        {"name": "ToChar.toNativeUtf8Arena", "file": "lib/src/extensions.dart", "params": ["arena: Arena"], "returns": "Pointer<Utf8>", "confidence": "confirmed"},
+        {"name": "Libgit2.setSSLCertLocations", "file": "lib/src/libgit2.dart", "params": ["file: String?", "path: String?"], "returns": "void", "confidence": "confirmed"},
+        {"name": "Libgit2.packMaxObjectSize", "file": "lib/src/libgit2.dart", "params": ["value: int"], "returns": "void", "confidence": "confirmed"}
+      ],
+      "entities": [
+        {"name": "Libgit2", "fields": [{"name": "global options", "type": "static native configuration", "required": true}], "confidence": "confirmed"},
+        {"name": "CachedMemory", "fields": [{"name": "current", "type": "int", "required": true}, {"name": "allowed", "type": "int", "required": true}], "confidence": "confirmed"},
+        {"name": "Git2DartError", "fields": [{"name": "message", "type": "String", "required": true}], "confidence": "confirmed"},
+        {"name": "LibGit2Error", "fields": [{"name": "native error", "type": "git_error*", "required": true}], "confidence": "confirmed"},
+        {"name": "Git enum vocabulary", "fields": [{"name": "value", "type": "int", "required": true}], "confidence": "confirmed"}
+      ],
+      "business_rules": [
+        {"description": "Negative libgit2 return values throw LibGit2Error using git_error_last.", "location": "lib/src/helpers/error_helper.dart:5", "confidence": "confirmed"},
+        {"description": "Arena-marshalled strings are UTF-8 and null-terminated.", "location": "lib/src/extensions.dart:18", "confidence": "confirmed"},
+        {"description": "Android initialization installs an SSL certificate file before remote use.", "location": "lib/src/platform_specific.dart:16", "confidence": "confirmed"},
+        {"description": "SSL certificate configuration requires file or path.", "location": "lib/src/libgit2.dart:273", "confidence": "confirmed"},
+        {"description": "Pack maximum object size cannot be negative.", "location": "lib/src/libgit2.dart:468", "confidence": "confirmed"}
+      ],
+      "dependencies": ["git2dart_binaries", "ffi", "dart:ffi", "dart:io"],
+      "algorithms": ["native error translation", "UTF-8 null-terminated marshalling", "arena allocation", "finalizer ownership", "enum and bitmask translation", "platform-native initialization", "callback bridging"],
+      "complexity": "very-high"
+    }
+  ]
+}

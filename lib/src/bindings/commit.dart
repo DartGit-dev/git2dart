@@ -68,14 +68,13 @@ Pointer<git_oid> create({
     final updateRefC = updateRef.toChar(arena);
     final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
     final messageC = message.toChar(arena);
-    final parentsC = arena<Pointer<git_commit>>(parentCount);
+    final parentsC =
+        parents.isEmpty ? nullptr : arena<Pointer<git_commit>>(parentCount);
 
     if (parents.isNotEmpty) {
       for (var i = 0; i < parentCount; i++) {
         parentsC[i] = parents[i];
       }
-    } else {
-      parentsC[0] = nullptr;
     }
 
     final error = libgit2.git_commit_create(
@@ -117,14 +116,13 @@ String createBuffer({
     final out = arena<git_buf>();
     final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
     final messageC = message.toChar(arena);
-    final parentsC = arena<Pointer<git_commit>>(parentCount);
+    final parentsC =
+        parents.isEmpty ? nullptr : arena<Pointer<git_commit>>(parentCount);
 
     if (parents.isNotEmpty) {
       for (var i = 0; i < parentCount; i++) {
         parentsC[i] = parents[i];
       }
-    } else {
-      parentsC[0] = nullptr;
     }
 
     final error = libgit2.git_commit_create_buffer(
@@ -165,14 +163,13 @@ Pointer<git_oid> createFromIds({
     final updateRefC = updateRef.toChar(arena);
     final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
     final messageC = message.toChar(arena);
-    final parentsC = arena<Pointer<git_oid>>(parentCount);
+    final parentsC =
+        parents.isEmpty ? nullptr : arena<Pointer<git_oid>>(parentCount);
 
     if (parents.isNotEmpty) {
       for (var i = 0; i < parentCount; i++) {
         parentsC[i] = parents[i];
       }
-    } else {
-      parentsC[0] = nullptr;
     }
 
     final error = libgit2.git_commit_create_from_ids(

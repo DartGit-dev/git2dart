@@ -1,7 +1,9 @@
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -322,6 +324,39 @@ Some description.
       expect(commit.time, 124);
       expect(commit.treeOid, tree.oid);
       expect(commit.parents.length, 0);
+    });
+
+    test('does not write through zero-length parent pointer arrays', () {
+      final source =
+          File(
+            p.join('lib', 'src', 'bindings', 'commit.dart'),
+          ).readAsStringSync();
+
+      expect(
+        RegExp(r'parentsC\[0\]\s*=\s*nullptr').allMatches(source),
+        isEmpty,
+        reason:
+            'Empty parent lists must pass nullptr without indexing an '
+            'allocation with zero elements.',
+      );
+    });
+
+    test('creates commit from ids without parents', () {
+      final oidPointer = commit_bindings.createFromIds(
+        repoPointer: repo.pointer,
+        updateRef: 'refs/heads/from-ids-root',
+        authorPointer: author.pointer,
+        committerPointer: committer.pointer,
+        message: message,
+        treeOidPointer: tree.oid.pointer,
+        parentCount: 0,
+        parents: [],
+      );
+      addTearDown(() => calloc.free(oidPointer));
+
+      final commit = Commit.lookup(repo: repo, oid: Oid(oidPointer));
+
+      expect(commit.parents, isEmpty);
     });
 
     test('creates commit with 2 parents', () {

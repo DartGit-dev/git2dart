@@ -187,6 +187,21 @@ void main() {
       );
     });
 
+    for (final source
+        in <String, TreeEntry Function()>{
+          'entries list': () => tree.entries.first,
+          'index lookup': () => tree[0],
+          'filename lookup': () => tree['.gitignore'],
+          'OID lookup': () => tree.entryByOid(repo[fileSHA]),
+        }.entries) {
+      test('rejects manual release of borrowed entry from ${source.key}', () {
+        final entry = source.value();
+
+        expect(entry.free, throwsA(isA<StateError>()));
+        expect(tree.length, 4);
+      });
+    }
+
     test('manually releases allocated memory', () {
       final tree = Tree.lookup(repo: repo, oid: repo['a8ae3dd']);
       expect(() => tree.free(), returnsNormally);
@@ -194,7 +209,8 @@ void main() {
 
     test('manually releases allocated memory for tree entry '
         'looked up by path', () {
-      expect(() => tree['dir/dir_file.txt'].free(), returnsNormally);
+      final entry = tree['dir/dir_file.txt'];
+      expect(entry.free, returnsNormally);
     });
 
     test('supports value comparison', () {
