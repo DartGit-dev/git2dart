@@ -117,19 +117,19 @@ void update({
       GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
     );
 
-    RemoteCallbacks.plug(
+    RemoteCallbacks.withCallbackState<void>(
       callbacksOptions: options.ref.fetch_opts.callbacks,
       callbacks: callbacks,
-    );
+      operation: () {
+        final error = libgit2.git_submodule_update(
+          submodulePointer,
+          initC,
+          options,
+        );
 
-    final error = libgit2.git_submodule_update(
-      submodulePointer,
-      initC,
-      options,
+        checkErrorAndThrow(error);
+      },
     );
-    RemoteCallbacks.reset();
-
-    checkErrorAndThrow(error);
   });
 }
 
@@ -240,16 +240,15 @@ void clone({
       GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
     );
 
-    RemoteCallbacks.plug(
+    RemoteCallbacks.withCallbackState<void>(
       callbacksOptions: options.ref.fetch_opts.callbacks,
       callbacks: callbacks,
+      operation: () {
+        final error = libgit2.git_submodule_clone(out, submodule, options);
+
+        checkErrorAndThrow(error);
+      },
     );
-
-    final error = libgit2.git_submodule_clone(out, submodule, options);
-
-    RemoteCallbacks.reset();
-
-    checkErrorAndThrow(error);
   });
 }
 

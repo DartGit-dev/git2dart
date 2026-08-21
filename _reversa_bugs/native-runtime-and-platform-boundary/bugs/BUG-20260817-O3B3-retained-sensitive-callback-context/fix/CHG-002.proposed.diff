@@ -1,0 +1,57 @@
+diff --git a/test/remote_test.dart b/test/remote_test.dart
+--- a/test/remote_test.dart
++++ b/test/remote_test.dart
+@@ -1,6 +1,7 @@
+ import 'dart:io';
+ 
+ import 'package:git2dart/git2dart.dart';
++import 'package:git2dart/src/bindings/remote_callbacks.dart';
+ import 'package:git2dart_binaries/git2dart_binaries.dart';
+ import 'package:path/path.dart' as p;
+ import 'package:test/test.dart';
+@@ -403,6 +404,45 @@ void main() {
+ 
+       expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
+     });
++
++    test('clears callback state after repeated loopback fetch failures', () {
++      Remote.setUrl(
++        repo: repo,
++        remote: 'libgit2',
++        url: 'http://127.0.0.1:1/repository.git',
++      );
++      final remote = Remote.lookup(repo: repo, name: 'libgit2');
++      const callbacks = Callbacks(
++        credentials: UserPass(
++          username: 'synthetic-user',
++          password: 'synthetic-password',
++        ),
++      );
++
++      for (var attempt = 0; attempt < 3; attempt++) {
++        LibGit2Error? failure;
++        try {
++          remote.fetch(callbacks: callbacks);
++        } on LibGit2Error catch (error) {
++          failure = error;
++        }
++
++        try {
++          expect(failure, isNotNull);
++          expect(failure?.toString(), allOf(isNotNull, isNotEmpty));
++          expect(RemoteCallbacks.transferProgress, isNull);
++          expect(RemoteCallbacks.sidebandProgress, isNull);
++          expect(RemoteCallbacks.updateTips, isNull);
++          expect(RemoteCallbacks.pushUpdateReference, isNull);
++          expect(RemoteCallbacks.certificateCheck, isNull);
++          expect(RemoteCallbacks.remoteCbData, isNull);
++          expect(RemoteCallbacks.repositoryCbData, isNull);
++          expect(RemoteCallbacks.credentials, isNull);
++        } finally {
++          RemoteCallbacks.reset();
++        }
++      }
++    });
+ 
+     test(
+       tags: 'remote_fetch',

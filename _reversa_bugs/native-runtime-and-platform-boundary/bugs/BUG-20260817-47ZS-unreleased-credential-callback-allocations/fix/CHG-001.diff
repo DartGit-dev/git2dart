@@ -1,0 +1,34 @@
+diff --git a/test/credentials_test.dart b/test/credentials_test.dart
+--- a/test/credentials_test.dart
++++ b/test/credentials_test.dart
+@@ -36,6 +36,28 @@ void main() {
+       expect(credentials.credentialType, GitCredential.sshKey);
+       expect(credentials.toString(), contains('Keypair{'));
+     });
++
++    test('owns SSH key temporary allocations through the active arena', () {
++      final source =
++          File('lib/src/bindings/credentials.dart').readAsStringSync();
++      final start = source.indexOf('Pointer<git_credential> sshKey({');
++      final end = source.indexOf(
++        'Pointer<git_credential> sshKeyFromAgent',
++        start,
++      );
++      final sshKeySource = source.substring(start, end);
++
++      expect(start, isNonNegative);
++      expect(end, greaterThan(start));
++      expect(sshKeySource, contains('using((arena)'));
++      expect(sshKeySource, contains('arena<Pointer<git_credential>>()'));
++      expect(
++        RegExp(r'\.toChar\(arena\)').allMatches(sshKeySource),
++        hasLength(4),
++      );
++      expect(sshKeySource, isNot(contains('calloc<')));
++      expect(sshKeySource, isNot(contains('.toCharAlloc()')));
++    });
+ 
+     test('initializes keypair from memory credentials', () {
+       final credentials = const KeypairFromMemory(
+
+---

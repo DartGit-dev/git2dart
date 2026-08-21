@@ -193,36 +193,39 @@ Pointer<git_repository> clone({
     final fetchOptions = arena<git_fetch_options>();
     libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
 
-    RemoteCallbacks.plug(
+    return RemoteCallbacks.withCallbackState<Pointer<git_repository>>(
       callbacksOptions: fetchOptions.ref.callbacks,
       callbacks: callbacks,
+      operation: () {
+        const except = -1;
+
+        git_remote_create_cb remoteCb = nullptr;
+        if (remoteCallback != null) {
+          RemoteCallbacks.remoteCbData = remoteCallback;
+          remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
+        }
+
+        git_repository_create_cb repositoryCb = nullptr;
+        if (repositoryCallback != null) {
+          RemoteCallbacks.repositoryCbData = repositoryCallback;
+          repositoryCb = Pointer.fromFunction(
+            RemoteCallbacks.repositoryCb,
+            except,
+          );
+        }
+
+        cloneOptions.ref.bare = bare ? 1 : 0;
+        cloneOptions.ref.remote_cb = remoteCb;
+        cloneOptions.ref.checkout_branch = checkoutBranchC;
+        cloneOptions.ref.repository_cb = repositoryCb;
+        cloneOptions.ref.fetch_opts = fetchOptions.ref;
+
+        final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
+
+        checkErrorAndThrow(error);
+        return out.value;
+      },
     );
-
-    const except = -1;
-
-    git_remote_create_cb remoteCb = nullptr;
-    if (remoteCallback != null) {
-      RemoteCallbacks.remoteCbData = remoteCallback;
-      remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
-    }
-
-    git_repository_create_cb repositoryCb = nullptr;
-    if (repositoryCallback != null) {
-      RemoteCallbacks.repositoryCbData = repositoryCallback;
-      repositoryCb = Pointer.fromFunction(RemoteCallbacks.repositoryCb, except);
-    }
-
-    cloneOptions.ref.bare = bare ? 1 : 0;
-    cloneOptions.ref.remote_cb = remoteCb;
-    cloneOptions.ref.checkout_branch = checkoutBranchC;
-    cloneOptions.ref.repository_cb = repositoryCb;
-    cloneOptions.ref.fetch_opts = fetchOptions.ref;
-
-    final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
-
-    checkErrorAndThrow(error);
-    RemoteCallbacks.reset();
-    return out.value;
   });
 }
 

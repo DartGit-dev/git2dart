@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fix Plan — BUG-20260817-3FWN</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#151d31;--border:#2b3957;--text:#e8edf8;--muted:#aebbd3;--link:#8fc7ff;--critical:#ff6b7a;--accent:#71e3b2;--warn:#ffd479}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#14203a,var(--bg) 58%);color:var(--text);font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:1080px;margin:auto;padding:28px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin:16px 0}
+    h1,h2{line-height:1.2}h1{margin-bottom:8px}h2{margin-top:0;font-size:19px}a{color:var(--link)}code{background:#0d1427;padding:2px 5px;border-radius:5px}
+    .meta,.grid{display:grid;gap:12px}.meta{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:4px 9px;margin-right:6px}.high{color:var(--critical)}.confirmed{color:var(--accent)}.low{color:var(--accent)}
+    table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--border);padding:10px 8px}th{color:var(--muted)}
+    .flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}.node{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:#0d1427;max-width:270px}.center{border:2px solid var(--critical);box-shadow:0 0 0 4px rgba(255,107,122,.08)}.arrow{color:var(--muted);font-size:20px}
+    .muted{color:var(--muted)}.footer{font-size:12px;color:var(--muted)}ul,ol{padding-left:22px}
+  </style>
+</head>
+<body><main>
+  <h1>#8 · BUG-20260817-3FWN</h1>
+  <p>Remote fetch leaks native options and refspec allocations</p>
+  <div class="meta panel">
+    <div><span class="muted">Context</span><br>references-and-remotes</div>
+    <div><span class="muted">Date</span><br>2026-08-21</div>
+    <div><span class="muted">Severity / priority</span><br><span class="high">high / P1</span></div>
+    <div><span class="muted">Root cause</span><br><span class="confirmed">confirmed</span></div>
+  </div>
+
+  <section class="panel"><h2>Defect and confirmed root cause</h2>
+    <p><code>fetch</code> runs inside an arena scope but allocates its refspec wrapper, pointer array, and fetch options with global <code>calloc</code>. Neither success nor error unwind releases those call-scoped structures.</p>
+    <p>Evidence: <a href="../evidence/reproduction.md">3/3 reproduction</a>, <a href="../evidence/root-cause.md">root-cause trace</a>, and <a href="../evidence/bisect.md">automated bisect</a>. Bisect identified <code>02c6784aaf6157c434e62dd99c4248f80d84ee80</code> as the first bad commit.</p>
+  </section>
+
+  <section class="panel"><h2>Selected strategy — authorized</h2>
+    <p><strong>Direct correction authorized on 2026-08-21.</strong> Allocate all three temporary structures from the already active arena, matching the adjacent <code>push</code> implementation. The already-applied O3B3 lexical owner remains unchanged around the fetch operation.</p>
+  </section>
+
+  <section class="panel"><h2>Proposed Correction Change Set</h2>
+    <table><thead><tr><th>CHG</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr></thead><tbody>
+      <tr><td>CHG-001</td><td>test</td><td><code>test/remote_test.dart</code></td><td>Prove fetch temporaries are arena-owned and the invalid-URL error contract remains intact.</td></tr>
+      <tr><td>CHG-002</td><td>code</td><td><code>lib/src/bindings/remote.dart</code></td><td>Replace three global allocations with arena allocations inside <code>fetch</code>.</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="panel"><h2>Planned tests</h2>
+    <div class="grid">
+      <div><h3>Reproduction test</h3><p>A source-ownership characterization fails while the three <code>fetch</code> temporaries use unmanaged <code>calloc</code>. It proves the registered leak pattern.</p></div>
+      <div><h3>Regression tests</h3><p>The ownership invariant becomes green after all three allocations move to the arena; the existing invalid-URL test confirms native errors still surface as <code>LibGit2Error</code>.</p></div>
+    </div>
+  </section>
+
+  <section class="panel"><h2>Risk and exclusions</h2>
+    <p><span class="badge low">low risk</span> The change is confined to three call-scoped temporaries and copies the established adjacent binding pattern.</p>
+    <ul>
+      <li>No public API, native ABI, persistent data, or dependency changes.</li>
+      <li>Credential payload ownership belongs to 47ZS.</li>
+      <li>Guaranteed callback cleanup on failure is already supplied by the restricted O3B3 correction.</li>
+      <li>No broad remote-binding refactor or live network dependency is planned.</li>
+    </ul>
+  </section>
+
+  <section class="panel"><h2>Mini graph and correction order</h2>
+    <div class="flow">
+      <div class="node"><a href="../../../../native-runtime-and-platform-boundary/bugs/BUG-20260817-O3B3-retained-sensitive-callback-context/bug.md">O3B3</a><br><span class="muted">confirmed cluster member</span></div>
+      <div class="arrow">↔</div>
+      <div class="node"><a href="../../../../native-runtime-and-platform-boundary/bugs/BUG-20260817-47ZS-unreleased-credential-callback-allocations/bug.md">47ZS</a><br><span class="muted">confirmed related-to</span></div>
+      <div class="arrow">↔</div>
+      <div class="node center"><a href="../bug.md">3FWN</a><br>fetch temporary ownership</div>
+    </div>
+    <ol><li><strong>O3B3:</strong> lexical cleanup is already applied and green.</li><li><strong>47ZS:</strong> establish deterministic callback ownership.</li><li><strong>3FWN:</strong> restore arena ownership for fetch temporaries.</li></ol>
+  </section>
+
+  <section class="panel"><h2>Relationship matrix</h2>
+    <table><thead><tr><th>Origin</th><th>Type</th><th>Destination</th><th>State</th></tr></thead><tbody>
+      <tr><td><a href="../bug.md">3FWN</a></td><td>related-to</td><td><a href="../../../../native-runtime-and-platform-boundary/bugs/BUG-20260817-47ZS-unreleased-credential-callback-allocations/bug.md">47ZS</a></td><td>confirmed</td></tr>
+      <tr><td><a href="../../../../native-runtime-and-platform-boundary/bugs/BUG-20260817-O3B3-retained-sensitive-callback-context/bug.md">O3B3</a></td><td>cluster association</td><td><a href="../bug.md">3FWN</a></td><td>derived through 47ZS</td></tr>
+    </tbody></table>
+  </section>
+  <p class="footer">CHG-001 and CHG-002 are applied and green. The accepted verdict is spec-correta; package delivery remains pending.</p>
+</main></body></html>

@@ -1,0 +1,44 @@
+diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_callbacks.dart
+--- a/lib/src/bindings/remote_callbacks.dart
++++ b/lib/src/bindings/remote_callbacks.dart
+@@ -1,6 +1,6 @@
+ import 'dart:ffi';
+ 
+-import 'package:ffi/ffi.dart' show Arena, calloc;
++import 'package:ffi/ffi.dart' show Arena, calloc, using;
+ import 'package:git2dart/git2dart.dart';
+ import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
+ import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
+@@ -191,18 +191,22 @@ class RemoteCallbacks {
+     if (payload.cast<Char>().value == 2) {
+-      libgit2.git_error_set_str(
+-        git_error_t.GIT_ERROR_INVALID.value,
+-        'Incorrect credentials.'.toCharAlloc(),
+-      );
++      using((arena) {
++        libgit2.git_error_set_str(
++          git_error_t.GIT_ERROR_INVALID.value,
++          'Incorrect credentials.'.toChar(arena),
++        );
++      });
+       throw LibGit2Error(libgit2.git_error_last());
+     }
+ 
+     final credentialType = credentials!.credentialType;
+     final allowedTypesSet = GitCredential.fromFlag(allowedTypes);
+ 
+     if (!allowedTypesSet.contains(credentialType)) {
+-      libgit2.git_error_set_str(
+-        git_error_t.GIT_ERROR_INVALID.value,
+-        'Invalid credential type $credentialType'.toCharAlloc(),
+-      );
++      using((arena) {
++        libgit2.git_error_set_str(
++          git_error_t.GIT_ERROR_INVALID.value,
++          'Invalid credential type $credentialType'.toChar(arena),
++        );
++      });
+       throw LibGit2Error(libgit2.git_error_last());
+     }
+
+---

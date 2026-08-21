@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -402,6 +403,64 @@ void main() {
       final remote = Remote.lookup(repo: repo, name: 'libgit2');
 
       expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
+    });
+
+    test('clears callback state after repeated loopback fetch failures', () {
+      Remote.setUrl(
+        repo: repo,
+        remote: 'libgit2',
+        url: 'http://127.0.0.1:1/repository.git',
+      );
+      final remote = Remote.lookup(repo: repo, name: 'libgit2');
+      const callbacks = Callbacks(
+        credentials: UserPass(
+          username: 'synthetic-user',
+          password: 'synthetic-password',
+        ),
+      );
+
+      for (var attempt = 0; attempt < 3; attempt++) {
+        LibGit2Error? failure;
+        try {
+          remote.fetch(callbacks: callbacks);
+        } on LibGit2Error catch (error) {
+          failure = error;
+        }
+
+        try {
+          expect(failure, isNotNull);
+          expect(failure?.toString(), allOf(isNotNull, isNotEmpty));
+          expect(RemoteCallbacks.transferProgress, isNull);
+          expect(RemoteCallbacks.sidebandProgress, isNull);
+          expect(RemoteCallbacks.updateTips, isNull);
+          expect(RemoteCallbacks.pushUpdateReference, isNull);
+          expect(RemoteCallbacks.certificateCheck, isNull);
+          expect(RemoteCallbacks.remoteCbData, isNull);
+          expect(RemoteCallbacks.repositoryCbData, isNull);
+          expect(RemoteCallbacks.credentials, isNull);
+        } finally {
+          RemoteCallbacks.reset();
+        }
+      }
+    });
+
+    test('owns fetch temporary allocations through the active arena', () {
+      final source = File('lib/src/bindings/remote.dart').readAsStringSync();
+      final start = source.indexOf('void fetch({');
+      final end = source.indexOf('/// Perform a push.', start);
+      final fetchSource = source.substring(start, end);
+
+      expect(start, isNonNegative);
+      expect(end, greaterThan(start));
+      expect(fetchSource, contains('arena<git_strarray>()'));
+      expect(fetchSource, contains('arena<Pointer<Char>>(refspecs.length)'));
+      expect(fetchSource, contains('arena<git_fetch_options>()'));
+      expect(fetchSource, isNot(contains('calloc<git_strarray>()')));
+      expect(
+        fetchSource,
+        isNot(contains('calloc<Pointer<Char>>(refspecs.length)')),
+      );
+      expect(fetchSource, isNot(contains('calloc<git_fetch_options>()')));
     });
 
     test(

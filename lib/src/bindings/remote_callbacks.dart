@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show Arena, calloc;
+import 'package:ffi/ffi.dart' show Arena, calloc, using;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
@@ -177,6 +177,8 @@ class RemoteCallbacks {
   /// Handles various authentication methods like username/password and SSH keys.
   static Credentials? credentials;
 
+  static Pointer<Int8>? _credentialPayload;
+
   /// Native callback for credential acquisition during remote operations.
   /// Called when the remote host requires authentication.
   static int credentialsCb(
@@ -187,10 +189,12 @@ class RemoteCallbacks {
     Pointer<Void> payload,
   ) {
     if (payload.cast<Char>().value == 2) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID.value,
-        'Incorrect credentials.'.toCharAlloc(),
-      );
+      using((arena) {
+        libgit2.git_error_set_str(
+          git_error_t.GIT_ERROR_INVALID.value,
+          'Incorrect credentials.'.toChar(arena),
+        );
+      });
       throw LibGit2Error(libgit2.git_error_last());
     }
 
@@ -198,10 +202,12 @@ class RemoteCallbacks {
     final allowedTypesSet = GitCredential.fromFlag(allowedTypes);
 
     if (!allowedTypesSet.contains(credentialType)) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID.value,
-        'Invalid credential type $credentialType'.toCharAlloc(),
-      );
+      using((arena) {
+        libgit2.git_error_set_str(
+          git_error_t.GIT_ERROR_INVALID.value,
+          'Invalid credential type $credentialType'.toChar(arena),
+        );
+      });
       throw LibGit2Error(libgit2.git_error_last());
     }
 
@@ -293,8 +299,8 @@ class RemoteCallbacks {
 
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
-      final withUser = calloc<Int8>()..value = 1;
-      callbacksOptions.payload = withUser.cast();
+      _credentialPayload = calloc<Int8>()..value = 1;
+      callbacksOptions.payload = _credentialPayload!.cast();
       callbacksOptions.credentials = Pointer.fromFunction(
         credentialsCb,
         except,
@@ -302,9 +308,28 @@ class RemoteCallbacks {
     }
   }
 
+  /// Runs a synchronous remote operation with lexically scoped callback state.
+  static T withCallbackState<T>({
+    required git_remote_callbacks callbacksOptions,
+    required Callbacks callbacks,
+    required T Function() operation,
+  }) {
+    try {
+      plug(callbacksOptions: callbacksOptions, callbacks: callbacks);
+      return operation();
+    } finally {
+      reset();
+    }
+  }
+
   /// Resets all callback functions to their original null values.
   /// Should be called after remote operations are complete.
   static void reset() {
+    if (_credentialPayload != null) {
+      calloc.free(_credentialPayload!);
+      _credentialPayload = null;
+    }
+
     transferProgress = null;
     sidebandProgress = null;
     updateTips = null;

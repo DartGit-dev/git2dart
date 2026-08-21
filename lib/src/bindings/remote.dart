@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:ffi' as ffi;
 
-import 'package:ffi/ffi.dart' show Arena, calloc, using;
+import 'package:ffi/ffi.dart' show Arena, using;
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart/src/callbacks.dart';
 import 'package:git2dart/src/extensions.dart';
@@ -392,23 +392,23 @@ void connect({
       GIT_REMOTE_CALLBACKS_VERSION,
     );
 
-    RemoteCallbacks.plug(
-      callbacksOptions: callbacksOptions.ref,
-      callbacks: callbacks,
-    );
-
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
-    final error = libgit2.git_remote_connect(
-      remotePointer,
-      direction,
-      callbacksOptions,
-      proxyOptions,
-      nullptr,
-    );
+    RemoteCallbacks.withCallbackState<void>(
+      callbacksOptions: callbacksOptions.ref,
+      callbacks: callbacks,
+      operation: () {
+        final error = libgit2.git_remote_connect(
+          remotePointer,
+          direction,
+          callbacksOptions,
+          proxyOptions,
+          nullptr,
+        );
 
-    checkErrorAndThrow(error);
-    RemoteCallbacks.reset();
+        checkErrorAndThrow(error);
+      },
+    );
   });
 }
 
@@ -479,9 +479,9 @@ void fetch({
   String? proxyOption,
 }) {
   using((arena) {
-    final refspecsC = calloc<git_strarray>();
+    final refspecsC = arena<git_strarray>();
     final refspecsPointers = refspecs.map((e) => e.toChar(arena)).toList();
-    final strArray = calloc<Pointer<Char>>(refspecs.length);
+    final strArray = arena<Pointer<Char>>(refspecs.length);
 
     for (var i = 0; i < refspecs.length; i++) {
       strArray[i] = refspecsPointers[i];
@@ -493,25 +493,26 @@ void fetch({
 
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
-    final opts = calloc<git_fetch_options>();
+    final opts = arena<git_fetch_options>();
     libgit2.git_fetch_options_init(opts, GIT_FETCH_OPTIONS_VERSION);
 
-    RemoteCallbacks.plug(
-      callbacksOptions: opts.ref.callbacks,
-      callbacks: callbacks,
-    );
     opts.ref.pruneAsInt = prune;
     opts.ref.proxy_opts = proxyOptions.ref;
 
-    final error = libgit2.git_remote_fetch(
-      remotePointer,
-      refspecsC,
-      opts,
-      reflogMessageC,
-    );
+    RemoteCallbacks.withCallbackState<void>(
+      callbacksOptions: opts.ref.callbacks,
+      callbacks: callbacks,
+      operation: () {
+        final error = libgit2.git_remote_fetch(
+          remotePointer,
+          refspecsC,
+          opts,
+          reflogMessageC,
+        );
 
-    checkErrorAndThrow(error);
-    RemoteCallbacks.reset();
+        checkErrorAndThrow(error);
+      },
+    );
   });
 }
 
@@ -548,16 +549,17 @@ void push({
     final opts = arena<git_push_options>();
     libgit2.git_push_options_init(opts, GIT_PUSH_OPTIONS_VERSION);
 
-    RemoteCallbacks.plug(
-      callbacksOptions: opts.ref.callbacks,
-      callbacks: callbacks,
-    );
     opts.ref.proxy_opts = proxyOptions.ref;
 
-    final error = libgit2.git_remote_push(remotePointer, refspecsC, opts);
+    RemoteCallbacks.withCallbackState<void>(
+      callbacksOptions: opts.ref.callbacks,
+      callbacks: callbacks,
+      operation: () {
+        final error = libgit2.git_remote_push(remotePointer, refspecsC, opts);
 
-    checkErrorAndThrow(error);
-    RemoteCallbacks.reset();
+        checkErrorAndThrow(error);
+      },
+    );
   });
 }
 

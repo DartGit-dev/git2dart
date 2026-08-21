@@ -1,0 +1,25 @@
+diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_callbacks.dart
+index b48d5a4..eab7a00 100644
+--- a/lib/src/bindings/remote_callbacks.dart
++++ b/lib/src/bindings/remote_callbacks.dart
+@@ -302,6 +302,20 @@ class RemoteCallbacks {
+     }
+   }
+ 
++  /// Runs a synchronous remote operation with lexically scoped callback state.
++  static T withCallbackState<T>({
++    required git_remote_callbacks callbacksOptions,
++    required Callbacks callbacks,
++    required T Function() operation,
++  }) {
++    try {
++      plug(callbacksOptions: callbacksOptions, callbacks: callbacks);
++      return operation();
++    } finally {
++      reset();
++    }
++  }
++
+   /// Resets all callback functions to their original null values.
+   /// Should be called after remote operations are complete.
+   static void reset() {
