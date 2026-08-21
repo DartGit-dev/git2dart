@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 #
 # bind-to-extraction.sh
-# Helper que lê _reversa_sdd/ e devolve um JSON com as fontes canônicas que os skills forward devem consultar como contexto.
-# Diferencial REVERSA: skills forward jamais partem do zero, sempre amarram raciocínio nos artefatos da pipeline reversa.
+# Helper that reads reversa/sdd/ and returns a JSON with the canonical sources that skills forward should consult as context.
+# REVERSA difference: forward skills never start from scratch, they always tie reasoning to the reversa pipeline artifacts.
 #
 # Uso:
-#   bind-to-extraction.sh [--json] [--for <comando>]
+#   bind-to-extraction.sh [--json] [--for <command>]
 #
 # Argumentos:
 #   --for requirements   Lista architecture, domain, inventory, principles
 #   --for plan           Lista architecture, c4-context, state-machines, dependencies, code-analysis, principles
 #   --for to-do          Lista architecture, code-analysis
 #   --for audit          Lista architecture, domain
-#   --for coding         Lista architecture, domain, code-analysis (para gerar legacy-impact)
-#   sem --for            Lista todos os arquivos presentes em _reversa_sdd/
+# --for coding List architecture, domain, code-analysis (to generate legacy-impact)
+# without --for Lists all files present in reversa/sdd/
 #
-# Códigos de saída:
+# Exit codes:
 #   0 = sucesso
-#   1 = _reversa_sdd ausente
-#   2 = uso inválido
+#1 = reversa/sdd missing
+#2 = invalid usage
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SDD_DIR="$PROJECT_ROOT/_reversa_sdd"
+. "$SCRIPT_DIR/resolve-paths.sh"
 
 JSON_MODE=0
 TARGET=""
@@ -38,7 +37,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ! -d "$SDD_DIR" ]; then
-  echo "erro: $SDD_DIR nao existe. rode a pipeline reversa antes." >&2
+echo "error: $SDD_DIR does not exist. Run the reversa pipeline first." >&2
   exit 1
 fi
 

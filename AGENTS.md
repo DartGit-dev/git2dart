@@ -161,7 +161,19 @@ When the user sends `reversa` as a standalone message:
 1. Activate the `reversa` skill at `.agents/skills/reversa/SKILL.md`.
 2. Read the entire `SKILL.md` and follow the Reversa instructions exactly.
 
+## Path resolution
+
+Before any Reversa workflow, read `.reversa/setup.json#paths`. Resolve every
+configured path relative to the project root and reject paths that escape it.
+Path literals in skills and templates are defaults; the configured values take
+precedence. Current data locations are:
+
+- specifications: `reversa/sdd/`
+- forward work: `reversa/forward/`
+- visual documentation: `reversa/docs/`
+- bug registry: `reversa/bugs/`
+
 ## Non-negotiable rule
 
 Never delete, modify, or overwrite pre-existing legacy project files.
-Reversa writes only to `.reversa/`, `_reversa_sdd/`, `_reversa_docs/`, and `_reversa_forward/`.
+Reversa writes only to `.reversa/` and the four configured data directories.

@@ -1,17 +1,17 @@
 # bind-to-extraction.ps1
-# Helper que lê _reversa_sdd/ e devolve um JSON com as fontes canônicas que os skills forward devem consultar.
+# Helper that reads reversa/sdd/ and returns a JSON with the canonical sources that skills forward should consult.
 #
 # Uso:
-#   bind-to-extraction.ps1 [-Json] [-For <comando>]
+#   bind-to-extraction.ps1 [-Json] [-For <command>]
 #
 # -For requirements   architecture, domain, inventory
 # -For plan           architecture, c4-context, state-machines, dependencies, code-analysis
 # -For to-do          architecture, code-analysis
 # -For audit          architecture, domain
 # -For coding         architecture, domain, code-analysis
-# sem -For            todos os arquivos do _reversa_sdd
+# without -For all files from reversa/sdd
 #
-# Códigos de saída: 0 ok, 1 _reversa_sdd ausente, 2 uso inválido.
+# Exit codes: 0 ok, 1 reversa/sdd missing, 2 invalid usage.
 
 [CmdletBinding()]
 param(
@@ -21,12 +21,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$scriptDir   = Split-Path -Parent $PSCommandPath
-$projectRoot = (Resolve-Path (Join-Path $scriptDir '..\..')).Path
-$sddDir      = Join-Path $projectRoot '_reversa_sdd'
+. (Join-Path $PSScriptRoot 'resolve-paths.ps1')
 
 if (-not (Test-Path -LiteralPath $sddDir -PathType Container)) {
-  Write-Error "$sddDir nao existe. rode a pipeline reversa antes."
+Write-Error "$sddDir does not exist. Run the reversa pipeline first."
   exit 1
 }
 

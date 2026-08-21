@@ -4,14 +4,16 @@
   "installed-at": "2026-08-16T06:01:52.149Z",
   "project-name": "git2dart",
   "prefix-format": "sequencial",
-  "language": "pt-BR",
+  "language": "en-US",
   "watch": {
     "archive-after": 3,
     "block-on-red": false
   },
   "paths": {
-    "sdd-dir": "_reversa_sdd",
-    "forward-dir": "_reversa_forward",
+    "sdd-dir": "reversa/sdd",
+    "forward-dir": "reversa/forward",
+    "docs-dir": "reversa/docs",
+    "bugs-dir": "reversa/bugs",
     "config-dir": ".reversa"
   },
   "principles": {
