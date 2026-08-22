@@ -1,0 +1,67 @@
+diff --git a/test/commit_test.dart b/test/commit_test.dart
+index 7dd10e4..6159f50 100644
+--- a/test/commit_test.dart
++++ b/test/commit_test.dart
+@@ -1,7 +1,6 @@
+ import 'dart:ffi';
+ import 'dart:io';
+ 
+-import 'package:ffi/ffi.dart';
+ import 'package:git2dart/git2dart.dart';
+ import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
+ import 'package:git2dart_binaries/git2dart_binaries.dart';
+@@ -352,9 +351,9 @@ Some description.
+         parentCount: 0,
+         parents: [],
+       );
+-      addTearDown(() => calloc.free(oidPointer));
+-
+-      final commit = Commit.lookup(repo: repo, oid: Oid(oidPointer));
++      final oid = Oid(oidPointer);
++      final commit = Commit.lookup(repo: repo, oid: oid);
++      oid.free();
+ 
+       expect(commit.parents, isEmpty);
+     });
+diff --git a/test/oid_test.dart b/test/oid_test.dart
+index 9d2910b..161b7a2 100644
+--- a/test/oid_test.dart
++++ b/test/oid_test.dart
+@@ -84,6 +84,37 @@ void main() {
+       expect(oid.compareToHex(biggerSha), lessThan(0));
+     });
+ 
++    test('manually releases owned native memory', () {
++      final oid = Oid.fromSHAParse('78b8');
++
++      expect(() => oid.free(), returnsNormally);
++    });
++
++    test('copies borrowed OID pointers before taking ownership', () {
++      final head = repo.head;
++      final first = head.target;
++      final expectedSha = first.sha;
++
++      first.free();
++      final second = head.target;
++
++      expect(second.sha, expectedSha);
++
++      second.free();
++      head.free();
++    });
++
++    test('keeps a copied borrowed OID alive after parent release', () {
++      final head = repo.head;
++      final oid = head.target;
++      final expectedSha = oid.sha;
++
++      head.free();
++
++      expect(oid.sha, expectedSha);
++      oid.free();
++    });
++
+     test('shortens object ids to unique prefixes', () {
+       final shortener = OidShortener(minLength: 7);
+ 

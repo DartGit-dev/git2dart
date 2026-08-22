@@ -104,6 +104,17 @@ void main() {
       head.free();
     });
 
+    test('keeps a copied borrowed OID alive after parent release', () {
+      final head = repo.head;
+      final oid = head.target;
+      final expectedSha = oid.sha;
+
+      head.free();
+
+      expect(oid.sha, expectedSha);
+      oid.free();
+    });
+
     test('shortens object ids to unique prefixes', () {
       final shortener = OidShortener(minLength: 7);
 
