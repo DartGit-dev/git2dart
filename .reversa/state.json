@@ -804,6 +804,7 @@
     ".codex/agents/reversa-standardize-t1.toml",
     ".codex/agents/reversa-prune.toml",
     ".codex/agents/reversa-prune-t2.toml",
-    ".reversa/_config/codex-routing.lock.json"
+    ".reversa/_config/codex-routing.lock.json",
+    ".codex/agents/reversa-debugger-fix-t3.toml"
   ]
 }

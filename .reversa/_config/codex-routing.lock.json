@@ -11,9 +11,9 @@
     "sandbox_override": true
   },
   "overrides": {
-    "project": 0,
+    "project": 3,
     "user": 0,
-    "agent": 0
+    "agent": 1
   },
   "profiles": [
     {
@@ -260,10 +260,20 @@
       "id": "reversa-debugger-fix",
       "skill_id": "reversa-debugger-fix",
       "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-terra",
+      "effort": "high",
+      "path": ".codex/agents/reversa-debugger-fix.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger-fix-t3",
+      "skill_id": "reversa-debugger-fix",
+      "escalated_from": "T2",
       "compute_class": "T3",
       "model": "gpt-5.6-sol",
       "effort": "xhigh",
-      "path": ".codex/agents/reversa-debugger-fix.toml",
+      "path": ".codex/agents/reversa-debugger-fix-t3.toml",
       "status": "managed"
     },
     {

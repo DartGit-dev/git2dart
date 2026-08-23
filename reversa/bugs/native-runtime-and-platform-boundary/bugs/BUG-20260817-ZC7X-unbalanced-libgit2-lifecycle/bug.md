@@ -102,9 +102,9 @@ closure:
 resolution_kind: fixed
 delivery:
   branch: "0.5.5"
-  commit: null
+  commit: "131f7c8f405fd818affd1bf4cc3fd60cd2b52f60"
   pull_request: null
-  merge: pending
+  merge: "integrated by direct commit; origin/0.5.5 points to the same commit"
   publication: pending
   compatible_companion: pending
 versions: {fixed_in: null}
@@ -147,6 +147,7 @@ Static inspection found 66 `git_libgit2_init()` calls under `lib/` and no `git_l
 - `evidence/gate-2-green.md`
 - `evidence/spec-verdict-recommendation.md`
 - `evidence/spec-verdict.md`
+- `evidence/delivery-status.md`
 
 ## Suspected Area
 
@@ -209,15 +210,19 @@ active applied resolution.
 ### Data and delivery
 
 No persistent data is changed and no data repair is required. The approved
-consumer change set is applied but uncommitted on branch `0.5.5`. No pull
-request or merge exists, and no fixed `git2dart` package version is published.
-The direct companion checkout still declares 1.12.1 while CHG-006 requires a
-compatible `>=1.12.2 <1.13.0` package; assignment and publication of that
-companion version remain pending.
+consumer change set is committed as
+`131f7c8f405fd818affd1bf4cc3fd60cd2b52f60` directly on branch `0.5.5`.
+Fresh remote verification on 2026-08-23 found `origin/0.5.5` at the same
+commit, so repository integration is complete without a pull request. No fixed
+`git2dart` package version is published. Pub.dev still lists
+`git2dart_binaries` 1.12.1 as latest while CHG-006 requires a compatible
+`>=1.12.2 <1.13.0` package; assignment and publication of that companion
+version remain pending. See `evidence/delivery-status.md`.
 
 The package closure policy therefore remains unsatisfied. The bug stays
 `active` in `delivering`, `versions.fixed_in` remains null, and no `DONE.md`
-lock may be created.
+lock may be created until compatible companion and consumer versions are
+published.
 
 ## Agent Notes
 
@@ -274,6 +279,7 @@ The user selected `spec-correta` on 2026-08-23. The verdict is recorded in
 `evidence/spec-verdict.md`; no specification or addendum was changed. With the
 confirmed root cause, applied regression coverage, GREEN proof, and approved
 verdict, `resolution_kind` is now `fixed`. Package delivery remains open:
-there is no consumer commit/merge/publication and no published compatible
-companion 1.12.2 package, so closure remains unsatisfied and the phase is
+the consumer change set is committed and present on `origin/0.5.5`, but there
+is no published compatible companion 1.12.2 package and no published consumer
+version containing the fix. Closure remains unsatisfied and the phase is
 `delivering`.

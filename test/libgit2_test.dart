@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart' show LibGit2Error;
 import 'package:test/test.dart';
 
 void main() {
@@ -149,13 +152,16 @@ void main() {
     });
 
     test('sets location for ssl certificates', () {
+      final expectation =
+          Platform.isWindows ? throwsA(isA<LibGit2Error>()) : returnsNormally;
+
       expect(
         () => Libgit2.setSSLCertLocations(file: 'etc/ssl/cert.pem'),
-        returnsNormally,
+        expectation,
       );
       expect(
         () => Libgit2.setSSLCertLocations(path: 'etc/ssl/certs/'),
-        returnsNormally,
+        expectation,
       );
     });
 

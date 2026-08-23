@@ -3,8 +3,8 @@ schema_version: 1
 id: BUG-20260817-DQPX
 display_number: 2
 title: Global libgit2 option APIs silently ignore native failures
-status: open
-phase: triaging
+status: active
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
@@ -19,13 +19,10 @@ labels: [error-contract, global-options, silent-failure]
 visibility: normal
 security_suspected: false
 reproduction:
-  classification: not-reproduced
-  rate: "0/0"
+  classification: deterministic
+  rate: "1/1 isolated public-versus-raw native comparison"
   suspected_triggers: [invalid native option value, unsupported platform option]
-blocking:
-  - kind: external
-    reason: "Focused runtime execution is blocked by stale Flutter tool locks outside the repository."
-    since: 2026-08-17
+blocking: []
 relationships:
   - bug: BUG-20260817-QWMA
     type: related-to
@@ -38,11 +35,48 @@ traceability:
     - "reversa/sdd/adrs/004-centralize-native-error-translation.md#decision"
   affected_code:
     - "lib/src/libgit2.dart"
-  root_cause: null
-  reproduction_tests: []
-  regression_tests: []
-spec_verdict: null
-change_set: []
+  root_cause:
+    state: confirmed
+    hypothesis: "Forty Libgit2 global-option wrappers discard the integer status returned by their fallible native call instead of passing it immediately to checkErrorAndThrow."
+    causal_path:
+      - "A public Libgit2 global-option wrapper invokes a typed git_libgit2_opts operation."
+      - "The native operation returns a negative status and records diagnostic state for an invalid or unsupported option."
+      - "The wrapper discards that status and continues returning normally or reading its output buffer."
+      - "The caller therefore observes apparent success instead of the required LibGit2Error."
+    evidence:
+      - {ref: "evidence/static-analysis.md", observation: "Fresh scan found 40 unchecked global-option calls and only two checked calls in lib/src/libgit2.dart."}
+      - {ref: "evidence/reproduction.md", observation: "The raw invalid cache-object limit call returned a negative status while the public wrapper returned normally with the same input."}
+    code_refs:
+      - {file: "lib/src/libgit2.dart", symbol: "Libgit2 global-option APIs", commit: "131f7c8f405fd818affd1bf4cc3fd60cd2b52f60"}
+  reproduction_tests:
+    - "evidence/reproduction_test.dart"
+    - "test/libgit2_option_error_test.dart#reproduction: native option failures are exposed"
+  regression_tests:
+    - "test/libgit2_option_error_test.dart#reproduction: native option failures are exposed"
+    - "test/libgit2_option_error_test.dart#regression: every global option call checks its status"
+spec_verdict: spec-correct
+change_risk:
+  classification: medium
+  reasons:
+    - "The correction changes failure behavior across 40 public global-option wrappers."
+    - "All changes are confined to one facade and reuse the existing checked pack-size pattern."
+    - "Negative results must be checked before output interpretation or another native call can replace git_error_last state."
+change_set:
+  - id: CHG-001
+    kind: test
+    artifact: "test/libgit2_option_error_test.dart"
+    purpose: "Prove native option failures are translated and prevent any global-option status from being discarded."
+    diff: "fix/CHG-001.diff"
+  - id: CHG-002
+    kind: source
+    artifact: "lib/src/libgit2.dart"
+    purpose: "Immediately translate every fallible global-option native status through checkErrorAndThrow."
+    diff: "fix/CHG-002.proposed.diff"
+  - id: CHG-003
+    kind: test
+    artifact: "test/libgit2_test.dart"
+    purpose: "Express the platform-specific SSL backend failure that is now exposed instead of silently discarded."
+    diff: "fix/CHG-003.diff"
 closure:
   policy: package
   satisfied: false
@@ -65,13 +99,22 @@ BR-NP-03, FR-NP-04, FL-NP-05, and ADR-004 require immediate translation of negat
 
 ## Steps to Reproduce
 
-1. Enumerate calls beginning with `libgit2Opts.git_libgit2_opts_`.
-2. Compare each call with the checked pattern at lines 462-475.
-3. Observe that the other option calls discard their native status.
+1. Run `evidence/reproduction_test.dart` with the Windows native binary root.
+2. Observe that the raw invalid cache-object limit call returns a negative status.
+3. Observe that the public wrapper returns normally for the same invalid input.
 
 ## Evidence
 
 - `evidence/static-analysis.md`
+- `evidence/reproduction.md`
+- `evidence/reproduction_test.dart`
+- `evidence/root-cause.md`
+- `evidence/strategy.md`
+- `fix/plan.html`
+- `evidence/gate-1-approval.md`
+- `evidence/gate-1-red.md`
+- `evidence/gate-2-green.md`
+- `evidence/spec-verdict.md`
 
 ## Suspected Area
 
@@ -90,7 +133,10 @@ Typed process-global option facade in `Libgit2`.
 
 ## Resolution
 
-Pending `/reversa-debugger-fix` investigation and approved change set.
+CHG-002 and supplemental CHG-003 were approved and applied. The focused suite
+passes 31 tests and `flutter analyze lib test` reports no issues. The source
+contract confirms that all 42 global-option calls are checked. The user
+selected `spec-correct`; package delivery is not yet complete.
 
 ## Agent Notes
 
