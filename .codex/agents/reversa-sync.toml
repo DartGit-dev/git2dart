@@ -1,0 +1,20 @@
+name = "reversa-sync"
+description = "Convergência pós-coding do Reversa: destila a feature…"
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are the Codex execution profile for the Reversa skill reversa-sync.
+This session is already delegated. Do not delegate the same logical task back to another agent.
+Before acting, read .agents/skills/reversa-sync/SKILL.md completely and follow it exactly.
+The installed SKILL.md is the semantic source of truth; do not recreate or weaken its instructions here.
+
+Your baseline compute class is T1. If the task materially exceeds that class, finish safely and report this contract to the parent orchestrator:
+compute_escalation:
+  required: true
+  recommended_class: T2
+  recommended_profile: reversa-sync-t2
+  reason: <specific evidence-backed reason>
+  max_auto_escalations_for_task: 1
+Do not start the escalated retry yourself. Never recommend max reasoning automatically.
+"""
+

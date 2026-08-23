@@ -1,94 +1,94 @@
-# Step 4, semantic regression check
+# Passo 4, verificação de regressão semântica
 
-> This step only runs in **re-extractions**, that is, when a reversa pipeline is executed in a project that has already gone through at least one `/reversa-coding` cycle. In projects without `reversa/forward/` or without `regression-watch.md`, the regression check is silently skipped (the "Addendum Reconciliation" at the end is still checked).
+> Este passo só roda em **re-extrações**, ou seja, quando uma pipeline reversa é executada num projeto que já passou por pelo menos um ciclo `/reversa-coding`. Em projetos sem `_reversa_forward/` ou sem `regression-watch.md`, a verificação de regressão é silenciosamente pulada (a "Reconciliação de adendos" ao final ainda é verificada).
 
 ## Por que existe
 
-Reversa is not just one-shot extraction. Each `/reversa-coding` leaves in `reversa/forward/<feature>/regression-watch.md` a list of rules that must remain true in the next extraction. The reversa pipeline, when re-run, has the duty to check these rules against the current code and report regressions. This is the competitive advantage of Reversa compared to pure forward frameworks.
+O Reversa não é só extração one-shot. Cada `/reversa-coding` deixa em `_reversa_forward/<feature>/regression-watch.md` uma lista de regras que precisam continuar verdadeiras na próxima extração. A pipeline reversa, ao re-rodar, tem o dever de checar essas regras contra o código atual e reportar regressões. Esse é o diferencial competitivo do Reversa frente a frameworks forward puros.
 
-## When to run
+## Quando rodar
 
-After the **last agent in the plan** completes, before the final "extraction complete" message. The trigger is position (last item of `.reversa/plan.md`), not agent name, because the last agent varies depending on the options selected in the install (Reviewer may be absent, for example). Carry out the checks in order:
+Após o **último agente do plano** concluir, antes da mensagem final de "extração concluída". O gatilho é posição (último item de `.reversa/plan.md`), não nome de agente, porque o último agente varia conforme os opcionais selecionados no install (Reviewer pode estar ausente, por exemplo). Faça os checks na ordem:
 
-1. Verify that `reversa/forward/` exists in the project root. If it doesn't exist, skip straight to the "Addendum Reconciliation" section.
-2. List all subfolders of `reversa/forward/` that contain `regression-watch.md`.
-3. If the list is empty, skip straight to the "Addendum Reconciliation" section.
-4. Otherwise, proceed with the procedure below, one feature at a time.
+1. Verifique se `_reversa_forward/` existe na raiz do projeto. Se não existir, pule direto para a seção "Reconciliação de adendos".
+2. Liste todas as subpastas de `_reversa_forward/` que contêm `regression-watch.md`.
+3. Se a lista estiver vazia, pule direto para a seção "Reconciliação de adendos".
+4. Caso contrário, prossiga com o procedimento abaixo, uma feature por vez.
 
 ## Procedimento por feature
 
-For each `reversa/forward/<feature>/regression-watch.md`:
+Para cada `_reversa_forward/<feature>/regression-watch.md`:
 
-1. Load the file. Identify the main watch-item table (columns `ID | Source | Expected rule after change | Verification type | Violation signal`; also accept the legacy Portuguese headers).
-2. For each watch item in the main table (not archived ones):
-2.1. Identify `Verification type`; possible values are `presence`, `absence`, `wording`, and `confidence`. Accept legacy Portuguese values when reading existing artifacts.
-2.2. Apply the corresponding check against the newly generated artifacts in `reversa/sdd/`:
-- `presence`: the rule must be present in `reversa/sdd/domain.md` (or in the file pointed to by the Source column) with the same semantic essence.
-- `absence`: the original rule must NO longer appear in the SDD.
-- `wording`: the text was deliberately changed; check whether the new version meets expectations.
-- `confidence`: the rule is still present, but its confidence (🟢, 🟡, 🔴) must be equal to or greater than expected.
+1. Carregue o arquivo. Identifique a tabela principal de watch items (colunas `ID | Origem | Regra esperada após mudança | Tipo de verificação | Sinal de violação`).
+2. Para cada watch item da tabela principal (não os arquivados):
+   2.1. Identifique o `Tipo de verificação`, valores possíveis: `presença`, `ausência`, `redação`, `confidência`.
+   2.2. Aplique a verificação correspondente contra os artefatos recém-gerados em `_reversa_sdd/`:
+        - `presença`: a regra precisa estar presente em `_reversa_sdd/domain.md` (ou no arquivo apontado pela coluna Origem) com a mesma essência semântica.
+        - `ausência`: a regra original NÃO pode mais aparecer no SDD.
+        - `redação`: o texto foi alterado deliberadamente, verifique se a versão nova bate com a expectativa.
+        - `confidência`: a regra continua presente, mas a confidência (🟢, 🟡, 🔴) deve ser igual ou maior à esperada.
    2.3. Atribua um veredito:
         - 🟢 **verde**, a expectativa bateu integralmente.
-- 🟡 **yellow**, there is semantic equivalence but the text differs, or the evidence is partial. Default verdict when there is ambiguity. Awaits human judgment.
-- 🔴 **red**, expectations did NOT meet. The previously confirmed rule became an injured rule.
-3. After evaluating all watch items, update the `## Re-extraction history` section of the same `regression-watch.md` by adding a dated block (also recognize the legacy Portuguese heading when reading):
+        - 🟡 **amarelo**, há equivalência semântica mas o texto difere, ou a evidência é parcial. Veredito padrão quando há ambiguidade. Aguarda julgamento humano.
+        - 🔴 **vermelho**, a expectativa NÃO bateu. A regra confirmada antes virou regra ferida.
+3. Após avaliar todos os watch items, atualize a seção `## Histórico de re-extrações` do mesmo `regression-watch.md` adicionando bloco datado:
 
 ```
-### Re-extraction YYYY-MM-DD HH:MM
+### Re-extração YYYY-MM-DD HH:MM
 
-| ID | Verdict | Note |
+| ID | Veredito | Observação |
 |----|----------|------------|
-| W001 | 🟢 green | rule preserved in reversa/sdd/domain.md#rule-X |
-| W005 | 🔴 red | rule removed from current code; unintended change |
-| W010 | 🟡 yellow | semantically equivalent text differs literally; awaiting judgment |
+| W001 | 🟢 verde | regra preservada em _reversa_sdd/domain.md#regra-X |
+| W005 | 🔴 vermelho | regra removida do código atual; mudança não pretendida |
+| W010 | 🟡 amarelo | texto equivalente mas difere literalmente; aguarda julgamento |
 ```
 
-4. DO NOT change the main watch items table. DO NOT recycle IDs. DO NOT move watch items to "Archived" automatically.
+4. NÃO altere a tabela principal de watch items. NÃO recicle IDs. NÃO mova watch items para "Arquivadas" automaticamente.
 
-5. For each watch item with three consecutive green verdicts in history, and as long as `setup.json#watch.archive-after` allows it, move the item from the main table to the `## Arquivadas` section at the end of the file. Keep the original ID.
+5. Para cada watch item com três vereditos verdes consecutivos no histórico, e desde que `setup.json#watch.archive-after` permita, mova o item da tabela principal para a seção `## Arquivadas` no final do arquivo. Mantenha o ID original.
 
-## Writing policy
+## Política de escrita
 
-- Atomic writing (tempfile plus rename) in `regression-watch.md`.
-- Never rewrite or delete entries from the re-extraction history.
-- The new re-extraction block always goes at the top of the `## Re-extraction history` section (descending order).
+- Escrita atômica (tempfile mais rename) em `regression-watch.md`.
+- Nunca reescreva ou apague entradas do histórico de re-extrações.
+- O bloco novo de re-extração vai sempre no topo da seção `## Histórico de re-extrações` (ordem decrescente).
 
-## User report
+## Relatório ao usuário
 
-After going through all the features, present:
+Após percorrer todas as features, apresente:
 
 1. Total de features verificadas
 2. Total de watch items verificados
 3. Quebra por veredito: verdes, amarelos, vermelhos
-4. Detailed list of reds (ID, feature, rule, reason for divergence)
-5. Detailed list of yellows who asked for human judgment
+4. Lista detalhada dos vermelhos (ID, feature, regra, motivo da divergência)
+5. Lista detalhada dos amarelos que pediram julgamento humano
 
-If there is at least one red, display a prominent warning:
+Se houver pelo menos um vermelho, apresente um aviso destacado:
 
-> 🔴 **Attention**, **N semantic regressions** were detected in previously coded features. Review before proceeding.
+> 🔴 **Atenção**, foram detectadas **N regressões semânticas** em features previamente codadas. Revise antes de seguir.
 
-If `setup.json#watch.block-on-red` is `true`, suggest the user **not** proceed with new `/reversa-requirements` until each red is sorted. Reversa only alerts, it never automatically blocks the user's flow.
+Se a `setup.json#watch.block-on-red` for `true`, sugira ao usuário **não** prosseguir com novos `/reversa-requirements` até que cada vermelho seja triado. O Reversa apenas alerta, jamais bloqueia automaticamente o fluxo do usuário.
 
-## Addendum reconciliation
+## Reconciliação de adendos
 
-After scrolling through the features (or even if none have `regression-watch.md`), check if there is `reversa/sdd/addenda/` with files `.md` created by `/reversa-sync`. If it exists:
+Depois de percorrer as features (ou mesmo se nenhuma tiver `regression-watch.md`), verifique se existe `_reversa_sdd/addenda/` com arquivos `.md` criados pelo `/reversa-sync`. Se existir:
 
-1. For each addendum whose `## Validity` section (or legacy `## Vigência`) does NOT contain `Superseded by the re-extraction of ...` or its legacy Portuguese equivalent, add this line at the end of the section:
+1. Para cada adendo cuja seção `## Vigência` NÃO contém linha `Superado pela re-extração de ...`, acrescente ao final dessa seção a linha:
 
    ```
-Superseded by the re-extraction of YYYY-MM-DD.
+   Superado pela re-extração de YYYY-MM-DD.
    ```
 
-2. Never delete the addendum, never rewrite the previous lines of the Validity section, never touch the other sections. Append-only, atomic writing.
-3. Addenda already exceeded in previous re-extractions remain as they are (they are historical).
-4. Include in the report to the user how many addenda were marked as obsolete in this re-extraction.
+2. Jamais apague o adendo, jamais reescreva as linhas anteriores da seção Vigência, jamais toque nas demais seções. Append-only, escrita atômica.
+3. Adendos já superados em re-extrações anteriores ficam como estão (são histórico).
+4. Inclua no relatório ao usuário quantos adendos foram marcados como superados nesta re-extração.
 
-The reason: addenda are bridges between a forward delivery and re-extraction. With the extract regenerated from the current code, the deltas described in the addenda are already absorbed into the main artifacts, and consumers (for example `/reversa-requirements` and `/reversa-plan`) should only consider current addenda.
+A razão: os adendos são pontes entre uma entrega forward e a re-extração. Com a extração regenerada a partir do código atual, os deltas descritos nos adendos já estão absorvidos nos artefatos principais, e os consumidores (por exemplo `/reversa-requirements` e `/reversa-plan`) só devem considerar adendos vigentes.
 
-## Special case, without `reversa/sdd/`
+## Caso especial, sem `_reversa_sdd/`
 
-If during the procedure `reversa/sdd/` does not have the expected files (because the re-extraction was partial or the documentation level was reduced), record a 🟡 yellow verdict with the note `missing evidence; reversa/sdd/<file> was not generated in this extraction` and move on.
+Se durante o procedimento o `_reversa_sdd/` não tiver os arquivos esperados (porque a re-extração foi parcial ou o nível de documentação foi reduzido), registre veredito 🟡 amarelo com observação `evidência ausente, _reversa_sdd/<arquivo> não foi gerado nesta extração` e siga em frente.
 
 ## Lacuna conhecida
 
-Semantic equivalence between expected rule and extracted rule is subjective evaluation. When in doubt, choose a yellow verdict. Red verdict should be reserved for cases where the rule simply disappeared or was explicitly contradicted.
+Equivalência semântica entre regra esperada e regra extraída é avaliação subjetiva. Quando tiver dúvida, prefira veredito amarelo. Veredito vermelho deve ser reservado para casos onde a regra simplesmente sumiu ou foi explicitamente contradita.

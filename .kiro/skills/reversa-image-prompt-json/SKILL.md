@@ -1,9 +1,9 @@
 ---
 name: reversa-image-prompt-json
-description: Creates structured JSON prompts for generating images with luxurious and cinematic aesthetics (product photo, food, cosmetic, jewelry, fashion).
+description: Cria prompts JSON estruturados para geração de imagens com estética luxuosa e cinematográfica (foto de produto, comida, cosmético, joia, moda).
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -14,158 +14,158 @@ metadata:
 
 # Image Prompt Builder
 
-Skill to build structured JSON prompts for generating product images with
-luxurious, cinematic aesthetic — optimized for **Nano Banana 2 (Gemini 3.1 Flash Image)**
-via **Google Antigravity**, with support for all native model parameters.
+Skill para construir prompts JSON estruturados para geração de imagens de produtos com
+estética cinematográfica e luxuosa — otimizada para **Nano Banana 2 (Gemini 3.1 Flash Image)**
+via **Google Antigravity**, com suporte a todos os parâmetros nativos do modelo.
 
 ---
 
-## Mandatory flow
+## Fluxo obrigatório
 
-When activated, this skill must **ALWAYS** follow these steps in order:
+Ao ser ativada, esta skill deve **SEMPRE** seguir estas etapas em ordem:
 
-1. **Guided interview** — Collect user information in blocks
-2. **Confirmation** — Show summary and request approval
-3. **JSON Generation** — Assemble the final structured prompt
-
----
-
-## STAGE 1 — Interview guided by blocks
-
-Collect information in **3 rounds of questions**, never all at once.
+1. **Entrevista guiada** — Coletar informações do usuário por blocos
+2. **Confirmação** — Mostrar resumo e pedir aprovação
+3. **Geração do JSON** — Montar o prompt estruturado final
 
 ---
 
-### Round 1 — Product and Scene
+## ETAPA 1 — Entrevista guiada por blocos
 
-Ask the user:
+Colete as informações em **3 rodadas de perguntas**, nunca tudo de uma vez.
 
-> "Let's put together your image prompt! I need to understand the product first. Tell me:"
+---
 
-1. **Type of product**: What is the product? (e.g. chocolate cake, perfume bottle, sneakers, shake, jewelry...)
-2. **Brand name**: Is there a visible brand? If so, what is the name?
-3. **Product appearance**: Describe the color, texture, finish, shape. The more detail, the better.
+### Rodada 1 — Produto e Cena
+
+Pergunte ao usuário:
+
+> "Vamos montar seu prompt de imagem! Preciso entender o produto primeiro. Me conta:"
+
+1. **Tipo de produto**: O que é o produto? (ex: bolo de chocolate, frasco de perfume, tênis, shake, joia...)
+2. **Nome da marca**: Tem marca visível? Se sim, qual é o nome?
+3. **Aparência do produto**: Descreva a cor, textura, acabamento, forma. Quanto mais detalhe, melhor.
 4. **Elementos extras**: Tem acompanhamentos? (frutas, gelo, flores, folhas, reflexos...)
-5. **Type of scene**: What is the general mood of the image?
-- Suggested options: luxurious and cinematic / clean and minimalist / dramatic and contrasting / warm and cozy / futuristic and technological
+5. **Tipo de cena**: Qual é o clima geral da imagem?
+   - Opções sugeridas: luxuoso e cinematográfico / clean e minimalista / dramático e contrastado / quente e aconchegante / futurista e tecnológico
 
 ---
 
-### Round 2 — Composition and Action
+### Rodada 2 — Composição e Ação
 
-> "Great! Now tell me about the dynamic look of the image:"
+> "Ótimo! Agora me conta sobre o visual dinâmico da imagem:"
 
-6. **Main action**: Is the product static or moving? (ex: liquid exploding, suspended particles, smoke, splash, cut revealing interior...)
-7. **Elements suspended in the air**: Which elements fly around the product? (e.g. drops, dust, fragments, leaves, crystals, bubbles...)
-8. **Support surface**: Where is the product? (ex: polished white marble, matte black stone, rustic wood, transparent glass, abstract surface...)
-9. **Camera angle**: How does the camera film the product?
-- Options: low angle (dominance) / eye level / slightly above / extreme macro / 3/4 angle
+6. **Ação principal**: O produto está estático ou tem movimento? (ex: líquido explodindo, partículas suspensas, fumaça, splash, corte revelando interior...)
+7. **Elementos suspensos no ar**: Quais elementos voam ao redor do produto? (ex: gotas, pó, fragmentos, folhas, cristais, bolhas...)
+8. **Superfície de apoio**: Onde o produto está? (ex: mármore branco polido, pedra preta fosca, madeira rústica, vidro transparente, superfície abstrata...)
+9. **Ângulo da câmera**: Como a câmera filma o produto?
+   - Opções: ângulo baixo (dominância) / nível dos olhos / levemente acima / macro extremo / ângulo 3/4
 
 ---
 
-### Round 3 — Lighting, Colors and Technical Specifications
+### Rodada 3 — Iluminação, Cores e Especificações Técnicas
 
-> "Almost there! Now the visual and technical part:"
+> "Quase lá! Agora a parte visual e técnica:"
 
-10. **Lighting style**: How do you want the light?
-- Options: clean and bright studio / dramatic with shadows / soft natural light / luxury product light with rim light / colorful neon light
+10. **Estilo de iluminação**: Como você quer a luz?
+    - Opções: estúdio clean e brilhante / dramático com sombras / luz natural suave / luz de produto de luxo com rim light / luz néon colorida
 
-11. **Background color palette**: Which color/gradient dominates the background? (ex: charcoal black with amber bokeh, pink gradient for champagne, dark blue for white...)
+11. **Paleta de cores do fundo**: Qual cor/gradiente domina o fundo? (ex: preto carvão com bokeh âmbar, gradiente rosa para champanhe, azul escuro para branco...)
 
-12. **Accent colors**: What colors appear in the surrounding elements? (e.g. gold, silver, bright red, pastel tones...)
+12. **Cores de destaque (accents)**: Quais cores surgem nos elementos ao redor? (ex: dourado, prata, vermelho vivo, tons pastéis...)
 
-13. **Resolution**: What level of quality do you need?
-- `512px` — fast iteration / testing
+13. **Resolução**: Qual nível de qualidade você precisa?
+    - `512px` — iteração rápida / testes
     - `1K` — redes sociais e uso digital
-- `2K` — professional content
-- `4K` — maximum production / printing
+    - `2K` — conteúdo profissional
+    - `4K` — produção máxima / impressão
 
-14. **Aspect Ratio**: What is the aspect ratio of the image? (default: `16:9`)
-- `16:9` — widescreen (default) ✅
+14. **Aspect Ratio**: Qual proporção da imagem? (padrão: `16:9`)
+    - `16:9` — widescreen (padrão) ✅
     - `1:1` — quadrado (Instagram feed)
     - `9:16` — vertical (Stories, Reels, TikTok)
-- `4:3` — classic
+    - `4:3` — clássico
     - `3:4` — retrato
     - `4:1` / `1:4` — banner horizontal / vertical
     - `8:1` / `1:8` — super banner
 
-15. **Rendering style**: Ultra-detailed photorealistic / illustration / 3D render / analog photo / other?
+15. **Estilo de renderização**: Fotorrealista ultra-detalhado / ilustração / 3D render / foto analógica / outro?
 
-16. **Anything else?**: Any special details you want to ensure in the image?
+16. **Algo mais?**: Algum detalhe especial que você quer garantir na imagem?
 
 ---
 
-## STEP 2 — Confirmation
+## ETAPA 2 — Confirmação
 
-After collecting all the responses, show a **summary in topics** for the user to confirm:
+Após coletar todas as respostas, mostre um **resumo em tópicos** para o usuário confirmar:
 
 ```
 📋 RESUMO DO PROMPT:
-- Produto: [type] — [brand]
-- Appearance: [description]
+- Produto: [tipo] — [marca]
+- Aparência: [descrição]
 - Cena: [tipo]
-- Action: [description]
+- Ação: [descrição]
 - Elementos suspensos: [lista]
-- Surface: [description]
-- Angle: [angle]
-- Lighting: [style]
+- Superfície: [descrição]
+- Ângulo: [ângulo]
+- Iluminação: [estilo]
 - Fundo: [cores]
 - Accents: [cores]
-- Resolution: [ex: 2K]
+- Resolução: [ex: 2K]
 - Aspect Ratio: [ex: 1:1]
-- Rendering: [ex: ultra-photorealistic]
+- Renderização: [ex: ultra-photorealistic]
 
-Is it correct? Can I mount the JSON prompt now?
+Está correto? Posso montar o prompt JSON agora?
 ```
 
-Only proceed to Step 3 after user confirmation.
+Só avance para a Etapa 3 após confirmação do usuário.
 
 ---
 
-## STEP 3 — JSON Generation
+## ETAPA 3 — Geração do JSON
 
-With the answers confirmed, set up the prompt following **exactly** this schema:
+Com as respostas confirmadas, monte o prompt seguindo **exatamente** este schema:
 
 ```json
 {
   "master_prompt": {
     "scene_type": "[velocidade/estilo] [nicho] photography",
     "product": {
-      "type": "[rich, adjective-heavy product description]",
+      "type": "[descrição rica e adjetivada do produto]",
       "brand_name": "[nome da marca ou 'no visible branding']",
-      "appearance": "[detailed color, texture, shape, and finish]",
+      "appearance": "[cor, textura, forma, acabamento detalhados]",
       "accompaniments": [
-"[element 1 with sensory description]",
-"[element 2 with sensory description]"
+        "[elemento 1 com descrição sensorial]",
+        "[elemento 2 com descrição sensorial]"
       ]
     },
     "composition": {
-      "action": "[central dramatic action captured in motion]",
+      "action": "[ação dramática central capturada em movimento]",
       "surrounding_elements": [
-"[dropdown element 1 with motion detail]",
-"[suspended element 2 with motion detail]",
-"[suspended element 3 with motion detail]"
+        "[elemento suspenso 1 com detalhe de movimento]",
+        "[elemento suspenso 2 com detalhe de movimento]",
+        "[elemento suspenso 3 com detalhe de movimento]"
       ],
-      "placement": "[hero positioning centered on specified surface]"
+      "placement": "[posicionamento hero centralizado na superfície especificada]"
     },
     "lighting": {
-      "style": "[full lighting style]",
+      "style": "[estilo de iluminação completo]",
       "effects": [
         "[efeito de rim light]",
         "[efeito de key light]",
         "[efeito de backlight ou top light]",
-"[extra effect if needed]"
+        "[efeito extra se necessário]"
       ]
     },
     "color_palette": {
-      "background": "[background gradient/bokeh with transition description]",
-      "accents": "[comma separated list of accent colors]"
+      "background": "[gradiente/bokeh do fundo com descrição de transição]",
+      "accents": "[lista de cores de destaque separadas por vírgula]"
     },
     "technical_specs": {
-      "camera": "[lens type], [chosen angle]",
+      "camera": "[tipo de lente], [ângulo escolhido]",
       "shutter": "[tipo de captura — freeze-motion, long exposure, etc.]",
-      "depth_of_field": "[key focus], [blur description]",
-      "rendering_style": "[photorealistic / illustration / 3D render / analog photo / etc.]"
+      "depth_of_field": "[foco principal], [descrição do blur]",
+      "rendering_style": "[fotorrealista / ilustração / 3D render / foto analógica / etc.]"
     },
     "output_specs": {
       "resolution": "[512px | 1K | 2K | 4K]",
@@ -179,32 +179,32 @@ With the answers confirmed, set up the prompt following **exactly** this schema:
 
 ---
 
-## JSON quality rules
+## Regras de qualidade do JSON
 
-- **Luxury and premium adjectives** are mandatory in every descriptive field
-- **Frozen motion** must always be present in `action` and `surrounding_elements`
-- **Reflective surfaces** must be mentioned in `placement`
-- The product is always the **centralized hero** of the scene
-- `surrounding_elements` must have **minimum 3, maximum 6 items**
-- `lighting.effects` must have **always 3 or 4 effects** (rim, key, back/top + optional extra)
-- `scene_type` must follow the pattern: `"[adjetivo de velocidade/estilo] [nicho] photography"`
-- `output_specs.resolution` must use the native Nano Banana 2 values: `512px`, `1K`, `2K` or `4K`
-- `output_specs.aspect_ratio` must use the native values ​​supported by the model
-- `output_specs.model` must always be `"nano-banana-2"`
-- `output_specs.synthid_watermark` must always be `true` (Google's mandatory default)
-
----
-
-## After generating the JSON
-
-Present the JSON formatted in code block and add:
-
-> 💡 **Antigravity usage tip:** Paste this JSON directly into the Nano Banana 2 prompt field in Google Antigravity. `output_specs` fields are interpreted natively by the model — no additional prefix is ​​required.
-
-Ask if the user wants to adjust any field, change the aspect ratio or generate variations.
+- **Adjetivos de luxo e premium** são obrigatórios em todo campo descritivo
+- **Movimento congelado** deve sempre estar presente em `action` e `surrounding_elements`
+- **Superfícies reflexivas** devem ser mencionadas em `placement`
+- O produto é sempre o **herói centralizado** da cena
+- `surrounding_elements` deve ter **mínimo 3, máximo 6 itens**
+- `lighting.effects` deve ter **sempre 3 ou 4 efeitos** (rim, key, back/top + extra opcional)
+- `scene_type` deve seguir o padrão: `"[adjetivo de velocidade/estilo] [nicho] photography"`
+- `output_specs.resolution` deve usar os valores nativos do Nano Banana 2: `512px`, `1K`, `2K` ou `4K`
+- `output_specs.aspect_ratio` deve usar os valores nativos suportados pelo modelo
+- `output_specs.model` deve sempre ser `"nano-banana-2"`
+- `output_specs.synthid_watermark` deve sempre ser `true` (padrão obrigatório do Google)
 
 ---
 
-## Reference examples
+## Após gerar o JSON
 
-For language pattern inspiration, see `/mnt/skills/user/image-prompt-builder/references/examples.md` if available.
+Apresente o JSON formatado em bloco de código e adicione:
+
+> 💡 **Dica de uso no Antigravity:** Cole este JSON diretamente no campo de prompt do Nano Banana 2 no Google Antigravity. Os campos `output_specs` são interpretados nativamente pelo modelo — não é necessário nenhum prefixo adicional.
+
+Pergunte se o usuário quer ajustar algum campo, trocar o aspect ratio ou gerar variações.
+
+---
+
+## Exemplos de referência
+
+Para inspiração dos padrões de linguagem, consulte `/mnt/skills/user/image-prompt-builder/references/examples.md` se disponível.

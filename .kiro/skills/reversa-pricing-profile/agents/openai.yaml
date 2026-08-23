@@ -1,5 +1,5 @@
 interface:
   display_name: "Reversa Pricing Profile"
-  short_description: "Conduct a guided interview of up to ten questions and generate the…"
+  short_description: "Conduz uma entrevista guiada de ate dez perguntas e gera o…"
 policy:
   allow_implicit_invocation: false

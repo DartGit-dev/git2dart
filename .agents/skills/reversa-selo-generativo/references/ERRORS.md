@@ -1,14 +1,14 @@
-# Error and Handling Scenarios
+# Cenários de Erro e Tratamento
 
-Common scenarios in the `selo-generativo` skill and how to handle them.
+Cenários comuns na skill `selo-generativo` e como tratá-los.
 
 ---
 
-## ERR-01: p5.js unavailable (CDN unreachable)
+## ERR-01: p5.js indisponível (CDN inacessível)
 
-**Cause**: user offline on first run, or CDN blocked.
+**Causa**: usuário offline na primeira execução, ou CDN bloqueado.
 
-**Detection**: Global variable `p5` not defined after CDN `<script>`.
+**Detecção**: variável `p5` global não definida após o `<script>` do CDN.
 
 **Tratamento**:
 
@@ -19,7 +19,7 @@ window.addEventListener("load", () => {
             <div class="seal-fallback" style="width: ${SIZE}px; height: ${SIZE}px;
                  background: ${palette.bg}; display: flex; align-items: center;
                  justify-content: center; border-radius: 50%; color: ${palette.fg};">
-<span>Stamp unavailable</span>
+                <span>Selo indisponível</span>
             </div>`;
         return;
     }
@@ -27,25 +27,25 @@ window.addEventListener("load", () => {
 });
 ```
 
-Fallback: Minimal SVG (circle + palette background color) inline, no dependency on p5.
+Fallback: SVG mínimo (círculo + cor de fundo da paleta) inline, sem dependência de p5.
 
 ---
 
-## ERR-02: Canvas not supported by the browser
+## ERR-02: Canvas não suportado pelo browser
 
-**Cause**: very old browser without support for `<canvas>` (very rare today).
+**Causa**: browser muito antigo sem suporte a `<canvas>` (caso raríssimo hoje).
 
-**Detection**: `canvas.getContext("2d")` returns `null`.
+**Detecção**: `canvas.getContext("2d")` retorna `null`.
 
-**Treatment**: Drop to inline SVG with `crystal-lattice` (which is the most compatible pattern with real SVG).
+**Tratamento**: cair para SVG inline com `crystal-lattice` (que é o padrão mais compatível com SVG real).
 
 ---
 
-## ERR-03: Invalid or missing seed
+## ERR-03: Seed inválido ou ausente
 
-**Cause**: agent called the skill without a seed, or passed an empty string.
+**Causa**: agente chamou a skill sem seed, ou passou string vazia.
 
-**Detection**: validation at input.
+**Detecção**: validação na entrada.
 
 **Tratamento**: fallback seguro.
 
@@ -53,22 +53,22 @@ Fallback: Minimal SVG (circle + palette background color) inline, no dependency 
 function resolveSeed(rawSeed) {
     if (!rawSeed || typeof rawSeed !== "string" || rawSeed.length === 0) {
         const timestamp = Date.now().toString();
-console.warn("Missing seed, using timestamp as fallback. Stamp will not be reproducible.");
+        console.warn("Seed ausente, usando timestamp como fallback. Selo não será reprodutível.");
         return timestamp;
     }
     return rawSeed;
 }
 ```
 
-When timestamp is used, display a warning in the page footer (only if it is large hero): "Non-reproducible stamp (no seed)".
+Quando timestamp é usado, exibir aviso no rodapé da página (apenas se for hero grande): "Selo não-reprodutível (sem seed)".
 
 ---
 
-## ERR-04: Extreme size
+## ERR-04: Tamanho extremo
 
-**Cause**: screen request too large (>4096) or too small (<16).
+**Causa**: requisição de canvas muito grande (>4096) ou muito pequeno (<16).
 
-**Detection**: validation of parameter `size`.
+**Detecção**: validação do parâmetro `size`.
 
 **Tratamento**:
 
@@ -77,26 +77,26 @@ function clampSize(requested) {
     const MIN = 16;
     const MAX = 4096;
     if (requested < MIN) {
-console.warn(`Size ${requested} is below the minimum (${MIN}). Adjusting.`);
+        console.warn(`Tamanho ${requested} abaixo do mínimo (${MIN}). Ajustando.`);
         return MIN;
     }
     if (requested > MAX) {
-console.warn(`Size ${requested} is above the maximum (${MAX}). Adjusting.`);
+        console.warn(`Tamanho ${requested} acima do máximo (${MAX}). Ajustando.`);
         return MAX;
     }
     return requested;
 }
 ```
 
-Above 1024, pixel-loop patterns like `wave-interference` become heavy. The skill must warn and offer mandatory `noLoop()` with canvas cache.
+Acima de 1024, padrões de pixel-loop como `wave-interference` ficam pesados. A skill deve avisar e oferecer `noLoop()` obrigatório com cache do canvas.
 
 ---
 
-## ERR-05: Palette with invalid colors
+## ERR-05: Paleta com cores inválidas
 
-**Cause**: Palette received with malformed hex or missing field.
+**Causa**: paleta recebida com hex malformado ou campo ausente.
 
-**Detection**: validation regex on each color.
+**Detecção**: regex de validação em cada cor.
 
 **Tratamento**:
 
@@ -106,30 +106,30 @@ function validatePalette(palette) {
     const required = ["bg", "foreground", "accent", "fg"];
     for (const field of required) {
         if (!(field in palette)) {
-throw new Error(`Invalid palette: missing field '${field}'.`);
+            throw new Error(`Paleta inválida: campo '${field}' ausente.`);
         }
     }
     if (!Array.isArray(palette.foreground) || palette.foreground.length === 0) {
-throw new Error("Invalid palette: 'foreground' must be non-empty list.");
+        throw new Error("Paleta inválida: 'foreground' deve ser lista não-vazia.");
     }
     [palette.bg, palette.accent, palette.fg].forEach((c) => {
-if (!HEX_RX.test(c)) throw new Error(`Invalid color: ${c}`);
+        if (!HEX_RX.test(c)) throw new Error(`Cor inválida: ${c}`);
     });
     palette.foreground.forEach((c) => {
-if (!HEX_RX.test(c)) throw new Error(`Invalid foreground color: ${c}`);
+        if (!HEX_RX.test(c)) throw new Error(`Cor inválida em foreground: ${c}`);
     });
 }
 ```
 
-If the palette is invalid, drop to `palettes.sober` (more conservative fallback palette) and log the crash.
+Se a paleta é inválida, cair para `palettes.sober` (paleta de fallback mais conservadora) e logar a falha.
 
 ---
 
 ## ERR-06: Contraste insuficiente
 
-**Cause**: palette with `accent` and `bg` very close together, generating an invisible central element.
+**Causa**: paleta com `accent` e `bg` muito próximos, gerando elemento central invisível.
 
-**Detection**: `contrastRatio(accent, bg) < 4.5` (see PALETTE_BY_STYLE.md).
+**Detecção**: `contrastRatio(accent, bg) < 4.5` (ver PALETTE_BY_STYLE.md).
 
 **Tratamento**: derivar `accent` ajustado automaticamente.
 
@@ -145,13 +145,13 @@ function ensureContrast(palette) {
 
 ---
 
-## ERR-07: Chosen pattern incompatible with style
+## ERR-07: Padrão escolhido incompatível com estilo
 
-**Cause**: derivation by seed resulted in a pattern visually incompatible with the chosen style (ex: `crystal-lattice` in style `exploratory`).
+**Causa**: derivação por seed resultou em padrão visualmente incompatível com o estilo escolhido (ex: `crystal-lattice` em estilo `exploratory`).
 
-**Detection**: compatibility table declared in `GENERATIVE_PATTERNS.md`.
+**Detecção**: tabela de compatibilidade declarada em `GENERATIVE_PATTERNS.md`.
 
-**Treatment**: re-roll within compatible patterns.
+**Tratamento**: re-rolar dentro dos padrões compatíveis.
 
 ```javascript
 const STYLE_COMPATIBLE = {
@@ -173,19 +173,19 @@ function pickCompatible(seedHex, styleHint) {
 
 ## ERR-08: Performance muito ruim em mini-selo
 
-**Cause**: Heavy pattern on small screen consuming disproportionate CPU.
+**Causa**: padrão pesado em canvas pequeno consumindo CPU desproporcional.
 
-**Detection**: measure time between `setup` and final `draw`.
+**Detecção**: medir tempo entre `setup` e `draw` final.
 
-**Treatment**: if the canvas is mini (<200px) and the chosen pattern is `wave-interference` (pixel loop), automatically change to `crystal-lattice` (simple geometry) with a message in the console.
+**Tratamento**: se canvas é mini (<200px) e padrão escolhido é `wave-interference` (pixel loop), trocar automaticamente para `crystal-lattice` (geometria simples) com mensagem no console.
 
 ---
 
-## ERR-09: Multiple instances of the same badge on the same page
+## ERR-09: Múltiplas instâncias do mesmo selo na mesma página
 
-**Cause**: the mini-seal appears on all pages of the mini-site. Reloading p5.js and generating a screen in each one is wasteful.
+**Causa**: o mini-selo aparece em todas as páginas do mini-site. Recarregar p5.js e gerar canvas em cada uma é desperdício.
 
-**Treatment**: generate the stamp once as SVG (for `crystal-lattice`) or PNG dataURI (for other standards) and embed it inline on all pages. The skill accepts parameter `mode: "svg" | "dataURI" | "html"` to return appropriate format.
+**Tratamento**: gerar o selo uma vez como SVG (para `crystal-lattice`) ou PNG dataURI (para outros padrões) e embutir inline em todas as páginas. A skill aceita parâmetro `mode: "svg" | "dataURI" | "html"` para retornar formato apropriado.
 
 ```javascript
 function exportAs(mode) {
@@ -199,14 +199,14 @@ function exportAs(mode) {
 
 ## ERR-10: localStorage de seed corrompido
 
-Not directly applicable, because the skill does not persist state between executions. The seed always comes from the invoker (orchestrating agent), and reproducibility depends solely on it.
+Não aplicável diretamente, porque a skill não persiste estado entre execuções. O seed sempre vem do invocador (agente orquestrador), e a reprodutibilidade depende apenas dele.
 
-If the summoner lost the seed, the agent must recalculate from soul.md (sha256). This skill is not responsible for this.
+Se o invocador perdeu o seed, o agente deve recalcular do soul.md (sha256). Esta skill não é responsável por isso.
 
 ---
 
-## General principle
+## Princípio geral
 
-The seal is a **decorative** element. Seal failure should never break the entire page. In all of the above scenarios, there is fallback that always renders something: a colored circle, a minimal SVG, a simplified version. No white screen.
+O selo é um elemento **decorativo**. Falha de selo nunca deve quebrar a página inteira. Em todos os cenários acima, há fallback que sempre renderiza algo: um círculo colorido, um SVG mínimo, uma versão simplificada. Nada de tela branca.
 
-Messages in pt-br, without indents.
+Mensagens em pt-br, sem travessão.

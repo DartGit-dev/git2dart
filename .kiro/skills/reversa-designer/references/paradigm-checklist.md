@@ -1,50 +1,50 @@
-# Target Paradigm Honor Checklist
+# Checklist de honra ao paradigma alvo
 
-Quick checklist that the Designer applies before closing `target_architecture.md` and `target_domain_model.md`.
+Lista de verificação rápida que o Designer aplica antes de fechar `target_architecture.md` e `target_domain_model.md`.
 
 ## Event-driven
 
-- [ ] Events are named in the past tense (`PedidoCriado`, not `CriarPedido`).
-- [ ] Each event has an explicit schema with versioning.
-- [ ] Commands and events are distinct.
-- [ ] Idempotence is guaranteed by construction (event ID, deduplication key).
-- [ ] Message order is handled by partitioning key.
-- [ ] Saga / orchestrator for distributed transactions, with clearing.
-- [ ] Outbox table for at-least-once guarantee between DB and queue.
-- [ ] DLQ defined for terminal failures.
+- [ ] Eventos têm nome no passado (`PedidoCriado`, não `CriarPedido`).
+- [ ] Cada evento tem schema explícito com versionamento.
+- [ ] Comandos e eventos são distintos.
+- [ ] Idempotência é garantida por construção (event ID, chave de deduplicação).
+- [ ] Ordem de mensagens é tratada por chave de particionamento.
+- [ ] Saga / orquestrador para transações distribuídas, com compensação.
+- [ ] Outbox table para garantia at-least-once entre BD e fila.
+- [ ] DLQ definida para falhas terminais.
 
-## OO with DI
+## OO com DI
 
-- [ ] Explicit interfaces for external dependencies.
-- [ ] Injection container configured by bounded context.
-- [ ] Aggregates do not depend on infra (no persistence within the aggregate).
-- [ ] Concrete repositories live in the infra layer.
+- [ ] Interfaces explícitas para dependências externas.
+- [ ] Container de injeção configurado por bounded context.
+- [ ] Aggregates não dependem de infra (sem persistência dentro do aggregate).
+- [ ] Repositórios concretos vivem na camada de infra.
 - [ ] Active Record explicitamente proibido.
 
-## Functional
+## Funcional
 
-- [ ] Immutable types in the domain.
-- [ ] Pure functions in the nucleus; side effects on edge.
-- [ ] State is a sequence of transformations, not mutation.
-- [ ] Composition used to build flows.
-- [ ] Algebraic types (sum types) for disjoint states.
+- [ ] Tipos imutáveis no domínio.
+- [ ] Funções puras no núcleo; side effects em borda.
+- [ ] Estado é sequência de transformações, não mutação.
+- [ ] Composição usada para construir fluxos.
+- [ ] Tipos algébricos (sum types) para estados disjuntos.
 
 ## Actor model
 
-- [ ] Each actor has a mailbox and isolated status.
-- [ ] Defined hierarchical supervision.
-- [ ] Messages between actors are immutable.
-- [ ] Persistence via event sourcing or snapshot.
+- [ ] Cada ator tem mailbox e estado isolado.
+- [ ] Supervisão hierárquica definida.
+- [ ] Mensagens entre atores são imutáveis.
+- [ ] Persistência via event sourcing ou snapshot.
 
 ## Procedural / dataflow
 
-- [ ] Flow expressed as transformation pipeline.
-- [ ] No shared mutation.
-- [ ] Isolated independent and testable stages.
+- [ ] Fluxo expresso como pipeline de transformações.
+- [ ] Sem mutação compartilhada.
+- [ ] Estágios independentes e testáveis isolados.
 
-## General (any paradigm)
+## Geral (qualquer paradigma)
 
-- [ ] Each element points to the origin in the legacy or to `discard_log.md`.
-- [ ] Bounded contexts justified by cohesion, not legacy structure.
-- [ ] Mermaid Diagram renders without error.
-- [ ] Architectural decisions documented in summarized ADR format.
+- [ ] Cada elemento aponta para origem no legado ou para `discard_log.md`.
+- [ ] Bounded contexts justificados por coesão, não por estrutura legada.
+- [ ] Diagrama Mermaid renderiza sem erro.
+- [ ] Decisões arquiteturais documentadas no formato ADR resumido.

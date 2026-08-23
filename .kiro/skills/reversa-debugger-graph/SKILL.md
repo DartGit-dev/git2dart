@@ -1,9 +1,9 @@
 ---
 name: reversa-debugger-graph
-description: 'Bugs team view generator: scans bug.md, validates invariants and regenerates index, catalog, BUG↔BUG relationship matrix, mermaid graph and BUG↔SPEC traceability matrix.'
+description: 'Gerador de views do time Bugs: varre os bug.md, valida invariantes e regenera índice, catálogo, matriz de relações BUG↔BUG, grafo mermaid e matriz de rastreabilidade BUG↔SPEC.'
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -13,82 +13,82 @@ metadata:
   role: specialist
 ---
 
-You are the cartographer of defects. The `bug.md` are the only source of truth; its mission is to validate them and regenerate all projections in a deterministic way, so that humans and agents can see the panorama without reading 200 files. **You never edit a bug**: if something is inconsistent, you stop and report it.
+Você é o cartógrafo dos defeitos. Os `bug.md` são a única fonte de verdade; sua missão é validá-los e regenerar todas as projeções de forma determinística, para que humanos e agentes enxerguem o panorama sem ler 200 arquivos. **Você nunca edita um bug**: se algo está inconsistente, você para e reporta.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` (`output_folder`, `doc_language`)
-2. Bugs are grouped by context: `reversa/bugs/<context>/bugs/`. If no context folder exists, report that there are no bugs reported and point to `/reversa-debugger`
-3. Scope: with argument (`/reversa-debugger-graph carrinho-de-compras`), regenerate only that context; without argument, regenerate ALL found contexts one by one
+1. Leia `.reversa/state.json` (`output_folder`, `doc_language`)
+2. Os bugs vivem agrupados por contexto: `_reversa_bugs/<contexto>/bugs/`. Se nenhuma pasta de contexto existir, informe que não há bugs registrados e aponte `/reversa-debugger`
+3. Escopo: com argumento (`/reversa-debugger-graph carrinho-de-compras`), regenere só aquele contexto; sem argumento, regenere TODOS os contextos encontrados, um a um
 
-## Step 1: Scan and Validation
+## Etapa 1: varredura e validação
 
-1. Read the front matter of ALL `reversa/bugs/*/bugs/*/bug.md` (only the front matter; body only when details are needed). Validation of invariants is always GLOBAL, crossing contexts (duplicate ID between contexts is an error)
-2. Validate the invariants. Divergence is an EXPLICIT ERROR, never a silent repair:
+1. Leia o front matter de TODOS os `_reversa_bugs/*/bugs/*/bug.md` (só o front matter; corpo apenas quando precisar de detalhe). A validação de invariantes é sempre GLOBAL, cruzando contextos (ID duplicado entre contextos é erro)
+2. Valide as invariantes. Divergência é ERRO EXPLÍCITO, nunca conserto silencioso:
    - ID duplicado (pode acontecer via merge de branches)
    - `schema_version` desconhecida
-- `status: resolved` without `resolution_kind` or without `closure.satisfied: true`
-- `resolution_kind: fixed` without `root_cause.state: confirmed`, without `regression_tests` or without `spec_verdict`
-- Relationship with non-existent ID, self-relationship, `duplicate-of` cycle
-- `DONE.md` present with `status` other than `resolved` (lock without closing), or `resolved` + `closure.satisfied: true` without `DONE.md` (closing without lock)
-3. If there are errors: list them all (bug, field, problem), generate views of only valid bugs, mark invalid ones in an "Inconsistencies" section of the index and stop the report there. Repair is a human decision.
+   - `status: resolved` sem `resolution_kind` ou sem `closure.satisfied: true`
+   - `resolution_kind: fixed` sem `root_cause.state: confirmed`, sem `regression_tests` ou sem `spec_verdict`
+   - Relação com ID inexistente, autorrelação, ciclo de `duplicate-of`
+   - `DONE.md` presente com `status` diferente de `resolved` (trava sem fechamento), ou `resolved` + `closure.satisfied: true` sem `DONE.md` (fechamento sem trava)
+3. Havendo erros: liste todos (bug, campo, problema), gere as views apenas dos bugs válidos, marque os inválidos numa seção "Inconsistências" do index e pare o relatório nisso. Consertar é decisão humana.
 
-## Step 2: views in `<context>/generated/`
+## Etapa 2: views em `<contexto>/generated/`
 
-Each context has its own views in `reversa/bugs/<context>/generated/`, covering only the bugs in that context (relations that cross contexts appear with the indicated target context). All with header `<!-- GENERATED, DO NOT EDIT: regenerado por /reversa-debugger-graph em <ISO 8601> a partir de N bugs -->`. Atomic writing. Create `generated/` from the context if it does not already exist.
+Cada contexto tem as próprias views em `_reversa_bugs/<contexto>/generated/`, cobrindo só os bugs daquele contexto (relações que cruzam contextos aparecem com o contexto do alvo indicado). Todas com cabeçalho `<!-- GENERATED, DO NOT EDIT: regenerado por /reversa-debugger-graph em <ISO 8601> a partir de N bugs -->`. Escrita atômica. Crie `generated/` do contexto se ainda não existir.
 
 ### catalog.jsonl
-One JSON line per bug: normalized front matter + calculated `path`. It is the index for searching in two stages (filter here, read the body of candidates only). It is never source of truth.
+Uma linha JSON por bug: front matter normalizado + `path` calculado. É o índice para busca em duas etapas (filtrar aqui, ler o corpo só dos candidatos). Nunca é source of truth.
 
 ### index.md
-1. Summary table by status and phase
-2. Table of open/active bugs: display_number, ID, priority, severity, area/module/feature, title, current path, is_blocked (derived from `blocking`)
+1. Tabela resumo por status e por phase
+2. Tabela de bugs abertos/ativos: display_number, ID, priority, severity, area/module/feature, título, caminho atual, is_blocked (derivado de `blocking`)
 3. Resolvidos: contagem por `resolution_kind` + lista compacta
-4. Bugs `visibility: restricted`: appear only as ID + "restricted", without title or detail
+4. Bugs `visibility: restricted`: aparecem só como ID + "restrito", sem título nem detalhe
 
 ### matrix.md
-SPARSE list of edges (never a global NxN matrix): `source | type | destination | state | evidence?`. Inverse derivatives appear marked as derivatives. Group by cluster when applicable.
+Lista ESPARSA de arestas (nunca matriz NxN global): `origem | tipo | destino | state | evidência?`. Inversas derivadas aparecem marcadas como derivadas. Agrupe por cluster quando houver.
 
 ### graph.md
-1. Mermaid graph (`graph LR`) of edges with state `supported`/`confirmed`; `proposed` dashed
-2. **Clusters**: bugs converging on the same component or chain of specs, with prose reading ("4 bugs converge in frame-buffer, indication of structural cause: fix BUG-X first")
-3. **Impact score** per open bug: `caused*3 + blocked*2 + regressions*4 + related*1`, counting ONLY `supported`/`confirmed` edges, with the total `related-to` weight limited to 3. State explicitly that this is a screening heuristic and does not replace priority/severity.
-4. Above ~50 bugs: subgraphs by area, top 10 impact highlighted
+1. Grafo mermaid (`graph LR`) das arestas com state `supported`/`confirmed`; `proposed` tracejado
+2. **Clusters**: bugs convergindo no mesmo componente ou cadeia de specs, com leitura em prosa ("4 bugs convergem em frame-buffer, indício de causa estrutural: corrija BUG-X primeiro")
+3. **Impact score** por bug aberto: `causados*3 + bloqueados*2 + regressões*4 + relacionados*1`, contando SÓ arestas `supported`/`confirmed`, peso de `related-to` limitado a 3 no total. Deixe escrito: heurística de triagem, não substitui priority/severity.
+4. Acima de ~50 bugs: subgrafos por área, top 10 de impacto em destaque
 
-### graph.html (the view that the user opens in the browser)
-SELF-CONTAINED HTML page (inline CSS, no external dependency, meta viewport), dark theme, title "Bug Graph · <context>":
+### graph.html (a view que o usuário abre no navegador)
+Página HTML AUTOCONTIDA (CSS inline, sem dependência externa, meta viewport), tema escuro, título "Grafo de Bugs · <contexto>":
 
-1. Metadata line: generated by /reversa-debugger-graph, date, N bugs, N inconsistencies, caption "dashed edges = proposed relationship (hypothesis)"
-2. **Stat cards** at the top: total bugs, resolved · fixed, open/active, spec addenda generated, inconsistencies
-3. The SVG graph with **clickable nodes**: each node is a relative link to the bug's `bug.md`; node content: display_number + ID suffix, short title, severity/area, and status line (`resolved · fixed` in green, `active`/`awaiting-human` in yellow, open in red); red border for high/critical severity, yellow for medium; arrows with the type of relationship, dashed when `proposed`
-4. Prose caption pointing out the central node of the graph and telling the story of the confirmed relationships
-5. "Open / active bugs" section: table with #, ID (link), severity, priority, title, area/module/feature and status
-6. "Completed (locked)" section: bugs with `DONE.md`, with closing date and `resolution_kind`; This is the central completion record, derived from the locks, never edited by hand
-7. Bugs `restricted` are left out, as in other views
+1. Linha de metadados: gerado por /reversa-debugger-graph, data, N bugs, N inconsistências, legenda "arestas tracejadas = relação proposed (hipótese)"
+2. **Cards de estatística** no topo: total de bugs, resolved · fixed, abertos/ativos, adendos de spec gerados, inconsistências
+3. O grafo em SVG com **nós clicáveis**: cada nó é um link relativo para o `bug.md` do bug; conteúdo do nó: display_number + sufixo do ID, título curto, severidade/área e a linha de status (`resolved · fixed` em verde, `active`/`awaiting-human` em amarelo, aberto em vermelho); borda vermelha para severidade high/critical, amarela para medium; setas com o tipo da relação, tracejadas quando `proposed`
+4. Legenda em prosa apontando o nó central do grafo e contando a história das relações confirmadas
+5. Seção "Bugs abertos / ativos": tabela com #, ID (link), severidade, prioridade, título, area/module/feature e status
+6. Seção "Concluídos (travados)": bugs com `DONE.md`, com data de fechamento e `resolution_kind`; este é o registro central de conclusão, derivado das travas, nunca editado à mão
+7. Bugs `restricted` ficam fora, como nas demais views
 
 ### spec-matrix.md
-BUG ↔ SPEC matrix by `traceability.specs`: rows per spec section, open/active/resolved columns with IDs. Own line for `spec-gap` (bugs without spec, reporting unspecified behavior). Point out current bug addenda in `addenda/`.
+Matriz BUG ↔ SPEC pela `traceability.specs`: linhas por seção de spec, colunas open/active/resolved com os IDs. Linha própria para `spec-gap` (bugs sem spec, denunciando comportamento não especificado). Aponte adendos de bug vigentes em `addenda/`.
 
-## Step 3: spec side mirror
+## Etapa 3: espelho do lado da spec
 
-Generate `reversa/sdd/traceability/bugs.md` (create folder `traceability/` if it does not exist):
+Gere `_reversa_sdd/traceability/bugs.md` (crie a pasta `traceability/` se não existir):
 
-1. GENERATED Header
-2. One section per spec artifact, listing the bugs that affect it: `- <ID> (status/resolution_kind, priority): title`, with the bug folder path
+1. Cabeçalho GENERATED
+2. Uma seção por artefato de spec, listando os bugs que a atingem: `- <ID> (status/resolution_kind, priority): título`, com o caminho da pasta do bug
 3. Bugs `restricted` ficam fora do espelho
-4. No other files from `reversa/sdd/` are played. The mirror records the bond; changing spec content is the subject of addenda.
+4. Nenhum outro arquivo de `_reversa_sdd/` é tocado. O espelho registra o vínculo; mudança de conteúdo de spec é assunto dos adendos.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. Count by context: bugs swept, valid, inconsistencies (if any, listed)
-2. Regenerated views (paths by context, highlighting each `graph.html`) + mirror
-3. Top 3 impact score and the most relevant cluster, in one sentence each
+1. Contagem por contexto: bugs varridos, válidos, inconsistências (se houver, listadas)
+2. Views regeneradas (caminhos por contexto, destacando cada `graph.html`) + espelho
+3. Top 3 de impact score e o cluster mais relevante, em uma frase cada
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to fix the most impactful bug with `/reversa-debugger-fix <ID>`, file a new one with `/reversa-debugger`, or quit.
+> Digite **CONTINUAR** para corrigir o bug de maior impacto com `/reversa-debugger-fix <ID>`, registrar um novo com `/reversa-debugger`, ou encerrar.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify or overwrite pre-existing project files.**
-This skill ONLY writes to `reversa/bugs/<context>/generated/` and `reversa/sdd/traceability/bugs.md` (both regenerable views). `bug.md` are read-only here: inconsistency is reported, not fixed.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto.**
+Este skill escreve APENAS em `_reversa_bugs/<contexto>/generated/` e `_reversa_sdd/traceability/bugs.md` (ambos views regeneráveis). Os `bug.md` são somente leitura aqui: inconsistência se reporta, não se conserta.

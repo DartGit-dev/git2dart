@@ -21,7 +21,11 @@ Pointer<git_treebuilder> create(
 ) {
   return using((arena) {
     final out = arena<Pointer<git_treebuilder>>();
-    final error = libgit2.git_treebuilder_new(out, repoPointer, source);
+    final error = libgit2Runtime.bindings.git_treebuilder_new(
+      out,
+      repoPointer,
+      source,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -35,20 +39,21 @@ Pointer<git_treebuilder> create(
 /// Returns a pointer to the OID of the newly written tree object.
 Pointer<git_oid> write(Pointer<git_treebuilder> bld) {
   final out = calloc<git_oid>();
-  libgit2.git_treebuilder_write(out, bld);
+  libgit2Runtime.bindings.git_treebuilder_write(out, bld);
   return out;
 }
 
 /// Clear all the entries in the builder.
 ///
 /// This will clear all the entries in the tree builder, making it empty.
-void clear(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_clear(bld);
+void clear(Pointer<git_treebuilder> bld) =>
+    libgit2Runtime.bindings.git_treebuilder_clear(bld);
 
 /// Get the number of entries listed in a treebuilder.
 ///
 /// Returns the number of entries in the tree builder.
 int entryCount(Pointer<git_treebuilder> bld) =>
-    libgit2.git_treebuilder_entrycount(bld);
+    libgit2Runtime.bindings.git_treebuilder_entrycount(bld);
 
 /// Get a tree entry from the builder by its filename.
 ///
@@ -62,7 +67,10 @@ Pointer<git_tree_entry> getByFilename({
 }) {
   return using((arena) {
     final filenameC = filename.toChar(arena);
-    final result = libgit2.git_treebuilder_get(builderPointer, filenameC);
+    final result = libgit2Runtime.bindings.git_treebuilder_get(
+      builderPointer,
+      filenameC,
+    );
 
     if (result == nullptr) {
       throw ArgumentError.value('$filename was not found');
@@ -90,7 +98,7 @@ void add({
 }) {
   using((arena) {
     final filenameC = filename.toChar(arena);
-    final error = libgit2.git_treebuilder_insert(
+    final error = libgit2Runtime.bindings.git_treebuilder_insert(
       nullptr,
       builderPointer,
       filenameC,
@@ -112,7 +120,10 @@ void remove({
 }) {
   using((arena) {
     final filenameC = filename.toChar(arena);
-    final error = libgit2.git_treebuilder_remove(builderPointer, filenameC);
+    final error = libgit2Runtime.bindings.git_treebuilder_remove(
+      builderPointer,
+      filenameC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -135,7 +146,11 @@ void filter({
     _filterCallback,
     except,
   );
-  final error = libgit2.git_treebuilder_filter(builderPointer, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_treebuilder_filter(
+    builderPointer,
+    cb,
+    nullptr,
+  );
   _currentPredicate = null;
   checkErrorAndThrow(error);
 }
@@ -143,4 +158,5 @@ void filter({
 /// Free a tree builder and all the entries.
 ///
 /// This will clear all the entries and free the builder.
-void free(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_free(bld);
+void free(Pointer<git_treebuilder> bld) =>
+    libgit2Runtime.bindings.git_treebuilder_free(bld);

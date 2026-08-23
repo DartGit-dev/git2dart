@@ -5,12 +5,12 @@ reversa:
   version: "x.y.z"
 kind: target_domain_model
 producedBy: designer
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Target Domain Model
 
-> New system domain model. Explicit traceability to legacy (in `reversa/sdd/domain.md` or equivalent).
+> Modelo de domínio do sistema novo. Rastreabilidade explícita para o legado (em `_reversa_sdd/domain.md` ou equivalente).
 
 ## Aggregates
 
@@ -19,44 +19,44 @@ hash: "sha256:<body hash below front-matter>"
 - **Invariantes**:
   - <invariante 1>
   - <invariante 2>
-- **Comandos aceitos**: <list>
-- **Eventos publicados** (se paradigma event-driven): <list>
-- **Legacy Origin**: <ref to `domain.md` or equivalent>
+- **Comandos aceitos**: <lista>
+- **Eventos publicados** (se paradigma event-driven): <lista>
+- **Origem no legado**: <ref para `domain.md` ou equivalente>
 
 <repetir por aggregate>
 
 ## Entidades
 
-| Entity | Aggregate owner | Main attributes | Origin in legacy |
+| Entidade | Aggregate dono | Atributos principais | Origem no legado |
 |---|---|---|---|
-| <name> | <agg> | <summary list> | <ref> |
+| <nome> | <agg> | <lista resumida> | <ref> |
 
 ## Value objects
 
-| Value object | Attributes | Validations | Origin |
+| Value object | Atributos | Validações | Origem |
 |---|---|---|---|
-| <name> | <list> | <rules> | <ref> |
+| <nome> | <lista> | <regras> | <ref> |
 
-## Domain events
-> Mandatory section if the paradigm is event-driven or hybrid.
+## Eventos de domínio
+> Seção obrigatória se o paradigma é event-driven ou híbrido.
 
 | Evento | Publicado por | Consumido por | Schema (resumido) |
 |---|---|---|---|
 | <PedidoCriado> | AGG-Pedido | Pagamento, Estoque | <campos> |
 
-## Domain rules
-> Mapping of rules coming from `target_business_rules.md` (just the MIGRATE ones) to the aggregates / services where they live now.
+## Regras de domínio
+> Mapeamento de regras vindas de `target_business_rules.md` (apenas as MIGRAR) para os aggregates / serviços onde elas vivem agora.
 
-| Rule (ID) | Location in new domain | Source (target_business_rules.md) |
+| Regra (ID) | Local no domínio novo | Origem (target_business_rules.md) |
 |---|---|---|
-| BR-MIGRAR-001 | AGG-Pedido.invariante <name> | BR-MIGRAR-001 |
+| BR-MIGRAR-001 | AGG-Pedido.invariante <nome> | BR-MIGRAR-001 |
 
-## Traceability to legacy
+## Rastreabilidade para o legado
 
-| New element | Origin in legacy | Mapping type |
+| Elemento novo | Origem no legado | Tipo de mapeamento |
 |---|---|---|
 | AGG-Pedido | `domain.md § Pedido` + `sdd/orders.md` | fundido |
-| <new> | <ref> | 1-to-1 / merged / split / new |
+| <novo> | <ref> | 1-para-1 / fundido / dividido / novo |
 
 ## Notas
-<Additional modeling notes.>
+<Observações de modelagem adicionais.>

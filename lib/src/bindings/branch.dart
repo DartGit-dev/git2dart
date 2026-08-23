@@ -16,7 +16,7 @@ List<Pointer<git_reference>> list({
 }) {
   return using((arena) {
     final iterator = arena<Pointer<git_branch_iterator>>();
-    final iteratorError = libgit2.git_branch_iterator_new(
+    final iteratorError = libgit2Runtime.bindings.git_branch_iterator_new(
       iterator,
       repoPointer,
       git_branch_t.fromValue(flags),
@@ -30,7 +30,11 @@ List<Pointer<git_reference>> list({
     while (error == 0) {
       final reference = arena<Pointer<git_reference>>();
       final refType = arena<UnsignedInt>();
-      error = libgit2.git_branch_next(reference, refType, iterator.value);
+      error = libgit2Runtime.bindings.git_branch_next(
+        reference,
+        refType,
+        iterator.value,
+      );
       if (error == 0) {
         result.add(reference.value);
       } else {
@@ -38,7 +42,7 @@ List<Pointer<git_reference>> list({
       }
     }
 
-    libgit2.git_branch_iterator_free(iterator.value);
+    libgit2Runtime.bindings.git_branch_iterator_free(iterator.value);
     return result;
   });
 }
@@ -57,7 +61,7 @@ Pointer<git_reference> lookup({
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
     final branchNameC = branchName.toChar(arena);
-    final error = libgit2.git_branch_lookup(
+    final error = libgit2Runtime.bindings.git_branch_lookup(
       out,
       repoPointer,
       branchNameC,
@@ -89,7 +93,7 @@ Pointer<git_reference> create({
     final out = arena<Pointer<git_reference>>();
     final branchNameC = branchName.toChar(arena);
     final forceC = force ? 1 : 0;
-    final error = libgit2.git_branch_create(
+    final error = libgit2Runtime.bindings.git_branch_create(
       out,
       repoPointer,
       branchNameC,
@@ -116,7 +120,7 @@ Pointer<git_reference> createFromAnnotated({
     final out = arena<Pointer<git_reference>>();
     final branchNameC = branchName.toChar(arena);
     final forceC = force ? 1 : 0;
-    final error = libgit2.git_branch_create_from_annotated(
+    final error = libgit2Runtime.bindings.git_branch_create_from_annotated(
       out,
       repoPointer,
       branchNameC,
@@ -136,7 +140,7 @@ Pointer<git_reference> createFromAnnotated({
 ///
 /// Throws a [LibGit2Error] if error occured.
 void delete(Pointer<git_reference> branch) {
-  final error = libgit2.git_branch_delete(branch);
+  final error = libgit2Runtime.bindings.git_branch_delete(branch);
   checkErrorAndThrow(error);
 }
 
@@ -157,7 +161,7 @@ void rename({
     final out = arena<Pointer<git_reference>>();
     final newBranchNameC = newBranchName.toChar(arena);
     final forceC = force ? 1 : 0;
-    final error = libgit2.git_branch_move(
+    final error = libgit2Runtime.bindings.git_branch_move(
       out,
       branchPointer,
       newBranchNameC,
@@ -178,7 +182,7 @@ void rename({
 ///
 /// Throws a [LibGit2Error] if error occurred.
 bool isHead(Pointer<git_reference> ref) {
-  final result = libgit2.git_branch_is_head(ref);
+  final result = libgit2Runtime.bindings.git_branch_is_head(ref);
   checkErrorAndThrow(result);
   return result == 1;
 }
@@ -193,7 +197,7 @@ bool isHead(Pointer<git_reference> ref) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 bool isCheckedOut(Pointer<git_reference> ref) {
-  final result = libgit2.git_branch_is_checked_out(ref);
+  final result = libgit2Runtime.bindings.git_branch_is_checked_out(ref);
   checkErrorAndThrow(result);
   return result == 1;
 }
@@ -204,7 +208,7 @@ bool isCheckedOut(Pointer<git_reference> ref) {
 String getName(Pointer<git_reference> ref) {
   return using((arena) {
     final out = arena<Pointer<Char>>();
-    final error = libgit2.git_branch_name(out, ref);
+    final error = libgit2Runtime.bindings.git_branch_name(out, ref);
 
     checkErrorAndThrow(error);
     return out.value.cast<Utf8>().toDartString();
@@ -216,7 +220,10 @@ bool nameIsValid(String name) {
   return using((arena) {
     final valid = arena<Int>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_branch_name_is_valid(valid, nameC);
+    final error = libgit2Runtime.bindings.git_branch_name_is_valid(
+      valid,
+      nameC,
+    );
     checkErrorAndThrow(error);
     return valid.value == 1;
   });
@@ -237,7 +244,11 @@ String remoteName({
   return using((arena) {
     final out = arena<git_buf>();
     final branchNameC = branchName.toChar(arena);
-    final error = libgit2.git_branch_remote_name(out, repoPointer, branchNameC);
+    final error = libgit2Runtime.bindings.git_branch_remote_name(
+      out,
+      repoPointer,
+      branchNameC,
+    );
 
     checkErrorAndThrow(error);
     return out.ref.ptr.toDartString(length: out.ref.size);
@@ -254,7 +265,7 @@ String remoteName({
 Pointer<git_reference> getUpstream(Pointer<git_reference> branch) {
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
-    final error = libgit2.git_branch_upstream(out, branch);
+    final error = libgit2Runtime.bindings.git_branch_upstream(out, branch);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -270,7 +281,10 @@ void setUpstream({
 }) {
   using((arena) {
     final branchNameC = branchName?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_branch_set_upstream(refPointer, branchNameC);
+    final error = libgit2Runtime.bindings.git_branch_set_upstream(
+      refPointer,
+      branchNameC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -289,7 +303,7 @@ String upstreamName({
   return using((arena) {
     final out = arena<git_buf>();
     final branchNameC = branchName.toChar(arena);
-    final error = libgit2.git_branch_upstream_name(
+    final error = libgit2Runtime.bindings.git_branch_upstream_name(
       out,
       repoPointer,
       branchNameC,
@@ -313,7 +327,7 @@ String upstreamRemote({
   return using((arena) {
     final out = arena<git_buf>();
     final branchNameC = branchName.toChar(arena);
-    final error = libgit2.git_branch_upstream_remote(
+    final error = libgit2Runtime.bindings.git_branch_upstream_remote(
       out,
       repoPointer,
       branchNameC,
@@ -337,7 +351,7 @@ String upstreamMerge({
   return using((arena) {
     final out = arena<git_buf>();
     final branchNameC = branchName.toChar(arena);
-    final error = libgit2.git_branch_upstream_merge(
+    final error = libgit2Runtime.bindings.git_branch_upstream_merge(
       out,
       repoPointer,
       branchNameC,

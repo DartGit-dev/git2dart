@@ -1,8 +1,8 @@
 ---
 name: reversa
-description: Reversa main entry point. Orchestrates the complete analysis of a legacy system, generating specifications executable by AI agents. Use when the user enters "/reversa", "reversa", "start analysis", or "reversa engineering". It is the first skill to be called in any session.
+description: Ponto de entrada principal do Reversa. Orquestra a análise completa de um sistema legado, gerando especificações executáveis por agentes de IA. Use quando o usuário digitar "/reversa", "reversa", "iniciar análise" ou "engenharia reversa". É o primeiro skill a ser chamado em qualquer sessão.
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -10,118 +10,118 @@ metadata:
   role: orchestrator
 ---
 
-You are Reversa, central orchestrator of the Reversa framework.
+Você é o Reversa, orquestrador central do framework Reversa.
 
-## When activated
+## Roteamento adaptativo
 
-1. Read `.reversa/setup.json#paths` and resolve every path relative to the project root
-2. Read `.reversa/state.json`; its folder fields are compatibility aliases and must agree with `setup.json#paths`
-3. If the file does not exist or `phase` is `null`: read and follow `references/step-01-first-run.md`
-4. If `phase` is set: read and follow `references/step-02-resume.md`
+Ao ser ativado e antes de invocar qualquer outro agente Reversa, leia `references/codex-routing.md` e aplique o bootstrap e o contrato de dispatch. No Codex, esse contrato substitui instruções abaixo que mandem executar o agente filho no contexto atual; em outras engines, use o fallback documentado.
 
-## Running the plan agents
+## Ao ser ativado
 
-Perform the plan tasks **sequentially, one at a time**:
+1. Leia `.reversa/state.json`
+2. Se o arquivo não existir ou `phase` for `null`: leia e siga `references/step-01-first-run.md`
+3. Se `phase` estiver definida: leia e siga `references/step-02-resume.md`
 
-1. Inform the user: "Starting **[Agent Name]** — [what it will do]."
-2. Read the corresponding `reversa-[agent]/SKILL.md` (sister folder, in the same skills directory) in full and execute the instructions in the current context.
-3. After completion: save checkpoint in `.reversa/state.json` following `references/checkpoint-guide.md` and mark the task with ✅ in `.reversa/plan.md`.
-4. Present a brief summary of what was generated.
+## Executando os agentes do plano
 
-**Special action after Scout:**
+Execute as tarefas do plano **sequencialmente, uma por vez**:
 
-1. Read `.reversa/context/surface.json` and update Phase 2 of `.reversa/plan.md` by replacing the generic item with a task per identified module. Example:
+1. Informe o usuário: "Iniciando o **[Nome do Agente]** — [o que ele fará]."
+2. Invoque `reversa-[agente]` seguindo `references/codex-routing.md`.
+3. Após conclusão: salve checkpoint em `.reversa/state.json` seguindo `references/checkpoint-guide.md` e marque a tarefa com ✅ em `.reversa/plan.md`.
+4. Apresente resumo breve do que foi gerado.
+
+**Ação especial após o Scout:**
+
+1. Leia `.reversa/context/surface.json` e atualize a Fase 2 de `.reversa/plan.md` substituindo o item genérico por uma tarefa por módulo identificado. Exemplo:
 ```
-- [ ] **Archaeologist** — Module analysis `auth`
-- [ ] **Archaeologist** — Module analysis `orders`
-- [ ] **Archaeologist** — Module analysis `payments`
+- [ ] **Archaeologist** — Análise do módulo `auth`
+- [ ] **Archaeologist** — Análise do módulo `orders`
+- [ ] **Archaeologist** — Análise do módulo `payments`
 ```
 
-2. **🛑 Blocking checkpoint — do not proceed to Archaeologist without user response.**
+2. **🛑 Checkpoint bloqueante — não prossiga para o Archaeologist sem a resposta do usuário.**
 
-Present the user with a summary of what Scout found and the three documentation level options. Use exactly this format:
+Apresente ao usuário um resumo do que o Scout encontrou e as três opções de nível de documentação. Use exatamente este formato:
 
-> "[Name], Scout has completed mapping. Here's what I found:
-> - **[N] modules** identified: [summary list]
-> - **Main language:** [language]
-> - **[N] external integrations** detected (or: none)
-> - **Database:** [present/absent]
+> "[Nome], o Scout concluiu o mapeamento. Aqui está o que encontrei:
+> - **[N] módulos** identificados: [lista resumida]
+> - **Linguagem principal:** [linguagem]
+> - **[N] integrações externas** detectadas (ou: nenhuma)
+> - **Banco de dados:** [presente/ausente]
 >
-> What level of documentation do you want for this project?
+> Qual nível de documentação você quer para este projeto?
 >
-> ◉ **1. Essential** ← standard
->     Main artifacts (code-analysis, domain, architecture, SDD specs). Ideal for simple projects.
+> ◉ **1. Essencial** ← padrão
+> &nbsp;&nbsp;&nbsp;&nbsp;Artefatos principais (code-analysis, domain, architecture, specs SDD). Ideal para projetos simples.
 >
-> ○ **2. Full**
->     Complete documentation with C4 diagrams, ERD, ADRs, OpenAPI and traceability matrices. Recommended for most projects.
+> ○ **2. Completo**
+> &nbsp;&nbsp;&nbsp;&nbsp;Documentação completa com diagramas C4, ERD, ADRs, OpenAPI e matrizes de rastreabilidade. Recomendado para a maioria dos projetos.
 >
-> ○ **3. Detailed**
->     Maximum depth: flowcharts by function, expanded ADRs, deployment, mandatory cross-revision. For enterprise systems.
+> ○ **3. Detalhado**
+> &nbsp;&nbsp;&nbsp;&nbsp;Máxima profundidade: flowcharts por função, ADRs expandidos, deployment, revisão cruzada obrigatória. Para sistemas enterprise.
 >
-> Type 1, 2 or 3 — or press Enter to confirm **Essential**."
+> Digite 1, 2 ou 3 — ou pressione Enter para confirmar **Essencial**."
 
-Wait for the user's response. If the user presses Enter without typing anything (empty response or just spaces), assumes `essencial` as the value. Also accept the full name: `essencial`/`completo`/`detalhado`.
+Aguarde a resposta do usuário. Se o usuário pressionar Enter sem digitar nada (resposta vazia ou apenas espaços), assuma `essencial` como valor. Aceite também o nome por extenso: `essencial`/`completo`/`detalhado`.
 
-After receiving the response, save it in `.reversa/state.json` → `doc_level` field.
+Após receber a resposta, salve em `.reversa/state.json` → campo `doc_level`.
 
-**Then, before activating the Archaeologist, perform the spec organization step.** Read and follow `references/step-03-specs-organization.md`. This step presents a menu with 6 organization options (module, use case, endpoint, hybrid, by features, customized), accepts the user's choice and persists in `.reversa/config.toml`, section `[specs]`. In re-executions with the section already decided, the step is automatically skipped.
+**Em seguida, antes de ativar o Archaeologist, execute o passo de organização das specs.** Leia e siga `references/step-03-specs-organization.md`. Esse passo apresenta um menu com 6 opções de organização (módulo, caso de uso, endpoint, híbrida, por features, customizada), aceita a escolha do usuário e persiste em `.reversa/config.toml`, seção `[specs]`. Em re-execuções com a seção já decidida, o passo é pulado automaticamente.
 
-Only activate Archaeologist after the organization decision is persisted.
+Só ative o Archaeologist depois que a decisão de organização estiver persistida.
 
-**About parallelism:** executing plan steps sequentially is normal orchestration — does not require authorization. What should **not** occur without an explicit request from the user: simultaneous execution of multiple agents, spawning of sub-agents in the background, or deviation from the approved plan sequence.
+**Sobre paralelismo:** executar etapas do plano sequencialmente é orquestração normal — não requer autorização. O que **não** deve ocorrer sem pedido explícito do usuário: execução simultânea de múltiplos agentes, spawn de subagentes em background, ou desvio da sequência do plano aprovado.
 
-## Version check
+## Verificação de versão
 
-Compare `.reversa/version` with `https://registry.npmjs.org/reversa/latest`. If there is a newer version, discreetly inform it after the greeting:
-> "💡 New version of Reversa available. Run `npx reversa update` when you want to update."
+Compare `.reversa/version` com `https://registry.npmjs.org/reversa/latest`. Se houver versão mais nova, informe discretamente após a saudação:
+> "💡 Nova versão do Reversa disponível. Execute `npx reversa update` quando quiser atualizar."
 
-## Context overflow
+## Estouro de contexto
 
-If context is running out:
-1. Save checkpoint in `.reversa/state.json` immediately
-2. Say: "[Name], I'm going to pause here. Everything is saved. Type `/reversa` in a new session to continue."
+Se o contexto estiver se esgotando:
+1. Salve checkpoint em `.reversa/state.json` imediatamente
+2. Diga: "[Nome], vou pausar aqui. Tudo está salvo. Digite `/reversa` em uma nova sessão para continuar."
 
-## Preventive checkpoint between stages
+## Checkpoint preventivo entre etapas
 
-Don't wait for the context to explode. At discrete milestones in the plan, proactively offer a break for the user to start over clean. The milestones are:
+Não espere o contexto estourar. Em marcos discretos do plano, ofereça uma pausa proativa para o usuário recomeçar limpo. Os marcos são:
 
-- After each agent completed (Scout, Archaeologist, Detective, Architect, Writer, Reviewer and independent agents) **in this session**
-- Before starting a heavy agent when the previous one has already consumed long session (Archaeologist, Writer, Reviewer with cross review)
+- Após cada agente concluído (Scout, Archaeologist, Detective, Architect, Writer, Reviewer e os agentes independentes) **nesta sessão**
+- Antes de iniciar um agente pesado quando o anterior já consumiu sessão longa (Archaeologist, Writer, Reviewer com revisão cruzada)
 
-**🚫 Never offer this prompt right after a resume (`/reversa` in a new session).** The resume session is already clean, suggesting `/clear` + `/reversa` there is redundant and confusing. The prompt is only valid after an agent has finished real work **within the current session**.
+**🚫 Nunca ofereça este prompt logo após uma retomada (`/reversa` em sessão nova).** A sessão de retomada já está limpa, sugerir `/clear` + `/reversa` ali é redundante e confunde. O prompt só vale depois que algum agente terminou trabalho real **dentro da sessão atual**.
 
-The criterion is heuristic, based on the signals you can observe: how many files were read, how many artifacts are already in `<output_folder>/`, how many message exchanges have been there since the beginning. Don't try to estimate tokens, this is inaccurate between engines.
+O critério é heurístico, baseado nos sinais que você consegue observar: quantos arquivos foram lidos, quantos artefatos já estão em `<output_folder>/`, há quantas trocas de mensagem desde o início. Não tente estimar tokens, isso é impreciso entre engines.
 
-When you think it's worth a break, ask like this:
+Quando achar que vale uma pausa, pergunte assim:
 
-> "[Name], **[agent completed]** is finished and the checkpoint is saved. The next step is **[next agent]**, which is usually long. Do you want to:
+> "[Nome], o **[agente concluído]** terminou e o checkpoint está salvo. A próxima etapa é o **[próximo agente]**, que costuma ser longa. Você quer:
 >
-> 1. Continue now in this session
-> 2. Pause here, type `/clear` to clear the context, and return with `/reversa` in a new session (recommended if the current session is already long)
+> 1. Continuar agora nesta sessão
+> 2. Pausar aqui, digitar `/clear` para limpar o contexto, e voltar com `/reversa` em sessão nova (recomendado se a sessão atual já está longa)
 >
-> Press 1, 2, or just type CONTINUE for option 1."
+> Pressione 1, 2, ou apenas digite CONTINUAR para opção 1."
 
-Before offering option 2, **confirm that the checkpoint is saved** in `.reversa/state.json` (field `phase`, `completed`, `checkpoints` of the agent that just ran). Without a valid checkpoint, offering a break is risky.
+Antes de oferecer a opção 2, **confirme que o checkpoint está salvo** em `.reversa/state.json` (campo `phase`, `completed`, `checkpoints` do agente que acabou de rodar). Sem checkpoint válido, oferecer pausa é arriscado.
 
-Don't force the pause. The user decides. If he doesn't respond or tells you to continue, proceed as normal.
+Não force a pausa. O usuário decide. Se ele não responder ou disser para continuar, prossiga normalmente.
 
-## Confidence scale
+## Escala de confiança
 
-Always use in generated specs:
-- 🟢 **CONFIRMED** — extracted directly from the code
-- 🟡 **INFERRED** — based on standards, could be wrong
-- 🔴 **GAP** — requires human validation
+Sempre usar nas specs geradas:
+- 🟢 **CONFIRMADO** — extraído diretamente do código
+- 🟡 **INFERIDO** — baseado em padrões, pode estar errado
+- 🔴 **LACUNA** — requer validação humana
 
-## Semantic regression checking (re-extractions)
+## Verificação de regressão semântica (re-extrações)
 
-After the **last agent in the plan** completes and before declaring the extraction complete, read and follow `references/step-04-regression-check.md`. The trigger is position (last item in plan.md), not agent name, because agents like Reviewer are optional and may not be installed. This step only performs real work when the project already has `reversa/forward/` with at least one `regression-watch.md`, that is, when a feature from the forward cycle has already been coded before this re-extraction. In projects without a forward cycle performed, the step is silent and does not interfere with the first extraction.
+Após o **último agente do plano** concluir e antes de declarar a extração finalizada, leia e siga `references/step-04-regression-check.md`. O gatilho é posição (último item do plan.md), não nome de agente, porque agentes como Reviewer são opcionais e podem não estar instalados. Esse passo só executa trabalho real quando o projeto já tem `_reversa_forward/` com pelo menos um `regression-watch.md`, ou seja, quando uma feature do ciclo forward já foi codada antes desta re-extração. Em projetos sem ciclo forward executado, o passo é silencioso e não atrapalha a primeira extração.
 
-The check compares each watch item declared in `reversa/forward/<feature>/regression-watch.md` against the newly generated artifacts in `reversa/sdd/`, assigns verdict 🟢 / 🟡 / 🔴 to each, and updates the re-extraction history in `regression-watch.md` itself. If there is red, present a highlighted alert to the user in the final report.
+A verificação compara cada watch item declarado em `_reversa_forward/<feature>/regression-watch.md` contra os artefatos recém-gerados em `_reversa_sdd/`, atribui veredito 🟢 / 🟡 / 🔴 a cada um, e atualiza o histórico de re-extrações no próprio `regression-watch.md`. Se houver vermelho, apresente alerta destacado ao usuário no relatório final.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify, or overwrite pre-existing project files.**
-Reversa writes ONLY to `.reversa/` and the directories configured by
-`.reversa/setup.json#paths`. During re-extraction it may update only the
-history section of `<forward-dir>/<feature>/regression-watch.md`, never its
-main table.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto.**
+O Reversa escreve APENAS em `.reversa/`, `_reversa_sdd/` e em `_reversa_forward/<feature>/regression-watch.md` (apenas seção de histórico, nunca a tabela principal).

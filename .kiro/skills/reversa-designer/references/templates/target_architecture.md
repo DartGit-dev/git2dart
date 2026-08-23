@@ -5,64 +5,64 @@ reversa:
   version: "x.y.z"
 kind: target_architecture
 producedBy: designer
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Target Architecture
 
-> Target architecture of the new system, respecting the paradigm chosen in `paradigm_decision.md` and the strategy confirmed in `migration_strategy.md`.
+> Arquitetura alvo do sistema novo, respeitando o paradigma escolhido em `paradigm_decision.md` e a estratégia confirmada em `migration_strategy.md`.
 
-## Overview
-<Summary in 3 to 6 lines: what the new system is, what paradigm it follows, what borders it has with the legacy during migration.>
+## Visão geral
+<Resumo em 3 a 6 linhas: o que é o sistema novo, qual paradigma ele segue, quais bordas tem com o legado durante a migração.>
 
 ## Diagrama (Mermaid)
 
 ```mermaid
 flowchart LR
-%% Replace with actual diagram
+    %% Substituir pelo diagrama real
     Cliente -->|HTTP| API
     API --> Servico
-Service --> Bank[(DB)]
+    Servico --> Banco[(DB)]
     Servico -.eventos.-> Fila[[Mensageria]]
 ```
 
-## Components
+## Componentes
 
-| Component | Type | Responsibility | Origin (legacy/new/fused) |
+| Componente | Tipo | Responsabilidade | Origem (legado / novo / fundido) |
 |---|---|---|---|
-| <name> | API / Service / Worker / DB / Queue | <text> | <ref for legacy or "new"> |
+| <nome> | API / Serviço / Worker / DB / Fila | <texto> | <ref para legado ou "novo"> |
 
 ## Bounded contexts
 
-### BC-01: <name>
-- **Responsibility**: <text>
-- **Grouping/separation justification**: <why this context was not decomposed 1-to-1 from legacy>
-- **Internal components**: <list>
-- **Eventos publicados** (se paradigma event-driven): <list>
-- **Eventos consumidos**: <list>
+### BC-01: <nome>
+- **Responsabilidade**: <texto>
+- **Justificativa do agrupamento / separação**: <por que esse contexto não foi decomposto 1-para-1 a partir do legado>
+- **Componentes internos**: <lista>
+- **Eventos publicados** (se paradigma event-driven): <lista>
+- **Eventos consumidos**: <lista>
 
-<repeat for context>
+<repetir por contexto>
 
-## Architectural decisions (ADR-style in short)
+## Decisões arquiteturais (ADR-style resumido)
 
-### AD-01: <title>
-- **Decision**: <text>
-- **Alternativas descartadas**: <list>
-- **Justification**: <text, linking to paradigm, strategy and appetite>
-- **Traceability**: <reference to legacy or discard_log>
+### AD-01: <título>
+- **Decisão**: <texto>
+- **Alternativas descartadas**: <lista>
+- **Justificativa**: <texto, ligando a paradigma, estratégia e apetite>
+- **Rastreabilidade**: <referência ao legado ou ao discard_log>
 
-## Honor to the chosen paradigm
+## Honra ao paradigma escolhido
 
-> Mandatory section when there is a paradigm shift. Demonstrates that the architecture honors the `paradigm_decision.md` decision.
+> Seção obrigatória quando há mudança de paradigma. Demonstra que a arquitetura honra a decisão de `paradigm_decision.md`.
 
 - **Paradigma alvo**: <do `paradigm_decision.md`>
-- **How ​​architecture honors this paradigm**:
-- <ex: event-driven → explicit events, message schemas, eventual consistency strategy>
-- <ex: OO with DI → interfaces, injection container, clear borders between layers>
-- <ex: functional → immutable types, composition, absence of side effects in the domain>
+- **Como a arquitetura honra esse paradigma**:
+  - <ex: event-driven → eventos explícitos, schemas de mensagem, estratégia de consistência eventual>
+  - <ex: OO com DI → interfaces, container de injeção, bordas claras entre camadas>
+  - <ex: funcional → tipos imutáveis, composição, ausência de side effects no domínio>
 
-## Borders with legacy during migration
-- <ex: during Strangler Fig, the new API reroutes calls from legacy X to phase Y>
+## Bordas com o legado durante a migração
+- <ex: durante o Strangler Fig, a API nova reroteia chamadas do legado X até a fase Y>
 
 ## Notas
-<Additional design notes.>
+<Observações de design adicionais.>

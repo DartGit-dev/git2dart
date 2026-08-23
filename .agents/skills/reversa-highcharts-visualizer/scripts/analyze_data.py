@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Analyzes data and suggests the best Highcharts chart type.
+Analisa dados e sugere o melhor tipo de gráfico Highcharts.
 
-Calculates descriptive statistics and infers the nature of the data
-to recommend appropriate chart types.
+Calcula estatísticas descritivas e infere a natureza dos dados
+para recomendar tipos de gráfico adequados.
 
-Usage:
-    python analyze_data.py <file> [--format json|text]
-    python analyze_data.py data.csv --suggest-chart
+Uso:
+    python analyze_data.py <arquivo> [--format json|text]
+    python analyze_data.py dados.csv --suggest-chart
 
-Output:
-    Statistics and chart-type suggestions.
+Saída:
+    Estatísticas + sugestões de tipos de gráfico.
 """
 
 import sys
@@ -21,14 +21,14 @@ from pathlib import Path
 
 
 def is_temporal(values: list) -> bool:
-    """Detects whether a list of values appears to be temporal."""
+    """Detecta se uma lista de valores parece ser temporal."""
     date_patterns = [
         r'\d{4}[-/]\d{1,2}[-/]\d{1,2}',  # 2024-01-15
         r'\d{1,2}[-/]\d{1,2}[-/]\d{4}',  # 15/01/2024
         r'(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)',
         r'(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)',
         r'Q[1-4]\s*\d{4}',  # Q1 2024
-        r'\d{4}',  # Years only
+        r'\d{4}',  # Apenas anos
     ]
     if not values:
         return False
@@ -43,7 +43,7 @@ def is_temporal(values: list) -> bool:
 
 
 def analyze_series(values: list) -> dict:
-    """Analyzes a series of numeric values."""
+    """Analisa uma série de valores numéricos."""
     nums = [v for v in values if isinstance(v, (int, float)) and v is not None]
     if not nums:
         return {"type": "non_numeric", "count": len(values)}
@@ -72,90 +72,90 @@ def analyze_series(values: list) -> dict:
 
 
 def suggest_charts(categories: list, series_analysis: list, n_series: int) -> list:
-    """Suggests chart types based on the analysis."""
+    """Sugere tipos de gráfico com base na análise."""
     suggestions = []
     temporal = is_temporal(categories)
     n_categories = len(categories)
     all_positive = all(s.get("all_positive", True) for s in series_analysis)
 
-    # Temporal data → line/area
+    # Dados temporais → line/area
     if temporal:
         suggestions.append({
             "type": "line", "score": 95,
-            "reason": "Temporal data — ideal for showing trends over time"
+            "reason": "Dados temporais — ideal para mostrar tendência ao longo do tempo"
         })
         suggestions.append({
             "type": "area", "score": 85,
-            "reason": "Temporal data — area emphasizes volume or magnitude"
+            "reason": "Dados temporais — área enfatiza volume/magnitude"
         })
         if n_series > 1 and all_positive:
             suggestions.append({
                 "type": "stacked_area", "score": 80,
-                "reason": "Multiple temporal series — shows composition over time"
+                "reason": "Múltiplas séries temporais — mostra composição ao longo do tempo"
             })
 
-    # Few categorical points → column/bar
+    # Poucos pontos categóricos → column/bar
     if n_categories <= 20:
         suggestions.append({
             "type": "column", "score": 90 if not temporal else 70,
-            "reason": f"{n_categories} categories — good for direct comparison"
+            "reason": f"{n_categories} categorias — bom para comparação direta"
         })
         if n_categories > 8:
             suggestions.append({
                 "type": "bar", "score": 85,
-                "reason": "Many categories — horizontal bars make labels easier to read"
+                "reason": "Muitas categorias — barras horizontais facilitam leitura dos labels"
             })
 
-    # One series with few items → pie
+    # Uma série com poucos itens → pie
     if n_series == 1 and n_categories <= 8 and all_positive:
         suggestions.append({
             "type": "pie", "score": 80,
-            "reason": "One series with few categories — shows proportion or composition"
+            "reason": "Uma série com poucas categorias — mostra proporção/composição"
         })
 
-    # Two numeric series → scatter
+    # Duas séries numéricas → scatter
     if n_series >= 2 and all(s.get("type") == "numeric" for s in series_analysis):
         suggestions.append({
             "type": "scatter", "score": 70,
-            "reason": "Multiple numeric series — shows correlation between variables"
+            "reason": "Múltiplas séries numéricas — mostra correlação entre variáveis"
         })
 
-    # Large data set → consider a heatmap
+    # Muitos dados → considerar heatmap
     if n_categories > 20 and n_series > 5:
         suggestions.append({
             "type": "heatmap", "score": 75,
-            "reason": "Many categories × series — a heatmap reveals matrix patterns"
+            "reason": "Muitas categorias × séries — heatmap revela padrões matriciais"
         })
 
-    # Single KPI → gauge
+    # KPI único → gauge
     if n_series == 1 and n_categories == 1:
         suggestions.append({
             "type": "solidgauge", "score": 85,
-            "reason": "Single value — ideal for a KPI or progress indicator"
+            "reason": "Valor único — ideal para KPI/indicador de progresso"
         })
 
-    # Stacked chart for composition
+    # Stacked para composição
     if n_series > 1 and n_categories <= 15 and all_positive:
         suggestions.append({
             "type": "stacked_column", "score": 75,
-            "reason": "Multiple positive series — shows composition by category"
+            "reason": "Múltiplas séries positivas — mostra composição por categoria"
         })
 
-    # Sort by score
+    # Ordenar por score
     suggestions.sort(key=lambda x: x["score"], reverse=True)
     return suggestions[:5]
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Analyzes data and suggests charts")
-    parser.add_argument("filepath", help="File path")
+    parser = argparse.ArgumentParser(description="Analisa dados e sugere gráficos")
+    parser.add_argument("filepath", help="Caminho do arquivo")
     parser.add_argument("--format", choices=["json", "text"], default="json")
     parser.add_argument("--suggest-chart", action="store_true", default=True)
     parser.add_argument("--encoding", default=None)
     parser.add_argument("--sheet", default=None)
     args = parser.parse_args()
 
-    # Import parse_data from the same directory
+    # Importar parse_data do mesmo diretório
     script_dir = Path(__file__).parent
     sys.path.insert(0, str(script_dir))
     from parse_data import parse_csv, parse_json_data, parse_excel, detect_encoding
@@ -171,21 +171,21 @@ def main():
     elif ext in ('.xlsx', '.xls'):
         parsed = parse_excel(str(path), sheet=args.sheet)
     else:
-        print(f"[ERROR] Unsupported format: {ext}", file=sys.stderr)
+        print(f"[ERRO] Formato não suportado: {ext}", file=sys.stderr)
         sys.exit(1)
 
     if "error" in parsed:
-        print(f"[ERROR] {parsed['error']}", file=sys.stderr)
+        print(f"[ERRO] {parsed['error']}", file=sys.stderr)
         sys.exit(1)
 
-    # Analyze each series
+    # Analisar cada série
     series_analysis = []
     for s in parsed.get("series", []):
         analysis = analyze_series(s["data"])
         analysis["name"] = s["name"]
         series_analysis.append(analysis)
 
-    # Suggest charts
+    # Sugerir gráficos
     categories = parsed.get("categories", [])
     suggestions = suggest_charts(categories, series_analysis, len(series_analysis))
 
@@ -203,13 +203,13 @@ def main():
     if args.format == "json":
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
-        print(f"=== Data Summary ===")
-        print(f"Categories: {len(categories)} ({'temporal' if is_temporal(categories) else 'categorical'})")
-        print(f"Series: {len(series_analysis)}")
+        print(f"=== Resumo dos Dados ===")
+        print(f"Categorias: {len(categories)} ({'temporal' if is_temporal(categories) else 'categórico'})")
+        print(f"Séries: {len(series_analysis)}")
         for s in series_analysis:
             print(f"  • {s['name']}: min={s.get('min')}, max={s.get('max')}, "
-                  f"mean={s.get('mean')}, {s.get('count')} points")
-        print(f"\n=== Suggested Charts ===")
+                  f"média={s.get('mean')}, {s.get('count')} pontos")
+        print(f"\n=== Gráficos Sugeridos ===")
         for i, sug in enumerate(suggestions, 1):
             print(f"  {i}. {sug['type']} (score: {sug['score']})")
             print(f"     {sug['reason']}")

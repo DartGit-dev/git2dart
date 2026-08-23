@@ -1,113 +1,113 @@
-# Specs Evaluation Rubric
+# Rubrica de Avaliação de Specs
 
-Used by `scripts/spec_scorer.py` and as a manual review guide.
+Usada pelo `scripts/spec_scorer.py` e como guia de revisão manual.
 
 Score total: **0–100 pontos**
 
 ---
 
-## Dimension 1: Completeness (30 points)
+## Dimensão 1: Completude (30 pontos)
 
-Assess whether all essential sections are present and completed.
+Avalia se todas as seções essenciais estão presentes e preenchidas.
 
-| Criterion | Points | How to check |
+| Critério | Pontos | Como verificar |
 |----------|--------|----------------|
-| Sections 1–6 all present and completed (not just headers) | 10 | Each section has ≥ 2 sentences or 1 list item |
-| Functional Requirements with IDs (RF-XX) | 8 | At least 3 numbered requirements |
-| Acceptance criteria defined for each RF Must | 7 | "Acceptance Criteria" column filled in |
-| Explicit Non-Goals (section 4) | 5 | At least 2 non-goals listed |
+| Seções 1–6 todas presentes e preenchidas (não apenas headers) | 10 | Cada seção tem ≥ 2 frases ou 1 item de lista |
+| Requisitos funcionais com IDs (RF-XX) | 8 | Pelo menos 3 requisitos numerados |
+| Critérios de aceite definidos para cada RF Must | 7 | Coluna "Critério de Aceite" preenchida |
+| Non-Goals explícitos (seção 4) | 5 | Pelo menos 2 non-goals listados |
 
 **Penalidades:**
-- Mandatory section completely missing: -5 per section
-- Section with unfilled placeholder (`[colchetes]`): -2 per occurrence
+- Seção obrigatória completamente ausente: -5 por seção
+- Seção com placeholder não preenchido (`[colchetes]`): -2 por ocorrência
 
 ---
 
-## Dimension 2: Testability (25 points)
+## Dimensão 2: Testabilidade (25 pontos)
 
-Evaluates whether a QA can write tests from the spec without asking questions.
+Avalia se um QA consegue escrever testes a partir da spec sem fazer perguntas.
 
-| Criterion | Points | How to check |
+| Critério | Pontos | Como verificar |
 |----------|--------|----------------|
-| Requirements use concrete and measurable verbs | 10 | Absence of "it must be good", "it must be fast", "it must be intuitive" |
-| Main flow (happy path) described step by step | 8 | Section 6.2 with ≥ 3 steps |
-| Success metrics with numerical values ​​| 7 | Section 3 has at least 1 metric with numeric target |
+| Requisitos usam verbos concretos e mensuráveis | 10 | Ausência de "deve ser bom", "deve ser rápido", "deve ser intuitivo" |
+| Fluxo principal (happy path) descrito passo a passo | 8 | Seção 6.2 com ≥ 3 passos |
+| Métricas de sucesso com valores numéricos | 7 | Seção 3 tem pelo menos 1 métrica com target numérico |
 
 **Penalidades:**
-- Untestable requirement ("the system must be easy to use"): -3 per occurrence
-- Missing happy path: -8
+- Requisito não-testável ("o sistema deve ser fácil de usar"): -3 por ocorrência
+- Happy path ausente: -8
 
 ---
 
-## Dimension 3: Clarity (20 points)
+## Dimensão 3: Clareza (20 pontos)
 
-Evaluates whether the language is precise and unambiguous.
+Avalia se a linguagem é precisa e não ambígua.
 
-| Criterion | Points | How to check |
+| Critério | Pontos | Como verificar |
 |----------|--------|----------------|
-| Absence of vague terms without definition | 8 | "quickly", "soon", "many", "some" worthless — -2 each |
-| Open Questions marked with ⚠️ or in section 14 | 6 | Ambiguities are explicit, not silent |
-| Clear subject in each requirement ("the system", "the user") | 6 | There are no requirements without an identified subject |
+| Ausência de termos vagos sem definição | 8 | "rapidamente", "logo", "muitos", "alguns" sem valor — -2 cada |
+| Open Questions sinalizadas com ⚠️ ou na seção 14 | 6 | Ambiguidades são explícitas, não silenciosas |
+| Sujeito claro em cada requisito ("o sistema", "o usuário") | 6 | Não há requisitos sem sujeito identificado |
 
 **Penalidades:**
-- Contradiction between requirements: -5 per contradiction
-- Technical term without definition for non-technical audience: -2 per occurrence
+- Contradição entre requisitos: -5 por contradição
+- Termo técnico sem definição para audiência não-técnica: -2 por ocorrência
 
 ---
 
-## Dimension 4: Scope (15 points)
+## Dimensão 4: Escopo (15 pontos)
 
-Evaluates whether the feature limits are clear.
+Avalia se os limites da feature estão claros.
 
-| Criterion | Points | How to check |
+| Critério | Pontos | Como verificar |
 |----------|--------|----------------|
-| Clear and useful Non-Goals section (4) | 7 | At least 2 non-goals that prevent real scope creep |
-| Mapped dependencies and integrations (section 10) | 5 | All external dependencies are listed |
-| Present rollout/rollback plan (section 13) | 3 | Strategy and how to reverse defined |
+| Seção de Non-Goals (4) clara e útil | 7 | Pelo menos 2 non-goals que previnem scope creep real |
+| Dependências e integrações mapeadas (seção 10) | 5 | Toda dependência externa está listada |
+| Plano de rollout / rollback presente (seção 13) | 3 | Estratégia e como reverter definidos |
 
 **Penalidades:**
-- Vague non-goals ("future features"): -2 per occurrence
-- Unmapped critical dependency: -3
+- Non-goals vagos ("funcionalidades futuras"): -2 por ocorrência
+- Dependência crítica não mapeada: -3
 
 ---
 
-## Dimension 5: Edge Cases (10 points)
+## Dimensão 5: Edge Cases (10 pontos)
 
-Evaluates whether difficult cases were anticipated.
+Avalia se os casos difíceis foram antecipados.
 
-| Criterion | Points | How to check |
+| Critério | Pontos | Como verificar |
 |----------|--------|----------------|
-| At least 3 edge cases listed (section 11) | 5 | Table with ≥ 3 filled lines |
-| Error handling with defined message/behavior | 3 | Each error has expected behavior |
-| External dependency failure cases covered | 2 | At least 1 EC for timeout/unavailability |
+| Pelo menos 3 edge cases listados (seção 11) | 5 | Tabela com ≥ 3 linhas preenchidas |
+| Tratamento de erro com mensagem/comportamento definido | 3 | Cada erro tem comportamento esperado |
+| Casos de falha de dependências externas cobertos | 2 | Pelo menos 1 EC para timeout/indisponibilidade |
 
 **Penalidades:**
-- Zero edge cases: -10 (this section resets)
-- Edge case without defined behavior: -1 per occurrence
+- Zero edge cases: -10 (esta seção zera)
+- Edge case sem comportamento definido: -1 por ocorrência
 
 ---
 
-## Classification by Score
+## Classificação por Score
 
-| Score | Classification | Meaning |
+| Score | Classificação | Significado |
 |-------|--------------|-------------|
-| 90–100 | ⭐ Excellent | Ready for immediate implementation |
-| 80–89 | ✅ Good | Ready with minor adjustments |
-| 65–79 | ⚠️ Adequate | Implementable but with risks |
-| 50–64 | 🔶 Incomplete | Needs review before implementing |
-| < 50 | ❌ Insufficient | Back to interview/draft |
+| 90–100 | ⭐ Excelente | Pronta para implementação imediata |
+| 80–89 | ✅ Boa | Pronta com ajustes menores |
+| 65–79 | ⚠️ Adequada | Implementável mas com riscos |
+| 50–64 | 🔶 Incompleta | Precisa de revisão antes de implementar |
+| < 50 | ❌ Insuficiente | Voltar para entrevista / rascunho |
 
 ---
 
-## Quick Review Checklist
+## Checklist Rápido de Revisão
 
-Before marking a spec as "Approved", confirm:
+Antes de marcar uma spec como "Aprovada", confirme:
 
-- [ ] Can any dev implement it without asking anything?
-- [ ] Can any QA write tests without asking anything?
-- [ ] Are non-goals as clear as goals?
-- [ ] Does every error case have a defined behavior?
-- [ ] Do all requirements have traceable IDs?
-- [ ] Are there no contradictions between requirements?
-- [ ] Are open questions documented (not silent)?
-- [ ] Are success metrics numerical and verifiable?
+- [ ] Qualquer dev pode implementar sem perguntar nada?
+- [ ] Qualquer QA pode escrever testes sem perguntar nada?
+- [ ] Os non-goals estão tão claros quanto os goals?
+- [ ] Todo caso de erro tem um comportamento definido?
+- [ ] Todos os requisitos têm IDs rastreáveis?
+- [ ] Não há contradições entre requisitos?
+- [ ] Open questions estão documentadas (não silenciosas)?
+- [ ] Métricas de sucesso são numéricas e verificáveis?

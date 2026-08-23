@@ -1,35 +1,35 @@
-# Code Quality Record (Reversa Refactor)
+# Registro de Qualidade de Código (Reversa Refactor)
 
-> GENERATED / MANAGED by the Reversa Code Quality team. This README stores the registry policies.
-> Context folders and transformation artifacts are born on demand.
+> GENERATED / MANAGED pelo time Code Quality do Reversa. Este README guarda as políticas do registro.
+> As pastas de contexto e os artefatos de transformação nascem sob demanda.
 
-## Policies
+## Políticas
 
 - `control_mode`: gated
-- `gated` (default): reading, analysis, measurement and proof of behavior flow without approval. EVERY step that touches the project code goes through a gate with approved diff.
-- `supervised`: the agent can apply proven low-risk transformations, warning; high risk continues with gate.
-- `autonomous`: automatically applies whatever is 🟢 and proven. Even here they have mandatory gate: remove code, change effective spec, send material to external harness, destructive operation.
+  - `gated` (padrão): leitura, análise, medição e prova de comportamento fluem sem aprovação. TODO passo que toca o código do projeto passa por gate com diff aprovado.
+  - `supervised`: o agente pode aplicar transformações de baixo risco já provadas, avisando; alto risco continua com gate.
+  - `autonomous`: aplica automaticamente o que estiver 🟢 e provado. Mesmo aqui têm gate obrigatório: remover código, alterar spec efetiva, enviar material a harness externo, operação destrutiva.
 - `safety_net_policy`: require-characterization
-- `require-characterization` (default): transformation that changes structure or logic requires a green safety net (existing tests + characterization) before and after.
-- `allow-unproven`: allows transformation without network, always demoted to 🔴 and marked as without mechanical proof in the registry.
+  - `require-characterization` (padrão): transformação que altera estrutura ou lógica exige rede de segurança (testes existentes + caracterização) verde antes e depois.
+  - `allow-unproven`: permite transformação sem rede, sempre rebaixada para 🔴 e marcada como sem prova mecânica no registro.
 
 ## Invariante do registro
 
-No transformation changes observable behavior. What does not prove preservation stops at the gate. Every applied transformation is reversible by the saved diff.
+Nenhuma transformação altera comportamento observável. O que não prova preservação, para no gate. Toda transformação aplicada é revertível pelo diff guardado.
 
 ## Estrutura
 
 ```
 _reversa_refactor/
-README.md (this file)
-<context>/ (feature, module or use case)
-opportunities/ (opportunities detected, one per file)
+  README.md                         (este arquivo)
+  <contexto>/                        (feature, módulo ou caso de uso)
+    opportunities/                   (oportunidades detectadas, uma por arquivo)
     transformations/
       OPP-<data>-<sufixo>-<slug>/
-plan.html (visual report of the plan, before touching the file)
-safety-net/ (characterization tests + green/red result)
-before-after/ (evidence: measurement, proof of equivalence, proof of death)
-CHG-NNN.diff (diffs applied, revert source)
+        plan.html                    (relatório visual do plano, antes de tocar arquivo)
+        safety-net/                  (testes de caracterização + resultado verde/vermelho)
+        before-after/                (evidência: medição, prova de equivalência, prova de morte)
+        CHG-NNN.diff                 (diffs aplicados, fonte de reversão)
         transformation.md            (registro conforme opportunity-schema.md)
-generated/ (index and catalog regenerable, never edited by hand)
+    generated/                       (index e catalog regeneráveis, nunca editados à mão)
 ```

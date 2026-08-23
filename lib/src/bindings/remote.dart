@@ -15,14 +15,14 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 List<String> list(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<git_strarray>();
-    final error = libgit2.git_remote_list(out, repo);
+    final error = libgit2Runtime.bindings.git_remote_list(out, repo);
 
     checkErrorAndThrow(error);
 
     final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -40,7 +40,11 @@ Pointer<git_remote> lookup({
   return using((arena) {
     final out = arena<Pointer<git_remote>>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_remote_lookup(out, repoPointer, nameC);
+    final error = libgit2Runtime.bindings.git_remote_lookup(
+      out,
+      repoPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -55,7 +59,7 @@ Pointer<git_remote> lookup({
 Pointer<git_remote> dup(Pointer<git_remote> remote) {
   return using((arena) {
     final out = arena<Pointer<git_remote>>();
-    final error = libgit2.git_remote_dup(out, remote);
+    final error = libgit2Runtime.bindings.git_remote_dup(out, remote);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -66,7 +70,7 @@ Pointer<git_remote> dup(Pointer<git_remote> remote) {
 ///
 /// Returns a pointer to the repository that owns this remote.
 Pointer<git_repository> owner(Pointer<git_remote> remote) =>
-    libgit2.git_remote_owner(remote);
+    libgit2Runtime.bindings.git_remote_owner(remote);
 
 /// Add a remote with the default fetch refspec to the repository's
 /// configuration. The returned remote must be freed with [free].
@@ -81,7 +85,12 @@ Pointer<git_remote> create({
     final out = arena<Pointer<git_remote>>();
     final nameC = name.toChar(arena);
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_create(out, repoPointer, nameC, urlC);
+    final error = libgit2Runtime.bindings.git_remote_create(
+      out,
+      repoPointer,
+      nameC,
+      urlC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -100,7 +109,11 @@ Pointer<git_remote> createAnonymous({
   return using((arena) {
     final out = arena<Pointer<git_remote>>();
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_create_anonymous(out, repoPointer, urlC);
+    final error = libgit2Runtime.bindings.git_remote_create_anonymous(
+      out,
+      repoPointer,
+      urlC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -116,7 +129,7 @@ Pointer<git_remote> createDetached({required String url}) {
   return using((arena) {
     final out = arena<Pointer<git_remote>>();
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_create_detached(out, urlC);
+    final error = libgit2Runtime.bindings.git_remote_create_detached(out, urlC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -135,7 +148,7 @@ void delete({
 }) {
   using((arena) {
     final nameC = name.toChar(arena);
-    final error = libgit2.git_remote_delete(repoPointer, nameC);
+    final error = libgit2Runtime.bindings.git_remote_delete(repoPointer, nameC);
     checkErrorAndThrow(error);
   });
 }
@@ -162,14 +175,19 @@ List<String> rename({
     final out = arena<git_strarray>();
     final nameC = name.toChar(arena);
     final newNameC = newName.toChar(arena);
-    final error = libgit2.git_remote_rename(out, repoPointer, nameC, newNameC);
+    final error = libgit2Runtime.bindings.git_remote_rename(
+      out,
+      repoPointer,
+      nameC,
+      newNameC,
+    );
 
     checkErrorAndThrow(error);
 
     final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -188,7 +206,11 @@ void setUrl({
   using((arena) {
     final remoteC = remote.toChar(arena);
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_set_url(repoPointer, remoteC, urlC);
+    final error = libgit2Runtime.bindings.git_remote_set_url(
+      repoPointer,
+      remoteC,
+      urlC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -207,7 +229,11 @@ void setPushUrl({
   using((arena) {
     final remoteC = remote.toChar(arena);
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_set_pushurl(repoPointer, remoteC, urlC);
+    final error = libgit2Runtime.bindings.git_remote_set_pushurl(
+      repoPointer,
+      remoteC,
+      urlC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -219,7 +245,10 @@ void setInstanceUrl({
 }) {
   using((arena) {
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_set_instance_url(remotePointer, urlC);
+    final error = libgit2Runtime.bindings.git_remote_set_instance_url(
+      remotePointer,
+      urlC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -231,7 +260,10 @@ void setInstancePushUrl({
 }) {
   using((arena) {
     final urlC = url.toChar(arena);
-    final error = libgit2.git_remote_set_instance_pushurl(remotePointer, urlC);
+    final error = libgit2Runtime.bindings.git_remote_set_instance_pushurl(
+      remotePointer,
+      urlC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -244,7 +276,11 @@ void setAutotag({
 }) {
   using((arena) {
     final remoteC = remote.toChar(arena);
-    final error = libgit2.git_remote_set_autotag(repoPointer, remoteC, value);
+    final error = libgit2Runtime.bindings.git_remote_set_autotag(
+      repoPointer,
+      remoteC,
+      value,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -253,7 +289,7 @@ void setAutotag({
 ///
 /// Returns the name of the remote or an empty string if the remote is anonymous.
 String name(Pointer<git_remote> remote) {
-  final result = libgit2.git_remote_name(remote);
+  final result = libgit2Runtime.bindings.git_remote_name(remote);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -261,13 +297,13 @@ String name(Pointer<git_remote> remote) {
 ///
 /// Returns the URL of the remote repository.
 String url(Pointer<git_remote> remote) =>
-    libgit2.git_remote_url(remote).toDartString();
+    libgit2Runtime.bindings.git_remote_url(remote).toDartString();
 
 /// Get the remote's url for pushing.
 ///
 /// Returns empty string if no special url for pushing is set.
 String pushUrl(Pointer<git_remote> remote) {
-  final result = libgit2.git_remote_pushurl(remote);
+  final result = libgit2Runtime.bindings.git_remote_pushurl(remote);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -275,7 +311,7 @@ String pushUrl(Pointer<git_remote> remote) {
 git_oid_t oidType(Pointer<git_remote> remote) {
   return using((arena) {
     final out = arena<UnsignedInt>();
-    final error = libgit2.git_remote_oid_type(out, remote);
+    final error = libgit2Runtime.bindings.git_remote_oid_type(out, remote);
     checkErrorAndThrow(error);
     return git_oid_t.fromValue(out.value);
   });
@@ -283,31 +319,34 @@ git_oid_t oidType(Pointer<git_remote> remote) {
 
 /// Get the remote's automatic tag following option.
 git_remote_autotag_option_t autotag(Pointer<git_remote> remote) {
-  return libgit2.git_remote_autotag(remote);
+  return libgit2Runtime.bindings.git_remote_autotag(remote);
 }
 
 /// Get the number of refspecs for a remote.
 int refspecCount(Pointer<git_remote> remote) =>
-    libgit2.git_remote_refspec_count(remote);
+    libgit2Runtime.bindings.git_remote_refspec_count(remote);
 
 /// Get a refspec from the remote at provided position.
 Pointer<git_refspec> getRefspec({
   required Pointer<git_remote> remotePointer,
   required int position,
-}) => libgit2.git_remote_get_refspec(remotePointer, position);
+}) => libgit2Runtime.bindings.git_remote_get_refspec(remotePointer, position);
 
 /// Get the remote's list of fetch refspecs.
 List<String> fetchRefspecs(Pointer<git_remote> remote) {
   return using((arena) {
     final out = arena<git_strarray>();
-    final error = libgit2.git_remote_get_fetch_refspecs(out, remote);
+    final error = libgit2Runtime.bindings.git_remote_get_fetch_refspecs(
+      out,
+      remote,
+    );
 
     checkErrorAndThrow(error);
 
     final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -316,14 +355,17 @@ List<String> fetchRefspecs(Pointer<git_remote> remote) {
 List<String> pushRefspecs(Pointer<git_remote> remote) {
   return using((arena) {
     final out = arena<git_strarray>();
-    final error = libgit2.git_remote_get_push_refspecs(out, remote);
+    final error = libgit2Runtime.bindings.git_remote_get_push_refspecs(
+      out,
+      remote,
+    );
 
     checkErrorAndThrow(error);
 
     final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -342,7 +384,11 @@ void addFetch({
   using((arena) {
     final remoteC = remote.toChar(arena);
     final refspecC = refspec.toChar(arena);
-    final error = libgit2.git_remote_add_fetch(repoPointer, remoteC, refspecC);
+    final error = libgit2Runtime.bindings.git_remote_add_fetch(
+      repoPointer,
+      remoteC,
+      refspecC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -361,7 +407,11 @@ void addPush({
   using((arena) {
     final remoteC = remote.toChar(arena);
     final refspecC = refspec.toChar(arena);
-    final error = libgit2.git_remote_add_push(repoPointer, remoteC, refspecC);
+    final error = libgit2Runtime.bindings.git_remote_add_push(
+      repoPointer,
+      remoteC,
+      refspecC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -387,7 +437,7 @@ void connect({
 }) {
   using((arena) {
     final callbacksOptions = arena<git_remote_callbacks>();
-    libgit2.git_remote_init_callbacks(
+    libgit2Runtime.bindings.git_remote_init_callbacks(
       callbacksOptions,
       GIT_REMOTE_CALLBACKS_VERSION,
     );
@@ -398,7 +448,7 @@ void connect({
       callbacksOptions: callbacksOptions.ref,
       callbacks: callbacks,
       operation: () {
-        final error = libgit2.git_remote_connect(
+        final error = libgit2Runtime.bindings.git_remote_connect(
           remotePointer,
           direction,
           callbacksOptions,
@@ -426,7 +476,7 @@ List<Map<String, Object?>> lsRemotes(Pointer<git_remote> remote) {
   return using((arena) {
     final out = arena<Pointer<Pointer<git_remote_head>>>();
     final size = arena<Size>();
-    final error = libgit2.git_remote_ls(out, size, remote);
+    final error = libgit2Runtime.bindings.git_remote_ls(out, size, remote);
 
     checkErrorAndThrow(error);
 
@@ -494,7 +544,10 @@ void fetch({
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
     final opts = arena<git_fetch_options>();
-    libgit2.git_fetch_options_init(opts, GIT_FETCH_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_fetch_options_init(
+      opts,
+      GIT_FETCH_OPTIONS_VERSION,
+    );
 
     opts.ref.pruneAsInt = prune;
     opts.ref.proxy_opts = proxyOptions.ref;
@@ -503,7 +556,7 @@ void fetch({
       callbacksOptions: opts.ref.callbacks,
       callbacks: callbacks,
       operation: () {
-        final error = libgit2.git_remote_fetch(
+        final error = libgit2Runtime.bindings.git_remote_fetch(
           remotePointer,
           refspecsC,
           opts,
@@ -547,7 +600,10 @@ void push({
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
     final opts = arena<git_push_options>();
-    libgit2.git_push_options_init(opts, GIT_PUSH_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_push_options_init(
+      opts,
+      GIT_PUSH_OPTIONS_VERSION,
+    );
 
     opts.ref.proxy_opts = proxyOptions.ref;
 
@@ -555,7 +611,11 @@ void push({
       callbacksOptions: opts.ref.callbacks,
       callbacks: callbacks,
       operation: () {
-        final error = libgit2.git_remote_push(remotePointer, refspecsC, opts);
+        final error = libgit2Runtime.bindings.git_remote_push(
+          remotePointer,
+          refspecsC,
+          opts,
+        );
 
         checkErrorAndThrow(error);
       },
@@ -565,11 +625,11 @@ void push({
 
 /// Get the statistics structure that is filled in by the fetch operation.
 Pointer<git_indexer_progress> stats(Pointer<git_remote> remote) =>
-    libgit2.git_remote_stats(remote);
+    libgit2Runtime.bindings.git_remote_stats(remote);
 
 /// Close the connection to the remote.
 void disconnect(Pointer<git_remote> remote) =>
-    libgit2.git_remote_disconnect(remote);
+    libgit2Runtime.bindings.git_remote_disconnect(remote);
 
 /// Prune tracking refs that are no longer present on remote.
 ///
@@ -578,7 +638,7 @@ void prune({
   required Pointer<git_remote> remotePointer,
   required Pointer<git_remote_callbacks> flags,
 }) {
-  final error = libgit2.git_remote_prune(remotePointer, flags);
+  final error = libgit2Runtime.bindings.git_remote_prune(remotePointer, flags);
   checkErrorAndThrow(error);
 }
 
@@ -586,19 +646,19 @@ void prune({
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void pruneRefs({required Pointer<git_remote> remotePointer}) {
-  final error = libgit2.git_remote_prune_refs(remotePointer);
+  final error = libgit2Runtime.bindings.git_remote_prune_refs(remotePointer);
   checkErrorAndThrow(error);
 }
 
 /// Check if the remote is connected.
 bool connected(Pointer<git_remote> remote) =>
-    libgit2.git_remote_connected(remote) == 1;
+    libgit2Runtime.bindings.git_remote_connected(remote) == 1;
 
 /// Stop the remote's current operation.
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void stop(Pointer<git_remote> remote) {
-  final error = libgit2.git_remote_stop(remote);
+  final error = libgit2Runtime.bindings.git_remote_stop(remote);
   checkErrorAndThrow(error);
 }
 
@@ -606,14 +666,15 @@ void stop(Pointer<git_remote> remote) {
 ///
 /// This also disconnects from the remote, if the connection has not been closed
 /// yet (using [disconnect]).
-void free(Pointer<git_remote> remote) => libgit2.git_remote_free(remote);
+void free(Pointer<git_remote> remote) =>
+    libgit2Runtime.bindings.git_remote_free(remote);
 
 /// Validate that the provided remote name is well formed.
 bool nameIsValid(String name) {
   return using((arena) {
     final out = arena<Int>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_remote_name_is_valid(out, nameC);
+    final error = libgit2Runtime.bindings.git_remote_name_is_valid(out, nameC);
 
     checkErrorAndThrow(error);
     return out.value == 1;
@@ -638,7 +699,7 @@ void download({
     refspecsC.ref.count = refspecs.length;
     refspecsC.ref.strings = arr;
 
-    final error = libgit2.git_remote_download(
+    final error = libgit2Runtime.bindings.git_remote_download(
       remotePointer,
       refspecsC,
       optionsPointer,
@@ -660,7 +721,7 @@ void updateTips({
 }) {
   using((arena) {
     final msgC = reflogMessage?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_remote_update_tips(
+    final error = libgit2Runtime.bindings.git_remote_update_tips(
       remotePointer,
       callbacksPointer,
       updateFlags,
@@ -678,11 +739,14 @@ void updateTips({
 String defaultBranch(Pointer<git_remote> remotePointer) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_remote_default_branch(out, remotePointer);
+    final error = libgit2Runtime.bindings.git_remote_default_branch(
+      out,
+      remotePointer,
+    );
 
     checkErrorAndThrow(error);
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -690,7 +754,7 @@ String defaultBranch(Pointer<git_remote> remotePointer) {
 /// Initialize [git_remote_create_options] structure with default values.
 Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
   final opts = arena<git_remote_create_options>();
-  libgit2.git_remote_create_options_init(
+  libgit2Runtime.bindings.git_remote_create_options_init(
     opts,
     GIT_REMOTE_CREATE_OPTIONS_VERSION,
   );
@@ -704,7 +768,7 @@ Pointer<git_remote> createWithOpts({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_remote>>();
-    final error = libgit2.git_remote_create_with_opts(
+    final error = libgit2Runtime.bindings.git_remote_create_with_opts(
       out,
       url.toChar(arena),
       optionsPointer,
@@ -722,7 +786,10 @@ Pointer<git_remote> createWithOpts({
 /// through proxy.
 Pointer<git_proxy_options> _proxyOptionsInit(String? proxyOption, Arena arena) {
   final proxyOptions = arena<git_proxy_options>();
-  libgit2.git_proxy_options_init(proxyOptions, GIT_PROXY_OPTIONS_VERSION);
+  libgit2Runtime.bindings.git_proxy_options_init(
+    proxyOptions,
+    GIT_PROXY_OPTIONS_VERSION,
+  );
 
   if (proxyOption == null) {
     proxyOptions.ref.typeAsInt = git_proxy_t.GIT_PROXY_NONE.value;
@@ -751,7 +818,7 @@ Pointer<git_remote> createWithFetchSpec({
     final nameC = name.toChar(arena);
     final urlC = url.toChar(arena);
     final fetchC = fetch.toChar(arena);
-    final error = libgit2.git_remote_create_with_fetchspec(
+    final error = libgit2Runtime.bindings.git_remote_create_with_fetchspec(
       out,
       repoPointer,
       nameC,

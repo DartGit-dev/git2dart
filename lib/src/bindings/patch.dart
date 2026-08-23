@@ -32,7 +32,7 @@ Pointer<git_patch> fromBuffers({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_patch_from_buffers(
+    final error = libgit2Runtime.bindings.git_patch_from_buffers(
       out,
       oldBufferC.cast(),
       oldLen,
@@ -75,7 +75,7 @@ Pointer<git_patch> fromBlobs({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_patch_from_blobs(
+    final error = libgit2Runtime.bindings.git_patch_from_blobs(
       out,
       oldBlobPointer ?? nullptr,
       oldAsPathC,
@@ -113,7 +113,7 @@ Pointer<git_patch> fromBlobAndBuffer({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_patch_from_blob_and_buffer(
+    final error = libgit2Runtime.bindings.git_patch_from_blob_and_buffer(
       out,
       oldBlobPointer ?? nullptr,
       oldAsPathC,
@@ -142,7 +142,11 @@ Pointer<git_patch> fromDiff({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_patch>>();
-    final error = libgit2.git_patch_from_diff(out, diffPointer, index);
+    final error = libgit2Runtime.bindings.git_patch_from_diff(
+      out,
+      diffPointer,
+      index,
+    );
 
     checkErrorAndThrow(error);
 
@@ -152,14 +156,15 @@ Pointer<git_patch> fromDiff({
 
 /// Get the delta associated with a patch.
 Pointer<git_diff_delta> delta(Pointer<git_patch> patch) =>
-    libgit2.git_patch_get_delta(patch);
+    libgit2Runtime.bindings.git_patch_get_delta(patch);
 
 /// Get the repository that owns this patch.
 Pointer<git_repository> owner(Pointer<git_patch> patch) =>
-    libgit2.git_patch_owner(patch);
+    libgit2Runtime.bindings.git_patch_owner(patch);
 
 /// Get the number of hunks in a patch.
-int numHunks(Pointer<git_patch> patch) => libgit2.git_patch_num_hunks(patch);
+int numHunks(Pointer<git_patch> patch) =>
+    libgit2Runtime.bindings.git_patch_num_hunks(patch);
 
 /// Get the information about a hunk in a patch.
 ///
@@ -173,7 +178,7 @@ Map<String, Object> hunk({
     final out = arena<Pointer<git_diff_hunk>>();
     final linesInHunk = arena<Size>();
 
-    final error = libgit2.git_patch_get_hunk(
+    final error = libgit2Runtime.bindings.git_patch_get_hunk(
       out,
       linesInHunk,
       patchPointer,
@@ -193,7 +198,10 @@ int numLinesInHunk({
   required Pointer<git_patch> patchPointer,
   required int hunkIndex,
 }) {
-  return libgit2.git_patch_num_lines_in_hunk(patchPointer, hunkIndex);
+  return libgit2Runtime.bindings.git_patch_num_lines_in_hunk(
+    patchPointer,
+    hunkIndex,
+  );
 }
 
 /// Get line counts of each type in a patch.
@@ -203,7 +211,7 @@ Map<String, int> lineStats(Pointer<git_patch> patch) {
     final insertions = arena<Size>();
     final deletions = arena<Size>();
 
-    final error = libgit2.git_patch_line_stats(
+    final error = libgit2Runtime.bindings.git_patch_line_stats(
       context,
       insertions,
       deletions,
@@ -227,7 +235,7 @@ Pointer<git_diff_line> lines({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_diff_line>>();
-    final error = libgit2.git_patch_get_line_in_hunk(
+    final error = libgit2Runtime.bindings.git_patch_get_line_in_hunk(
       out,
       patchPointer,
       hunkIndex,
@@ -245,11 +253,11 @@ Pointer<git_diff_line> lines({
 String text(Pointer<git_patch> patch) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_patch_to_buf(out, patch);
+    final error = libgit2Runtime.bindings.git_patch_to_buf(out, patch);
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -289,7 +297,7 @@ String print(Pointer<git_patch> patch) {
   >(_patchPrintCb, 0);
 
   _printedPatchLines.clear();
-  final error = libgit2.git_patch_print(patch, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_patch_print(patch, cb, nullptr);
 
   checkErrorAndThrow(error);
   final result = _printedPatchLines.join();
@@ -301,12 +309,12 @@ String print(Pointer<git_patch> patch) {
 Uint8List textBytes(Pointer<git_patch> patch) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_patch_to_buf(out, patch);
+    final error = libgit2Runtime.bindings.git_patch_to_buf(out, patch);
     checkErrorAndThrow(error);
 
     final data = out.ref.ptr.cast<Uint8>().asTypedList(out.ref.size);
     final result = Uint8List.fromList(data);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -329,7 +337,7 @@ int size({
   final includeHunkHeadersC = includeHunkHeaders ? 1 : 0;
   final includeFileHeadersC = includeFileHeaders ? 1 : 0;
 
-  return libgit2.git_patch_size(
+  return libgit2Runtime.bindings.git_patch_size(
     patchPointer,
     includeContextC,
     includeHunkHeadersC,
@@ -338,7 +346,8 @@ int size({
 }
 
 /// Free a previously allocated patch object.
-void free(Pointer<git_patch> patch) => libgit2.git_patch_free(patch);
+void free(Pointer<git_patch> patch) =>
+    libgit2Runtime.bindings.git_patch_free(patch);
 
 Pointer<git_diff_options> _diffOptionsInit({
   required Arena arena,
@@ -347,7 +356,10 @@ Pointer<git_diff_options> _diffOptionsInit({
   required int interhunkLines,
 }) {
   final opts = arena<git_diff_options>();
-  final error = libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
+  final error = libgit2Runtime.bindings.git_diff_options_init(
+    opts,
+    GIT_DIFF_OPTIONS_VERSION,
+  );
   checkErrorAndThrow(error);
 
   opts.ref.flags = flags;

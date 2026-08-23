@@ -1,6 +1,6 @@
-# Three.js Patterns for Architectural Visualization
+# Padrões Three.js para Visualização de Arquitetura
 
-Quick reference for setup, materials and techniques common to all skill modes. Three.js v0.158+, ESM via CDN.
+Referência rápida de setup, materiais e técnicas comuns a todos os modos da skill. Three.js v0.158+, ESM via CDN.
 
 ---
 
@@ -19,7 +19,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0a14);
 scene.fog = new THREE.Fog(0x0a0a14, 100, 800);
 
-// Camera
+// Câmera
 const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
 camera.position.set(150, 200, 300);
 camera.lookAt(0, 0, 0);
@@ -40,14 +40,14 @@ controls.minDistance = 20;
 controls.maxDistance = 1500;
 ```
 
-## Standard lighting
+## Iluminação padrão
 
 ```javascript
-// Mild ambient light so as not to have completely black shadows
+// Luz ambiente leve para não ter sombras totalmente pretas
 const ambient = new THREE.AmbientLight(0xffffff, 0.35);
 scene.add(ambient);
 
-// Hemisphere: sky vs ground, gives natural depth
+// Hemisfério: céu vs chão, dá profundidade natural
 const hemi = new THREE.HemisphereLight(0xddeeff, 0x202028, 0.5);
 hemi.position.set(0, 200, 0);
 scene.add(hemi);
@@ -64,7 +64,7 @@ dir.shadow.camera.bottom = -400;
 scene.add(dir);
 ```
 
-## Rendering loop
+## Loop de renderização
 
 ```javascript
 function tick() {
@@ -87,9 +87,9 @@ window.addEventListener("resize", () => {
 });
 ```
 
-## InstancedMesh for large volumes
+## InstancedMesh para grandes volumes
 
-When there are more than 200 elements of the same type (Code City buildings, dep graph nodes), use `InstancedMesh` instead of looping with `add()`.
+Quando há mais de 200 elementos do mesmo tipo (prédios do Code City, nós do dep graph), usar `InstancedMesh` em vez de loop com `add()`.
 
 ```javascript
 const boxGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -112,7 +112,7 @@ if (instanced.instanceColor) instanced.instanceColor.needsUpdate = true;
 scene.add(instanced);
 ```
 
-## Labels in CSS2D (always readable)
+## Labels em CSS2D (legíveis sempre)
 
 ```javascript
 import { CSS2DRenderer, CSS2DObject } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/renderers/CSS2DRenderer.js";
@@ -134,11 +134,11 @@ function addLabel(text, position) {
 }
 ```
 
-In `tick()`, call `labelRenderer.render(scene, camera)` together with the main renderer.
+No `tick()`, chamar `labelRenderer.render(scene, camera)` junto com o renderer principal.
 
-**Rule**: show labels only when the node is close to the camera (distance < threshold) or on hover, to avoid pollution.
+**Regra**: mostrar labels apenas quando o nó está próximo da câmera (distância < threshold) ou em hover, para evitar poluição.
 
-## Raycaster for hover and click
+## Raycaster para hover e clique
 
 ```javascript
 const raycaster = new THREE.Raycaster();
@@ -167,7 +167,7 @@ sliders.forEach((slider) => {
     slider.addEventListener("input", (e) => {
         const param = e.target.dataset.param;
         const value = parseFloat(e.target.value);
-        applyParam(param, value); // mode-specific function
+        applyParam(param, value); // função específica do modo
         localStorage.setItem(`arq3d.${param}`, value);
     });
     // restore
@@ -195,7 +195,7 @@ document.getElementById("export-png").addEventListener("click", () => {
 });
 ```
 
-## Dispose when switching modes
+## Dispose ao trocar de modo
 
 ```javascript
 function clearScene() {
@@ -210,12 +210,12 @@ function clearScene() {
 }
 ```
 
-## Performance: practical limits
+## Performance: limites práticos
 
-| Scenario | Safe limit | Above that |
+| Cenário | Limite seguro | Acima disso |
 |---|---|---|
-| Independent BoxGeometry | 200 | Migrate to InstancedMesh |
-| InstancedMesh of cubes | 5,000 | Apply grouping by folder |
+| BoxGeometry independentes | 200 | Migrar para InstancedMesh |
+| InstancedMesh de cubos | 5.000 | Aplicar agrupamento por pasta |
 | Linhas (LineSegments) | 10.000 segmentos | Usar Line2 (fat lines) ou agrupar |
-| Sprites/labels CSS2D | 100 visible | Show only under hover or proximity |
-| Textured polygons | 50,000 tris | Reduce LOD or disable shadows |
+| Sprites/labels CSS2D | 100 visíveis | Mostrar só sob hover ou proximidade |
+| Polígonos texturizados | 50.000 tris | Reduzir LOD ou desativar sombras |

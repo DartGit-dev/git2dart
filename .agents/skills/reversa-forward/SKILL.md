@@ -1,8 +1,8 @@
 ---
 name: reversa-forward
-description: 'Reversa forward cycle orchestrator: detects the stage of the active feature in `reversa/forward/` and routes it to the next agent (requirements, clarify, plan, to-do, audit, quality, coding, add, sync). Only routes, does not write artifacts. Use with "/reversa-forward", "start evolution", "start pipeline forward".'
+description: 'Orquestrador do ciclo forward do Reversa: detecta o estágio da feature ativa em `_reversa_forward/` e roteia para o próximo agente (requirements, clarify, plan, to-do, audit, quality, coding, add, sync). Só roteia, não escreve artefatos. Use com "/reversa-forward", "iniciar evolução", "iniciar pipeline forward".'
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -11,78 +11,82 @@ metadata:
   role: orchestrator
 ---
 
-You are the orchestrator of the Reversa forward cycle. Its mission is to look at the current state of the project and active feature, tell the user where they are in the pipeline and suggest the next appropriate skill. You NEVER execute the next skill automatically, it always ends by asking CONTINUE.
+## Roteamento adaptativo
 
-## Before you start
+Ao ser ativado e antes de invocar qualquer outro agente Reversa, leia a referência `reversa/references/codex-routing.md` na pasta irmã de skills e aplique o bootstrap e o contrato de dispatch. No Codex, ele tem precedência sobre execução no contexto atual; em outras engines, use o fallback documentado.
 
-1. Read `.reversa/state.json`
-1.1. `output_folder` → extraction folder reversa (default `reversa/sdd`)
-1.2. `forward_folder` → forward features folder (default `reversa/forward`)
-1.3. `user_name` → name to customize greeting
-2. When the text of this skill mentions `reversa/sdd/` or `reversa/forward/`, use the actual resolved values ​​from state.json
-3. If `state.json` does not exist, treat as literal `reversa/sdd/` and `reversa/forward/` and move on
+Você é o orquestrador do ciclo forward do Reversa. Sua missão é olhar o estado atual do projeto e da feature ativa, dizer ao usuário em que ponto do pipeline ele está e sugerir o próximo skill apropriado. Você NUNCA executa o próximo skill automaticamente, sempre encerra pedindo CONTINUAR.
 
-## Extraction context reversa
+## Antes de começar
 
-The forward pipeline works in two scenarios:
+1. Leia `.reversa/state.json`
+   1.1. `output_folder` → pasta da extração reversa (padrão `_reversa_sdd`)
+   1.2. `forward_folder` → pasta das features forward (padrão `_reversa_forward`)
+   1.3. `user_name` → nome para personalizar a saudação
+2. Quando o texto deste skill mencionar `_reversa_sdd/` ou `_reversa_forward/`, use os valores reais resolvidos do state.json
+3. Se `state.json` não existir, trate como `_reversa_sdd/` e `_reversa_forward/` literais e siga adiante
 
-1. **Legacy Evolution:** `reversa/sdd/` exists with artifacts from extract reversa. The pipeline skills (especially `/reversa-requirements` and `/reversa-plan`) will anchor decisions in these artifacts.
-2. **New project (greenfield):** `reversa/sdd/` does not exist yet. The forward pipeline is still valid, it just loses its anchoring in the legacy.
+## Contexto de extração reversa
 
-DO NOT block under any circumstances. Check and prepare the structure by following the SAME folder creation rules that the original `/reversa` applies:
+O pipeline forward funciona em dois cenários:
+
+1. **Evolução de legado:** existe `_reversa_sdd/` com artefatos da extração reversa. Os skills do pipeline (especialmente `/reversa-requirements` e `/reversa-plan`) vão ancorar decisões nesses artefatos.
+2. **Projeto novo (greenfield):** não existe `_reversa_sdd/` ainda. O pipeline forward continua valendo, só perde a ancoragem no legado.
+
+NÃO bloqueie em nenhum caso. Verifique e prepare a estrutura seguindo as MESMAS regras de criação de pastas que o `/reversa` original aplica:
 
 1. Resolva os paths reais a partir de `.reversa/state.json`:
-1.1. `output_folder` (default `reversa/sdd`)
-1.2. `forward_folder` (default `reversa/forward`)
-2. If the `output_folder` folder exists and contains at least one `.md` file, internally record the scenario as **legacy** and tell the user: "reversa extraction detected, pipeline will anchor decisions to `<output_folder>/`."
-3. If the `output_folder` folder does NOT exist or is empty, register it internally as **greenfield** and:
-3.1. Create folder `<output_folder>/` (recursive creation, equivalent to `mkdir -p`)
-3.2. Also create the `<forward_folder>/` folder if it doesn't already exist (by the same method)
-3.3. DO NOT create any files within these folders. No `.gitkeep`, no placeholders. The `output_folder` folder is already in `.gitignore` (managed by the installer), creating files would only introduce noise
-3.4. DO NOT change `.reversa/state.json#created_files` or `.gitignore`, this is the responsibility of the installer and the original `/reversa`, not this skill
-3.5. Communicate to the user: "Without extracting reversa in this project, I will operate in greenfield mode. I created `<output_folder>/` and `<forward_folder>/` so that pipeline skills can write artifacts when they need to. If you want to anchor to legacy later, run `/reversa` at any time."
+   1.1. `output_folder` (padrão `_reversa_sdd`)
+   1.2. `forward_folder` (padrão `_reversa_forward`)
+2. Se a pasta `output_folder` existe e contém pelo menos um arquivo `.md`, registre internamente o cenário como **legado** e diga ao usuário: "Extração reversa detectada, o pipeline vai ancorar decisões em `<output_folder>/`."
+3. Se a pasta `output_folder` NÃO existe ou está vazia, registre internamente como **greenfield** e:
+   3.1. Crie a pasta `<output_folder>/` (criação recursiva, equivalente a `mkdir -p`)
+   3.2. Crie também a pasta `<forward_folder>/` se ainda não existir (pelo mesmo método)
+   3.3. NÃO crie nenhum arquivo dentro dessas pastas. Sem `.gitkeep`, sem placeholders. A pasta `output_folder` já está no `.gitignore` (gerenciado pelo installer), criar arquivos só introduziria ruído
+   3.4. NÃO altere `.reversa/state.json#created_files` nem `.gitignore`, isso é responsabilidade do installer e do `/reversa` original, não deste skill
+   3.5. Comunique ao usuário: "Sem extração reversa neste projeto, vou operar em modo greenfield. Criei `<output_folder>/` e `<forward_folder>/` para que os skills do pipeline possam escrever artefatos quando precisarem. Se quiser ancorar em legado depois, rode `/reversa` a qualquer momento."
 
-Principles inherited from the original `/reversa` (do not violate):
+Princípios herdados do `/reversa` original (não viole):
 
-- Always use the real value of `output_folder` and `forward_folder` of `state.json`, never the literal `reversa/sdd` or `reversa/forward`
-- Do not touch project folder or file outside of `.reversa/`, `<output_folder>/` and `<forward_folder>/`
-- Never overwrite: create only if absent
+- Use sempre o valor real de `output_folder` e `forward_folder` do `state.json`, jamais o literal `_reversa_sdd` ou `_reversa_forward`
+- Não toque em pasta ou arquivo do projeto fora de `.reversa/`, `<output_folder>/` e `<forward_folder>/`
+- Nunca sobrescreva: crie só se ausente
 
-## Organization of specs
+## Organização das specs
 
-Even on the greenfield path, the pipeline needs to know how the specs will be organized. This decision is the same one the original `/reversa` makes right after the Scout, and is persisted in `.reversa/config.toml`, section `[specs]`. If you have already decided (legacy with `/reversa` already executed), skip this step. If not, make the menu now.
+Mesmo no caminho greenfield, o pipeline precisa saber como as specs serão organizadas. Essa decisão é a mesma que o `/reversa` original toma logo após o Scout, e fica persistida em `.reversa/config.toml`, seção `[specs]`. Se já estiver decidida (legado com `/reversa` já executado), pule este passo. Caso contrário, faça o menu agora.
 
-### 1. Check decision status
+### 1. Verificar estado da decisão
 
-1. Read `.reversa/config.toml`, section `[specs]`, and merge key for key with `.reversa/config.user.toml#[specs]` (user override takes precedence)
-2. The section is considered **decided** when, after merging, `granularity` is filled with one of the valid values: `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom`
-3. If decided, skip to the next section of the skill (Physical stage detection)
-4. If there is an override in `config.user.toml` but `config.toml` is without `granularity`, warn the user before displaying the menu, according to rule RF-18 of `/reversa`. List the override keys and ask for confirmation. Negative response aborts without persisting anything
+1. Leia `.reversa/config.toml`, seção `[specs]`, e mescle chave a chave com `.reversa/config.user.toml#[specs]` (override do usuário tem precedência)
+2. A seção é considerada **decidida** quando, após a mescla, `granularity` está preenchida com um dos valores válidos: `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom`
+3. Se decidida, pule para a próxima seção do skill (Detecção do estágio físico)
+4. Se há override em `config.user.toml` mas `config.toml` está sem `granularity`, avise o usuário antes de exibir o menu, conforme regra RF-18 do `/reversa`. Listar as chaves do override e pedir confirmação. Resposta negativa aborta sem persistir nada
 
 ### 2. Apresentar o menu
 
-In the greenfield path there is NO `surface.json` (Scout did not run). Present the menu without pre-marking an option. If it is legacy and there is `.reversa/context/surface.json` with `organization_suggestion.granularity`, pre-mark the suggestion and show `rationale`.
+No caminho greenfield NÃO há `surface.json` (Scout não rodou). Apresente o menu sem pré-marcar opção. Se for legado e existir `.reversa/context/surface.json` com `organization_suggestion.granularity`, pré-marque a sugestão e mostre a `rationale`.
 
-Use exactly this format (language following `chat_language`):
+Use exatamente este formato (idioma seguindo `chat_language`):
 
 ```
-How do you want to organize the specs for this project?
+Como você quer organizar as specs deste projeto?
 
-[1] Per code module
+  [1] Por módulo de código
   [2] Por caso de uso
   [3] Por endpoint/contrato
-[4] Hybrid (module at the root, nested use cases)
+  [4] Híbrida (módulo na raiz, casos de uso aninhados)
   [5] Por features
   [6] Customizada
 
 Escolha (1 a 6):
 ```
 
-In legacy mode with suggestion available, add `(sugerido)` to the pre-marked option and accept Enter to confirm it.
+Em modo legado com sugestão disponível, acrescente `(sugerido)` na opção pré-marcada e aceite Enter como confirmação dela.
 
-Mapping the 6 options for `granularity`:
+Mapeamento das 6 opções para `granularity`:
 
-| Option | `granularity` |
+| Opção | `granularity` |
 |-------|---------------|
 | 1 | `module` |
 | 2 | `use-case` |
@@ -91,96 +95,96 @@ Mapping the 6 options for `granularity`:
 | 5 | `feature` |
 | 6 | `custom` |
 
-If the user chooses 6, ask: "What are the first-level folder names? List comma separated or one per line (minimum 1)." Sanitize each name (discarding characters prohibited by the OS) and discard empty ones. If the list is empty, repeat the question.
+Se o usuário escolher 6, pergunte: "Quais são os nomes das pastas de primeiro nível? Liste separados por vírgula ou um por linha (mínimo 1)." Sanitize cada nome (descartando caracteres proibidos pelo OS) e descarte vazios. Se a lista resultar vazia, repita a pergunta.
 
-Invalid entries must be rejected by reordering. Cancellation (Ctrl+C) aborts without persisting.
+Entradas inválidas devem ser rejeitadas pedindo de novo. Cancelamento (Ctrl+C) aborta sem persistir.
 
-### 3. Persist the decision (atomic write)
+### 3. Persistir a decisão (atomic write)
 
-Update `.reversa/config.toml`, section `[specs]`:
+Atualize `.reversa/config.toml`, seção `[specs]`:
 
 ```toml
 [specs]
 layout = "feature-folder"
 granularity = "<escolha>"
-custom_folders = [<list>]
+custom_folders = [<lista>]
 scout_suggestion = "<organization_suggestion.granularity do surface.json, ou vazio em greenfield>"
 decided_at = "<timestamp ISO 8601 UTC>"
 ```
 
-Rules:
+Regras:
 
-- **Atomic write:** write to `config.toml.tmp` in the same directory and atomic rename to `config.toml`
-- **Non-destructive:** preserve all other sections (`[project]`, `[user]`, `[output]`, `[agents]`, `[engines]`, `[analysis]`)
-- **Do not touch `.reversa/config.user.toml`**, it belongs to the user
-- **`scout_suggestion` is immutable:** if it is already filled, preserve it. On first greenfield run, save empty
-- IO failure: display clear error, do not consider decision confirmed, user can try again on next run
+- **Atomic write:** escrever em `config.toml.tmp` no mesmo diretório e rename atômico para `config.toml`
+- **Non-destructive:** preserve todas as outras seções (`[project]`, `[user]`, `[output]`, `[agents]`, `[engines]`, `[analysis]`)
+- **Não toque em `.reversa/config.user.toml`**, pertence ao usuário
+- **`scout_suggestion` é imutável:** se já estiver preenchido, preserve. Em primeira execução greenfield, salve vazio
+- Falha de IO: exiba erro claro, não considere a decisão confirmada, o usuário pode tentar de novo na próxima execução
 
-After successful persistence, proceed with physical stage detection.
+Após a persistência bem-sucedida, prossiga com a detecção do estágio físico.
 
-## Physical stage detection
+## Detecção do estágio físico
 
-Stage detection is by **physical feature artifacts**, never by self-declared fields in metadata. Use the same table already documented in `reversa-requirements` and `reversa-resume`.
+A detecção do estágio é por **artefatos físicos da feature**, nunca por campos auto-declarados em metadados. Use a mesma tabela já documentada em `reversa-requirements` e `reversa-resume`.
 
-1. Try reading `.reversa/active-requirements.json`
-1.1. If absent, or invalid, or with `feature-dir` pointing to a non-existent folder, classify as **no active feature**
-2. If `feature-dir` exists, identify the physical stage:
+1. Tente ler `.reversa/active-requirements.json`
+   1.1. Se ausente, ou inválido, ou com `feature-dir` apontando para pasta inexistente, classifique como **sem feature ativa**
+2. Caso `feature-dir` exista, identifique o estágio físico:
 
-| Condition observed in `feature-dir` | Physical internship |
+   | Condição observada em `feature-dir` | Estágio físico |
    |--------------------------------------|----------------|
-| `requirements.md` missing | `vazio` |
-| `requirements.md` present, `roadmap.md` absent | `requirements` |
-| `roadmap.md` present, `actions.md` absent | `plan` |
-| `actions.md` present with at least one line `\| ... \| \[ \] \|` (checkbox open) | `coding-em-progresso` |
-| `actions.md` present, ALL action lines as `\| ... \| \[X\] \|` (checkboxes closed) | `done` |
+   | `requirements.md` ausente | `vazio` |
+   | `requirements.md` presente, `roadmap.md` ausente | `requirements` |
+   | `roadmap.md` presente, `actions.md` ausente | `plan` |
+   | `actions.md` presente com pelo menos uma linha `\| ... \| \[ \] \|` (checkbox aberto) | `coding-em-progresso` |
+   | `actions.md` presente, TODAS as linhas de ação como `\| ... \| \[X\] \|` (checkboxes fechados) | `done` |
 
-3. For counting in `actions.md`, consider only table rows that end with `\| [ ] \|` or `\| [X] \|`. Headings and free text are ignored
-4. For `requirements`, also count the `[DOUBT]` markers in `requirements.md` (useful for deciding between clarify and plan)
-5. For `coding-em-progresso`, count shares `[X]` versus `[ ]` in `actions.md`
-6. Also consider the field `paused-features` in `active-requirements.json` (if it exists and has entries, there are paused features available for resumption)
-7. For stage `done`, also check if there is a feature addendum in `<output_folder>/addenda/` (file whose name starts with `feature-id`). Addendum present and in force (without overrun line in the Validity section) means that delivery has already converged on extraction
+3. Para a contagem em `actions.md`, considere apenas linhas de tabela que terminam com `\| [ ] \|` ou `\| [X] \|`. Cabeçalhos e texto livre são ignorados
+4. Para `requirements`, conte também os marcadores `[DÚVIDA]` no `requirements.md` (útil para decidir entre clarify e plan)
+5. Para `coding-em-progresso`, conte ações `[X]` versus `[ ]` em `actions.md`
+6. Considere também o campo `paused-features` em `active-requirements.json` (se existir e tiver entradas, há features pausadas disponíveis para retomada)
+7. Para o estágio `done`, verifique também se existe adendo da feature em `<output_folder>/addenda/` (arquivo cujo nome começa com o `feature-id`). Adendo presente e vigente (sem linha de superação na seção Vigência) significa que a entrega já foi convergida na extração
 
 ## Matriz de roteamento
 
-The next skill is decided by the combination of physical stage and free argument passed to `/reversa-forward`:
+O próximo skill é decidido pela combinação entre estágio físico e argumento livre passado ao `/reversa-forward`:
 
-| Status | Free argument passed? | `/reversa-forward` Suggestion |
+| Estado | Argumento livre passado? | Sugestão do `/reversa-forward` |
 |--------|--------------------------|--------------------------------|
-| No active feature | Yes | `/reversa-requirements <argument>` |
-| No active feature | No | Presents the pipeline, asks for a description of the feature, suggests `/reversa-requirements <description>` |
-| Stage `vazio` (folder without `requirements.md`) | Indifferent | `/reversa-requirements` (recreate from scratch, report that the current folder is corrupt) |
-| Stage `requirements` with `[DOUBT]` | Indifferent | `/reversa-clarify` |
-| Stage `requirements` without `[DOUBT]` | Indifferent | `/reversa-plan` |
-| Internship `plan` | Indifferent | `/reversa-to-do` |
-| Internship `coding-em-progresso` | Indifferent | `/reversa-coding` |
-| Internship `done` without addendum in `addenda/` | Indifferent | `/reversa-sync` (converge delivery on extraction) |
-| Internship `done` with current addendum | Indifferent | Conclusion, offer `/reversa-resume` if `paused-features` has entries, or suggest `/reversa-requirements` for new feature |
+| Sem feature ativa | Sim | `/reversa-requirements <argumento>` |
+| Sem feature ativa | Não | Apresenta o pipeline, pede descrição da feature, sugere `/reversa-requirements <descrição>` |
+| Estágio `vazio` (pasta sem `requirements.md`) | Indiferente | `/reversa-requirements` (recriar do zero, comunicar que a pasta atual está corrompida) |
+| Estágio `requirements` com `[DÚVIDA]` | Indiferente | `/reversa-clarify` |
+| Estágio `requirements` sem `[DÚVIDA]` | Indiferente | `/reversa-plan` |
+| Estágio `plan` | Indiferente | `/reversa-to-do` |
+| Estágio `coding-em-progresso` | Indiferente | `/reversa-coding` |
+| Estágio `done` sem adendo em `addenda/` | Indiferente | `/reversa-sync` (converger a entrega na extração) |
+| Estágio `done` com adendo vigente | Indiferente | Conclusão, oferece `/reversa-resume` se `paused-features` tiver entradas, ou sugere `/reversa-requirements` para nova feature |
 
-**Important:** if the user passed a free argument AND there is an active feature at a stage other than `done` or `vazio`, DO NOT replicate the "continue / parallel / abandon" menu here. Just communicate the ambiguity and offer both ways out, without deciding:
+**Importante:** se o usuário passou argumento livre E existe feature ativa em estágio diferente de `done` ou `vazio`, NÃO replique aqui o menu "continuar / paralela / abandonar". Apenas comunique a ambiguidade e ofereça as duas saídas, sem decidir:
 
-> There is an active feature (`<NNN-short-name>`, stage `<stage>`), and you also provided a description of a new idea.
+> Existe feature ativa (`<NNN-short-name>`, estágio `<estágio>`), e você também passou descrição de uma nova ideia.
 >
-> 1. If you want to continue the active feature, type **CONTINUE** and I will forward it to `/reversa-<next-for-current-stage>`, ignoring the argument.
-> 2. If you want to create a new feature in parallel or abandon the current one, type **NEW** and I will forward it to `/reversa-requirements <description>`, which has the appropriate re-execution policy.
+> 1. Se quer continuar a feature ativa, digite **CONTINUAR** e eu encaminho para `/reversa-<próximo-do-estágio-atual>`, ignorando o argumento.
+> 2. Se quer criar uma nova feature em paralelo ou abandonar a atual, digite **NOVA** e eu encaminho para `/reversa-requirements <descrição>`, que tem a política de re-execução adequada.
 
-Wait for the choice. Don't decide alone.
+Aguarde a escolha. Não decida sozinho.
 
 ## Etapas opcionais (audit, quality, add)
 
-`/reversa-audit` and `/reversa-quality` are optional and not part of the above routing happy path. You only suggest them when:
+`/reversa-audit` e `/reversa-quality` são opcionais e não fazem parte do caminho feliz do roteamento acima. Você só os sugere quando:
 
-1. The user explicitly asks
-2. You detect signs of inconsistency when reading the artifacts (e.g., `requirements.md` has `[DOUBT]` but `roadmap.md` has already decided on the questionable point, or `actions.md` references missing components in `reversa/sdd/`)
+1. O usuário pedir explicitamente
+2. Você detectar sinais de inconsistência ao ler os artefatos (por exemplo, `requirements.md` tem `[DÚVIDA]` mas `roadmap.md` já decidiu sobre o ponto duvidoso, ou `actions.md` referencia componentes ausentes em `_reversa_sdd/`)
 
-When applicable, suggest it as an intermediate step before the next mandatory skill, leaving the decision up to the user.
+Quando aplicável, sugira como passo intermediário antes do próximo skill obrigatório, deixando a decisão com o usuário.
 
-`/reversa-add` is also optional, runs after coding and is repeatable. It exists for minute adjustments to the feature already delivered ("increase this title", "put a loading here"), registering the amendment in the spec before implementing. Only suggest when the user describes a short adjustment to what the feature delivered. Never suggest `/reversa-add` for a new idea, new feature, or anything that requires a new dependency, schema or contract change, new public surface, or auth path. In these cases, the routing is `/reversa-requirements`.
+`/reversa-add` também é opcional, roda depois do coding e é repetível. Ele existe para ajustes de minuto na feature já entregue ("aumenta esse título", "põe um loading aqui"), registrando a emenda na spec antes de implementar. Sugira apenas quando o usuário descrever um ajuste curto sobre o que a feature entregou. Nunca sugira `/reversa-add` para ideia nova, feature nova, ou qualquer coisa que exija dependência nova, mudança de schema ou contrato, superfície pública nova, ou caminho de auth. Nesses casos o encaminhamento é `/reversa-requirements`.
 
-## User presentation
+## Apresentação ao usuário
 
-Use exactly this format (replacing placeholders with actual values):
+Use exatamente este formato (substituindo os placeholders por valores reais):
 
-> Hello, `<user_name>`. Reversa forward pipeline:
+> Olá, `<user_name>`. Pipeline forward do Reversa:
 >
 > ```
 > requirements → clarify? → plan → to-do → audit? → quality? → coding → add? → sync?
@@ -189,45 +193,45 @@ Use exactly this format (replacing placeholders with actual values):
 > Estado atual: **`<estado descritivo>`**
 > `<linhas adicionais conforme o caso, ver abaixo>`
 >
-> Suggested next step: **`/reversa-<next>`** `<argument if applicable>`
-> Why: `<motivo curto baseado no estado detectado>`
+> Próximo passo sugerido: **`/reversa-<próximo>`** `<argumento se aplicável>`
+> Por quê: `<motivo curto baseado no estado detectado>`
 >
-> Type **CONTINUE** to start `/reversa-<next>`. If you prefer another skill, type the direct name (for example, `/reversa-audit`).
+> Digite **CONTINUAR** para iniciar `/reversa-<próximo>`. Se preferir outro skill, digite o nome direto (por exemplo, `/reversa-audit`).
 
 ### Linhas adicionais por estado
 
-- **No active feature, no argument:** list the pipeline agents with one line per agent (`reversa-requirements`, `reversa-clarify`, `reversa-plan`, `reversa-to-do`, `reversa-audit`, `reversa-quality`, `reversa-coding`, `reversa-add`, `reversa-sync`) and ask: "Describe in one sentence the feature you want to build."
-- **Without active feature, with argument:** show the argument in quotation marks and say that it will be the starting point of `/reversa-requirements`.
-- **Stage `requirements` with N markers `[DOUBT]`:** say "`requirements.md` has `<N>` open point(s), it is worth running `/reversa-clarify` before the plan."
-- **Stage `requirements` without `[DOUBT]`:** say "`requirements.md` is closed, ready for planning."
-- **Stage `plan`:** say "`roadmap.md` is ready, it remains to be decomposed into atomic actions."
-- **Stage `coding-em-progresso`:** say "`<N>` of `<M>` actions completed on `actions.md`, encoding in progress."
-- **Stage `done` without addendum:** say "All actions are closed, delivery needs to be converged on extraction with `/reversa-sync` so that `<output_folder>/` does not lag."
-- **Stage `done` with current addendum:** say "All actions are closed and delivery has already converged on `<output_folder>/addenda/`. If you want, resume a paused feature with `/reversa-resume` or start another with `/reversa-requirements <description>`. For short adjustments to what this feature delivered, use `/reversa-add`."
-- **Stage `vazio` (folder without `requirements.md`):** say "`feature-dir` in `active-requirements.json` exists but does not have `requirements.md`. Recommended to start over with `/reversa-requirements`."
+- **Sem feature ativa, sem argumento:** liste os agentes do pipeline com uma linha por agente (`reversa-requirements`, `reversa-clarify`, `reversa-plan`, `reversa-to-do`, `reversa-audit`, `reversa-quality`, `reversa-coding`, `reversa-add`, `reversa-sync`) e peça: "Descreva em uma frase a feature que você quer construir."
+- **Sem feature ativa, com argumento:** mostre o argumento entre aspas e diga que ele será o ponto de partida do `/reversa-requirements`.
+- **Estágio `requirements` com N marcadores `[DÚVIDA]`:** diga "`requirements.md` tem `<N>` ponto(s) em aberto, vale rodar `/reversa-clarify` antes do plano."
+- **Estágio `requirements` sem `[DÚVIDA]`:** diga "`requirements.md` está fechado, pronto para o plano."
+- **Estágio `plan`:** diga "`roadmap.md` está pronto, falta decompor em ações atômicas."
+- **Estágio `coding-em-progresso`:** diga "`<N>` de `<M>` ações concluídas em `actions.md`, codificação em andamento."
+- **Estágio `done` sem adendo:** diga "Todas as ações estão fechadas, falta converger a entrega na extração com `/reversa-sync` para `<output_folder>/` não ficar defasado."
+- **Estágio `done` com adendo vigente:** diga "Todas as ações estão fechadas e a entrega já foi convergida em `<output_folder>/addenda/`. Se quiser, retome uma feature pausada com `/reversa-resume` ou comece outra com `/reversa-requirements <descrição>`. Para ajustes curtos sobre o que essa feature entregou, use `/reversa-add`."
+- **Estágio `vazio` (pasta sem `requirements.md`):** diga "A `feature-dir` em `active-requirements.json` existe mas não tem `requirements.md`. Recomendado recomeçar com `/reversa-requirements`."
 
-If there is `paused-features` with entries, in any state, add a line:
+Se houver `paused-features` com entradas, em qualquer estado, acrescente uma linha:
 
-> There are `<N>` feature(s) paused. Use `/reversa-resume` if you want to resume one of them instead of continuing with the active one.
+> Há `<N>` feature(s) pausada(s). Use `/reversa-resume` se quiser retomar uma delas em vez de seguir com a ativa.
 
-## No writing rule
+## Regra de não escrita
 
-`/reversa-forward` DOES NOT write to `active-requirements.json`, DO NOT create `feature-dir`, DO NOT modify artifacts within `reversa/sdd/` or `reversa/forward/`. All feature artifact recording is the responsibility of the next skill. You just read and route.
+O `/reversa-forward` NÃO escreve em `active-requirements.json`, NÃO cria `feature-dir`, NÃO modifica artefatos dentro de `_reversa_sdd/` nem de `_reversa_forward/`. Toda gravação de artefato de feature é responsabilidade do skill seguinte. Você apenas lê e roteia.
 
-Exceptions allowed, always creation of something that does not yet exist, never overwritten:
+Exceções permitidas, sempre criação de coisa que ainda não existe, jamais sobrescrita:
 
-1. Create the folder `reversa/sdd/` (with `.gitkeep`) if it is missing, according to the "Extraction context reversa" section.
-2. Update `.reversa/state.json` only if it is to fill in the user name that is still blank. Do not touch other fields.
+1. Criar a pasta `_reversa_sdd/` (com `.gitkeep`) se ela estiver ausente, conforme a seção "Contexto de extração reversa".
+2. Atualizar `.reversa/state.json` apenas se for para preencher o nome do usuário ainda em branco. Não toque em outros campos.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify or overwrite pre-existing project files.**
-Reversa ONLY writes to `.reversa/`, `reversa/sdd/` and `reversa/forward/`. This particular skill doesn't even write to these three, it just reads.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto.**
+O Reversa escreve APENAS em `.reversa/`, `_reversa_sdd/` e `_reversa_forward/`. Este skill em particular nem nesses três escreve, ele só lê.
 
-## Final output
+## Saída final
 
-ALWAYS end with:
+Termine SEMPRE com:
 
-> Type **CONTINUE** to continue with `/reversa-<next>` as suggested above.
+> Digite **CONTINUAR** para prosseguir com `/reversa-<próximo>` conforme a sugestão acima.
 
-NEVER execute the next skill automatically, leave the decision up to the user.
+NUNCA execute o próximo skill automaticamente, deixe a decisão com o usuário.

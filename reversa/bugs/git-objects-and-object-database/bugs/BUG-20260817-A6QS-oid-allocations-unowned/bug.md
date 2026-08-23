@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-21
+updated: 2026-08-22
 origin: {type: inspection, external_ref: null}
 area: native-integration
 module: git-objects-and-object-database
@@ -95,6 +95,7 @@ Owned and borrowed pointers share one wrapper with no ownership marker. Every ow
 - `evidence/root-cause.md`
 - `evidence/gate-1-red.md`
 - `evidence/gate-2-green.md`
+- `evidence/local-binaries-compatibility.md`
 
 ## Acceptance Criteria
 
@@ -146,3 +147,11 @@ No persistent data is changed and no data repair is required. Candidate commit
 `aba8aa73dc94d9d11615809699616b8e9e644e84` is present on branch `0.5.5`.
 Merge and package publication are pending, so package closure is not satisfied
 and no `DONE.md` lock may be created yet.
+
+The user-directed local override to `F:/git2dart_binaries` resolves correctly,
+but that checkout removes the top-level `libgit2` and `libgit2Opts` API used
+throughout `git2dart`. Focused A6QS tests therefore stop during package
+compilation, and repository analysis reports 977 issues before the ownership
+tests can run. This is a separate package-wide compatibility migration outside
+the approved A6QS change set; see
+`evidence/local-binaries-compatibility.md` for the exact proof boundary.

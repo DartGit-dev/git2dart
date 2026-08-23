@@ -1,34 +1,34 @@
 # Checklist do `handoff.md`
 
-Before closing the pipeline, the orchestrator validates that `handoff.md` meets all items.
+Antes de fechar o pipeline, o orquestrador valida que `handoff.md` cumpre todos os itens.
 
-## Mandatory checklist
+## Checklist obrigatório
 
-- [ ] `paradigm_decision.md` appears as the **first item** in the "Required Reading" section and the "Recommended Reading Order".
-- [ ] `topology_decision.md` appears as the **second item** in the "Required Reading" section.
-- [ ] `screen_modernization_decision.md` appears as **third item** when there is UI; in legacy without UI (Screen Translator skipped), the entry is omitted with explicit note "Screen Translator skipped, legacy without UI".
-- [ ] List of produced artifacts is complete and reflects actual `reversa/sdd/migration/` and `reversa/sdd/screens/`.
-- [ ] Pending deviations in `screen_deviation_log.md` appear as blockers; approved deviations are reflected in `parity_specs.md § Exceptions`.
-- [ ] Items REFERRED TO THE CODING of `ambiguity_log.md` appear in a dedicated section of `handoff.md`.
-- [ ] Blockers listed or "no blockers, continue" line.
-- [ ] Next steps for the coding agent are specific and actionable (not generic).
-- [ ] In `--auto`: auto-decided items listed explicitly.
-- [ ] Style consistent with the installed engine (adapted format, e.g. compatible front-matter).
+- [ ] `paradigm_decision.md` aparece como **primeiro item** da seção "Leitura obrigatória" e da "Ordem de leitura recomendada".
+- [ ] `topology_decision.md` aparece como **segundo item** da seção "Leitura obrigatória".
+- [ ] `screen_modernization_decision.md` aparece como **terceiro item** quando há UI; em legado sem UI (Screen Translator skipped), a entrada é omitida com nota explícita "Screen Translator pulado, legado sem UI".
+- [ ] Lista de artefatos produzidos é completa e reflete `_reversa_sdd/migration/` e `_reversa_sdd/screens/` reais.
+- [ ] Deviations pendentes em `screen_deviation_log.md` aparecem como bloqueadores; deviations aprovadas estão refletidas em `parity_specs.md § Exceções`.
+- [ ] Itens REFERIDOS À CODIFICAÇÃO de `ambiguity_log.md` aparecem em seção dedicada de `handoff.md`.
+- [ ] Bloqueadores listados ou linha "nenhum bloqueador, prosseguir".
+- [ ] Próximos passos para o agente de codificação são específicos e acionáveis (não genéricos).
+- [ ] Em `--auto`: itens auto-decididos listados explicitamente.
+- [ ] Estilo coerente com a engine instalada (formato adaptado, ex: front-matter compatível).
 
-## Minimum structure
+## Estrutura mínima
 
-1. Must-read banner for `paradigm_decision.md`, `topology_decision.md` and (if there is UI) `screen_modernization_decision.md`.
+1. Banner de leitura obrigatória do `paradigm_decision.md`, `topology_decision.md` e (se houver UI) `screen_modernization_decision.md`.
 2. Ordem de leitura recomendada.
 3. Lista de artefatos.
 4. Bloqueadores.
-5. Next steps for the encoding agent.
-6. Auto-decided items (only if `--auto`).
+5. Próximos passos para o agente de codificação.
+6. Itens auto-decididos (apenas se `--auto`).
 7. Notas finais.
 
-## Strong signaling to the encoding agent
+## Sinalização forte ao agente de codificação
 
-The first sentence of `handoff.md` should convey immediate clarity. Suggested pattern:
+A primeira frase de `handoff.md` deve transmitir clareza imediata. Padrão sugerido:
 
-> "New system to be built in paradigm <X>, topology <Y>, screens in mode <Z>. Before any line of code, read `paradigm_decision.md`, `topology_decision.md` and `screen_modernization_decision.md`."
+> "Sistema novo a ser construído em paradigma <X>, topologia <Y>, telas em modo <Z>. Antes de qualquer linha de código, leia `paradigm_decision.md`, `topology_decision.md` e `screen_modernization_decision.md`."
 
-In legacy without UI (Screen Translator skipped), replace the screens section with: "telas: none (system without UI)".
+Em legado sem UI (Screen Translator skipped), substituir o trecho de telas por: "telas: nenhuma (sistema sem UI)".

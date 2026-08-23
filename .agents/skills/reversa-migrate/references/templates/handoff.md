@@ -5,24 +5,24 @@ reversa:
   version: "x.y.z"
 kind: handoff
 producedBy: orchestrator
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
-# Handoff to the Encoding Agent
+# Handoff para o Agente de Codificação
 
-> This document is the entry point for the coding agent (Claude Code, Codex, Cursor, Antigravity, etc.) that will write the new system based on the specs.
+> Este documento é a porta de entrada para o agente de codificação (Claude Code, Codex, Cursor, Antigravity, etc.) que vai escrever o sistema novo a partir das specs.
 
-## ⚠️ Mandatory reading first
+## ⚠️ Leitura obrigatória primeiro
 
-1. **`paradigm_decision.md`**, non-negotiable reading. The target paradigm shapes how all coding should happen.
-2. **`topology_decision.md`**, non-negotiable reading. The chosen topology (preserve/modernize/hybrid) defines the folder tree and the boundary between modules.
-3. **`screen_modernization_decision.md`**, non-negotiable reading when the legacy has UI. The chosen mode (literal / modernized / hybrid) defines how the encoder will materialize the screens.
+1. **`paradigm_decision.md`**, leitura inegociável. O paradigma alvo molda como toda a codificação deve acontecer.
+2. **`topology_decision.md`**, leitura inegociável. A topologia escolhida (preservar / modernizar / híbrido) define a árvore de pastas e a fronteira entre módulos.
+3. **`screen_modernization_decision.md`**, leitura inegociável quando o legado tem UI. O modo escolhido (literal / modernizado / híbrido) define como o codificador vai materializar as telas.
 
 ## Ordem de leitura recomendada
 
-1. `paradigm_decision.md` (required, first)
-2. `topology_decision.md` (required, second)
-3. `screen_modernization_decision.md` (required when there is UI; skip if Screen Translator ran in skipped mode)
+1. `paradigm_decision.md` (obrigatório, primeiro)
+2. `topology_decision.md` (obrigatório, segundo)
+3. `screen_modernization_decision.md` (obrigatório quando há UI; pular se Screen Translator rodou em modo skipped)
 4. `migration_brief.md`
 5. `target_business_rules.md`
 6. `migration_strategy.md`
@@ -30,9 +30,9 @@ hash: "sha256:<body hash below front-matter>"
 8. `target_domain_model.md`
 9. `target_data_model.md`
 10. `data_migration_plan.md`
-11. `target_screens.md` (when there is UI)
+11. `target_screens.md` (quando há UI)
 12. `parity_specs.md` + `parity_tests/`
-13. `screen_deviation_log.md` (advisory, when there is UI)
+13. `screen_deviation_log.md` (consultivo, quando há UI)
 14. `risk_register.md` + `cutover_plan.md`
 15. `discard_log.md` (consultivo)
 16. `ambiguity_log.md` (consultivo)
@@ -48,44 +48,44 @@ hash: "sha256:<body hash below front-matter>"
 | migration_strategy.md | strategist | criado |
 | risk_register.md | strategist | criado |
 | cutover_plan.md | strategist | criado |
-| topology_decision.md | designer (Phase 1) | created |
+| topology_decision.md | designer (Fase 1) | criado |
 | target_architecture.md | designer | criado |
 | target_domain_model.md | designer | criado |
 | target_data_model.md | designer | criado |
 | data_migration_plan.md | designer | criado |
-| screen_modernization_decision.md | screen_translator (Phase 1) | created / skipped |
+| screen_modernization_decision.md | screen_translator (Fase 1) | criado / skipped |
 | target_screens.md | screen_translator | criado / skipped |
 | screen_deviation_log.md | screen_translator | criado / vazio |
-| reversa/sdd/screens/inventory.json | screen_translator | criado / vazio |
-| reversa/sdd/screens/golden/manifest.yaml | screen_translator | created / optional |
+| _reversa_sdd/screens/inventory.json | screen_translator | criado / vazio |
+| _reversa_sdd/screens/golden/manifest.yaml | screen_translator | criado / opcional |
 | parity_specs.md | inspector | criado |
-| parity_tests/*.feature | inspector | <N> files |
+| parity_tests/*.feature | inspector | <N> arquivos |
 | ambiguity_log.md | orchestrator | consolidado |
 
-## Blockers to start implementation
-> Items that need human decision before the coding agent starts.
+## Bloqueadores para começar a implementação
+> Itens que precisam de decisão humana antes do agente de codificação começar.
 
-- <AMB-XXX: short description + where to decide>
-- <or: no blocker, proceed>
+- <AMB-XXX: descrição curta + onde decidir>
+- <ou: nenhum bloqueador, prosseguir>
 
-## Next steps for the encoding agent
+## Próximos passos para o agente de codificação
 
-1. **Read `paradigm_decision.md` and internalize**: target paradigm is <paradigm_decision>. Every code choice must honor this paradigm.
-2. **Read `topology_decision.md` and internalize**: the chosen topology is <preserve | modernize | hybrid>. Use the tree outline recorded in this artifact as a basis for creating the folder structure of the new repository.
-3. **Read `screen_modernization_decision.md` and internalize** (when there is UI): the screen translation mode is <literal | modernized | hybrid>. In literal terms, materialize byte-by-byte (or pixel-equivalent) what is in `target_screens.md`; in modernized, honor the hierarchy of components, tokens and the 4 states (idle, loading, error, success).
-4. **Configure the new repository** with the stack declared in `migration_brief.md` and the topology decided.
-5. **Implement bottom-up** following `target_architecture.md` and `target_domain_model.md`:
-- infrastructure → data → domain → application → edges.
-6. **Implement the screens** consuming `target_screens.md` as a literal contract. In literal mode with golden files present in `reversa/sdd/screens/golden/`, the result of the implementation must match the golden file within the `normalizationRules` declared in `manifest.yaml`.
-7. **Write the tests** from `parity_specs.md` and `parity_tests/*.feature` from scratch. Honor the § Exceptions section, which reflects deviations approved in `screen_deviation_log.md`.
-8. **For each component**, validate that it respects the chosen paradigm (explicit signals in `target_architecture.md § Alignment with the chosen paradigm`) and topology (explicit signals in `target_architecture.md § Alignment with the chosen topology`).
-9. **For data migration**, follow `data_migration_plan.md`.
-10. **For the cutover**, follow `cutover_plan.md` and the go/no-go criteria.
+1. **Ler `paradigm_decision.md` e internalizar**: o paradigma alvo é <do paradigm_decision>. Toda escolha de código deve honrar esse paradigma.
+2. **Ler `topology_decision.md` e internalizar**: a topologia escolhida é <preservar | modernizar | híbrido>. Use o esboço da árvore registrado nesse artefato como base para criar a estrutura de pastas do novo repositório.
+3. **Ler `screen_modernization_decision.md` e internalizar** (quando há UI): o modo de tradução de telas é <literal | modernizado | híbrido>. Em literal, materialize byte-a-byte (ou pixel-equivalente) o que está em `target_screens.md`; em modernizado, honre a hierarquia de componentes, tokens e os 4 estados (idle, loading, error, success).
+4. **Configurar o repositório novo** com a stack declarada em `migration_brief.md` e a topologia decidida.
+5. **Implementar bottom-up** seguindo `target_architecture.md` e `target_domain_model.md`:
+   - infraestrutura → dados → domínio → aplicação → bordas.
+6. **Implementar as telas** consumindo `target_screens.md` como contrato literal. Em modo literal com golden files presentes em `_reversa_sdd/screens/golden/`, o resultado da implementação deve casar com o golden file dentro das `normalizationRules` declaradas no `manifest.yaml`.
+7. **Escrever os testes** a partir de `parity_specs.md` e `parity_tests/*.feature` desde o início. Honrar a seção § Exceções, que reflete deviations aprovadas em `screen_deviation_log.md`.
+8. **Para cada componente**, validar que respeita o paradigma escolhido (sinais explícitos em `target_architecture.md § Honra ao paradigma escolhido`) e a topologia escolhida (sinais explícitos em `target_architecture.md § Honra à topologia escolhida`).
+9. **Para a migração de dados**, seguir `data_migration_plan.md`.
+10. **Para o cutover**, seguir `cutover_plan.md` e os critérios go/no-go.
 
-## Auto-decided items (only if run in --auto)
-> List here items whose default was applied without human confirmation. It is recommended to review before cutover.
+## Itens auto-decididos (apenas se executado em --auto)
+> Listar aqui itens cujo default foi aplicado sem confirmação humana. Recomenda-se revisar antes do cutover.
 
-- <or: pipeline run in interactive mode, no self-decided items>
+- <ou: pipeline executado em modo interativo, nenhum item auto-decidido>
 
 ## Notas finais
-<Orchestrator notes for encoding agent.>
+<Observações do orquestrador para o agente de codificação.>

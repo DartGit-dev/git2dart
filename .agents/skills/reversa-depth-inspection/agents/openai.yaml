@@ -1,5 +1,5 @@
 interface:
   display_name: "Reversa Depth Inspection"
-  short_description: "Bugs team's fine-tooth comb: maps spec→code→tests→data…"
+  short_description: "Pente-fino do time Bugs: mapeia spec→código→testes→dados de…"
 policy:
   allow_implicit_invocation: false

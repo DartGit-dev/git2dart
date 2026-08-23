@@ -2,13 +2,13 @@
 Template de corpo do roadmap.md
 Carregado por /reversa-plan.
 
-COMPLETION RULES:
-- Write like DELTA about the legacy, never re-describe the entire architecture.
-- Quote components from reversa/sdd/ by literal name.
-- Mark each decision with 🟢 / 🟡 / 🔴 according to the confidence of the source that supports it.
-- Decisions dependent on [DOUBT] accepted as a premise enter with 🟡 and appear in "Premises".
-- Deep data model details go to data-delta.md, not here.
-- Deep external contract details go in interfaces/<name>.md, not here.
+REGRAS DE PREENCHIMENTO:
+- Escreva como DELTA sobre o legado, jamais redescreva a arquitetura inteira.
+- Cite componentes do _reversa_sdd/ por nome literal.
+- Marque cada decisão com 🟢 / 🟡 / 🔴 conforme a confidência da fonte que a sustenta.
+- Decisões dependentes de [DÚVIDA] aceitas como premissa entram com 🟡 e aparecem em "Premissas".
+- Detalhes profundos de modelo de dados vão para data-delta.md, não aqui.
+- Detalhes profundos de contrato externo vão para interfaces/<nome>.md, não aqui.
 -->
 
 # Roadmap: <NOME DA FEATURE>
@@ -16,92 +16,92 @@ COMPLETION RULES:
 > Identificador: `<NNN>-<short-name>`
 > Data: `YYYY-MM-DD`
 > Requirements: `<feature-dir>/requirements.md`
-> Confidentiality: 🟢 CONFIRMED, 🟡 INFERRED, 🔴 GAP
+> Confidência: 🟢 CONFIRMADO, 🟡 INFERIDO, 🔴 LACUNA
 
-## 1. Summary of the approach
+## 1. Resumo da abordagem
 
-<!-- Up to ten lines. In prose, explain the technical path chosen. -->
+<!-- Até dez linhas. Em prosa, explique o caminho técnico escolhido. -->
 
-## 2. Principles applied
+## 2. Princípios aplicados
 
 <!--
-List the principles of `.reversa/principles.md` that this feature respects or conflicts with.
-For conflicts, describe the conflict without proposing change in principle (this is the job of /reversa-principles).
+Liste os princípios de `.reversa/principles.md` que essa feature respeita ou conflita.
+Para conflitos, descreva o conflito sem propor mudança no princípio (isso é trabalho de /reversa-principles).
 -->
 
-| Principle | How the feature relates | Status |
+| Princípio | Como a feature se relaciona | Status |
 |-----------|------------------------------|--------|
-| I. <title> | <note> | respect / conflict |
+| I. <título> | <observação> | respeita / conflita |
 
-## 3. Technical decisions
+## 3. Decisões técnicas
 
-| ID | Decision | Justification | Discarded alternatives | Confidence |
+| ID | Decisão | Justificativa | Alternativas descartadas | Confidência |
 |----|---------|----------------|--------------------------|-------------|
-| D-01 | <decision> | <objective reason> | <a, b, c> | 🟢 |
-| D-02 | <decision> | <objective reason> | <a, b> | 🟡 |
+| D-01 | <decisão> | <razão objetiva> | <a, b, c> | 🟢 |
+| D-02 | <decisão> | <razão objetiva> | <a, b> | 🟡 |
 
 ## 4. Premissas
 
 <!--
-Premises adopted from [DOUBT] unresolved.
-Each premise needs to become a solvable item in /reversa-clarify in the future.
+Premissas adotadas a partir de [DÚVIDA] não resolvidas.
+Cada premissa precisa virar item resolvível em /reversa-clarify no futuro.
 -->
 
-| Premise | Origin (`requirements.md` section) | Risk if wrong |
+| Premissa | Origem (`requirements.md` seção) | Risco se errada |
 |----------|----------------------------------|-----------------|
-| <text> | <section> | <impact> |
+| <texto>  | <seção> | <impacto> |
 
 ## 5. Delta arquitetural
 
 <!--
-List only those components of `reversa/sdd/architecture.md` that change.
-For each, describe the type of change in one line.
+Liste apenas os componentes do `_reversa_sdd/architecture.md` que mudam.
+Para cada um, descreva o tipo de mudança em uma linha.
 -->
 
-| Component | Source file in legacy | Type of change | Summary |
+| Componente | Arquivo de origem no legado | Tipo de mudança | Resumo |
 |------------|------------------------------|-----------------|--------|
-| <name> | `reversa/sdd/architecture.md#<id>` | changed-rule / new-component / extinct-component / new-contract / amended-contract / removed-contract | <one line> |
+| <nome> | `_reversa_sdd/architecture.md#<id>` | regra-alterada / componente-novo / componente-extinto / contrato-novo / contrato-alterado / contrato-removido | <uma linha> |
 
-## 6. Delta in the data model
+## 6. Delta no modelo de dados
 
-<!-- Summary. The detail (fields, migrations, indexes) lives in data-delta.md. -->
+<!-- Resumo. O detalhe (campos, migrações, índices) vive em data-delta.md. -->
 
-- Summary of changes: <short prose>
-- Full details at: `<feature-dir>/data-delta.md`
+- Resumo das mudanças: <prosa curta>
+- Detalhe completo em: `<feature-dir>/data-delta.md`
 
 ## 7. Delta de contratos externos
 
-<!-- Summary. Each affected contract has its own file in interfaces/. -->
+<!-- Resumo. Cada contrato afetado tem um arquivo próprio em interfaces/. -->
 
-| Contract | Type | Detail file |
+| Contrato | Tipo | Arquivo de detalhe |
 |----------|------|--------------------|
-| <name> | HTTP / queue / gRPC / GraphQL / file | `<feature-dir>/interfaces/<name>.md` |
+| <nome>   | HTTP / fila / gRPC / GraphQL / arquivo | `<feature-dir>/interfaces/<nome>.md` |
 
-## 8. Migration plan
+## 8. Plano de migração
 
-<!-- When applicable. If the change does not require migration, record "n/a" and follow. -->
+<!-- Quando aplicável. Se a mudança não exige migração, registre "n/a" e siga. -->
 
 1. <passo>
 2. <passo>
 3. <passo>
 
-## 9. Risks and mitigations
+## 9. Riscos e mitigações
 
-| Risk | Impact | Probability | Mitigation |
+| Risco | Impacto | Probabilidade | Mitigação |
 |-------|---------|---------------|-----------|
-| <risk> | high / medium / low | high / medium / low | <action> |
+| <risco> | alto / médio / baixo | alto / médio / baixo | <ação> |
 
-## 10. Ready Criterion
+## 10. Critério de pronto
 
-<!-- What needs to be true for the feature to be considered complete. -->
+<!-- O que precisa estar verdadeiro para a feature ser considerada concluída. -->
 
-- [ ] All shares of `actions.md` marked `[X]`
-- [ ] `cross-check.md` (if executed) without CRITICAL nor HIGH
-- [ ] `regression-watch.md` generated
-- [ ] reversa re-extraction performed and no red regression (recommended, not required)
+- [ ] Todas as ações do `actions.md` marcadas `[X]`
+- [ ] `cross-check.md` (se executado) sem CRITICAL nem HIGH
+- [ ] `regression-watch.md` gerado
+- [ ] Re-extração reversa executada e sem regressão vermelha (recomendado, não obrigatório)
 
-## 11. Change history
+## 11. Histórico de alterações
 
-| Date | Amendment | Author |
+| Data | Alteração | Autor |
 |------|-----------|-------|
-| YYYY-MM-DD | Initial version generated by `/reversa-plan` | reversa |
+| YYYY-MM-DD | Versão inicial gerada por `/reversa-plan` | reversa |

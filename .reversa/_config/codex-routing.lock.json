@@ -1,0 +1,1240 @@
+{
+  "version": 1,
+  "engine": "codex",
+  "configured": true,
+  "profile_generation_enabled": true,
+  "runtime_verification": "unavailable",
+  "capabilities": {
+    "custom_agents": true,
+    "model_override": true,
+    "reasoning_override": true,
+    "sandbox_override": true
+  },
+  "overrides": {
+    "project": 0,
+    "user": 0,
+    "agent": 0
+  },
+  "profiles": [
+    {
+      "id": "reversa",
+      "skill_id": "reversa",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-autonomous",
+      "skill_id": "reversa-autonomous",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-autonomous.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-scout",
+      "skill_id": "reversa-scout",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-scout.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-scout-t1",
+      "skill_id": "reversa-scout",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-scout-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-archaeologist",
+      "skill_id": "reversa-archaeologist",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-archaeologist.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-archaeologist-t3",
+      "skill_id": "reversa-archaeologist",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-archaeologist-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-detective",
+      "skill_id": "reversa-detective",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-detective.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-detective-t3",
+      "skill_id": "reversa-detective",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-detective-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-architect",
+      "skill_id": "reversa-architect",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-architect.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-writer",
+      "skill_id": "reversa-writer",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-writer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-writer-t2",
+      "skill_id": "reversa-writer",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-writer-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-reviewer",
+      "skill_id": "reversa-reviewer",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-reviewer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-reviewer-t3",
+      "skill_id": "reversa-reviewer",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-reviewer-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-visor",
+      "skill_id": "reversa-visor",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-visor.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-visor-t2",
+      "skill_id": "reversa-visor",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-visor-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-data-master",
+      "skill_id": "reversa-data-master",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-data-master.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-data-master-t3",
+      "skill_id": "reversa-data-master",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-data-master-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-design-system",
+      "skill_id": "reversa-design-system",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-design-system.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-design-system-t3",
+      "skill_id": "reversa-design-system",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-design-system-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-agents-help",
+      "skill_id": "reversa-agents-help",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-agents-help.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-agents-help-t1",
+      "skill_id": "reversa-agents-help",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-agents-help-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-reconstructor",
+      "skill_id": "reversa-reconstructor",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-reconstructor.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-reconstructor-t2",
+      "skill_id": "reversa-reconstructor",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-reconstructor-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger",
+      "skill_id": "reversa-debugger",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-debugger.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger-fix",
+      "skill_id": "reversa-debugger-fix",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-debugger-fix.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger-debate",
+      "skill_id": "reversa-debugger-debate",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-debugger-debate.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-depth-inspection",
+      "skill_id": "reversa-depth-inspection",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-depth-inspection.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger-graph",
+      "skill_id": "reversa-debugger-graph",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-debugger-graph.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-debugger-graph-t1",
+      "skill_id": "reversa-debugger-graph",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-debugger-graph-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-migrate",
+      "skill_id": "reversa-migrate",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-migrate.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-paradigm-advisor",
+      "skill_id": "reversa-paradigm-advisor",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-paradigm-advisor.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-paradigm-advisor-t3",
+      "skill_id": "reversa-paradigm-advisor",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-paradigm-advisor-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-curator",
+      "skill_id": "reversa-curator",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-curator.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-curator-t3",
+      "skill_id": "reversa-curator",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-curator-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-strategist",
+      "skill_id": "reversa-strategist",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-strategist.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-strategist-t3",
+      "skill_id": "reversa-strategist",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-strategist-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-designer",
+      "skill_id": "reversa-designer",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-designer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-screen-translator",
+      "skill_id": "reversa-screen-translator",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-screen-translator.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-screen-translator-t3",
+      "skill_id": "reversa-screen-translator",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-screen-translator-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-inspector",
+      "skill_id": "reversa-inspector",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-inspector.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-inspector-t3",
+      "skill_id": "reversa-inspector",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-inspector-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-forward",
+      "skill_id": "reversa-forward",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-forward.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-requirements",
+      "skill_id": "reversa-requirements",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-requirements.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-requirements-t2",
+      "skill_id": "reversa-requirements",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-requirements-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-clarify",
+      "skill_id": "reversa-clarify",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-clarify.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-clarify-t1",
+      "skill_id": "reversa-clarify",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-clarify-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-plan",
+      "skill_id": "reversa-plan",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-plan.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-plan-t2",
+      "skill_id": "reversa-plan",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-plan-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-to-do",
+      "skill_id": "reversa-to-do",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-to-do.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-to-do-t2",
+      "skill_id": "reversa-to-do",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-to-do-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-audit",
+      "skill_id": "reversa-audit",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-audit.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-audit-t3",
+      "skill_id": "reversa-audit",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-audit-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-quality",
+      "skill_id": "reversa-quality",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-quality.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-quality-t3",
+      "skill_id": "reversa-quality",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-quality-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-coding",
+      "skill_id": "reversa-coding",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-coding.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-coding-t2",
+      "skill_id": "reversa-coding",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-coding-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-add",
+      "skill_id": "reversa-add",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-add.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-add-t2",
+      "skill_id": "reversa-add",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-add-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-sync",
+      "skill_id": "reversa-sync",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-sync.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-sync-t2",
+      "skill_id": "reversa-sync",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-sync-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-principles",
+      "skill_id": "reversa-principles",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-principles.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-principles-t2",
+      "skill_id": "reversa-principles",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-principles-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-resume",
+      "skill_id": "reversa-resume",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-resume.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-resume-t2",
+      "skill_id": "reversa-resume",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-resume-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-brainstorm",
+      "skill_id": "reversa-brainstorm",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-brainstorm.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-framer",
+      "skill_id": "reversa-framer",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-framer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-framer-t3",
+      "skill_id": "reversa-framer",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-framer-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-explorer",
+      "skill_id": "reversa-explorer",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-explorer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-explorer-t1",
+      "skill_id": "reversa-explorer",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-explorer-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-challenger",
+      "skill_id": "reversa-challenger",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-challenger.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-arbiter",
+      "skill_id": "reversa-arbiter",
+      "escalated_from": null,
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-arbiter.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pre-spec",
+      "skill_id": "reversa-pre-spec",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-pre-spec.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pre-spec-t2",
+      "skill_id": "reversa-pre-spec",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-pre-spec-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-new",
+      "skill_id": "reversa-new",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-new.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-ideator",
+      "skill_id": "reversa-ideator",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-ideator.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-ideator-t2",
+      "skill_id": "reversa-ideator",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-ideator-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-researcher",
+      "skill_id": "reversa-researcher",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-researcher.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-researcher-t3",
+      "skill_id": "reversa-researcher",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-researcher-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-drafter",
+      "skill_id": "reversa-drafter",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-drafter.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-drafter-t2",
+      "skill_id": "reversa-drafter",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-drafter-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-spec-sdd",
+      "skill_id": "reversa-spec-sdd",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-spec-sdd.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-spec-sdd-t2",
+      "skill_id": "reversa-spec-sdd",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-spec-sdd-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-profile",
+      "skill_id": "reversa-pricing-profile",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-pricing-profile.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-profile-t2",
+      "skill_id": "reversa-pricing-profile",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-pricing-profile-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-size",
+      "skill_id": "reversa-pricing-size",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-pricing-size.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-size-t1",
+      "skill_id": "reversa-pricing-size",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-pricing-size-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-estimate",
+      "skill_id": "reversa-pricing-estimate",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-pricing-estimate.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-pricing-estimate-t2",
+      "skill_id": "reversa-pricing-estimate",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-pricing-estimate-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs",
+      "skill_id": "reversa-docs",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-docs.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-mapper",
+      "skill_id": "reversa-docs-mapper",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-docs-mapper.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-mapper-t2",
+      "skill_id": "reversa-docs-mapper",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-docs-mapper-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-analyst",
+      "skill_id": "reversa-docs-analyst",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-docs-analyst.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-analyst-t3",
+      "skill_id": "reversa-docs-analyst",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-docs-analyst-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-storyteller",
+      "skill_id": "reversa-docs-storyteller",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-docs-storyteller.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-storyteller-t2",
+      "skill_id": "reversa-docs-storyteller",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-docs-storyteller-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-publisher",
+      "skill_id": "reversa-docs-publisher",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-docs-publisher.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-docs-publisher-t2",
+      "skill_id": "reversa-docs-publisher",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-docs-publisher-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-arquitetura-3d",
+      "skill_id": "reversa-arquitetura-3d",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-arquitetura-3d.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-arquitetura-3d-t2",
+      "skill_id": "reversa-arquitetura-3d",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-arquitetura-3d-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-selo-generativo",
+      "skill_id": "reversa-selo-generativo",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-selo-generativo.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-selo-generativo-t2",
+      "skill_id": "reversa-selo-generativo",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-selo-generativo-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-highcharts-visualizer",
+      "skill_id": "reversa-highcharts-visualizer",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-highcharts-visualizer.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-highcharts-visualizer-t2",
+      "skill_id": "reversa-highcharts-visualizer",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-highcharts-visualizer-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-especialista-d3",
+      "skill_id": "reversa-especialista-d3",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-especialista-d3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-especialista-d3-t2",
+      "skill_id": "reversa-especialista-d3",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-especialista-d3-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-image-prompt-json",
+      "skill_id": "reversa-image-prompt-json",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-image-prompt-json.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-image-prompt-json-t1",
+      "skill_id": "reversa-image-prompt-json",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-image-prompt-json-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-refactor",
+      "skill_id": "reversa-refactor",
+      "escalated_from": null,
+      "compute_class": "ROOT",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-refactor.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-restructure",
+      "skill_id": "reversa-restructure",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-restructure.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-restructure-t3",
+      "skill_id": "reversa-restructure",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-restructure-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-modularize",
+      "skill_id": "reversa-modularize",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-modularize.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-modularize-t3",
+      "skill_id": "reversa-modularize",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-modularize-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-decouple",
+      "skill_id": "reversa-decouple",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-decouple.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-decouple-t3",
+      "skill_id": "reversa-decouple",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-decouple-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-optimize",
+      "skill_id": "reversa-optimize",
+      "escalated_from": null,
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-optimize.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-optimize-t3",
+      "skill_id": "reversa-optimize",
+      "escalated_from": "T2",
+      "compute_class": "T3",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "path": ".codex/agents/reversa-optimize-t3.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-simplify",
+      "skill_id": "reversa-simplify",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-simplify.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-simplify-t2",
+      "skill_id": "reversa-simplify",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-simplify-t2.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-standardize",
+      "skill_id": "reversa-standardize",
+      "escalated_from": null,
+      "compute_class": "T0",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "path": ".codex/agents/reversa-standardize.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-standardize-t1",
+      "skill_id": "reversa-standardize",
+      "escalated_from": "T0",
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-standardize-t1.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-prune",
+      "skill_id": "reversa-prune",
+      "escalated_from": null,
+      "compute_class": "T1",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "path": ".codex/agents/reversa-prune.toml",
+      "status": "managed"
+    },
+    {
+      "id": "reversa-prune-t2",
+      "skill_id": "reversa-prune",
+      "escalated_from": "T1",
+      "compute_class": "T2",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "path": ".codex/agents/reversa-prune-t2.toml",
+      "status": "managed"
+    }
+  ]
+}

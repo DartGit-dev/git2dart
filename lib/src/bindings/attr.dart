@@ -21,11 +21,17 @@ Object? getAttribute({
     final pathC = path.toChar(arena);
     final nameC = name.toChar(arena);
 
-    final error = libgit2.git_attr_get(out, repoPointer, flags, pathC, nameC);
+    final error = libgit2Runtime.bindings.git_attr_get(
+      out,
+      repoPointer,
+      flags,
+      pathC,
+      nameC,
+    );
     checkErrorAndThrow(error);
 
     final result = out.value;
-    final attributeValue = libgit2.git_attr_value(result);
+    final attributeValue = libgit2Runtime.bindings.git_attr_value(result);
 
     if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
       return null;
@@ -58,7 +64,7 @@ Object? getAttributeExt({
     final pathC = path.toChar(arena);
     final nameC = name.toChar(arena);
 
-    final error = libgit2.git_attr_get_ext(
+    final error = libgit2Runtime.bindings.git_attr_get_ext(
       out,
       repoPointer,
       optionsPointer,
@@ -68,7 +74,7 @@ Object? getAttributeExt({
     checkErrorAndThrow(error);
 
     final result = out.value;
-    final attributeValue = libgit2.git_attr_value(result);
+    final attributeValue = libgit2Runtime.bindings.git_attr_value(result);
 
     if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
       return null;
@@ -104,7 +110,7 @@ List<Object?> getAttributesMany({
       namesC[i] = names[i].toChar(arena);
     }
 
-    final error = libgit2.git_attr_get_many(
+    final error = libgit2Runtime.bindings.git_attr_get_many(
       out,
       repoPointer,
       flags,
@@ -117,7 +123,7 @@ List<Object?> getAttributesMany({
     final results = <Object?>[];
     for (var i = 0; i < names.length; i++) {
       final ptr = out[i];
-      final attributeValue = libgit2.git_attr_value(ptr);
+      final attributeValue = libgit2Runtime.bindings.git_attr_value(ptr);
       if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
         results.add(null);
       } else if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_TRUE) {
@@ -149,7 +155,7 @@ List<Object?> getAttributesManyExt({
       namesC[i] = names[i].toChar(arena);
     }
 
-    final error = libgit2.git_attr_get_many_ext(
+    final error = libgit2Runtime.bindings.git_attr_get_many_ext(
       out,
       repoPointer,
       optionsPointer,
@@ -162,7 +168,7 @@ List<Object?> getAttributesManyExt({
     final results = <Object?>[];
     for (var i = 0; i < names.length; i++) {
       final ptr = out[i];
-      final attributeValue = libgit2.git_attr_value(ptr);
+      final attributeValue = libgit2Runtime.bindings.git_attr_value(ptr);
       if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
         results.add(null);
       } else if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_TRUE) {
@@ -201,7 +207,7 @@ List<MapEntry<String, String?>> foreachAttributes({
 
   using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_attr_foreach(
+    final error = libgit2Runtime.bindings.git_attr_foreach(
       repoPointer,
       flags,
       pathC,
@@ -229,7 +235,7 @@ List<MapEntry<String, String?>> foreachAttributesExt({
 
   using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_attr_foreach_ext(
+    final error = libgit2Runtime.bindings.git_attr_foreach_ext(
       repoPointer,
       optionsPointer,
       pathC,
@@ -246,7 +252,7 @@ List<MapEntry<String, String?>> foreachAttributesExt({
 
 /// Flush the gitattributes cache.
 void cacheFlush(Pointer<git_repository> repo) {
-  final error = libgit2.git_attr_cache_flush(repo);
+  final error = libgit2Runtime.bindings.git_attr_cache_flush(repo);
   checkErrorAndThrow(error);
 }
 
@@ -259,7 +265,11 @@ void addMacro({
   using((arena) {
     final nameC = name.toChar(arena);
     final valuesC = values.toChar(arena);
-    final error = libgit2.git_attr_add_macro(repoPointer, nameC, valuesC);
+    final error = libgit2Runtime.bindings.git_attr_add_macro(
+      repoPointer,
+      nameC,
+      valuesC,
+    );
     checkErrorAndThrow(error);
   });
 }

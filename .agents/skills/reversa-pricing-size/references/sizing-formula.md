@@ -3,15 +3,15 @@
 **Versao da formula:** 2.0
 **Versao do schema do size.json:** 1.1
 
-Documents the deterministic calculation that the `reversa-pricing-size` agent applies to transform the forward cycle artifacts into a complexity class (`S/M/L/XL/XXL`). The v2 formula abandons the linear sum of arbitrary weights and starts using task-based T-shirt sizing, with separate risk adjustment.
+Documenta o calculo deterministico que o agente `reversa-pricing-size` aplica para transformar os artefatos do ciclo forward em uma classe de complexidade (`S/M/L/XL/XXL`). A formula v2 abandona a soma linear de pesos arbitrarios e passa a usar T-shirt sizing baseado em tasks, com ajuste separado de risco.
 
-## Source and criterion
+## Fonte e criterio
 
-Reversa v1 needs a measurement that is understandable for lay users, multi-engine and derived from the files already produced in `reversa/sdd/forward/<feature>/`.
+O Reversa v1 precisa de uma medida compreensivel para usuario leigo, multi-engine e derivada dos arquivos ja produzidos em `_reversa_sdd/forward/<feature>/`.
 
-Function Points (IFPUG, ISO/IEC 20926) and COSMIC (ISO/IEC 19761) are formal functional measurement standards, but require specialized classification. For the UX of Reversa, the best base and approximate agile estimation, inspired by Story Points and T-shirt sizing. Mike Cohn, in *Agile Estimating and Planning* (Addison-Wesley, 2005), describes relative estimates and approximate sizes as agile planning practices.
+Function Points (IFPUG, ISO/IEC 20926) e COSMIC (ISO/IEC 19761) sao padroes formais de medicao funcional, mas exigem classificacao especializada. Para a UX do Reversa, a melhor base e estimativa agil aproximada, inspirada em Story Points e T-shirt sizing. Mike Cohn, em *Agile Estimating and Planning* (Addison-Wesley, 2005), descreve estimativas relativas e tamanhos aproximados como praticas de planejamento agil.
 
-This formula does not state that the tracks are a universal standard. It documents a simple Reversa heuristic, based on T-shirt sizing, and keeps the risk factors separate to avoid false precision.
+Esta formula nao afirma que as faixas sao padrao universal. Ela documenta uma heuristica simples do Reversa, com base em T-shirt sizing, e mantem os fatores de risco separados para evitar falsa precisao.
 
 ## Entradas
 
@@ -21,11 +21,11 @@ As entradas continuam vindo de `metrics`:
 - `doubts.high`, `doubts.medium`, `doubts.low`, `doubts.total`
 - `plan_depth`
 - `principles_touched`
-- `requirements.total`, used only as a consistency alert, not as a primary driver
+- `requirements.total`, usado apenas como alerta de consistencia, nao como driver primario
 
 ## Passo 1: classe base por quantidade de tasks
 
-`tasks.total` is the best size proxy because the forward cycle has already split the feature into work units.
+`tasks.total` e a melhor proxy de tamanho porque o ciclo forward ja quebrou a feature em unidades de trabalho.
 
 ```
 if tasks.total <= 0:       base_complexity_class = "S"
@@ -38,7 +38,7 @@ else:                      base_complexity_class = "XXL"
 
 ## Passo 2: pontos de risco
 
-Risk is not size. It adjusts the class upward when the feature has uncertainty, depth, or cross-cutting impact.
+Risco nao e tamanho. Ele ajusta a classe para cima quando a feature tem incerteza, profundidade ou impacto transversal.
 
 ```
 unclassified_doubts =
@@ -52,7 +52,7 @@ risk_points =
   floor(len(principles_touched) / 3)
 ```
 
-`doubts.low` does not increase risk in v2. A low-severity doubt is expected refinement noise.
+`doubts.low` nao sobe risco na v2. Duvida baixa e ruido esperado de refinamento.
 
 ## Passo 3: ajuste de risco
 
@@ -77,7 +77,7 @@ complexity_class =
 
 ## Passo 5: size_score auxiliar
 
-`size_score` is only for compatibility and quick reading. He should no longer drive hours straight.
+`size_score` fica apenas para compatibilidade e leitura rapida. Ele nao deve mais dirigir horas diretamente.
 
 ```
 size_score_by_class:
@@ -90,11 +90,11 @@ size_score_by_class:
 
 ## Campos recomendados no size.json
 
-The agent must record these fields in addition to the old fields:
+O agente deve gravar estes campos alem dos campos antigos:
 
 ```
 sizing_method = "task_tshirt_with_risk_adjustment"
-base_complexity_class = <class before risk>
+base_complexity_class = <classe antes do risco>
 risk_points = <inteiro>
 risk_adjustment_classes = <0, 1 ou 2>
 size_score = <midpoint auxiliar da classe final>
@@ -102,7 +102,7 @@ size_score = <midpoint auxiliar da classe final>
 
 ## Exemplos de calculo
 
-### Example 1: small feature (S)
+### Exemplo 1: feature pequena (S)
 
 ```
 tasks.total = 3
@@ -120,7 +120,7 @@ complexity_class = S
 size_score = 15
 ```
 
-### Example 2: average feature that rises to L due to risk
+### Exemplo 2: feature media que sobe para L por risco
 
 ```
 tasks.total = 7
@@ -135,7 +135,7 @@ complexity_class = L
 size_score = 60
 ```
 
-### Example 3: large feature (XL)
+### Exemplo 3: feature grande (XL)
 
 ```
 tasks.total = 12
@@ -150,7 +150,7 @@ complexity_class = L
 size_score = 60
 ```
 
-### Example 4: giant feature (XXL)
+### Exemplo 4: feature gigante (XXL)
 
 ```
 tasks.total = 31
@@ -167,17 +167,17 @@ size_score = 95
 
 ## Alertas de consistencia
 
-Requirements are not included in the primary calculation, but can generate a note:
+Requisitos nao entram no calculo primario, mas podem gerar nota:
 
 ```
 if requirements.total >= 12 and tasks.total <= 3:
-notes += "Too many requirements for too few tasks. Check if tasks.md is granular enough."
+  notes += "Muitos requisitos para poucas tasks. Verifique se tasks.md esta granular o bastante."
 ```
 
 ## Limites e premissas
 
-1. The formula measures structural size before coding, therefore it does not use LOC
-2. Tokens are not counted
-3. `size_score` is auxiliary, it should not be converted directly into hours
-4. XXL must generate a recommendation to break scope before pricing or coding
-5. If a class threshold changes, bump `formula_version`
+1. A formula mede tamanho estrutural antes do coding, portanto nao usa LOC
+2. Tokens nao sao contados
+3. `size_score` e auxiliar, nao deve ser convertido diretamente em horas
+4. XXL deve gerar recomendacao de quebrar escopo antes de precificar ou codar
+5. Se mudar limite de classe, bump em `formula_version`

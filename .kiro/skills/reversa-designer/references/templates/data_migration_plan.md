@@ -5,76 +5,76 @@ reversa:
   version: "x.y.z"
 kind: data_migration_plan
 producedBy: designer
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Data Migration Plan
 
-> Data migration plan from legacy to the new system: mapping, transformations, ETL, data cutover and validation.
+> Plano de migração dos dados do legado para o sistema novo: mapeamento, transformações, ETL, cutover de dados e validação.
 
-## Summary
-- Estimated volume: <lines/GB per main entity>
-- Migration window: <see `cutover_plan.md`>
-- Strategy: prior backfill + delta + cut | single bulk | continuous replication
+## Resumo
+- Volume estimado: <linhas / GB por entidade principal>
+- Janela de migração: <ver `cutover_plan.md`>
+- Estratégia: backfill prévio + delta + corte | bulk único | replicação contínua
 
-## Legacy mapping → new
+## Mapeamento legado → novo
 
-| Source | Destination | Type | Notes |
+| Origem | Destino | Tipo | Notas |
 |---|---|---|---|
-| `<schema legado>.tb_pedidos` | `pedidos` | renaming | type normalization |
-| `<schema legado>.tb_pedido_item` | `pedido_itens` | renaming | FK adjusted |
-| `<schema legado>.usr_x` | `usuarios` (partial) + `perfis` | division | extracts profile data |
+| `<schema legado>.tb_pedidos` | `pedidos` | renomeação | normalização de tipos |
+| `<schema legado>.tb_pedido_item` | `pedido_itens` | renomeação | FK ajustada |
+| `<schema legado>.usr_x` | `usuarios` (parcial) + `perfis` | divisão | extrai dados de perfil |
 
-## Transformations
+## Transformações
 
-### Transformation T-01: <name>
+### Transformação T-01: <nome>
 - **Aplica em**: <coluna ou tabela>
-- **Rule**: <explicit text>
-- **Invalid treatment**: <discard | reject | fill with default>
-- **Rule origin**: <reference to `target_business_rules.md` or `discard_log.md`>
+- **Regra**: <texto explícito>
+- **Tratamento de inválidos**: <descartar | rejeitar | preencher com default>
+- **Origem da regra**: <referência a `target_business_rules.md` ou `discard_log.md`>
 
-<repeat for transformation>
+<repetir por transformação>
 
-## ETL Strategy
+## Estratégia de ETL
 
 - **Ferramenta**: <ex: scripts SQL, dbt, Airbyte, custom>
 - **Fluxo**:
-1. <extraction>
-2. <transformation>
+  1. <extração>
+  2. <transformação>
   3. <carga>
-- **Idempotency**: <how ETL is safe for re-execution>
+- **Idempotência**: <como o ETL é seguro para reexecução>
 - **Throughput esperado**: <ex: 50k linhas/s>
 
 ## Backfill e delta
 
-- **Backfill**: <start date, scope, duration>
+- **Backfill**: <data inicial, escopo, duração>
 - **Captura de delta**:
-- **Mechanism**: CDC | log mining | timestamps | replication | trigger
-- **Acceptable latency**: <seconds>
-- **Periodic reconciliation**: <frequency, scope>
+  - **Mecanismo**: CDC | log mining | timestamps | replicação | trigger
+  - **Latência aceitável**: <segundos>
+- **Reconciliação periódica**: <frequência, escopo>
 
-## Data cutover
+## Cutover de dados
 
-> See also `cutover_plan.md`. Here only the specific part of data.
+> Ver também `cutover_plan.md`. Aqui apenas a parte específica de dados.
 
 - **Janela**: <ISO-8601>
-- **Cutting sequence**:
+- **Sequência de corte**:
   1. <passo>
   2. <passo>
-- **Post-cut check**:
-- **Counts**: <which tables, tolerance>
-- **Checksums**: <critical columns>
+- **Verificação pós-corte**:
+  - **Contagens**: <quais tabelas, tolerância>
+  - **Checksums**: <colunas críticas>
 
-## Quality validation
+## Validação de qualidade
 
-| Metric | Target | Measurement source |
+| Métrica | Alvo | Fonte de medição |
 |---|---|---|
-| Count by entity | equal ± 0% | direct comparison |
-| Sum of monetary values ​​| equal ± 0.01% | financial reconciliation |
-| Referential integrity | 0 orphans | audit scripts |
+| Contagem por entidade | igual ± 0% | comparação direta |
+| Soma de valores monetários | igual ± 0,01% | reconciliação financeira |
+| Integridade referencial | 0 órfãos | scripts de auditoria |
 
-## Data-specific risks
+## Riscos específicos de dados
 - <RISK-XXX: ver `risk_register.md`>
 
 ## Notas
-<Additional notes.>
+<Observações adicionais.>

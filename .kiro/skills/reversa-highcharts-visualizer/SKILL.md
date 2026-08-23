@@ -1,9 +1,9 @@
 ---
 name: reversa-highcharts-visualizer
-description: Create interactive data visualizations with Highcharts.js, generating standalone HTML with animated, responsive and accessible charts from inline, CSV or JSON data.
+description: Cria visualizações de dados interativas com Highcharts.js, gerando HTML standalone com gráficos animados, responsivos e acessíveis a partir de dados inline, CSV ou JSON.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -14,110 +14,110 @@ metadata:
 
 # Highcharts Visualizer
 
-Create professional data visualizations using Highcharts.js. Always generates **standalone HTML**
-(single file, self-contained) with interactive, animated, responsive and accessible graphics.
+Cria visualizações de dados profissionais usando Highcharts.js. Gera sempre **HTML standalone**
+(arquivo único, self-contained) com gráficos interativos, animados, responsivos e acessíveis.
 
 ## Fluxo de Trabalho
 
-### 1. Receive Data
+### 1. Receber os Dados
 
-Data can come from:
+Os dados podem vir de:
 
-- **Inline in the conversation** → User pastes data, table, list of values
-- **CSV/JSON sent** → Parse the content using `view_file` and inject the data directly into the generated HTML. Never create scripts in Python.
-- **Excel Spreadsheet** → Extract data from tables and inject them into HTML. Don't use Python.
-- **Example data** → When the user wants to explore a type of chart without real data
-- **Data URL** → Use `web_fetch` to fetch remote data
+- **Inline na conversa** → Usuário cola dados, tabela, lista de valores
+- **CSV/JSON enviado** → Analise o conteúdo usando `view_file` e injete os dados diretamente no HTML gerado. Nunca crie scripts em Python.
+- **Planilha Excel** → Extraia os dados das tabelas e injete-os no HTML. Não use Python.
+- **Dados de exemplo** → Quando o usuário quer explorar um tipo de gráfico sem dados reais
+- **URL de dados** → Usar `web_fetch` para buscar dados remotos
 
-### 2. Analyze the Data
+### 2. Analisar os Dados
 
-Before generating the graph, understand the nature of the data:
+Antes de gerar o gráfico, entender a natureza dos dados:
 
-- **Dimensions**: how many series? How many categories? Temporal or categorical?
-- **Scale**: range of values, outliers, distribution
-- **Relationships**: comparison, composition, distribution, trend, correlation
-- **Volume**: few points (<100), medium (100-10K), large (>10K — use boost module)
+- **Dimensões**: quantas séries? Quantas categorias? Temporal ou categórico?
+- **Escala**: range dos valores, outliers, distribuição
+- **Relações**: comparação, composição, distribuição, tendência, correlação
+- **Volume**: poucos pontos (<100), médio (100-10K), grande (>10K — usar boost module)
 
-Analyze the data internally after reading and inject the tags via string. Don't create intermediate Python programs.
+Analise os dados internamente após a leitura e injete as tags via string. Não crie programas Python intermediários.
 
-### 3. Choose the Chart Type
+### 3. Escolher o Tipo de Gráfico
 
-See `references/CHART_CATALOG.md` for the complete catalog of 40+ chart types,
-with guidance on when to use each one.
+Consultar `references/CHART_CATALOG.md` para o catálogo completo de 40+ tipos de gráfico,
+com orientação de quando usar cada um.
 
-**Quick decision rule:**
+**Regra de decisão rápida:**
 
-| Objective | Recommended types |
+| Objetivo | Tipos recomendados |
 |----------|-------------------|
-| Trend over time | line, area, spline, areaspline |
-| Comparison between categories | column, bar, lollipop, bullet |
-| Composition/proportion | pie, donut, stacked column, stacked area, treemap, sunburst |
-| Distribution | histogram, box plot, scatter, bell curve |
-| Correlation | scatter, bubble, heatmap |
-| Flow/process | sankey, dependency wheel, network graph |
+| Tendência ao longo do tempo | line, area, spline, areaspline |
+| Comparação entre categorias | column, bar, lollipop, bullet |
+| Composição / proporção | pie, donut, stacked column, stacked area, treemap, sunburst |
+| Distribuição | histogram, box plot, scatter, bell curve |
+| Correlação | scatter, bubble, heatmap |
+| Fluxo / processo | sankey, dependency wheel, network graph |
 | Hierarquia | treemap, sunburst, organization chart |
-| Geographic | map (Highcharts Maps module) |
+| Geográfico | map (Highcharts Maps module) |
 | Financeiro / timeline | stock chart (candlestick, OHLC, flags) |
 | Progresso / KPI | gauge, solid gauge, activity gauge |
-| Project / planning | gantt chart |
-| Funnel/conversion | funnel, pyramid |
+| Projeto / planejamento | gantt chart |
+| Funil / conversão | funnel, pyramid |
 
-If the user did not specify the type, suggest 2-3 options that best represent the data.
+Se o usuário não especificou o tipo, sugerir 2-3 opções que melhor representam os dados.
 
-### 4. Generate the Code
+### 4. Gerar o Código
 
-See `references/HIGHCHARTS_PATTERNS.md` for tested code patterns.
+Consultar `references/HIGHCHARTS_PATTERNS.md` para padrões de código testados.
 
-**Fundamental rules:**
+**Regras fundamentais:**
 
-1. **Standalone HTML**: single file `.html`. When run by the Reversa Docs Team, Highcharts comes from `assets/vendor/` (downloaded by Publisher via `vendor-pins.yaml`). When run alone, it accepts CDN as a fallback but the preferred path is local.
-2. **Pinned version**: `highcharts@11.4.8`. Core and modules must be the same version.
-3. **Modules on demand**: only include extra scripts when necessary (see modules table).
-4. **Accessibility always**: always include `assets/vendor/highcharts-accessibility.js`.
-5. **Exporting always**: always include `assets/vendor/highcharts-exporting.js`.
-6. **Responsive**: the graphic must adapt to the container/viewport.
+1. **HTML standalone**: arquivo único `.html`. Quando rodada pelo Time Reversa Docs, Highcharts vem de `assets/vendor/` (baixado pelo Publisher via `vendor-pins.yaml`). Quando rodada isoladamente, aceita CDN como fallback mas o caminho preferido é local.
+2. **Versão pinada**: `highcharts@11.4.8`. Core e módulos precisam ser da mesma versão.
+3. **Módulos por demanda**: só incluir scripts extras quando necessário (ver tabela de módulos).
+4. **Accessibility sempre**: sempre incluir `assets/vendor/highcharts-accessibility.js`.
+5. **Exporting sempre**: sempre incluir `assets/vendor/highcharts-exporting.js`.
+6. **Responsivo**: o gráfico deve se adaptar ao container/viewport.
 7. **Tema consistente**: aplicar cores coesas e tipografia profissional.
-8. **Animation**: Enable entrance animations and smooth transitions.
-9. **Rich tooltips**: formatted tooltips, with units and context.
-10. **Large data**: for >10K points, include `modules/boost.js` (need to enter `vendor-pins.yaml`).
-11. **No `fetch()` for local files**: data comes from `window.RV_DATA.metrics` (or `window.RV_DATA.timeline`), loaded by `assets/js/data.js`.
+8. **Animação**: habilitar animações de entrada e transições suaves.
+9. **Tooltips ricos**: tooltips formatados, com unidades e contexto.
+10. **Dados grandes**: para >10K pontos, incluir `modules/boost.js` (precisa entrar no `vendor-pins.yaml`).
+11. **Sem `fetch()` para arquivos locais**: dados vêm de `window.RV_DATA.metrics` (ou `window.RV_DATA.timeline`), carregado por `assets/js/data.js`.
 
-**Required modules per chart type (preference: local path in `assets/vendor/`):**
+**Módulos necessários por tipo de gráfico (preferência: caminho local em `assets/vendor/`):**
 
-| Resource | Local (when run by the Docs team) | Fallback CDN |
+| Recurso | Local (quando rodado pelo time Docs) | Fallback CDN |
 |---------|--------------------------------------|--------------|
-| Core (required) | `assets/vendor/highcharts.js` | `https://code.highcharts.com/11.4.8/highcharts.js` |
-| Accessibility (required) | `assets/vendor/highcharts-accessibility.js` | `.../11.4.8/modules/accessibility.js` |
-| Exporting (required) | `assets/vendor/highcharts-exporting.js` | `.../11.4.8/modules/exporting.js` |
+| Core (obrigatório) | `assets/vendor/highcharts.js` | `https://code.highcharts.com/11.4.8/highcharts.js` |
+| Accessibility (obrigatório) | `assets/vendor/highcharts-accessibility.js` | `.../11.4.8/modules/accessibility.js` |
+| Exporting (obrigatório) | `assets/vendor/highcharts-exporting.js` | `.../11.4.8/modules/exporting.js` |
 | Treemap | `assets/vendor/highcharts-treemap.js` | `.../11.4.8/modules/treemap.js` |
 | Sankey | `assets/vendor/highcharts-sankey.js` | `.../11.4.8/modules/sankey.js` |
 | Timeline | `assets/vendor/highcharts-timeline.js` | `.../11.4.8/modules/timeline.js` |
-| Others (Sunburst, Heatmap, Funnel, etc.) | add in `vendor-pins.yaml` before using | `.../11.4.8/modules/<modulo>.js` |
-| Stock (candlestick, OHLC) | add in `vendor-pins.yaml` before using | `.../stock/11.4.8/highstock.js` |
-| Maps | add in `vendor-pins.yaml` before using | `.../maps/11.4.8/highmaps.js` |
-| Gantt | add in `vendor-pins.yaml` before using | `.../gantt/11.4.8/highcharts-gantt.js` |
+| Outros (Sunburst, Heatmap, Funnel, etc) | adicionar em `vendor-pins.yaml` antes de usar | `.../11.4.8/modules/<modulo>.js` |
+| Stock (candlestick, OHLC) | adicionar em `vendor-pins.yaml` antes de usar | `.../stock/11.4.8/highstock.js` |
+| Maps | adicionar em `vendor-pins.yaml` antes de usar | `.../maps/11.4.8/highmaps.js` |
+| Gantt | adicionar em `vendor-pins.yaml` antes de usar | `.../gantt/11.4.8/highcharts-gantt.js` |
 
-> If a page needs a module that is **not yet** in `vendor-pins.yaml`, the correct path is:
-> 1. Ask the Publisher to add the pin (commit to this skill or open issue), with primary URL + fallbacks.
-> 2. Only then use the module.
-> Pointing directly to the CDN on the final pages breaks the invariant "works via `file://` without internet".
+> Se uma página precisa de módulo que **ainda não está** em `vendor-pins.yaml`, o caminho correto é:
+> 1. Pedir ao Publisher que adicione o pin (commit nessa skill ou abrir issue), com URL primária + fallbacks.
+> 2. Só depois usar o módulo.
+> Apontar diretamente para CDN nas páginas finais é ruptura da invariante "funciona via `file://` sem internet".
 
-All CDNs (fallback) in the format: `https://code.highcharts.com/11.4.8/{path}`.
+Todos os CDNs (fallback) no formato: `https://code.highcharts.com/11.4.8/{path}`.
 
 ### 5. Salvar e Entregar
 
-Save the generated HTML directly to the destination folder using `write_to_file`. Always generate the pure HTML file with all data processed and injected into the `<script>` variables. Don't use Python snippets.
+Salvar o HTML gerado diretamente na pasta de destino usando `write_to_file`. Sempre gere o arquivo HTML puro com todos os dados processados e injetados nas variáveis `<script>`. Não use trechos de Python.
 
-## Quality Guidelines
+## Diretrizes de Qualidade
 
-- **Professional aesthetics**: cohesive colors (use Highcharts or custom palettes), clean typography, adequate spacing
-- **Formatted data**: numbers with thousands separators, localized dates, units on axes
-- **Clear captions**: descriptive series names, position that does not obstruct the data
-- **Rich interactivity**: hover highlights, contextual tooltips, zoom when applicable
-- **Dark mode**: when appropriate, offer dark version with `backgroundColor: '#1a1a2e'`
-- **Multiple graphics**: for dashboards, organize in a responsive CSS grid
-- **Commented code**: comments in Portuguese explaining each section
+- **Estética profissional**: cores coesas (usar paletas Highcharts ou custom), tipografia limpa, espaçamentos adequados
+- **Dados formatados**: números com separadores de milhar, datas localizadas, unidades nos eixos
+- **Legendas claras**: nomes de séries descritivos, posição que não obstrui os dados
+- **Interatividade rica**: hover highlights, tooltips contextuais, zoom quando aplicável
+- **Dark mode**: quando apropriado, oferecer versão dark com `backgroundColor: '#1a1a2e'`
+- **Múltiplos gráficos**: para dashboards, organizar em grid CSS responsivo
+- **Código comentado**: comentários em português explicando cada seção
 
 ## Tratamento de Erros
 
-See `references/ERRORS.md` for error scenarios and solutions.
+Consultar `references/ERRORS.md` para cenários de erro e soluções.

@@ -1,52 +1,52 @@
-# `--auto` Defaults
+# Defaults de `--auto`
 
-When the user invokes `/reversa-migrate --auto`, the orchestrator skips human pauses and applies these defaults. Before starting, the user notice lists each of them. Each self-applied item is recorded in `ambiguity_log.md` with tag `auto-decidido` for later review.
+Quando o usuário invoca `/reversa-migrate --auto`, o orquestrador pula pausas humanas e aplica estes defaults. Antes de iniciar, o aviso ao usuário lista cada um deles. Cada item auto-aplicado é registrado em `ambiguity_log.md` com tag `auto-decidido` para revisão posterior.
 
 ## Paradigm Advisor
-- Choose **option 1: adopt the natural paradigm of the target stack**.
+- Escolha **opção 1: adotar paradigma natural da stack alvo**.
 - `derived_appetite` = `transformational`.
 
 ## Curator
-- HUMAN DECISION items are marked as pending in `ambiguity_log.md` and do not block the pipeline.
-- Items 🟡 INFERRED → MIGRATE (with note "validate in coding agent").
-- Items 🔴 GAP and ⚠️ AMBIGUOUS → DISCARD with explicit note "self-discarded, requires review".
+- Itens DECISÃO HUMANA são marcados como pendentes em `ambiguity_log.md` e não bloqueiam o pipeline.
+- Itens 🟡 INFERIDOS → MIGRAR (com nota "validar no agente de codificação").
+- Itens 🔴 LACUNA e ⚠️ AMBÍGUOS → DESCARTAR com nota explícita "auto-descartado, requer revisão".
 
 ## Strategist
-- Adopt the strategy marked as **recommended**.
-- `critical` risks that would depend on a human owner use `owner = "to be defined"` in `risk_register.md`.
+- Adota a estratégia marcada como **recomendada**.
+- Riscos `crítico` que dependeriam de owner humano ficam com `owner = "a definir"` em `risk_register.md`.
 
 ## Designer
-- **Topology (Phase 1)**: accepts the proposed modern topology (option 2). Justification recorded in `topology_decision.md` is that of the Designer himself; in `ambiguity_log.md` there is the tag `auto-decidido` for later review. Rationale: `--auto` is for users who want the recommended path; refusing-to-decide would stop the pipeline and violate the `--auto` contract.
-- **Architecture (Phase 2)**: approves the first proposal without iteration.
-- Bounded contexts, events and ADRs are accepted as proposed.
+- **Topologia (Fase 1)**: aceita a topologia moderna proposta (opção 2). Justificativa registrada em `topology_decision.md` é a do próprio Designer; no `ambiguity_log.md` fica a tag `auto-decidido` para revisão posterior. Rationale: `--auto` é para usuários que querem o caminho recomendado; refusing-to-decide pararia o pipeline e violaria o contrato de `--auto`.
+- **Arquitetura (Fase 2)**: aprova a primeira proposta sem iteração.
+- Bounded contexts, eventos e ADRs são aceitos como propostos.
 
 ## Screen Translator
-- **Mode (Phase 1)**: adopts the mode recommended by the agent for the detected source→target pair (literal for textual pairs; modernized for platform changes; hybrid only with explicit list, therefore never in `--auto`).
-- **Generation (Phase 2)**: accepts the generated `target_screens.md` and propagates deviations as `pendente`. `--auto` does not approve deviations alone; they remain in `ambiguity_log.md` as `auto-decidido` for later review, without blocking the handoff (exception to `--auto`: if a deviation is `tipo=correcao` in literal mode, the agent refuses and asks for human approval even in `--auto`, as changing text without approval breaks expectations).
-- **Capture of golden files**: does not automate in `--auto` (oracle driver is OQ-02). Only issues `manifest.yaml` with suggested commands.
-- **Legacy without UI**: marks `skipped` status automatically, without asking.
-- **Discovery prerequisites missing** (`reversa/sdd/design-system/` or `reversa/sdd/ui/inventory.md`): creates minimum `tokens-derived.md` and builds inventory only from source code; alert on `ambiguity_log.md`.
+- **Modo (Fase 1)**: adota o modo recomendado pelo agente para o par origem→alvo detectado (literal para pares textuais; modernizado para mudanças de plataforma; híbrido só com lista explícita, portanto nunca em `--auto`).
+- **Geração (Fase 2)**: aceita o `target_screens.md` gerado e propaga deviations como `pendente`. `--auto` não aprova deviations sozinho; elas ficam em `ambiguity_log.md` como `auto-decidido` para revisão posterior, sem bloquear o handoff (exceção a `--auto`: se uma deviation for `tipo=correcao` em modo literal, o agente recusa e pede aprovação humana mesmo em `--auto`, pois mudar texto sem aval rompe expectativa).
+- **Captura de golden files**: não automatiza em `--auto` (driver de oráculo é OQ-02). Apenas emite `manifest.yaml` com comandos sugeridos.
+- **Legado sem UI**: marca status `skipped` automaticamente, sem perguntar.
+- **Pré-requisitos Discovery ausentes** (`_reversa_sdd/design-system/` ou `_reversa_sdd/ui/inventory.md`): cria `tokens-derived.md` mínimo e constrói inventário só a partir do código fonte; alerta no `ambiguity_log.md`.
 
 ## Inspector
-- Uses parity criteria derived directly from the chosen paradigm (see `parity-coverage-matrix.md` in the agent).
-- Does not negotiate “accepted parity” criteria with the user.
+- Usa critérios de paridade derivados diretamente do paradigma escolhido (ver `parity-coverage-matrix.md` no agente).
+- Não negocia critério "paridade aceita" com o usuário.
 
-## Manual modifications detected
-- Adopt **option (a)**: preserve the manually modified version and abort regeneration of this artifact. Never destroy human work.
+## Modificações manuais detectadas
+- Adota **opção (a)**: preservar a versão modificada manualmente e abortar regeneração desse artefato. Nunca destrói trabalho humano.
 
-## Mandatory notice
+## Aviso obrigatório
 
-Always before starting `--auto`, present:
+Sempre antes de iniciar `--auto`, apresentar:
 
-> "⚠️ `--auto` mode activated. The defaults below will be applied without pausing for confirmation:
-> - Paradigm Advisor: adopt the target stack's natural paradigm (transformational).
-> - Curator: items ⚠️/🔴 will be DISCARDED with a note; 🟡 will be MIGRATED with note.
-> - Strategist: recommended strategy will be adopted.
-> - Designer (topology): proposed modern topology will be adopted (option 2).
-> - Designer (architecture): first architectural proposal will be accepted.
-> - Screen Translator (mode): adopts the recommended mode for the source→target pair. Hybrid mode never in `--auto`. On legacy without UI, status `skipped`.
-> - Screen Translator (generation): deviations are pending in `ambiguity_log.md` (not approved). Non-automated golden file capture (manifest only).
-> - Inspector: parity criteria derived from the paradigm without interactive adjustment.
+> "⚠️ Modo `--auto` ativado. Os defaults abaixo serão aplicados sem pausa para confirmação:
+> - Paradigm Advisor: adotar paradigma natural da stack (transformacional).
+> - Curator: itens ⚠️/🔴 serão DESCARTADOS com nota; 🟡 serão MIGRADOS com nota.
+> - Strategist: estratégia recomendada será adotada.
+> - Designer (topologia): topologia moderna proposta será adotada (opção 2).
+> - Designer (arquitetura): primeira proposta de arquitetura será aceita.
+> - Screen Translator (modo): adota o modo recomendado para o par origem→alvo. Modo híbrido nunca em `--auto`. Em legado sem UI, status `skipped`.
+> - Screen Translator (geração): deviations ficam pendentes em `ambiguity_log.md` (não aprovadas). Captura de golden files não automatizada (apenas manifesto).
+> - Inspector: critérios de paridade derivados do paradigma sem ajuste interativo.
 >
-> The final `handoff.md` will highlight all auto-decided items for later review.
-> Confirm? (y/N)"
+> O `handoff.md` final destacará todos os itens auto-decididos para revisão posterior.
+> Confirma? (s/N)"

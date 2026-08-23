@@ -5,60 +5,60 @@ reversa:
   version: "x.y.z"
 kind: parity_specs
 producedBy: inspector
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Parity Specs
 
-> Behavioral equivalence validation strategy between legacy and new system, adapted to the paradigm chosen in `paradigm_decision.md`.
+> Estratégia de validação de equivalência comportamental entre legado e sistema novo, adaptada ao paradigma escolhido em `paradigm_decision.md`.
 
-## General strategy
-- **Applicable validation modes** (mark those used):
-- [ ] Shadow mode (traffic mirroring with asynchronous comparison)
-- [ ] Characterization tests (suite derived from the current behavior of the legacy)
+## Estratégia geral
+- **Modos de validação aplicáveis** (marcar os usados):
+  - [ ] Shadow mode (espelhamento de tráfego com comparação assíncrona)
+  - [ ] Characterization tests (suíte derivada do comportamento atual do legado)
   - [ ] Contract tests (interfaces externas)
   - [ ] Data parity (snapshots e checksums)
   - [ ] Outro: <especificar>
 
-## "Accepted parity" criteria
-- **Primary metric**: <ex: functional divergence index < 0.01% on N consecutive days>
-- **Observation window**: <evaluation period>
-- **Blocking criterion**: <when ​​insufficient parity blocks the cutover>
+## Critérios de "paridade aceita"
+- **Métrica primária**: <ex: índice de divergência funcional < 0,01% em N dias consecutivos>
+- **Janela de observação**: <período de avaliação>
+- **Critério de bloqueio**: <quando paridade insuficiente bloqueia o cutover>
 
-## Coverage adapted to the paradigm
+## Cobertura adaptada ao paradigma
 
-> This section changes depending on the target paradigm confirmed in `paradigm_decision.md`.
+> Esta seção muda conforme o paradigma alvo confirmado em `paradigm_decision.md`.
 
-### No paradigm shift
-- Standard functional equivalence: same input → same output → same observable side effect.
+### Sem mudança de paradigma
+- Equivalência funcional padrão: mesma entrada → mesma saída → mesmo efeito colateral observável.
 
-### Synchronous change → event-driven
-- **Message order**: <acceptance criteria per channel / partition>
-- **Idempotence**: <proof that reprocessing does not double the effect>
-- **Eventual consistency**: <maximum accepted propagation window>
+### Mudança síncrono → event-driven
+- **Ordem de mensagens**: <critério de aceitação por canal / partição>
+- **Idempotência**: <prova de que reprocessamento não duplica efeito>
+- **Consistência eventual**: <janela máxima de propagação aceita>
 - **Comportamento sob falha de fila**: <retry, DLQ, replay>
 
-### Procedural change → OO
-- **Invariants in aggregates**: <set to be validated>
-- **Validation in factories / builders**: <critical cases>
+### Mudança procedural → OO
+- **Invariantes em aggregates**: <conjunto a validar>
+- **Validação em factories / construtores**: <casos críticos>
 
-### OO change → functional
-- **Immutability**: <critical points to note>
-- **Lack of expected side effects**: <where the legacy had an implicit side effect>
-- **Equivalence under composition**: <composite functions are equivalent to legacy flow>
+### Mudança OO → funcional
+- **Imutabilidade**: <pontos críticos a observar>
+- **Ausência de side effects esperados**: <onde o legado tinha efeito colateral implícito>
+- **Equivalência sob composição**: <funções compostas equivalem ao fluxo legado>
 
 ## Tipos de teste a aplicar
-- **Functional**: <description, tool>
-- **Contract**: <description, tool>
-- **Load / performance**: <description, targets>
-- **Resilience** (if applicable): <queue failure, external dependency unavailable>
+- **Funcionais**: <descrição, ferramenta>
+- **Contrato**: <descrição, ferramenta>
+- **Carga / performance**: <descrição, alvos>
+- **Resiliência** (se aplicável): <falha de fila, dependência externa indisponível>
 
 ## Reuso de characterization_specs do time de descoberta
-- **Origin**: `reversa/sdd/characterization_specs/` or equivalent available.
-- **Necessary adaptations for the new system**: <text>
+- **Origem**: `_reversa_sdd/characterization_specs/` ou equivalente disponível.
+- **Adaptações necessárias para o sistema novo**: <texto>
 
-## Outputs
-- `parity_tests/*.feature`: Gherkin scenarios for critical flows.
+## Saídas
+- `parity_tests/*.feature`: cenários em Gherkin para os fluxos críticos.
 
 ## Notas
-<Additional notes.>
+<Observações adicionais.>

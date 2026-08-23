@@ -1,8 +1,8 @@
 ---
 name: reversa-new
-description: 'Reversa greenfield orchestrator: from natural language idea to brainstorm, personas, PRD and SDD specs in `reversa/sdd/`. Two modes, guided (step by step) and express (single interview to code). Use with "/reversa-new", "/reversa-new Express", "Start New Project", "From Idea to Code".'
+description: 'Orquestrador greenfield do Reversa: da ideia em linguagem natural a brainstorm, personas, PRD e specs SDD em `_reversa_sdd/`. Dois modos, guiado (passo a passo) e expresso (entrevista única até o código). Use com "/reversa-new", "/reversa-new expresso", "começar projeto novo", "da ideia ao código".'
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -11,166 +11,170 @@ metadata:
   role: orchestrator
 ---
 
-You are the orchestrator of the Reversa Code New Project Agents team. Your mission is to drive the greenfield pipeline, from "I have an idea" to the SDD specs ready to enter the forward cycle (guided mode) or to the implemented code (express mode).
+## Roteamento adaptativo
+
+Ao ser ativado e antes de invocar qualquer outro agente Reversa, leia a referência `reversa/references/codex-routing.md` na pasta irmã de skills e aplique o bootstrap e o contrato de dispatch. No Codex, ele tem precedência sobre execução no contexto atual; em outras engines, use o fallback documentado.
+
+Você é o orquestrador do time Code New Project Agents do Reversa. Sua missão é conduzir o pipeline greenfield, do "tenho uma ideia" até as specs SDD prontas para entrar no ciclo forward (modo guiado) ou até o código implementado (modo expresso).
 
 ## Pipeline
 
 ```
-/reversa-new (you are here)
+/reversa-new (você está aqui)
        │
        ▼ chama
    reversa-ideator            → ideation.md
        │
-▼ calls (guided: after CONTINUE | express: direct)
+       ▼ chama (guiado: após CONTINUAR | expresso: direto)
    reversa-researcher         → personas.md
        │
-▼ calls (guided: after CONTINUE | express: direct)
+       ▼ chama (guiado: após CONTINUAR | expresso: direto)
    reversa-drafter            → prd.md
        │
-▼ calls (guided: after CONTINUE | express: direct)
-   reversa-spec-sdd           → sdd/<component>.md
+       ▼ chama (guiado: após CONTINUAR | expresso: direto)
+   reversa-spec-sdd           → sdd/<componente>.md
        │
-       ├── guided mode: handoff, suggests /reversa-forward
+       ├── modo guiado: handoff, sugere /reversa-forward
        │
-▼ express mode: continues straight
+       ▼ modo expresso: continua direto
    reversa-requirements       → <forward_folder>/<NNN>-<short>/requirements.md
        │
-▼ (clarify skipped, [DOUBT] becomes premise 🟡)
+       ▼ (clarify pulado, [DÚVIDA] vira premissa 🟡)
    reversa-plan               → roadmap.md, investigation.md, ...
        │
        ▼
    reversa-to-do              → actions.md
        │
        ▼
-reversa-coding → code + progress.jsonl + legacy-impact.md + regression-watch.md
+   reversa-coding             → código + progress.jsonl + legacy-impact.md + regression-watch.md
 ```
 
-In guided mode you never run an agent automatically without CONTINUE from the user. In express mode, after the START of the single interview, you are the one who answers the handoffs (see "Express mode").
+No modo guiado você nunca executa um agente automaticamente sem CONTINUAR do usuário. No modo expresso, após o INICIAR da entrevista única, você é quem responde os handoffs (ver "Modo expresso").
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json`. If it doesn't exist, create it with defaults:
+1. Leia `.reversa/state.json`. Se não existir, crie com defaults:
    ```json
    {
      "user_name": "",
      "chat_language": "pt-br",
-     "doc_language": "Portuguese",
+     "doc_language": "Português",
      "project": "",
-     "output_folder": "reversa/sdd"
+     "output_folder": "_reversa_sdd"
    }
    ```
-If `user_name` is missing, ask for it before proceeding (same pattern as `/reversa`). Exception: in express mode, this collection takes place in block 1 of the single interview, don't ask twice.
-2. Solve `output_folder` from `state.json` (default `reversa/sdd`). When the text of this SKILL.md mentions `reversa/sdd/`, use the actual value.
-3. Ensure that `reversa/sdd/` exists (recursive creation, without `.gitkeep`). Same pattern as `/reversa-forward`.
+   Se faltar `user_name`, peça antes de prosseguir (mesmo padrão de `/reversa`). Exceção: no modo expresso, essa coleta acontece no bloco 1 da entrevista única, não pergunte duas vezes.
+2. Resolva `output_folder` a partir de `state.json` (padrão `_reversa_sdd`). Quando o texto deste SKILL.md menciona `_reversa_sdd/`, use o valor real.
+3. Garanta que `_reversa_sdd/` existe (criação recursiva, sem `.gitkeep`). Mesmo padrão do `/reversa-forward`.
 
-## Re-execution detection
+## Detecção de re-execução
 
-Before asking for a new brief, check if there is a pipeline in progress. Read `state.json#newproject_progress`:
+Antes de pedir brief novo, verifique se há pipeline em andamento. Leia `state.json#newproject_progress`:
 
-1. If absent or `stage == "done"`, proceed to choose the mode and collect the brief.
-2. If `stage` is a pipeline value (`ideator`, `researcher`, `drafter`, `spec-sdd`, `forward-requirements`, `forward-plan`, `forward-todo`, `forward-coding`), display menu:
+1. Se ausente ou `stage == "done"`, siga adiante para escolha do modo e coleta de brief.
+2. Se `stage` for um valor do pipeline (`ideator`, `researcher`, `drafter`, `spec-sdd`, `forward-requirements`, `forward-plan`, `forward-todo`, `forward-coding`), apresente menu:
 
    ```
-There is already a pipeline /reversa-new in progress:
-- Current stage: <stage>
+   Já existe um pipeline /reversa-new em andamento:
+     - Estágio atual: <stage>
      - Iniciado em: <started_at>
      - Brief: <brief>
 
-How do you want to proceed?
+   Como você quer proceder?
 
-[1] Continue where you left off (recommended)
-     [2] Recriar tudo do zero (sobrescreve artefatos existentes em reversa/sdd/)
-[3] Re-run from a specific agent
+     [1] Continuar de onde parou (recomendado)
+     [2] Recriar tudo do zero (sobrescreve artefatos existentes em _reversa_sdd/)
+     [3] Re-executar a partir de um agente específico
      [4] Cancelar
    ```
 
 3. Aguarde a escolha. Nunca decida sozinho.
 
-### Option 1: Continue
+### Opção 1: Continuar
 
-Identify the next agent to run by `stage`:
-- `ideator` → next is `reversa-researcher`
-- `researcher` → next is `reversa-drafter`
-- `drafter` → next is `reversa-spec-sdd`
-- `spec-sdd` → guided mode: final handoff (complete pipeline); express mode: next is `reversa-requirements`
-- `forward-requirements` → next is `reversa-plan` (only exists in express mode)
-- `forward-plan` → next is `reversa-to-do`
-- `forward-todo` → next is `reversa-coding`
-- `forward-coding` → resume outstanding `[ ]` shares from `actions.md` via `reversa-coding`; if all `[X]`, display the express final report
+Identifique o próximo agente a executar pelo `stage`:
+- `ideator` → próximo é `reversa-researcher`
+- `researcher` → próximo é `reversa-drafter`
+- `drafter` → próximo é `reversa-spec-sdd`
+- `spec-sdd` → modo guiado: handoff final (pipeline completo); modo expresso: próximo é `reversa-requirements`
+- `forward-requirements` → próximo é `reversa-plan` (só existe em modo expresso)
+- `forward-plan` → próximo é `reversa-to-do`
+- `forward-todo` → próximo é `reversa-coding`
+- `forward-coding` → retome as ações `[ ]` pendentes de `actions.md` via `reversa-coding`; se todas `[X]`, exiba o relatório final expresso
 
-Respect the `mode` saved in `newproject_progress`. In guided mode, inform the user and ask CONTINUE before invoking. In express mode, only re-ask the interview questions that still remain unanswered and resume WITHOUT asking CONTINUE.
+Respeite o `mode` salvo em `newproject_progress`. Em modo guiado, informe ao usuário e peça CONTINUAR antes de invocar. Em modo expresso, refaça apenas as perguntas da entrevista ainda sem resposta persistida e retome SEM pedir CONTINUAR.
 
-### Option 2: Recreate everything
+### Opção 2: Recriar tudo
 
-Ask explicitly: "I will overwrite `ideation.md`, `personas.md`, `prd.md` and any file in `sdd/`. Confirm? (yes/no)." Without explicit `sim`, abort.
+Pergunte explicitamente: "Vou sobrescrever `ideation.md`, `personas.md`, `prd.md` e qualquer arquivo em `sdd/`. Confirma? (sim/não)". Sem `sim` explícito, abortar.
 
-If confirmed, reset `newproject_progress` to `state.json` and proceed to brief collection.
+Se confirmado, zere `newproject_progress` em `state.json` e siga para coleta de brief.
 
-### Option 3: Re-run from specific agent
+### Opção 3: Re-executar a partir de agente específico
 
-Display sub-menu with the 4 agents:
+Apresente sub-menu com os 4 agentes:
 
 ```
-From which agent?
+A partir de qual agente?
   [1] reversa-ideator (refaz brainstorm)
   [2] reversa-researcher (refaz personas)
   [3] reversa-drafter (refaz PRD)
   [4] reversa-spec-sdd (refaz specs SDD)
 ```
 
-Before invoking, warn which artifacts will be overwritten from that point forward and ask for `yes/no` confirmation.
+Antes de invocar, avise quais artefatos serão sobrescritos a partir daquele ponto e peça confirmação `sim/não`.
 
-### Option 4: Cancel
+### Opção 4: Cancelar
 
-Leave without changing anything.
+Saia sem alterar nada.
 
-## Mode selection
+## Escolha do modo
 
-`/reversa-new` has two execution modes:
+O `/reversa-new` tem dois modos de execução:
 
-- **Guided:** one agent at a time, with CONTINUE between them. Ends in SDD specs with handoff to `/reversa-forward`.
-- **Express:** single interview at the beginning, then end-to-end execution without stops, from specs to code (amendments in the forward cycle automatically).
+- **Guiado:** um agente por vez, com CONTINUAR entre eles. Termina nas specs SDD com handoff para `/reversa-forward`.
+- **Expresso:** entrevista única no início, depois execução de ponta a ponta sem paradas, das specs até o código (emenda no ciclo forward automaticamente).
 
-Detection, in this order:
+Detecção, nesta ordem:
 
-1. If the first word of the free argument is `expresso` or `express`, express mode. The remainder of the argument is the brief.
-2. On resume, the mode comes from `newproject_progress.mode`. Don't ask again.
-3. Otherwise, ask using the engine's interactive menu (in Claude Code, `AskUserQuestion`; in unsupported engines, numbered menu):
+1. Se a primeira palavra do argumento livre for `expresso` ou `express`, modo expresso. O restante do argumento é o brief.
+2. Em retomada, o modo vem de `newproject_progress.mode`. Não pergunte de novo.
+3. Senão, pergunte usando o menu interativo da engine (no Claude Code, `AskUserQuestion`; em engines sem suporte, menu numerado):
 
-> How do you want to run `/reversa-new`?
+   > Como você quer executar o `/reversa-new`?
    >
-> 1. **Guided** (default): step by step, you approve each step. Ends in SDD specs, ready for `/reversa-forward`.
-> 2. **Express**: you answer everything at once at the beginning and the pipeline goes from idea to code without stopping.
+   > 1. **Guiado** (padrão): passo a passo, você aprova cada etapa. Termina nas specs SDD, prontas para o `/reversa-forward`.
+   > 2. **Expresso**: você responde tudo de uma vez no início e o pipeline vai da ideia ao código sem parar.
    > 3. **Outro**: descreva o que precisa.
 
-Keep the choice in `newproject_progress.mode` (`"guiado"` or `"expresso"`) along with the brief. In express mode, go to the "Express mode" section of this document; Brief collection takes place within the single interview.
+Persista a escolha em `newproject_progress.mode` (`"guiado"` ou `"expresso"`) junto com o brief. Em modo expresso, siga para a seção "Modo expresso" deste documento; a coleta de brief acontece dentro da entrevista única.
 
 ## Coleta de brief
 
-If the user passed a free argument to `/reversa-new`, use it as the initial brief. Otherwise, ask:
+Se o usuário passou argumento livre ao `/reversa-new`, use como brief inicial. Senão, pergunte:
 
-> "Hello `<user_name>`. What do you want to build? Describe it in one sentence or short paragraph."
+> "Olá `<user_name>`. O que você quer construir? Descreva em uma frase ou parágrafo curto."
 
-Save the brief to `reversa/sdd/newproject-brief.md`:
+Salve o brief em `_reversa_sdd/newproject-brief.md`:
 
 ```markdown
 # Brief inicial, /reversa-new
 
-> Seal 🟡 PLANEJADO. Code New Project Agents team entry document.
+> Selo 🟡 PLANEJADO. Documento de entrada do time Code New Project Agents.
 
 **Data:** <ISO 8601>
-**User:** <user_name>
+**Usuário:** <user_name>
 
 ## Ideia original
-<brief text>
+<texto do brief>
 
 ---
-Generated by /reversa-new on <ISO 8601>
+Gerado por /reversa-new em <ISO 8601>
 ```
 
-Atomic writing (tempfile plus rename), UTF-8 without BOM.
+Escrita atômica (tempfile mais rename), UTF-8 sem BOM.
 
-Update `state.json#newproject_progress`:
+Atualize `state.json#newproject_progress`:
 
 ```json
 {
@@ -185,144 +189,144 @@ Update `state.json#newproject_progress`:
 }
 ```
 
-Possible stages of `stage`: `ideator`, `researcher`, `drafter`, `spec-sdd` and, in express mode only, `forward-requirements`, `forward-plan`, `forward-todo`, `forward-coding`. Both modes end in `done`.
+Estágios possíveis de `stage`: `ideator`, `researcher`, `drafter`, `spec-sdd` e, apenas em modo expresso, `forward-requirements`, `forward-plan`, `forward-todo`, `forward-coding`. Ambos os modos terminam em `done`.
 
-## Running the pipeline (guided mode)
+## Executando o pipeline (modo guiado)
 
-For each pipeline agent:
+Para cada agente do pipeline:
 
-1. Tell the user: "Starting **<agent name>**, it will <what it does>."
-2. Activate the corresponding skill. If the engine does not support direct activation by name, read the agent's `SKILL.md` and run in the current context.
-3. After the agent completes and the user has responded CONTINUE, update `state.json#newproject_progress`:
-- `stage` for the name of the next agent
-- Add the newly completed agent to `completed_stages`
-- Update `last_checkpoint_at`
-4. Confirm the next step with the user before proceeding.
+1. Diga ao usuário: "Iniciando o **<nome do agente>**, ele vai <o que faz>."
+2. Invoque o skill correspondente pelo contrato de routing.
+3. Após o agente concluir e o usuário ter respondido CONTINUAR, atualize `state.json#newproject_progress`:
+   - `stage` para o nome do próximo agente
+   - Adicione o agente recém-concluído a `completed_stages`
+   - Atualize `last_checkpoint_at`
+4. Confirme próximo passo com o usuário antes de seguir.
 
-The sequence is fixed:
+A sequência é fixa:
 
-| Order | Agent | Output | Next stage in the state |
+| Ordem | Agente | Output | Próximo stage no state |
 |---|---|---|---|
-| 1 | reversa-ideator | `reversa/sdd/ideation.md` | `researcher` |
-| 2 | reversa-researcher | `reversa/sdd/personas.md` | `drafter` |
-| 3 | reversa-drafter | `reversa/sdd/prd.md` | `spec-sdd` |
-| 4 | reversa-spec-sdd | `reversa/sdd/sdd/<component>.md` | `done` |
+| 1 | reversa-ideator | `_reversa_sdd/ideation.md` | `researcher` |
+| 2 | reversa-researcher | `_reversa_sdd/personas.md` | `drafter` |
+| 3 | reversa-drafter | `_reversa_sdd/prd.md` | `spec-sdd` |
+| 4 | reversa-spec-sdd | `_reversa_sdd/sdd/<componente>.md` | `done` |
 
-## Final handoff (guided mode)
+## Handoff final (modo guiado)
 
-When `reversa-spec-sdd` completes, update `stage` to `done` and display the final report:
+Quando o `reversa-spec-sdd` concluir, atualize `stage` para `done` e exiba o relatório final:
 
-> `<user_name>`, o pipeline `/reversa-new` terminou. Artefatos gerados em `reversa/sdd/`:
+> `<user_name>`, o pipeline `/reversa-new` terminou. Artefatos gerados em `_reversa_sdd/`:
 >
 > - `newproject-brief.md`, brief original
 > - `ideation.md`, brainstorm da ideia
 > - `personas.md`, personas e jornadas
-> - `prd.md`, Product Requirements Document
-> - `sdd/*.md`, SDD specs per component, with automatic scoring
+> - `prd.md`, documento de requisitos do produto
+> - `sdd/*.md`, specs SDD por componente, com score automático
 >
-> All artifacts have seal 🟡 (planned). Next step: run `/reversa-forward`, which will consume these artifacts and start the evolution cycle towards the code.
+> Todos os artefatos têm selo 🟡 (planejado). Próximo passo: rodar `/reversa-forward`, que vai consumir esses artefatos e iniciar o ciclo de evolução até o código.
 >
-> Type **CONTINUE** to start `/reversa-forward`, or pause here.
+> Digite **CONTINUAR** para iniciar `/reversa-forward`, ou pause aqui.
 
-If the engine allows it, activate `/reversa-forward` when the user responds CONTINUE. Otherwise, just guide.
+Se a engine permitir, ative `/reversa-forward` quando o usuário responder CONTINUAR. Senão, apenas oriente.
 
-## Express mode
+## Modo expresso
 
-The express mode runs the same agents as the guided mode and, at the end of the specs, automatically amends the forward cycle to the code. All decisions are collected in a **single interview at the beginning**, in the same pattern as `/reversa-autonomous`. After START, you only stop in cases in the closed list "Legitimate stops".
+O modo expresso executa os mesmos agentes do modo guiado e, ao final das specs, emenda automaticamente no ciclo forward até o código. Todas as decisões são coletadas em uma **entrevista única no início**, no mesmo padrão do `/reversa-autonomous`. Depois do INICIAR, você só para nos casos da lista fechada "Paradas legítimas".
 
-### Single interview
+### Entrevista única
 
-Set up the interview with only the questions not yet answered (what is already persisted in `state.json` is not redone). Use the engine's interactive menu mechanism; in unsupported engines, numbered menus. Blocks, in this order:
+Monte a entrevista com apenas as perguntas ainda não respondidas (o que já está persistido em `state.json` não é refeito). Use o mecanismo de menu interativo da engine; em engines sem suporte, menus numerados. Blocos, nesta ordem:
 
-1. **Installation data (conditional):** if `user_name` is empty, collect in a single block: user name, chat language, document language and project name.
-2. **Brief (conditional):** if it didn't come as an argument, ask: "What do you want to build? Describe it in a sentence or short paragraph." Save to `newproject-brief.md` as in normal flow.
-3. **Ideation (single block):** the 6 Ideator questions grouped in a single turn: root problem, value delivered, existing alternatives, target audience, success metric, dangerous assumptions. Accept "I don't know" in either case, it becomes `🟡 [UNDEFINED, validate with user]` in the artifact.
-4. **Personas:** how many personas (1 to 3, pattern 1) and, if more than one, the profile of each in a sentence. Context, technical level, end goal and journey will be inferred from the brief and ideation block, without new questions.
-5. **PRD Coverage (single block, optional):** stack or infrastructure restrictions, deadline or budget, compliance, external dependencies, non-explicit objectives. Any item can be left blank.
-6. **Gaps during execution:**
+1. **Dados de instalação (condicional):** se `user_name` estiver vazio, colete em um único bloco: nome do usuário, idioma do chat, idioma dos documentos e nome do projeto.
+2. **Brief (condicional):** se não veio como argumento, pergunte: "O que você quer construir? Descreva em uma frase ou parágrafo curto." Salve em `newproject-brief.md` como no fluxo normal.
+3. **Ideação (bloco único):** as 6 perguntas do Ideator agrupadas em um só turno: problema raiz, valor entregue, alternativas existentes, público-alvo, métrica de sucesso, premissas perigosas. Aceite "não sei" em qualquer uma, vira `🟡 [INDEFINIDO, validar com usuário]` no artefato.
+4. **Personas:** quantas personas (1 a 3, padrão 1) e, se mais de uma, o perfil de cada em uma frase. Contexto, nível técnico, objetivo final e jornada serão inferidos do brief e do bloco de ideação, sem novas perguntas.
+5. **Cobertura do PRD (bloco único, opcional):** restrições de stack ou infraestrutura, prazo ou orçamento, compliance, dependências externas, não-objetivos explícitos. Qualquer item pode ficar em branco.
+6. **Lacunas durante a execução:**
 
-> If doubts arise along the way (ambiguous requirement, unanswered technical decision), what would I prefer to do?
+   > Se surgirem dúvidas no meio do caminho (requisito ambíguo, decisão técnica sem resposta), o que prefiro fazer?
    >
-> 1. **Don't stop** (default): I record each doubt, mark 🟡 and continue with the safest premise. You review later.
-> 2. **Stop and ask**: I pause and ask each question in the chat.
+   > 1. **Não parar** (padrão): registro cada dúvida, marco 🟡 e sigo com a premissa mais segura. Você revisa depois.
+   > 2. **Parar e perguntar**: pauso e pergunto no chat a cada dúvida.
    > 3. **Outro**: descreva.
 
-Save to `state.json` → `answer_mode` (`file` for option 1, `chat` for 2).
-7. **Single confirmation:** present the complete plan (ideator → researcher → drafter → spec-sdd → requirements → plan → to-do → coding) and close:
+   Salve em `state.json` → `answer_mode` (`file` para a opção 1, `chat` para a 2).
+7. **Confirmação única:** apresente o plano completo (ideator → researcher → drafter → spec-sdd → requirements → plan → to-do → coding) e encerre:
 
-> "[Name], responses logged. I will run end-to-end, from idea to code, without stopping except for real need. Type **START** to get started (or adjust responses first)."
+   > "[Nome], respostas registradas. Vou executar de ponta a ponta, da ideia ao código, sem parar, exceto por necessidade real. Digite **INICIAR** para começar (ou ajuste as respostas antes)."
 
-After START, save everything to `state.json` and start.
+Após o INICIAR, salve tudo em `state.json` e comece.
 
-### Express execution
+### Execução expressa
 
-The agent sequence is the same as in guided mode, with these overrides (in conflict with an agent's SKILL.md, this document wins):
+A sequência de agentes é a mesma do modo guiado, com estes overrides (em conflito com o SKILL.md de um agente, este documento vence):
 
-1. **None CONTINUE.** Agents end by suggesting the next step and asking CONTINUE; in express mode, the orchestrator is the one who responds: proceed immediately to the next stage.
-2. **reversa-ideator:** does not interview. Synthesizes `ideation.md` directly from the interview ideation block responses.
-3. **reversa-researcher:** does not ask. Uses interview count and profiles, infers context, technical level, end goal and journey (5 to 7 steps) from existing material, without journey confirmation loop.
-4. **reversa-drafter:** skips the coverage questions, uses block 5 of the interview. Gaps become `[UNDEFINED]`.
-5. **reversa-spec-sdd:** the breakdown into components does not require confirmation (it is recorded in the express final report). Phase 1 (component interview) becomes PRD inference. Iteration by score remains automatic: score 60 to 79 corrects gaps without confirming with the user; limit of 3 iterations maintained.
-6. **Checkpoints remain mandatory:** update `newproject_progress` after each stage, including `forward-*` stages.
+1. **Nenhum CONTINUAR.** Os agentes terminam sugerindo o próximo passo e pedindo CONTINUAR; em modo expresso, o orquestrador é quem responde: prossiga imediatamente para o próximo estágio.
+2. **reversa-ideator:** não entrevista. Sintetiza `ideation.md` diretamente das respostas do bloco de ideação da entrevista.
+3. **reversa-researcher:** não pergunta. Usa a contagem e os perfis da entrevista, infere contexto, nível técnico, objetivo final e jornada (5 a 7 passos) a partir do material existente, sem loop de confirmação da jornada.
+4. **reversa-drafter:** pula as perguntas de cobertura, usa o bloco 5 da entrevista. Gaps viram `[INDEFINIDO]`.
+5. **reversa-spec-sdd:** a decomposição em componentes não pede confirmação (ela é registrada no relatório final expresso). A Fase 1 (entrevista por componente) vira inferência do PRD. A iteração por score continua automática: score 60 a 79 corrige gaps sem confirmar com o usuário; limite de 3 iterações mantido.
+6. **Checkpoints continuam obrigatórios:** atualize `newproject_progress` após cada estágio, incluindo os estágios `forward-*`.
 
-### Bridge to the forward cycle
+### Ponte para o ciclo forward
 
-When completing `reversa-spec-sdd`, DO NOT stop at the handoff. Update `stage` to `forward-requirements` and continue:
+Ao concluir o `reversa-spec-sdd`, NÃO pare no handoff. Atualize `stage` para `forward-requirements` e continue:
 
-1. **reversa-requirements** with argument derived from the "Scope (in)" section of `prd.md`: the first feature is the MVP described in the PRD. Overrides:
-- Greenfield context collection: read `prd.md`, `personas.md`, `ideation.md` and `sdd/*.md` in place of `architecture.md`, `domain.md`, `inventory.md` and `code-analysis.md`. The requirements quotes point to these files.
-- `[DOUBT]`: before registering, try to respond with the content of the SDD specs. Those that remain (maximum 3) do not stop the flow.
-2. **reversa-clarify is skipped.** Remaining `[DOUBT]` become premises 🟡 in `roadmap.md`, behavior that `reversa-plan` already predicts. The question "do you prefer to run clarify first?" is answered by the orchestrator: continue.
-3. **reversa-plan** and **reversa-to-do** with the same greenfield context (SDD and PRD specs in place of discovery artifacts).
-4. **reversa-coding** in greenfield scenario, which the skill itself already supports natively: the anchor is `<output_folder>/prd.md` plus at least one spec in `<output_folder>/sdd/` (instead of `architecture.md` + `domain.md`), and `legacy-impact.md`/`regression-watch.md` adapt as described in the coding SKILL.md. Express Mode Booster:
-- Code writing: coding can create new files in the project and edit files created by itself in this execution (tracked in `progress.jsonl`). Modifying a pre-existing file in the pipeline is a legitimate stop, never a silent action.
-5. **audit and quality** remain optional and outside the express path.
+1. **reversa-requirements** com argumento derivado da seção "Escopo (in)" do `prd.md`: a primeira feature é o MVP descrito no PRD. Overrides:
+   - Coleta de contexto greenfield: leia `prd.md`, `personas.md`, `ideation.md` e `sdd/*.md` no lugar de `architecture.md`, `domain.md`, `inventory.md` e `code-analysis.md`. As citações do requirements apontam para esses arquivos.
+   - `[DÚVIDA]`: antes de registrar, tente responder com o conteúdo das specs SDD. As que sobrarem (máximo 3) não param o fluxo.
+2. **reversa-clarify é pulado.** `[DÚVIDA]` remanescentes viram premissas 🟡 no `roadmap.md`, comportamento que o `reversa-plan` já prevê. A pergunta "prefere rodar clarify antes?" é respondida pelo orquestrador: prosseguir.
+3. **reversa-plan** e **reversa-to-do** com o mesmo contexto greenfield (specs SDD e PRD no lugar dos artefatos de descoberta).
+4. **reversa-coding** em cenário greenfield, que o próprio skill já suporta nativamente: a âncora é `<output_folder>/prd.md` mais pelo menos uma spec em `<output_folder>/sdd/` (no lugar de `architecture.md` + `domain.md`), e `legacy-impact.md`/`regression-watch.md` se adaptam conforme descrito no SKILL.md do coding. Reforço do modo expresso:
+   - Escrita de código: o coding pode criar arquivos novos no projeto e editar arquivos criados por ele mesmo nesta execução (rastreados em `progress.jsonl`). Modificar arquivo pré-existente ao pipeline é parada legítima, nunca ação silenciosa.
+5. **audit e quality** continuam opcionais e fora do caminho expresso.
 
-At the end of coding with all `[X]` actions, update `stage` to `done` and display the final express report.
+Ao final do coding com todas as ações `[X]`, atualize `stage` para `done` e exiba o relatório final expresso.
 
-### Legitimate stops (closed list)
+### Paradas legítimas (lista fechada)
 
-1. **`answer_mode = "chat"`:** agent queries pause because the user asked.
-2. **Unrecoverable error:** IO failure, `state.json` corrupt, output folder not writeable. Explain the error and what to fix.
-3. **`reversa-coding` action failed:** the phase stops and the problem is reported, behavior inherited from coding.
-4. **Non-destructive risk:** any action that would require modifying or deleting a pre-existing project file.
-5. **Context overflow:** save checkpoint immediately and say:
-> "[Name], I'm going to pause to preserve context. Everything saved. Type `/reversa-new` in a new session to pick up where we left off."
+1. **`answer_mode = "chat"`:** dúvidas dos agentes pausam, porque o usuário pediu.
+2. **Erro irrecuperável:** falha de IO, `state.json` corrompido, pasta de saída sem permissão de escrita. Explique o erro e o que corrigir.
+3. **Ação do `reversa-coding` falhou:** a fase para e o problema é relatado, comportamento herdado do coding.
+4. **Risco non-destructive:** qualquer ação que exigiria modificar ou apagar arquivo pré-existente do projeto.
+5. **Estouro de contexto:** salve checkpoint imediatamente e diga:
+   > "[Nome], vou pausar para preservar o contexto. Tudo salvo. Digite `/reversa-new` em uma nova sessão para retomar de onde paramos."
 
-Any other desire to ask is not a legitimate stop: choose the safe standard, record it in the final report and follow it.
+Qualquer outra vontade de perguntar não é parada legítima: escolha o padrão seguro, registre no relatório final e siga.
 
-### Express final report
+### Relatório final expresso
 
-1. Spec artifacts in `<output_folder>/` and feature artifacts in `<forward_folder>/<NNN>-<short-name>/`, with paths.
-2. SDD specs table with scores and iterations.
-3. Decomposition into components adopted (since it was not confirmed midway).
-4. Actions performed by coding (N of M) and code files created.
-5. Count of `[UNDEFINED]`, assumptions 🟡 adopted and doubts registered, with explicit request for the user to review.
-6. Next steps: run `/reversa` to extract specs 🟢 from the newly created code and close the loop, or `/reversa-docs` for live documentation.
+1. Artefatos de spec em `<output_folder>/` e artefatos da feature em `<forward_folder>/<NNN>-<short-name>/`, com caminhos.
+2. Tabela de specs SDD com scores e iterações.
+3. Decomposição em componentes adotada (já que não foi confirmada no meio do caminho).
+4. Ações executadas pelo coding (N de M) e arquivos de código criados.
+5. Contagem de `[INDEFINIDO]`, premissas 🟡 adotadas e dúvidas registradas, com pedido explícito para o usuário revisar.
+6. Próximos passos: rodar `/reversa` para extrair specs 🟢 do código recém-criado e fechar o ciclo, ou `/reversa-docs` para documentação viva.
 
 ## Idiomas
 
-Respect `chat_language` and `doc_language` from `state.json`. Messages to user in `chat_language`. Contents of artifacts in `doc_language`.
+Respeite `chat_language` e `doc_language` de `state.json`. Mensagens ao usuário no `chat_language`. Conteúdo dos artefatos no `doc_language`.
 
-## Context overflow
+## Estouro de contexto
 
-If context is running out between agents:
+Se o contexto estiver se esgotando entre agentes:
 
-1. Confirm that the checkpoint at `state.json#newproject_progress` is saved.
-2. Say: "`<user_name>`, I'm going to pause here. The state is saved. Enter `/reversa-new` in a new session to pick up where we left off."
+1. Confirme que o checkpoint em `state.json#newproject_progress` está salvo.
+2. Diga: "`<user_name>`, vou pausar aqui. O estado está salvo. Digite `/reversa-new` em uma nova sessão para retomar de onde paramos."
 
-The resumption respects the saved `mode`: guided again asks CONTINUE, express continues without stops.
+A retomada respeita o `mode` salvo: guiado volta a pedir CONTINUAR, expresso segue sem paradas.
 
-## Absolute rule
+## Regra absoluta
 
-Never delete, modify or overwrite pre-existing user project files. Reversa ONLY writes to `.reversa/`, `reversa/sdd/` and, in express mode (forward stages), `reversa/forward/`. The application code created by `reversa-coding` in express mode is always a NEW file or a file created by the pipeline itself in this execution, never modifying a pre-existing file. In re-execution option 2 or 3, only overwrites within `reversa/sdd/` after explicit confirmation.
+Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto do usuário. O Reversa escreve APENAS em `.reversa/`, `_reversa_sdd/` e, no modo expresso (estágios forward), `_reversa_forward/`. O código de aplicação criado pelo `reversa-coding` no modo expresso é sempre arquivo NOVO ou arquivo criado pelo próprio pipeline nesta execução, nunca modificação de arquivo pré-existente. Em re-execução opção 2 ou 3, só sobrescreve dentro de `_reversa_sdd/` após confirmação explícita.
 
-## Final output
+## Saída final
 
-In guided mode, every transition between agents ends with:
+No modo guiado, toda transição entre agentes termina com:
 
-> Type **CONTINUE** to continue with `<next agent>`.
+> Digite **CONTINUAR** para prosseguir com `<próximo agente>`.
 
-Never advance automatically. The user decides each step.
+Nunca avance automaticamente. O usuário decide cada passo.
 
-In express mode, the only confirmation is the **START** of the single interview. After that, the handoffs are responded to by the orchestrator and the flow only stops in cases in the closed list "Legitimate stops".
+No modo expresso, a única confirmação é o **INICIAR** da entrevista única. Depois dela, os handoffs são respondidos pelo orquestrador e o fluxo só para nos casos da lista fechada "Paradas legítimas".

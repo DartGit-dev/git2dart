@@ -5,26 +5,26 @@ reversa:
   version: "x.y.z"
 kind: target_data_model
 producedBy: designer
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Target Data Model
 
-> New system data model. Schema, relationships and constraints.
+> Modelo de dados do sistema novo. Schema, relacionamentos e restrições.
 
-## Overview
-<Short text: type of main bank, division by bounded context, roles (OLTP / OLAP / event store).>
+## Visão geral
+<Texto curto: tipo de banco principal, divisão por bounded context, papéis (OLTP / OLAP / event store).>
 
-## Data entities
+## Entidades de dados
 
-| Entity | Table/Collection | Aggregate owner | PK | Bound context |
+| Entidade | Tabela / coleção | Aggregate dono | PK | Bounded context |
 |---|---|---|---|---|
-| <name> | <ref> | <AGG> | <field> | <BC> |
+| <nome> | <ref> | <AGG> | <campo> | <BC> |
 
 ## Schema (DDL ou equivalente)
 
 ```sql
--- Replace with the actual DDL of the target system.
+-- Substituir pelo DDL real do sistema alvo.
 CREATE TABLE pedidos (
     id UUID PRIMARY KEY,
     cliente_id UUID NOT NULL,
@@ -35,30 +35,30 @@ CREATE TABLE pedidos (
 
 ## Relacionamentos
 
-| Source | Destination | Cardinality | Integrity | Notes |
+| Origem | Destino | Cardinalidade | Integridade | Notas |
 |---|---|---|---|---|
 | pedidos.cliente_id | clientes.id | N:1 | FK ON DELETE RESTRICT | |
 
-## Restrictions
+## Restrições
 
-- **Unicidade**: <list>
-- **Referential Integrity**: <enabled / disabled and why>
-- **Partitioning / sharding** (if applicable): <description>
-- **Critical indices**: <list>
+- **Unicidade**: <lista>
+- **Integridade referencial**: <ativada / desativada e por quê>
+- **Particionamento / sharding** (se aplicável): <descrição>
+- **Índices críticos**: <lista>
 
-## Considerations specific to the target paradigm
+## Considerações específicas do paradigma alvo
 
-> Dedicated section when the target paradigm is event-driven, functional or other with direct implications for the data model.
+> Seção dedicada quando o paradigma alvo é event-driven, funcional ou outro com implicação direta no modelo de dados.
 
-- <ex: event-driven → outbox table for at-least-once guarantee>
-- <ex: event sourcing → event store as source of truth, derived projections>
-- <ex: immutability → immutable events/snapshots, no updates>
+- <ex: event-driven → tabela de outbox para garantia at-least-once>
+- <ex: event sourcing → store de eventos como fonte da verdade, projeções derivadas>
+- <ex: imutabilidade → eventos / snapshots imutáveis, sem updates>
 
-## Origin in legacy
+## Origem no legado
 
-| New Table/Collection | Origin in legacy | Transformation |
+| Tabela / coleção nova | Origem no legado | Transformação |
 |---|---|---|
-| requests | `<schema legado>.tb_pedidos` | renaming + normalized types |
+| pedidos | `<schema legado>.tb_pedidos` | renomeação + tipos normalizados |
 
 ## Notas
-<Additional notes on the data model.>
+<Observações adicionais sobre o modelo de dados.>

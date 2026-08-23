@@ -18,7 +18,7 @@ Pointer<git_index> newInMemory({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
     opts.ref.version = GIT_INDEX_OPTIONS_VERSION;
     opts.ref.oid_typeAsInt = oidType.value;
 
-    final error = libgit2.git_index_new(out, opts);
+    final error = libgit2Runtime.bindings.git_index_new(out, opts);
 
     checkErrorAndThrow(error);
 
@@ -38,7 +38,11 @@ Pointer<git_index> open(
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_open(out, pathC, optionsPointer ?? nullptr);
+    final error = libgit2Runtime.bindings.git_index_open(
+      out,
+      pathC,
+      optionsPointer ?? nullptr,
+    );
 
     checkErrorAndThrow(error);
 
@@ -47,7 +51,8 @@ Pointer<git_index> open(
 }
 
 /// Read index capabilities flags.
-int capabilities(Pointer<git_index> index) => libgit2.git_index_caps(index);
+int capabilities(Pointer<git_index> index) =>
+    libgit2Runtime.bindings.git_index_caps(index);
 
 /// Set index capabilities flags.
 ///
@@ -60,7 +65,7 @@ void setCapabilities({
   required Pointer<git_index> indexPointer,
   required int caps,
 }) {
-  final error = libgit2.git_index_set_caps(indexPointer, caps);
+  final error = libgit2Runtime.bindings.git_index_set_caps(indexPointer, caps);
 
   checkErrorAndThrow(error);
 }
@@ -69,7 +74,7 @@ void setCapabilities({
 ///
 /// Returns the path to the index file, or null if the index is in-memory.
 String? getPath(Pointer<git_index> index) {
-  final path = libgit2.git_index_path(index);
+  final path = libgit2Runtime.bindings.git_index_path(index);
   return path == nullptr ? null : path.toDartString();
 }
 
@@ -84,7 +89,7 @@ int findIndex({
   return using((arena) {
     final pathC = path.toChar(arena);
 
-    return libgit2.git_index_find(nullptr, indexPointer, pathC);
+    return libgit2Runtime.bindings.git_index_find(nullptr, indexPointer, pathC);
   });
 }
 
@@ -101,7 +106,7 @@ int findIndex({
 /// disk, unwritten in-memory changes are discarded.
 void read({required Pointer<git_index> indexPointer, required bool force}) {
   final forceC = force == true ? 1 : 0;
-  libgit2.git_index_read(indexPointer, forceC);
+  libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
 }
 
 /// Read a tree into the index file with stats.
@@ -110,7 +115,7 @@ void read({required Pointer<git_index> indexPointer, required bool force}) {
 void readTree({
   required Pointer<git_index> indexPointer,
   required Pointer<git_tree> treePointer,
-}) => libgit2.git_index_read_tree(indexPointer, treePointer);
+}) => libgit2Runtime.bindings.git_index_read_tree(indexPointer, treePointer);
 
 /// Write the index as a tree.
 ///
@@ -127,7 +132,7 @@ void readTree({
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> writeTree(Pointer<git_index> index) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_index_write_tree(out, index);
+  final error = libgit2Runtime.bindings.git_index_write_tree(out, index);
 
   checkErrorAndThrow(error);
 
@@ -147,7 +152,11 @@ Pointer<git_oid> writeTreeTo({
   required Pointer<git_repository> repoPointer,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_index_write_tree_to(out, indexPointer, repoPointer);
+  final error = libgit2Runtime.bindings.git_index_write_tree_to(
+    out,
+    indexPointer,
+    repoPointer,
+  );
 
   checkErrorAndThrow(error);
 
@@ -155,7 +164,8 @@ Pointer<git_oid> writeTreeTo({
 }
 
 /// Get the count of entries currently in the index.
-int entryCount(Pointer<git_index> index) => libgit2.git_index_entrycount(index);
+int entryCount(Pointer<git_index> index) =>
+    libgit2Runtime.bindings.git_index_entrycount(index);
 
 /// Get a pointer to one of the entries in the index based on position.
 ///
@@ -166,7 +176,10 @@ Pointer<git_index_entry> getByIndex({
   required Pointer<git_index> indexPointer,
   required int position,
 }) {
-  final result = libgit2.git_index_get_byindex(indexPointer, position);
+  final result = libgit2Runtime.bindings.git_index_get_byindex(
+    indexPointer,
+    position,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Out of bounds');
@@ -187,7 +200,11 @@ Pointer<git_index_entry> getByPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final result = libgit2.git_index_get_bypath(indexPointer, pathC, stage);
+    final result = libgit2Runtime.bindings.git_index_get_bypath(
+      indexPointer,
+      pathC,
+      stage,
+    );
 
     if (result == nullptr) {
       throw ArgumentError.value('$path was not found');
@@ -199,7 +216,7 @@ Pointer<git_index_entry> getByPath({
 
 /// Return the stage number from a git index entry.
 int entryStage(Pointer<git_index_entry> entry) =>
-    libgit2.git_index_entry_stage(entry);
+    libgit2Runtime.bindings.git_index_entry_stage(entry);
 
 /// Clear the contents (all the entries) of an index object.
 ///
@@ -208,7 +225,7 @@ int entryStage(Pointer<git_index_entry> entry) =>
 ///
 /// Throws a [LibGit2Error] if error occured.
 void clear(Pointer<git_index> index) {
-  final error = libgit2.git_index_clear(index);
+  final error = libgit2Runtime.bindings.git_index_clear(index);
 
   checkErrorAndThrow(error);
 }
@@ -224,7 +241,10 @@ void add({
   required Pointer<git_index> indexPointer,
   required Pointer<git_index_entry> sourceEntryPointer,
 }) {
-  final error = libgit2.git_index_add(indexPointer, sourceEntryPointer);
+  final error = libgit2Runtime.bindings.git_index_add(
+    indexPointer,
+    sourceEntryPointer,
+  );
 
   checkErrorAndThrow(error);
 }
@@ -250,7 +270,10 @@ void addByPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_add_bypath(indexPointer, pathC);
+    final error = libgit2Runtime.bindings.git_index_add_bypath(
+      indexPointer,
+      pathC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -280,7 +303,7 @@ void addFromBuffer({
 }) {
   return using((arena) {
     final bufferC = buffer.toChar(arena);
-    final error = libgit2.git_index_add_from_buffer(
+    final error = libgit2Runtime.bindings.git_index_add_from_buffer(
       indexPointer,
       entryPointer,
       bufferC.cast(),
@@ -306,7 +329,7 @@ void addAll({
   required git_index_matched_path_cb callback,
   required Pointer<Void> payload,
 }) {
-  final error = libgit2.git_index_add_all(
+  final error = libgit2Runtime.bindings.git_index_add_all(
     indexPointer,
     pathspec,
     flags,
@@ -332,7 +355,7 @@ void updateAll({
   required git_index_matched_path_cb callback,
   required Pointer<Void> payload,
 }) {
-  final error = libgit2.git_index_update_all(
+  final error = libgit2Runtime.bindings.git_index_update_all(
     indexPointer,
     pathspec,
     callback,
@@ -344,7 +367,8 @@ void updateAll({
 
 /// Write an existing index object from memory back to disk using an atomic
 /// file lock.
-void write(Pointer<git_index> index) => libgit2.git_index_write(index);
+void write(Pointer<git_index> index) =>
+    libgit2Runtime.bindings.git_index_write(index);
 
 /// Remove an entry from the index.
 ///
@@ -356,7 +380,11 @@ void remove({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_remove(indexPointer, pathC, stage);
+    final error = libgit2Runtime.bindings.git_index_remove(
+      indexPointer,
+      pathC,
+      stage,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -379,7 +407,10 @@ void removeByPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_remove_bypath(indexPointer, pathC);
+    final error = libgit2Runtime.bindings.git_index_remove_bypath(
+      indexPointer,
+      pathC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -399,7 +430,11 @@ void removeDirectory({
 }) {
   return using((arena) {
     final dirC = dir.toChar(arena);
-    final error = libgit2.git_index_remove_directory(indexPointer, dirC, stage);
+    final error = libgit2Runtime.bindings.git_index_remove_directory(
+      indexPointer,
+      dirC,
+      stage,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -416,7 +451,7 @@ void removeAll({
   required git_index_matched_path_cb callback,
   required Pointer<Void> payload,
 }) {
-  final error = libgit2.git_index_remove_all(
+  final error = libgit2Runtime.bindings.git_index_remove_all(
     indexPointer,
     pathspec,
     callback,
@@ -439,7 +474,10 @@ void updateByPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_add_bypath(indexPointer, pathC);
+    final error = libgit2Runtime.bindings.git_index_add_bypath(
+      indexPointer,
+      pathC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -457,7 +495,7 @@ void updateByPath({
 //   required Pointer<Void> buffer,
 //   required int len,
 // }) {
-//   final error = libgit2.git_index_add_frombuffer(
+//   final error = libgit2Runtime.bindings.git_index_add_frombuffer(
 //     indexPointer,
 //     entry,
 //     buffer,
@@ -469,7 +507,7 @@ void updateByPath({
 
 /// Determine if the index contains entries representing file conflicts.
 bool hasConflicts(Pointer<git_index> index) =>
-    libgit2.git_index_has_conflicts(index) == 1 || false;
+    libgit2Runtime.bindings.git_index_has_conflicts(index) == 1 || false;
 
 /// Return list of conflicts in the index.
 ///
@@ -479,7 +517,10 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
 ) {
   return using((arena) {
     final iterator = arena<Pointer<git_index_conflict_iterator>>();
-    final error = libgit2.git_index_conflict_iterator_new(iterator, index);
+    final error = libgit2Runtime.bindings.git_index_conflict_iterator_new(
+      iterator,
+      index,
+    );
     checkErrorAndThrow(error);
 
     final result = <Map<String, Pointer<git_index_entry>>>[];
@@ -489,7 +530,7 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
       final ancestorOut = arena<Pointer<git_index_entry>>();
       final ourOut = arena<Pointer<git_index_entry>>();
       final theirOut = arena<Pointer<git_index_entry>>();
-      nextError = libgit2.git_index_conflict_next(
+      nextError = libgit2Runtime.bindings.git_index_conflict_next(
         ancestorOut,
         ourOut,
         theirOut,
@@ -506,7 +547,7 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
       }
     }
 
-    libgit2.git_index_conflict_iterator_free(iterator.value);
+    libgit2Runtime.bindings.git_index_conflict_iterator_free(iterator.value);
     return result;
   });
 }
@@ -524,7 +565,7 @@ Map<String, Pointer<git_index_entry>> conflictGet({
     final theirOut = arena<Pointer<git_index_entry>>();
     final pathC = path.toChar(arena);
 
-    final error = libgit2.git_index_conflict_get(
+    final error = libgit2Runtime.bindings.git_index_conflict_get(
       ancestorOut,
       ourOut,
       theirOut,
@@ -545,11 +586,11 @@ Map<String, Pointer<git_index_entry>> conflictGet({
 /// Return whether the given index entry is a conflict (has a high stage entry).
 /// This is simply shorthand for [entryStage] > 0.
 bool entryIsConflict(Pointer<git_index_entry> entry) =>
-    libgit2.git_index_entry_is_conflict(entry) == 1 || false;
+    libgit2Runtime.bindings.git_index_entry_is_conflict(entry) == 1 || false;
 
 /// Get the count of filename conflict entries currently in the index.
 int nameEntryCount(Pointer<git_index> index) =>
-    libgit2.git_index_name_entrycount(index);
+    libgit2Runtime.bindings.git_index_name_entrycount(index);
 
 /// Get a filename conflict entry from the index by position.
 ///
@@ -558,7 +599,10 @@ Pointer<git_index_name_entry> nameGetByIndex({
   required Pointer<git_index> indexPointer,
   required int position,
 }) {
-  final result = libgit2.git_index_name_get_byindex(indexPointer, position);
+  final result = libgit2Runtime.bindings.git_index_name_get_byindex(
+    indexPointer,
+    position,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Out of bounds');
@@ -578,7 +622,7 @@ void nameAdd({
     final ancestorC = ancestor.toChar(arena);
     final oursC = ours.toChar(arena);
     final theirsC = theirs.toChar(arena);
-    final error = libgit2.git_index_name_add(
+    final error = libgit2Runtime.bindings.git_index_name_add(
       indexPointer,
       ancestorC,
       oursC,
@@ -591,21 +635,25 @@ void nameAdd({
 
 /// Remove all filename conflict entries.
 void nameClear(Pointer<git_index> index) {
-  final error = libgit2.git_index_name_clear(index);
+  final error = libgit2Runtime.bindings.git_index_name_clear(index);
 
   checkErrorAndThrow(error);
 }
 
 /// Get the count of resolve undo entries currently in the index.
 int reucEntryCount(Pointer<git_index> index) =>
-    libgit2.git_index_reuc_entrycount(index);
+    libgit2Runtime.bindings.git_index_reuc_entrycount(index);
 
 /// Find the position of a resolve undo entry by path.
 int reucFind({required Pointer<git_index> indexPointer, required String path}) {
   return using((arena) {
     final out = arena<Size>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_reuc_find(out, indexPointer, pathC);
+    final error = libgit2Runtime.bindings.git_index_reuc_find(
+      out,
+      indexPointer,
+      pathC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -621,7 +669,10 @@ Pointer<git_index_reuc_entry> reucGetByPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final result = libgit2.git_index_reuc_get_bypath(indexPointer, pathC);
+    final result = libgit2Runtime.bindings.git_index_reuc_get_bypath(
+      indexPointer,
+      pathC,
+    );
 
     if (result == nullptr) {
       throw ArgumentError.value('$path was not found');
@@ -638,7 +689,10 @@ Pointer<git_index_reuc_entry> reucGetByIndex({
   required Pointer<git_index> indexPointer,
   required int position,
 }) {
-  final result = libgit2.git_index_reuc_get_byindex(indexPointer, position);
+  final result = libgit2Runtime.bindings.git_index_reuc_get_byindex(
+    indexPointer,
+    position,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Out of bounds');
@@ -660,7 +714,7 @@ void reucAdd({
 }) {
   using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_reuc_add(
+    final error = libgit2Runtime.bindings.git_index_reuc_add(
       indexPointer,
       pathC,
       ancestorMode,
@@ -680,14 +734,17 @@ void reucRemove({
   required Pointer<git_index> indexPointer,
   required int position,
 }) {
-  final error = libgit2.git_index_reuc_remove(indexPointer, position);
+  final error = libgit2Runtime.bindings.git_index_reuc_remove(
+    indexPointer,
+    position,
+  );
 
   checkErrorAndThrow(error);
 }
 
 /// Remove all resolve undo entries.
 void reucClear(Pointer<git_index> index) {
-  final error = libgit2.git_index_reuc_clear(index);
+  final error = libgit2Runtime.bindings.git_index_reuc_clear(index);
 
   checkErrorAndThrow(error);
 }
@@ -707,7 +764,7 @@ void conflictAdd({
   Pointer<git_index_entry>? ourEntryPointer,
   Pointer<git_index_entry>? theirEntryPointer,
 }) {
-  final error = libgit2.git_index_conflict_add(
+  final error = libgit2Runtime.bindings.git_index_conflict_add(
     indexPointer,
     ancestorEntryPointer ?? nullptr,
     ourEntryPointer ?? nullptr,
@@ -726,7 +783,10 @@ void conflictRemove({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_index_conflict_remove(indexPointer, pathC);
+    final error = libgit2Runtime.bindings.git_index_conflict_remove(
+      indexPointer,
+      pathC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -736,7 +796,7 @@ void conflictRemove({
 ///
 /// Throws a [LibGit2Error] if error occured.
 void conflictCleanup(Pointer<git_index> index) {
-  final error = libgit2.git_index_conflict_cleanup(index);
+  final error = libgit2Runtime.bindings.git_index_conflict_cleanup(index);
 
   checkErrorAndThrow(error);
 }
@@ -749,7 +809,7 @@ void conflictCleanup(Pointer<git_index> index) {
 Pointer<git_index_iterator> iteratorNew(Pointer<git_index> index) {
   return using((arena) {
     final out = arena<Pointer<git_index_iterator>>();
-    final error = libgit2.git_index_iterator_new(out, index);
+    final error = libgit2Runtime.bindings.git_index_iterator_new(out, index);
 
     checkErrorAndThrow(error);
 
@@ -761,7 +821,10 @@ Pointer<git_index_iterator> iteratorNew(Pointer<git_index> index) {
 Pointer<git_index_entry>? iteratorNext(Pointer<git_index_iterator> iterator) {
   return using((arena) {
     final out = arena<Pointer<git_index_entry>>();
-    final error = libgit2.git_index_iterator_next(out, iterator);
+    final error = libgit2Runtime.bindings.git_index_iterator_next(
+      out,
+      iterator,
+    );
 
     if (error == git_error_code.GIT_ITEROVER.value) {
       return null;
@@ -774,7 +837,7 @@ Pointer<git_index_entry>? iteratorNext(Pointer<git_index_iterator> iterator) {
 
 /// Free an index iterator.
 void iteratorFree(Pointer<git_index_iterator> iterator) {
-  libgit2.git_index_iterator_free(iterator);
+  libgit2Runtime.bindings.git_index_iterator_free(iterator);
 }
 
 /// Return an ordered snapshot of index entry paths using the native iterator.
@@ -796,7 +859,8 @@ List<String> iteratorPaths(Pointer<git_index> index) {
 }
 
 /// Free an existing index object.
-void free(Pointer<git_index> index) => libgit2.git_index_free(index);
+void free(Pointer<git_index> index) =>
+    libgit2Runtime.bindings.git_index_free(index);
 
 /// Find the first position of any entries which point to given path in the index.
 ///
@@ -808,7 +872,11 @@ int findPrefix({
 }) {
   return using((arena) {
     final prefixC = prefix.toChar(arena);
-    return libgit2.git_index_find_prefix(size, indexPointer, prefixC);
+    return libgit2Runtime.bindings.git_index_find_prefix(
+      size,
+      indexPointer,
+      prefixC,
+    );
   });
 }
 
@@ -817,18 +885,19 @@ int findPrefix({
 /// Returns the repository that owns this index, or null if the index is not
 /// associated with a repository.
 Pointer<git_repository>? getOwner(Pointer<git_index> index) =>
-    libgit2.git_index_owner(index);
+    libgit2Runtime.bindings.git_index_owner(index);
 
 /// Get the checksum of the index file.
 ///
 /// Returns the checksum of the index file, or null if the index is in-memory.
 Pointer<git_oid>? getChecksum(Pointer<git_index> index) =>
-    libgit2.git_index_checksum(index);
+    libgit2Runtime.bindings.git_index_checksum(index);
 
 /// Get the version of the index file.
 ///
 /// Returns the version of the index file.
-int getVersion(Pointer<git_index> index) => libgit2.git_index_version(index);
+int getVersion(Pointer<git_index> index) =>
+    libgit2Runtime.bindings.git_index_version(index);
 
 /// Set the version of the index file.
 ///
@@ -839,7 +908,10 @@ void setVersion({
   required Pointer<git_index> indexPointer,
   required int version,
 }) {
-  final error = libgit2.git_index_set_version(indexPointer, version);
+  final error = libgit2Runtime.bindings.git_index_set_version(
+    indexPointer,
+    version,
+  );
 
   checkErrorAndThrow(error);
 }

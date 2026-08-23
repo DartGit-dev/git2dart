@@ -29,7 +29,7 @@ int _hideCb(Pointer<git_oid> commitId, Pointer<Void> payload) {
 Pointer<git_revwalk> create(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_revwalk>>();
-    final error = libgit2.git_revwalk_new(out, repo);
+    final error = libgit2Runtime.bindings.git_revwalk_new(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -48,7 +48,7 @@ void sorting({
   required Pointer<git_revwalk> walkerPointer,
   required int sortMode,
 }) {
-  libgit2.git_revwalk_sorting(walkerPointer, sortMode);
+  libgit2Runtime.bindings.git_revwalk_sorting(walkerPointer, sortMode);
 }
 
 /// Adds a new root for the traversal.
@@ -66,7 +66,10 @@ void push({
   required Pointer<git_revwalk> walkerPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final error = libgit2.git_revwalk_push(walkerPointer, oidPointer);
+  final error = libgit2Runtime.bindings.git_revwalk_push(
+    walkerPointer,
+    oidPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -86,13 +89,13 @@ void pushGlob({
 }) {
   using((arena) {
     final globC = glob.toChar(arena);
-    libgit2.git_revwalk_push_glob(walkerPointer, globC);
+    libgit2Runtime.bindings.git_revwalk_push_glob(walkerPointer, globC);
   });
 }
 
 /// Pushes the repository's HEAD to the revision walker.
 void pushHead(Pointer<git_revwalk> walker) =>
-    libgit2.git_revwalk_push_head(walker);
+    libgit2Runtime.bindings.git_revwalk_push_head(walker);
 
 /// Pushes the OID pointed to by a reference to the revision walker.
 ///
@@ -105,7 +108,10 @@ void pushRef({
 }) {
   using((arena) {
     final refNameC = refName.toChar(arena);
-    final error = libgit2.git_revwalk_push_ref(walkerPointer, refNameC);
+    final error = libgit2Runtime.bindings.git_revwalk_push_ref(
+      walkerPointer,
+      refNameC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -122,7 +128,10 @@ void pushRange({
 }) {
   using((arena) {
     final rangeC = range.toChar(arena);
-    final error = libgit2.git_revwalk_push_range(walkerPointer, rangeC);
+    final error = libgit2Runtime.bindings.git_revwalk_push_range(
+      walkerPointer,
+      rangeC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -154,7 +163,7 @@ List<Pointer<git_commit>> walk({
   using((arena) {
     void next() {
       final oid = arena<git_oid>();
-      error = libgit2.git_revwalk_next(oid, walkerPointer);
+      error = libgit2Runtime.bindings.git_revwalk_next(oid, walkerPointer);
       if (error == 0) {
         final commit = commit_bindings.lookup(
           repoPointer: repoPointer,
@@ -190,7 +199,10 @@ void hide({
   required Pointer<git_revwalk> walkerPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final error = libgit2.git_revwalk_hide(walkerPointer, oidPointer);
+  final error = libgit2Runtime.bindings.git_revwalk_hide(
+    walkerPointer,
+    oidPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -210,13 +222,13 @@ void hideGlob({
 }) {
   using((arena) {
     final globC = glob.toChar(arena);
-    libgit2.git_revwalk_hide_glob(walkerPointer, globC);
+    libgit2Runtime.bindings.git_revwalk_hide_glob(walkerPointer, globC);
   });
 }
 
 /// Hides the repository's HEAD from the revision walk.
 void hideHead(Pointer<git_revwalk> walker) =>
-    libgit2.git_revwalk_hide_head(walker);
+    libgit2Runtime.bindings.git_revwalk_hide_head(walker);
 
 /// Hides the OID pointed to by a reference from the revision walk.
 ///
@@ -229,7 +241,10 @@ void hideRef({
 }) {
   using((arena) {
     final refNameC = refName.toChar(arena);
-    final error = libgit2.git_revwalk_hide_ref(walkerPointer, refNameC);
+    final error = libgit2Runtime.bindings.git_revwalk_hide_ref(
+      walkerPointer,
+      refNameC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -240,7 +255,7 @@ void addHideCallback({
   required bool Function(String oid) predicate,
 }) {
   _hidePredicate = predicate;
-  final error = libgit2.git_revwalk_add_hide_cb(
+  final error = libgit2Runtime.bindings.git_revwalk_add_hide_cb(
     walkerPointer,
     Pointer.fromFunction<Int Function(Pointer<git_oid>, Pointer<Void>)>(
       _hideCb,
@@ -259,19 +274,21 @@ void addHideCallback({
 /// and start a new walk.
 ///
 /// The revision walk is automatically reset when a walk is over.
-void reset(Pointer<git_revwalk> walker) => libgit2.git_revwalk_reset(walker);
+void reset(Pointer<git_revwalk> walker) =>
+    libgit2Runtime.bindings.git_revwalk_reset(walker);
 
 /// Simplifies the history by first-parent.
 ///
 /// No parents other than the first for each commit will be enqueued.
 void simplifyFirstParent(Pointer<git_revwalk> walker) {
-  libgit2.git_revwalk_simplify_first_parent(walker);
+  libgit2Runtime.bindings.git_revwalk_simplify_first_parent(walker);
 }
 
 /// Returns the repository on which this walker is operating.
 Pointer<git_repository> repository(Pointer<git_revwalk> walker) {
-  return libgit2.git_revwalk_repository(walker);
+  return libgit2Runtime.bindings.git_revwalk_repository(walker);
 }
 
 /// Frees a revision walker previously allocated.
-void free(Pointer<git_revwalk> walk) => libgit2.git_revwalk_free(walk);
+void free(Pointer<git_revwalk> walk) =>
+    libgit2Runtime.bindings.git_revwalk_free(walk);

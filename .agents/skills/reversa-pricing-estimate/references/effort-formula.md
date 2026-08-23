@@ -1,19 +1,19 @@
-# Effort Scenario Formula (effort-formula.md)
+# Formula do cenario Esforco (effort-formula.md)
 
 **Versao da formula:** 2.0
 
-Documents the deterministic calculation that the `reversa-pricing-estimate` agent applies to the Effort scenario. The v2 formula removes the old linear conversion from score to hours and uses ranges of hours per T-shirt size, with a seniority factor inspired by the COCOMO II staff capacity multipliers.
+Documenta o calculo deterministico que o agente `reversa-pricing-estimate` aplica para o cenario Esforco. A formula v2 remove a conversao linear antiga de score para horas e usa faixas de horas por T-shirt size, com fator de senioridade inspirado nos multiplicadores de capacidade de pessoal do COCOMO II.
 
-## Source and criterion
+## Fonte e criterio
 
-COCOMO II is a parametric effort estimation model that uses size, product attributes, platform, personnel and project. For the UX of Reversa, using the full model would be too complex. v2 only uses the defensible idea of ​​staffing capacity multipliers while maintaining simple hour ranges by class.
+COCOMO II e um modelo parametrico de estimativa de esforco que usa tamanho, atributos de produto, plataforma, pessoal e projeto. Para a UX do Reversa, usar o modelo completo seria complexo demais. A v2 usa apenas a ideia defensavel de multiplicadores de capacidade de pessoal, mantendo faixas de horas simples por classe.
 
-Main reference:
+Referencia principal:
 
 - Barry Boehm et al., *Software Cost Estimation with COCOMO II*, Prentice Hall, 2000
 - Carnegie Mellon SEI, visao geral de software cost estimation e COCOMO II: https://insights.sei.cmu.edu/blog/software-cost-estimation-explained/
 
-## Step 1: base hour range for senior
+## Passo 1: faixa base de horas para senior
 
 ```
 hours_by_complexity_class_senior:
@@ -21,12 +21,12 @@ hours_by_complexity_class_senior:
   M:   12 a 32 horas
   L:   32 a 80 horas
   XL:  80 a 160 horas
-  XXL: 160 to 320 hours, with mandatory recommendation to break the scope
+  XXL: 160 a 320 horas, com recomendacao obrigatoria de quebrar escopo
 ```
 
-These ranges are Reversa heuristics, based on T-shirt sizing. They are more honest than a linear constant because software estimates have real uncertainty.
+Estas faixas sao heuristica do Reversa, baseada em T-shirt sizing. Elas sao mais honestas que uma constante linear porque estimativa de software tem incerteza real.
 
-## Step 2: Seniority factor
+## Passo 2: fator de senioridade
 
 ```
 seniority_factor:
@@ -37,7 +37,7 @@ seniority_factor:
   principal:   0.76
 ```
 
-Aliases accepted for compatibility:
+Aliases aceitos para compatibilidade:
 
 ```
 pleno -> mid
@@ -54,9 +54,9 @@ horas_max = round(hours_max[complexity_class] * seniority_factor)
 horas_estimadas = round((horas_min + horas_max) / 2)
 ```
 
-The `horas_estimadas` field is the midpoint for compatibility and summary. The range `horas_min` to `horas_max` should be displayed in estimate.md.
+O campo `horas_estimadas` e o ponto medio para compatibilidade e resumo. A faixa `horas_min` a `horas_max` deve ser exibida no estimate.md.
 
-## Step 4: direct cost
+## Passo 4: custo direto
 
 ```
 custo_direto_min = horas_min * profile.hourly_rate
@@ -72,13 +72,13 @@ imposto_aproximado_max = custo_direto_max * profile.tax_factor
 imposto_aproximado = custo_direto * profile.tax_factor
 ```
 
-When `profile.tax_regime == "outro"` or `tax_factor = 0`, tax is not computed and estimate.md should show explicit warning.
+Quando `profile.tax_regime == "outro"` ou `tax_factor = 0`, o imposto nao e computado e o estimate.md deve mostrar aviso explicito.
 
-If the profile indicates that the factor includes VAT, VAT or tax highlighted on the invoice, estimate.md must warn that this amount can be passed on to the customer and does not necessarily reduce margin.
+Se o profile indicar que o fator inclui VAT, IVA ou imposto destacado na fatura, o estimate.md deve avisar que esse valor pode ser repassado ao cliente e nao necessariamente reduz margem.
 
-## Step 6: project markup
+## Passo 6: markup de projeto
 
-The historical field `margin_percent` must be treated as a **project markup on direct cost**, not as a net accounting margin.
+O campo historico `margin_percent` deve ser tratado como **markup de projeto sobre custo direto**, nao como margem liquida contabil.
 
 ```
 markup_min = custo_direto_min * (profile.margin_percent / 100)
@@ -94,9 +94,9 @@ preco_maximo = round_currency(custo_direto_max + imposto_aproximado_max + markup
 preco_total = round_currency(custo_direto + imposto_aproximado + markup_aplicado)
 ```
 
-`preco_total` is the midpoint of the range and exists for compatibility. estimate.md should highlight `preco_minimo` to `preco_maximo`.
+`preco_total` e o ponto medio da faixa e existe para compatibilidade. O estimate.md deve destacar `preco_minimo` a `preco_maximo`.
 
-## Example
+## Exemplo
 
 ```
 profile:
@@ -124,15 +124,15 @@ preco_maximo = 12000.00 BRL
 preco_total = 8400.00 BRL
 ```
 
-## Conversion to billing currency
+## Conversao para moeda de cobranca
 
-When `profile.billing_currency` and `profile.exchange_rate_to_local` are filled:
+Quando `profile.billing_currency` e `profile.exchange_rate_to_local` estao preenchidos:
 
 ```
 valor_billing = round_currency(valor_local / exchange_rate_to_local)
 ```
 
-estimate.md should print the rate used:
+O estimate.md deve imprimir a taxa usada:
 
 ```
 1 <billing_currency> = <exchange_rate_to_local> <currency>
@@ -140,7 +140,7 @@ estimate.md should print the rate used:
 
 ## Limites
 
-1. The formula does not mix team seniority levels
-2. XXL remains calculable, but should generate a strong recommendation to break scope
-3. The hour range is a heuristic, not a delivery promise
-4. `size_score` is not part of the hour calculation
+1. A formula nao mistura senioridades de equipe
+2. XXL continua calculavel, mas deve gerar recomendacao forte de quebrar escopo
+3. A faixa de horas e heuristica, nao promessa de entrega
+4. `size_score` nao entra no calculo de horas

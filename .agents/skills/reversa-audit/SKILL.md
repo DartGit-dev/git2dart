@@ -1,9 +1,9 @@
 ---
 name: reversa-audit
-description: Strict reader audit. Compares requirements, roadmap and actions, reports inconsistencies with severity CRITICAL, HIGH, MEDIUM, LOW. NEVER alter the analyzed artifacts. Optional step of the forward cycle.
+description: Auditoria leitora estrita. Compara requirements, roadmap e actions, reporta inconsistências com severidade CRITICAL, HIGH, MEDIUM, LOW. JAMAIS altera os artefatos analisados. Etapa opcional do ciclo forward.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,87 +12,87 @@ metadata:
   stage: audit
 ---
 
-You are the auditor. This skill is strictly reader. Its mission is to find contradictions and gaps between `requirements.md`, `roadmap.md` and `actions.md`, and produce a report for the human to solve.
+Você é o auditor. Esse skill é estritamente leitor. Sua missão é encontrar contradições e lacunas entre `requirements.md`, `roadmap.md` e `actions.md`, e produzir um relatório para o humano resolver.
 
-## Non-negotiable rule
+## Regra inegociável
 
-This skill NEVER changes `requirements.md`, `roadmap.md`, `actions.md`, `data-delta.md`, `interfaces/`, `investigation.md` or `onboarding.md`. Under no circumstances, even if the user asks. If the user asks for correction, guide them to use `/reversa-clarify` or manual editing.
+Esse skill NUNCA altera `requirements.md`, `roadmap.md`, `actions.md`, `data-delta.md`, `interfaces/`, `investigation.md` ou `onboarding.md`. Em hipótese alguma, mesmo que o usuário peça. Se o usuário pedir correção, oriente-o a usar `/reversa-clarify` ou edição manual.
 
-The only writing allowed is `feature-dir/audit/cross-check.md`.
+A única escrita permitida é `feature-dir/audit/cross-check.md`.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If absent, abort
-2. Check the existence of the three artifacts: `requirements.md`, `roadmap.md`, `actions.md`
-2.1. If one is missing, abort with a message listing what is missing and which skill generates it.
-3. Apply `before-audit` in the standard way
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se ausente, aborte
+2. Verifique existência dos três artefatos: `requirements.md`, `roadmap.md`, `actions.md`
+   2.1. Se algum estiver ausente, aborte com mensagem listando o que falta e qual skill gera
+3. Aplique `before-audit` da forma padrão
 
-## Comparison axes
+## Eixos de comparação
 
-Check each pair of artifacts for:
+Verifique cada par de artefatos quanto a:
 
 1. Cobertura
-1.1. Every functional requirement became at least one decision in the roadmap
-1.2. Every decision on the roadmap became at least one action in actions
-1.3. Every Gherkin requirements scenario is covered by some action or decision
-2. Consistency
-2.1. Terms use the same name throughout the three documents (do not appear "invoice" in one and "boleto" in another)
+   1.1. Todo requisito funcional virou pelo menos uma decisão no roadmap
+   1.2. Toda decisão no roadmap virou pelo menos uma ação no actions
+   1.3. Todo cenário Gherkin do requirements está coberto por alguma ação ou decisão
+2. Consistência
+   2.1. Termos usam o mesmo nome ao longo dos três documentos (não apareça "fatura" em um e "boleto" em outro)
    2.2. Identificadores citados existem (RF-12 referenciado no roadmap precisa existir no requirements)
    2.3. Contratos descritos em `interfaces/` aparecem no roadmap
-3. Consistency with the legacy
-3.1. Roadmap decisions do not contradict rules 🟢 from `reversa/sdd/domain.md`
-3.2. `reversa/sdd/architecture.md` components mentioned actually exist
+3. Coerência com o legado
+   3.1. Decisões do roadmap não contradizem regras 🟢 do `_reversa_sdd/domain.md`
+   3.2. Componentes do `_reversa_sdd/architecture.md` citados existem mesmo
 4. Sanidade do actions
-4.1. Dependencies point to existing IDs
-4.2. Tasks marked `[//]` do not share target file
-4.3. There is no cycle of addiction
+   4.1. Dependências apontam para IDs existentes
+   4.2. Tarefas marcadas `[//]` não compartilham arquivo alvo
+   4.3. Não há ciclo de dependência
 
 ## Severidade
 
-| Severity | When to apply |
+| Severidade | Quando aplicar |
 |------------|----------------|
-| CRITICAL | Direct conflict with legacy rule 🟢, broken external contract, dependency cycle |
-| HIGH | Requirement not covered in the roadmap, decision without corresponding action, ghost identifier |
-| MEDIUM | Terminological inconsistency between two documents, dependency pointing outside the list |
-| LOW | Cosmetic, ID spelling, underused parallelism |
+| CRITICAL | Conflito direto com regra 🟢 do legado, contrato externo quebrado, ciclo de dependência |
+| HIGH | Requisito sem cobertura no roadmap, decisão sem ação correspondente, identificador fantasma |
+| MEDIUM | Inconsistência terminológica entre dois documentos, dependência apontando para fora da lista |
+| LOW | Cosmético, ortografia em ID, paralelismo subutilizado |
 
-## Report construction
+## Construção do relatório
 
-Write to `feature-dir/audit/cross-check.md`:
+Grave em `feature-dir/audit/cross-check.md`:
 
-1. Header with date, feature identifier and link to the three analyzed artifacts
-2. Summary: count of findings by severity
-3. Table `ID | Severity | Axis | Description | Location`
-4. For each CRITICAL or HIGH finding, paragraph explaining the impact and skill suggestion for the human to correct (NEVER promise that this skill will make the correction, just indicate the direction)
-5. List of verified items that passed, grouped by axis (for the human to see what is OK)
+1. Cabeçalho com data, identificador da feature e link para os três artefatos analisados
+2. Resumo: contagem de findings por severidade
+3. Tabela `ID | Severidade | Eixo | Descrição | Onde está`
+4. Para cada finding CRITICAL ou HIGH, parágrafo explicando o impacto e sugestão de skill para o humano corrigir (NUNCA prometa que esse skill faz a correção, apenas indique a direção)
+5. Lista de itens verificados que passaram, agrupados por eixo (para o humano enxergar o que está OK)
 
-Use IDs in the format `A001`, `A002`, ... stable within the report, but NOT shared with IDs in other documents.
+Use IDs no formato `A001`, `A002`, ... estáveis dentro do relatório, mas NÃO compartilhados com IDs de outros documentos.
 
-## Persistence
+## Persistência
 
-- Create `feature-dir/audit/` if it does not exist
-- Write `cross-check.md` with atomic writing
-- Always complete rewrite, never append
+- Crie `feature-dir/audit/` se não existir
+- Grave `cross-check.md` com escrita atômica
+- Sempre rewrite completo, jamais append
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-audit` in the standard way.
+Aplique `after-audit` da forma padrão.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. `cross-check.md` absolute path
+1. Caminho absoluto do `cross-check.md`
 2. Contagem de findings por severidade (CRITICAL, HIGH, MEDIUM, LOW)
-3. Explicit warning: none of the three artifacts have been changed
-4. Suggested next step:
-4.1. If there is CRITICAL or HIGH, suggest manual review before proceeding
-4.2. Otherwise suggest `/reversa-coding`
+3. Aviso explícito: nenhum dos três artefatos foi alterado
+4. Sugestão de próximo passo:
+   4.1. Se houver CRITICAL ou HIGH, sugerir revisão manual antes de seguir
+   4.2. Caso contrário, sugerir `/reversa-coding`
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestão acima.

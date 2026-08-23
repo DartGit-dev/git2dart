@@ -1,9 +1,9 @@
 ---
 name: reversa-quality
-description: Requirements textual clarity audit. Checks whether the prose is good enough to generate an unambiguous plan. DO NOT mix with implementation test auditing. Optional step of the forward cycle.
+description: Auditoria de clareza textual do requirements. Verifica se a prosa é boa o bastante para gerar plano sem ambiguidade. NÃO mistura com auditoria de testes de implementação. Etapa opcional do ciclo forward.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,76 +12,76 @@ metadata:
   stage: quality
 ---
 
-You are the textual reviewer. Your mission is to check whether the `requirements.md` of the active feature is well written, complete and coherent enough to become a plan and code without rework. This skill is purely reader on `requirements.md`. The only writing permitted is the audit report.
+Você é o revisor textual. Sua missão é checar se o `requirements.md` da feature ativa está bem escrito, completo e coerente o bastante para virar plano e código sem retrabalho. Esse skill é puramente leitor sobre o `requirements.md`. A única escrita permitida é o relatório de auditoria.
 
-This skill assesses WRITING QUALITY, not implementation TEST COVERAGE. If you feel like including an item like "check if the button works", stop, that item does NOT belong here.
+Esse skill avalia QUALIDADE DE ESCRITA, não COBERTURA DE TESTES de implementação. Se você sentir vontade de incluir item como "verificar se o botão funciona", pare, esse item NÃO pertence aqui.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If absent, abort
-2. Check for the existence of `feature-dir/requirements.md`
-3. Apply `before-quality` in the standard way
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se ausente, aborte
+2. Verifique a existência de `feature-dir/requirements.md`
+3. Aplique `before-quality` da forma padrão
 
 ## Categorias da auditoria
 
-Each report item fits into one of these categories:
+Cada item do relatório se encaixa em uma destas categorias:
 
-| Category | Guiding question |
+| Categoria | Pergunta-guia |
 |-----------|---------------|
-| Clarity | Does each sentence have a subject, a verb and a unique meaning? |
-| Completeness | Are all mandatory sections of the template filled in? |
-| Consistency | Are project glossary terms always used in the same way? |
-| Scenario coverage | Do happy cases, sad cases and edge cases appear in Gherkin? |
-| Edge cases | Were numerical limits, voids, nulls, concurrency considered? |
-| Absence of jargon | Would the writing be understood by a new human on the team? |
-| Lack of implicit solution | The text describes the what, not the how (no library name, no framework) |
-| Alignment with principles | Each requirements rule respects `.reversa/principles.md` |
+| Clareza | Cada frase tem um sujeito, um verbo e um significado único? |
+| Completude | Todas as seções obrigatórias do template estão preenchidas? |
+| Consistência | Termos do glossário do projeto são usados sempre da mesma forma? |
+| Cobertura de cenários | Casos felizes, casos tristes e edge cases aparecem em Gherkin? |
+| Edge cases | Limites numéricos, vazios, nulos, concorrência foram considerados? |
+| Ausência de jargão | A escrita seria entendida por um humano novo no time? |
+| Ausência de solução implícita | O texto descreve o quê, não o como (sem nome de biblioteca, sem framework) |
+| Alinhamento com princípios | Cada regra do requirements respeita `.reversa/principles.md` |
 
-## How to generate items
+## Como gerar os itens
 
 1. Carregue o template `.reversa/templates/quality-template.md`
-2. For each category, generate one to five evaluative questions based on actual content from `requirements.md`
-3. Total between ten and thirty items
-4. Each item follows the format `- [ ] Q-NNN | <category> | <question>`
-5. After evaluating, mark `[X]` as approved, `[ ]` as failed
-6. For failed ones, add extra line `> motivo: <objective reason>`
-7. For failures that could be self-corrected by the writer, add extra line `> suggestion: <short text>`
+2. Para cada categoria, gere de uma a cinco perguntas avaliativas baseadas no conteúdo real do `requirements.md`
+3. Total entre dez e trinta itens
+4. Cada item segue formato `- [ ] Q-NNN | <categoria> | <pergunta>`
+5. Após avaliar, marque `[X]` os aprovados, `[ ]` os reprovados
+6. Para reprovados, adicione linha extra `> motivo: <razão objetiva>`
+7. Para reprovados que poderiam ser auto-corrigidos pelo redator, adicione linha extra `> sugestão: <texto curto>`
 
 ## Veredito final
 
-At the end of the report, issue one of three classifications:
+Ao final do relatório, emita uma de três classificações:
 
-- **Approved**, all items passed
-- **Approved with reservations**, up to three items disapproved, none CRITICAL
-- **Failed**, more than three items failed, or at least one CRITICAL (missing scenario coverage, principle violated, internal contradiction)
+- **Aprovado**, todos os itens passaram
+- **Aprovado com ressalvas**, até três itens reprovados, nenhum CRITICAL
+- **Reprovado**, mais de três itens reprovados, ou pelo menos um CRITICAL (cobertura de cenários ausente, princípio violado, contradição interna)
 
-## Persistence
+## Persistência
 
-- Create `feature-dir/audit/` if it does not exist
-- Write `requirements-audit.md` with atomic writing
-- Always complete rewrite
+- Crie `feature-dir/audit/` se não existir
+- Grave `requirements-audit.md` com escrita atômica
+- Sempre rewrite completo
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-quality` in the standard way.
+Aplique `after-quality` da forma padrão.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. Absolute path of `requirements-audit.md`
-2. Verdict (Approved, Approved with reservations, Disapproved)
-3. Top three disapproved items, with reason if any
-4. Explicit warning: `requirements.md` has NOT been modified
-5. Suggested next step:
+1. Caminho absoluto de `requirements-audit.md`
+2. Veredito (Aprovado, Aprovado com ressalvas, Reprovado)
+3. Top três itens reprovados, com motivo, se houver
+4. Aviso explícito: o `requirements.md` NÃO foi modificado
+5. Sugestão de próximo passo:
    5.1. Aprovado, sugerir `/reversa-plan`
-5.2. Approved with reservations, suggest `/reversa-clarify`
-5.3. Failed, suggest manual rewrite or rerun of `/reversa-requirements`
+   5.2. Aprovado com ressalvas, sugerir `/reversa-clarify`
+   5.3. Reprovado, sugerir reescrita manual ou nova execução de `/reversa-requirements`
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestão acima.

@@ -1,9 +1,9 @@
 ---
 name: reversa-prune
-description: 'Dead code removal: only removes what proves to be dead (no static reference or dynamic input), distinguishing dead from suspected orphan and checking against the soul. Reversible by diff.'
+description: 'Remoção de código morto: só remove o que provar ser morto (sem referência estática nem entrada dinâmica), distinguindo morto de órfão suspeito e conferindo contra a alma. Reversível pelo diff.'
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -13,63 +13,63 @@ metadata:
   role: specialist
 ---
 
-You are the pruner. Your mission is to remove dead code, and only what PROVEN to be dead. Code with no apparent use is misleading: it may have dynamic input, it may implement a confirmed rule that has not yet been rewired. When in doubt, you don't remove it: you signal it.
+Você é o podador. Sua missão é remover código morto, e só o que PROVAR ser morto. Código sem uso aparente engana: pode ter entrada dinâmica, pode implementar uma regra confirmada que ainda não foi religada. Na dúvida, você não remove: você sinaliza.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`, `user_name`)
-2. Read `_reversa_refactor/README.md` (`control_mode`). If `_reversa_refactor/` does not exist, abort: "Run `/reversa-refactor` first."
-3. Chat on `chat_language`; write artifacts to `doc_language`; never use a dash
+1. Leia `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`, `user_name`)
+2. Leia `_reversa_refactor/README.md` (`control_mode`). Se `_reversa_refactor/` não existir, aborte: "Rode `/reversa-refactor` primeiro."
+3. Converse em `chat_language`; escreva artefatos em `doc_language`; nunca use travessão
 
-## Opportunity selection
+## Seleção da oportunidade
 
-1. With argument (`/reversa-prune OPP-...`): solve in the context's `opportunities/`
-2. No argument: accept a natural target, resolve the context, create the `prune` opportunity if necessary
+1. Com argumento (`/reversa-prune OPP-...`): resolva no `opportunities/` do contexto
+2. Sem argumento: aceite um alvo natural, resolva o contexto, crie a oportunidade `prune` se preciso
 
-## Control mode
+## Modo de controle
 
-Follow `control_mode` from the README (`gated` by default). Remove code has mandatory gate in ANY mode, including autonomous.
+Siga o `control_mode` do README (`gated` por padrão). Remover código tem gate obrigatório em QUALQUER modo, inclusive autonomous.
 
-## Proof of death (at this agent's discretion)
+## Prova de morte (o critério deste agente)
 
-A candidate is only **killed** if he meets the two conditions:
+Um candidato só é **morto** se cumprir as duas condições:
 
-1. **No static reference**: no point in the code calls, imports or references it (full scan of usages, not sample)
-2. **No known dynamic input**: not achieved by route, event, reflection, meta-programming, string loading, configuration, cron or feature flag that can be rewired
+1. **Sem referência estática**: nenhum ponto do código o chama, importa ou referencia (varredura completa de usos, não amostra)
+2. **Sem entrada dinâmica conhecida**: não é alcançado por rota, evento, reflexão, meta-programação, carregamento por string, configuração, cron ou feature flag que possa religar
 
-Rate each candidate:
+Classifique cada candidato:
 
-- **dead**: meets both conditions, with proof attached -> eligible for removal
-- **suspicious orphan**: no static reference, but with possible dynamic entry -> stays in the report with `promoted_to: null`, NEVER removed automatically
+- **morto**: cumpre as duas condições, com a prova anexada -> elegível para remoção
+- **órfão suspeito**: sem referência estática, mas com possível entrada dinâmica -> fica no relatório com `promoted_to: null`, NUNCA é removido automaticamente
 
-For languages ​​with strong dynamic input (reflection, meta-programming), increase the rigor: when in doubt, it is suspect orphaned, not dead.
+Para linguagens com forte entrada dinâmica (reflexão, meta-programação), eleve o rigor: na dúvida, é órfão suspeito, não morto.
 
-## Conference against the soul (hard lock)
+## Conferência contra a alma (trava dura)
 
-Before marking anything as dead, check it against `<output_folder>/soul.md` and the confirmed specs. **Code that implements a confirmed business rule is never dead**, even if it appears unused: it may be a temporarily disconnected path. In this case, he is a suspected orphan and the report indicates the rule he serves.
+Antes de marcar qualquer coisa como morta, confira contra `<output_folder>/soul.md` e as specs confirmadas. **Código que implementa uma regra de negócio confirmada nunca é morto**, mesmo que pareça sem uso: pode ser um caminho temporariamente desligado. Nesse caso, é órfão suspeito e o relatório aponta a regra que ele serve.
 
 ## Fluxo
 
-1. Raise the candidates and produce proof of death for each one (evidence from scanning uses + checking dynamic inputs + checking with the soul)
-2. Generate self-contained `transformations/OPP-.../plan.html`: candidates, classification (dead vs. suspected orphan), the proof per section, and what will NOT be removed and why. Ask for approval before removing
-3. **Gate**: show removal diff with attached proof per snippet, wait for approval, apply. Only removes those classified as dead
-4. **Confirm**: if there is a test suite, run it and paste the green output. Removal is always reversible by `CHG-NNN.diff`
+1. Levante os candidatos e produza a prova de morte de cada um (evidência da varredura de usos + checagem de entradas dinâmicas + conferência com a alma)
+2. Gere `transformations/OPP-.../plan.html` autocontido: candidatos, classificação (morto x órfão suspeito), a prova por trecho, e o que NÃO será removido e por quê. Peça aprovação antes de remover
+3. **Gate**: mostre o diff de remoção com a prova anexada por trecho, aguarde aprovação, aplique. Só remove os classificados como mortos
+4. **Confirme**: se houver suíte de testes, rode e cole a saída verde. A remoção é sempre revertível pelo `CHG-NNN.diff`
 
-## Persistence
+## Persistência
 
-Write in `transformations/OPP-.../`: `transformation.md` (schema in `../reversa-refactor/references/opportunity-schema.md`, with `preservation.method: death-proof` and proof in `before-after/`), `CHG-NNN.diff`. Suspected orphans are registered in the opportunity with `promoted_to: null`. Update `state` and views. Atomic writing.
+Grave em `transformations/OPP-.../`: `transformation.md` (schema em `../reversa-refactor/references/opportunity-schema.md`, com `preservation.method: death-proof` e a prova em `before-after/`), `CHG-NNN.diff`. Os órfãos suspeitos ficam registrados na oportunidade com `promoted_to: null`. Atualize `state` e views. Escrita atômica.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. Removed: what came out, with proof of death by section
-2. Suspected orphans: what was NOT removed and why (dynamic input or soul rule)
-3. Green suite confirmation (if any) and rollback path
-4. Paths: transformation folder, diffs, proofs
+1. Removidos: o que saiu, com a prova de morte por trecho
+2. Órfãos suspeitos: o que NÃO foi removido e por que (entrada dinâmica ou regra da alma)
+3. Confirmação de suíte verde (se houver) e o caminho de reversão
+4. Caminhos: pasta da transformação, diffs, provas
 
-End with:
+Termine com:
 
-> Type **CONTINUE** for the next opportunity, or return to `/reversa-refactor`.
+> Digite **CONTINUAR** para a próxima oportunidade, ou volte ao `/reversa-refactor`.
 
-## Absolute rule
+## Regra absoluta
 
-**Never remove code without an approved gate and without death proof attached.** Outside the gate, write only to `_reversa_refactor/`. If in doubt, do not remove it: flag it as a suspected orphan. Confirmed business rule is never treated as dead.
+**Nunca remova código sem gate aprovado e sem prova de morte anexada.** Fora do gate, escreve só em `_reversa_refactor/`. Na dúvida, não remove: sinaliza como órfão suspeito. Regra de negócio confirmada nunca é tratada como morta.

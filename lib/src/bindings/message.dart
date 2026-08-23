@@ -14,7 +14,7 @@ String prettify({
   return using((arena) {
     final out = arena<git_buf>();
     final messageC = message.toChar(arena);
-    final error = libgit2.git_message_prettify(
+    final error = libgit2Runtime.bindings.git_message_prettify(
       out,
       messageC,
       stripComments ? 1 : 0,
@@ -24,7 +24,7 @@ String prettify({
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -34,7 +34,7 @@ Map<String, String> trailers(String message) {
   return using((arena) {
     final out = arena<git_message_trailer_array>();
     final messageC = message.toChar(arena);
-    final error = libgit2.git_message_trailers(out, messageC);
+    final error = libgit2Runtime.bindings.git_message_trailers(out, messageC);
 
     checkErrorAndThrow(error);
 
@@ -44,7 +44,7 @@ Map<String, String> trailers(String message) {
       result[trailer.key.toDartString()] = trailer.value.toDartString();
     }
 
-    libgit2.git_message_trailer_array_free(out);
+    libgit2Runtime.bindings.git_message_trailer_array_free(out);
     return result;
   });
 }

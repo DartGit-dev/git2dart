@@ -28,8 +28,6 @@ class Odb extends Equatable {
   /// Before the ODB can be used for read/writing, a custom database backend must be
   /// manually added using [addDiskAlternate].
   Odb.create() {
-    libgit2.git_libgit2_init();
-
     _odbPointer = bindings.create();
     _finalizer.attach(this, _odbPointer, detach: this);
   }

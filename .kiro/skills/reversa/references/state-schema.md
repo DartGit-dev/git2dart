@@ -1,22 +1,19 @@
 # Schema — .reversa/state.json
 
-This file persists the complete analysis state between sessions. Reversa reads and writes to this file.
+Este arquivo persiste o estado completo da análise entre sessões. O Reversa lê e escreve neste arquivo.
 
 ## Estrutura completa
 
 ```json
 {
   "version": "1.0.0",
-  "project": "project-name",
-  "user_name": "User Name",
+  "project": "nome-do-projeto",
+  "user_name": "Nome do Usuário",
   "chat_language": "pt-br",
-  "doc_language": "Portuguese",
+  "doc_language": "Português",
   "answer_mode": "chat",
   "doc_level": null,
-  "output_folder": "reversa/sdd",
-  "forward_folder": "reversa/forward",
-  "docs_folder": "reversa/docs",
-  "bugs_folder": "reversa/bugs",
+  "output_folder": "_reversa_sdd",
   "phase": "reconhecimento",
   "completed": ["reconhecimento"],
   "pending": ["escavacao", "interpretacao", "geracao", "revisao"],
@@ -26,8 +23,8 @@ This file persists the complete analysis state between sessions. Reversa reads a
     "scout": {
       "completed_at": "2026-04-26T10:00:00Z",
       "files": [
-        "reversa/sdd/inventory.md",
-        "reversa/sdd/dependencies.md",
+        "_reversa_sdd/inventory.md",
+        "_reversa_sdd/dependencies.md",
         ".reversa/context/surface.json"
       ]
     },
@@ -35,8 +32,8 @@ This file persists the complete analysis state between sessions. Reversa reads a
       "completed_at": "2026-04-26T11:00:00Z",
       "modules_analyzed": ["auth", "orders", "payments"],
       "files": [
-        "reversa/sdd/code-analysis.md",
-        "reversa/sdd/data-dictionary.md",
+        "_reversa_sdd/code-analysis.md",
+        "_reversa_sdd/data-dictionary.md",
         ".reversa/context/modules.json"
       ]
     }
@@ -52,35 +49,32 @@ This file persists the complete analysis state between sessions. Reversa reads a
 
 ## Campos
 
-| Field | Type | Description |
+| Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `version` | string | Reversa version installed |
-| `project` | string | Legacy project name |
-| `user_name` | string | Username (for interactions) |
-| `chat_language` | string | Language of interactions (e.g. pt-br, en-us) |
-| `doc_language` | string | Language of the generated specs (ex: Portuguese, English) |
-| `answer_mode` | string | How the user responds to the gaps: `chat` or `file` |
-| `doc_level` | string \| null | Volume of documentation generated: `essencial`, `completo` or `detalhado`. Starts `null` — mandatory to fill in via user choice after Scout. |
-| `output_folder` | string | Specs output folder (default: `reversa/sdd`) |
-| `forward_folder` | string | Compatibility alias for `setup.json#paths.forward-dir` |
-| `docs_folder` | string | Compatibility alias for `setup.json#paths.docs-dir` |
-| `bugs_folder` | string | Compatibility alias for `setup.json#paths.bugs-dir` |
-| `phase` | string \| null | Current phase. `null` = not started |
-| `completed` | string[] | Phases completed |
+| `version` | string | Versão do Reversa instalada |
+| `project` | string | Nome do projeto legado |
+| `user_name` | string | Nome do usuário (para interações) |
+| `chat_language` | string | Idioma das interações (ex: pt-br, en-us) |
+| `doc_language` | string | Idioma das specs geradas (ex: Português, English) |
+| `answer_mode` | string | Como o usuário responde às lacunas: `chat` ou `file` |
+| `doc_level` | string \| null | Volume de documentação gerada: `essencial`, `completo` ou `detalhado`. Começa `null` — obrigatório preencher via escolha do usuário após o Scout. |
+| `output_folder` | string | Pasta de saída das specs (padrão: `_reversa_sdd`) |
+| `phase` | string \| null | Fase atual. `null` = não iniciado |
+| `completed` | string[] | Fases concluídas |
 | `pending` | string[] | Fases pendentes |
-| `checkpoints` | object | Completion record for each agent |
+| `checkpoints` | object | Registro de conclusão de cada agente |
 | `engines` | string[] | Engines configuradas (ex: `["claude-code", "codex"]`) |
-| `agents` | string[] | Installed agents |
-| `created_files` | string[] | All files created by Reversa (for safe uninstall) |
+| `agents` | string[] | Agentes instalados |
+| `created_files` | string[] | Todos os arquivos criados pelo Reversa (para uninstall seguro) |
 
-## Valid phases
+## Fases válidas
 
 `reconhecimento` → `escavacao` → `interpretacao` → `geracao` → `revisao`
 
-## Rule when writing
+## Regra ao escrever
 
-Never remove existing fields. Just add or update.
+Nunca remova campos existentes. Apenas adicione ou atualize.
 
-## Where NOT to write
+## Onde NÃO escrever
 
-The decision to organize the specs (granularity, custom folders, Scout's original suggestion, timestamp of the choice) **doesn't** go into `state.json`. It is persisted in `.reversa/config.toml`, section `[specs]`, as per `references/step-03-specs-organization.md`. `state.json` is runtime state, `config.toml` is long-term decision.
+A decisão de organização das specs (granularidade, pastas customizadas, sugestão original do Scout, timestamp da escolha) **não** vai no `state.json`. Ela é persistida em `.reversa/config.toml`, seção `[specs]`, conforme `references/step-03-specs-organization.md`. O `state.json` é estado runtime, o `config.toml` é decisão de longo prazo.

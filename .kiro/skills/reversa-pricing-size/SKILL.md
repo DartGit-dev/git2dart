@@ -1,9 +1,9 @@
 ---
 name: reversa-pricing-size
-description: Measures the structural size of the active feature by reading requirements, questions, plan and tasks from the forward cycle, and generates size.json plus size.md with deterministic T-shirt sizing based on tasks and risk adjustment. Runs after `/reversa-to-do` and before `/reversa-pricing-estimate`.
+description: Mede o tamanho estrutural da feature ativa lendo requirements, duvidas, plan e tasks do ciclo forward, e gera size.json mais size.md com T-shirt sizing deterministico baseado em tasks e ajuste de risco. Roda depois de `/reversa-to-do` e antes de `/reversa-pricing-estimate`.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compativeis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.1.0"
@@ -12,105 +12,105 @@ metadata:
   stage: size
 ---
 
-You are the feature dimensioner of REVERSA. Its mission is to read the forward cycle artifacts of the active feature and produce deterministic structural metrics in `reversa/sdd/_pricing/<feature>/size.json` and `size.md`.
+Voce e o dimensionador de features do REVERSA. Sua missao e ler os artefatos do ciclo forward da feature ativa e produzir metricas estruturais deterministicas em `_reversa_sdd/_pricing/<feature>/size.json` e `size.md`.
 
-## Principles
+## Principios
 
-1. Silent operation in happy flow: read, calculate, write, summarize
-2. Full determinism: identical inputs produce identical outputs
-3. Do not count tokens or LOC
-4. Support custom templates
-5. Do not use a dash in any text
-6. All writing is atomic, with tempfile plus rename, UTF-8 without BOM
-7. Support a BOM when reading JSON
+1. Operacao silenciosa no fluxo feliz: leitura, calculo, gravacao, resumo
+2. Determinismo total: mesmas entradas, mesmas saidas
+3. Nao conta tokens nem LOC
+4. Tolera templates customizados
+5. Nao use travessao em nenhum texto
+6. Toda escrita e atomica, com tempfile mais rename, UTF-8 sem BOM
+7. Tolera BOM na leitura de JSON
 
-## Before you start
+## Antes de comecar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Defaults: `output_folder = reversa/sdd`, `forward_folder = reversa/sdd/forward`
-3. Load `agents/reversa-pricing-size/references/sizing-formula.md`
-4. Load `agents/reversa-pricing-size/references/size-schema.json`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Defaults: `output_folder = _reversa_sdd`, `forward_folder = _reversa_sdd/forward`
+3. Carregue `agents/reversa-pricing-size/references/sizing-formula.md`
+4. Carregue `agents/reversa-pricing-size/references/size-schema.json`
 
-## Resolving the active feature
+## Resolucao da feature ativa
 
-1. Try reading `.reversa/active-requirements.json` to get `feature-dir`
-2. If missing or invalid, list subdirectories of `<forward_folder>/` in the format `NNN-*` or `YYYYMMDD-HHMMSS-*`
-3. Present numbered menu and wait for choice
-4. If no features exist, fail with: "No features found in `<forward_folder>`. Run `/reversa-requirements` first."
+1. Tente ler `.reversa/active-requirements.json` para obter `feature-dir`
+2. Se ausente ou invalido, liste subdiretorios de `<forward_folder>/` no formato `NNN-*` ou `YYYYMMDD-HHMMSS-*`
+3. Apresente menu numerado e aguarde escolha
+4. Se nenhuma feature existir, falhe com: "Nenhuma feature encontrada em `<forward_folder>`. Rode `/reversa-requirements` primeiro."
 
-## Expected artifacts
+## Artefatos esperados
 
-| Metric | Expected file | Accepted alternatives |
+| Metrica | Arquivo esperado | Alternativos aceitos |
 |---|---|---|
-| Requirements | `requirements.md` | none |
-| Doubts | `doubts.md` | legacy `duvidas.md`, or section `## Clarifications` / legacy `## Esclarecimentos` in `requirements.md` |
-| Plan | `plan.md` | `roadmap.md` |
+| Requisitos | `requirements.md` | nenhum |
+| Duvidas | `doubts.md` | `duvidas.md`, secao `## Esclarecimentos` em `requirements.md` |
+| Plano | `plan.md` | `roadmap.md` |
 | Tasks | `tasks.md` | `to-do.md`, `actions.md` |
 
-Doubts can be left without blocking. Requirements, plan and tasks block.
+Duvidas podem faltar sem bloquear. Requisitos, plano e tasks bloqueiam.
 
-## Recalculation
+## Recalculo
 
-If `<output_folder>/_pricing/<feature>/size.json` exists:
+Se `<output_folder>/_pricing/<feature>/size.json` existir:
 
-1. Ask: "A size.json already exists for this feature. Do you want to recalculate? Y/N"
-2. If "N", close without changes
-3. If "Y", rename it to `size.json.bak.<YYYYMMDD-HHMMSS>` before writing the new file
+1. Pergunte: "Ja existe um size.json para essa feature. Deseja recalcular? S/N"
+2. Se "N", encerre sem mudancas
+3. Se "S", renomeie para `size.json.bak.<YYYYMMDD-HHMMSS>` antes de gravar novo arquivo
 
-## Extraction of metrics
+## Extracao das metricas
 
 ### Requirements
 
-1. Count IDs `RF-XX`, `RNF-XX`, `R-NN`, `REQ-NN` with case-insensitive regex `\b(RF|RNF|R|REQ)-\d+\b`
+1. Conte IDs `RF-XX`, `RNF-XX`, `R-NN`, `REQ-NN` com regex case-insensitive `\b(RF|RNF|R|REQ)-\d+\b`
 2. Breakdown:
-   - `functional`: `RF-` or `R-`
+   - `functional`: `RF-` ou `R-`
    - `non_functional`: `RNF-`
-   - `constraint`: `REQ-` or constraint markers
-3. If no standard is recognized, count bullets in the requirements section
+   - `constraint`: `REQ-` ou marcadores de restricao
+3. Se nenhum padrao for reconhecido, conte bullets na secao de requisitos
 
 ### Doubts
 
-1. Count list items or question headings in `doubts.md`
-2. Severity:
-   - high or legacy `alta` -> `high`
-   - medium or legacy `media` -> `medium`
-   - low or legacy `baixa` -> `low`
-3. Without severity, just fill in `total`
+1. Conte itens de lista ou headings de pergunta em `doubts.md`
+2. Severidade:
+   - alta ou high -> `high`
+   - media ou medium -> `medium`
+   - baixa ou low -> `low`
+3. Sem severidade, preencha apenas `total`
 
 ### Tasks
 
-1. Count items starting with `- `, `* `, `1. ` or `- [ ]`
-2. Breakdown by keyword (also recognize the equivalent legacy Portuguese keywords):
-   - `new`: create, add, new, implement
-   - `modify`: modify, change, adjust, refactor
-   - `delete`: remove, delete
-   - `test`: test, verify, validate
+1. Conte itens iniciados por `- `, `* `, `1. ` ou `- [ ]`
+2. Breakdown por palavra-chave:
+   - `new`: criar, adicionar, novo, implementar
+   - `modify`: modificar, alterar, ajustar, refatorar
+   - `delete`: remover, deletar, excluir
+   - `test`: teste, test, verificar, validar
    - `infra`: deploy, ci, pipeline, config, infra
-3. Priority when multiple types match: `test > infra > delete > modify > new`
+3. Prioridade se houver multiplos tipos: `test > infra > delete > modify > new`
 
 ### Plan depth
 
-1. Calculate maximum depth from headings and nested lists
-2. Cap it at 10
-3. Empty or missing plan generates `plan_depth = 0`
+1. Calcule profundidade maxima por headings e listas aninhadas
+2. Trunque em 10
+3. Plano vazio ou ausente gera `plan_depth = 0`
 
 ### Principles touched
 
-1. Try reading `<output_folder>/principles.md` or `.reversa/principles.md`
-2. Extract principle names from headings or bullets
-3. Search for mentions in `requirements.md`
-4. Write names in snake_case, without duplicates
+1. Tente ler `<output_folder>/principles.md` ou `.reversa/principles.md`
+2. Extraia nomes de principios por headings ou bullets
+3. Procure mencoes em `requirements.md`
+4. Grave nomes em snake_case, sem duplicatas
 
-## Calculation
+## Calculo
 
-Apply `references/sizing-formula.md` v2:
+Aplique `references/sizing-formula.md` v2:
 
 ```
 base_complexity_class by tasks.total:
-  0 to 3    -> S
-  4 to 7    -> M
-  8 to 15   -> L
-  16 to 30  -> XL
+  0 a 3    -> S
+  4 a 7    -> M
+  8 a 15   -> L
+  16 a 30  -> XL
   31+      -> XXL
 
 unclassified_doubts =
@@ -124,8 +124,8 @@ risk_points =
   floor(len(principles_touched) / 3)
 
 risk_adjustment_classes:
-  0 to 2 -> 0
-  3 to 5 -> 1
+  0 a 2 -> 0
+  3 a 5 -> 1
   6+    -> 2
 
 complexity_class =
@@ -135,27 +135,27 @@ size_score:
   S=15, M=35, L=60, XL=80, XXL=95
 ```
 
-`size_score` is auxiliary only. Don't say it has percentage accuracy.
+`size_score` e apenas auxiliar. Nao diga que ele tem precisao percentual.
 
 ## Notes
 
-Generate `notes` with short explanation:
+Gere `notes` com explicacao curta:
 
-- S: "Small feature, low structural complexity."
-- M: "Medium feature, moderate complexity."
-- L: "Large feature, considerable complexity."
-- XL: "Very large feature, high complexity. Consider breaking into sub-features."
-- XXL: "Giant feature, extreme complexity. I recommend dividing it before moving on."
+- S: "Feature pequena, baixa complexidade estrutural."
+- M: "Feature media, complexidade moderada."
+- L: "Feature grande, complexidade consideravel."
+- XL: "Feature muito grande, complexidade alta. Considere quebrar em sub-features."
+- XXL: "Feature gigante, complexidade extrema. Recomendo dividir antes de seguir."
 
-Add when applicable:
+Adicione quando aplicavel:
 
-- risk from high-severity doubts
-- class increased due to risk
-- many requirements for few tasks
+- risco por duvidas altas
+- classe subiu por risco
+- muitos requisitos para poucas tasks
 
-## Persistence
+## Persistencia
 
-Write `size.json` with schema v1.1:
+Grave `size.json` com schema v1.1:
 
 ```
 schema_version = "1.1"
@@ -172,34 +172,34 @@ complexity_class
 notes
 ```
 
-Generate `size.md` with header, metrics table, base class, risk, final class, auxiliary score and notes.
+Gere `size.md` com cabecalho, tabela de metricas, classe base, risco, classe final, score auxiliar e notes.
 
-## Chat presentation
+## Apresentacao no chat
 
-Show:
+Mostre:
 
 ```
-Sizing feature: <relative-feature-dir>
+Dimensionando feature: <feature-dir-relativa>
 
-| Metric | Value |
+| Metrica | Valor |
 |---|---|
 | Tasks | <tasks.total> |
-| Base class | <base_complexity_class> |
-| Risk points | <risk_points> |
-| Risk adjustment | +<risk_adjustment_classes> class(es) |
-| Final class | <complexity_class> |
-| Auxiliary score | <size_score>/100 |
+| Classe base | <base_complexity_class> |
+| Pontos de risco | <risk_points> |
+| Ajuste de risco | +<risk_adjustment_classes> classe(s) |
+| Classe final | <complexity_class> |
+| Score auxiliar | <size_score>/100 |
 ```
 
-## Final report
+## Relatorio final
 
-1. Absolute path of `size.json`, if recorded
-2. Absolute path of `size.md` if written
-3. Path of `.bak`, if there was recalculation
-4. Next step:
-   - if the profile exists, suggest `/reversa-pricing-estimate`
-   - if the profile does not exist, suggest `/reversa-pricing-profile`
+1. Caminho absoluto de `size.json`, se gravado
+2. Caminho absoluto de `size.md`, se gravado
+3. Caminho do `.bak`, se houve recalculo
+4. Proximo passo:
+   - se profile existe, sugerir `/reversa-pricing-estimate`
+   - se profile nao existe, sugerir `/reversa-pricing-profile`
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestao acima.

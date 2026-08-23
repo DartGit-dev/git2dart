@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 #
 # prepare-roadmap.sh
-# Specific helper for the /reversa-plan skill.
-# Ensures that the active feature folder is ready to receive roadmap, investigation, data-delta, onboarding and interfaces/.
-# Emits JSON with absolute paths ready for the agent to use.
+# Helper específico do skill /reversa-plan.
+# Garante que a pasta da feature ativa esteja pronta para receber roadmap, investigation, data-delta, onboarding e interfaces/.
+# Emite JSON com caminhos absolutos prontos para o agente usar.
 #
 # Uso:
 #   prepare-roadmap.sh [--json]
 #
-# Exit codes:
+# Códigos de saída:
 #   0 = sucesso, JSON emitido
-#1 = missing or invalid active-requirements.json
-#2 = feature-dir does not exist and could not be created
-#3 = invalid usage
+#   1 = active-requirements.json ausente ou inválido
+#   2 = feature-dir não existe e não pôde ser criada
+#   3 = uso inválido
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$SCRIPT_DIR/resolve-paths.sh"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REVERSA_DIR="$PROJECT_ROOT/.reversa"
+SDD_DIR="$PROJECT_ROOT/_reversa_sdd"
 ACTIVE="$REVERSA_DIR/active-requirements.json"
 
 JSON_MODE=0
@@ -29,18 +31,18 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ! -f "$ACTIVE" ]; then
-echo "error: $ACTIVE does not exist. Run reversa-requirements first." >&2
+  echo "erro: $ACTIVE nao existe. rode reversa-requirements antes." >&2
   exit 1
 fi
 
 feature_dir_rel="$(grep -o '"feature-dir"[[:space:]]*:[[:space:]]*"[^"]*"' "$ACTIVE" | sed 's/.*"\([^"]*\)"$/\1/' | head -n 1)"
 if [ -z "$feature_dir_rel" ]; then
-echo "error: feature-dir field not found in $ACTIVE" >&2
+  echo "erro: campo feature-dir nao encontrado em $ACTIVE" >&2
   exit 1
 fi
 
 feature_dir="$PROJECT_ROOT/$feature_dir_rel"
-mkdir -p "$feature_dir/interfaces" || { echo "error: unable to create $feature_dir/interfaces" >&2; exit 2; }
+mkdir -p "$feature_dir/interfaces" || { echo "erro: nao foi possivel criar $feature_dir/interfaces" >&2; exit 2; }
 
 requirements_path="$feature_dir/requirements.md"
 roadmap_path="$feature_dir/roadmap.md"
@@ -70,7 +72,7 @@ if [ $JSON_MODE -eq 1 ]; then
   printf '}\n'
 else
   echo "feature-dir: $feature_dir"
-echo "requirements present: $requirements_present"
+  echo "requirements presente: $requirements_present"
   echo "roadmap ja existe: $roadmap_already"
 fi
 

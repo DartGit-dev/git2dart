@@ -1,32 +1,35 @@
 #!/usr/bin/env bash
 #
 # verify-prerequisites.sh
-# Generic preconditions helper, called by Reversa forward skills.
+# Helper genérico de pré-condições, chamado pelos skills forward do Reversa.
 #
-# Standard JSON output on a single line. The agent reads and acts according to the fields.
-# No external dependencies other than bash, jq optional.
+# Saída padrão JSON em uma única linha. O agente lê e age conforme os campos.
+# Sem dependências externas além de bash, jq opcional.
 #
 # Uso:
-# verify-prerequisites.sh [--json] [--require <field>] [--require <field>] ...
+#   verify-prerequisites.sh [--json] [--require <campo>] [--require <campo>] ...
 #
 # Campos suportados em --require:
 #   active-requirements   Exige que .reversa/active-requirements.json exista.
-# feature-dir Requires that the folder pointed to by active-requirements exists.
+#   feature-dir           Exige que a pasta apontada por active-requirements exista.
 #   requirements          Exige feature-dir/requirements.md.
 #   roadmap               Exige feature-dir/roadmap.md.
 #   actions               Exige feature-dir/actions.md.
-# sdd Requires reversa/sdd/ present.
+#   sdd                   Exige _reversa_sdd/ presente.
 #   principles            Exige .reversa/principles.md.
 #
-# Exit codes:
-#0 = all requirements meet
-#1 = at least one requirement was missing (details in JSON)
-#2 = invalid usage
+# Códigos de saída:
+#   0 = todos os requisitos batem
+#   1 = pelo menos um requisito faltou (detalhes no JSON)
+#   2 = uso inválido
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$SCRIPT_DIR/resolve-paths.sh"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REVERSA_DIR="$PROJECT_ROOT/.reversa"
+SDD_DIR="$PROJECT_ROOT/_reversa_sdd"
+FORWARD_DIR="$PROJECT_ROOT/_reversa_forward"
 ACTIVE="$REVERSA_DIR/active-requirements.json"
 
 JSON_MODE=0

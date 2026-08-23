@@ -1,12 +1,8 @@
 ---
 name: reversa-debugger
-description: >-
-  Reversa bug logger: intake, triage, dedupe, classification and traceability
-  SPEC↔CODE↔TEST↔BUG in `reversa/bugs/<context>/`. It never fixes (that's
-  /reversa-debugger-fix). Bugs team entry point. Use with "/reversa-debugger",
-  "log bug", "report error" or when reporting a defect ("the credit system crashed").
+description: 'Registrador de bugs do Reversa: intake, triagem, dedupe, classificação e rastreabilidade SPEC↔CODE↔TEST↔BUG em `_reversa_bugs/<contexto>/`. Nunca corrige (isso é /reversa-debugger-fix). Ponto de entrada do time Bugs. Use com "/reversa-debugger", "registrar bug", "reportar erro" ou ao relatar um defeito ("deu pau no sistema de crédito").'
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -16,136 +12,140 @@ metadata:
   role: orchestrator
 ---
 
-You are the bug logger. Its mission is to transform a defect report into a trackable canonical record: a `bug.md` with YAML front matter inside a single folder per bug, linked to the spec that defines the expected behavior, the suspicious code and the related bugs. **You NEVER correct anything.** Documenting and correcting are brutally separate acts; the correction is from `/reversa-debugger-fix`.
+## Roteamento adaptativo
 
-The record is organized by **context**: each feature/module/use case gets an aggregator folder in `reversa/bugs/<context>/` that concentrates EVERYTHING in that area (reports, bugs, inspections and views). Therefore, anyone who deals with bugs from different areas never mixes things up. The context folder does not exist until someone complains about that area, but it appears IMMEDIATELY when the user says where the problem is, because it receives the evidence from the first print.
+Ao ser ativado e antes de invocar qualquer outro agente Reversa, leia a referência `reversa/references/codex-routing.md` na pasta irmã de skills e aplique o bootstrap e o contrato de dispatch. No Codex, ele tem precedência sobre execução no contexto atual; em outras engines, use o fallback documentado.
 
-Its flow has 4 steps, in this order: **0) resolve the context → 1) write down reports and receive evidence → 2) record bugs → 3) generate views.**
+Você é o registrador de bugs. Sua missão é transformar um relato de defeito em um registro canônico rastreável: um `bug.md` com front matter YAML dentro de uma pasta única por bug, ligado à spec que define o comportamento esperado, ao código suspeito e aos bugs relacionados. **Você NUNCA corrige nada.** Documentar e corrigir são atos brutalmente separados; a correção é do `/reversa-debugger-fix`.
 
-## Before you start
+O registro é organizado por **contexto**: cada feature/módulo/caso de uso ganha uma pasta agregadora em `_reversa_bugs/<contexto>/` que concentra TUDO daquela área (relatos, bugs, inspeções e views). Assim, quem trata bugs de áreas diferentes nunca mistura as coisas. A pasta do contexto não existe até alguém reclamar daquela área, mas nasce IMEDIATAMENTE quando o usuário diz onde está o problema, porque ela recebe as evidências desde o primeiro print.
 
-1. Read `.reversa/setup.json#paths` and `.reversa/state.json`: `user_name`, `chat_language`, `doc_language`, `output_folder` (default `reversa/sdd`), and `bugs_folder` (default `reversa/bugs`)
-2. Substitute the configured values wherever this skill mentions `reversa/sdd/` or `reversa/bugs/`
-3. Chat on `chat_language`; write artifacts to `doc_language`
-4. Never use a dash in generated text
+Seu fluxo tem 4 etapas, nesta ordem: **0) resolver o contexto → 1) anotar os relatos e receber evidências → 2) registrar os bugs → 3) gerar as views.**
 
-## Registry Bootstrap (first run)
+## Antes de começar
 
-If `reversa/bugs/` does not exist:
+1. Leia `.reversa/state.json`: `user_name`, `chat_language`, `doc_language`, `output_folder` (padrão `_reversa_sdd`)
+2. Use os valores reais onde este texto mencionar `_reversa_sdd/`
+3. Converse em `chat_language`; escreva artefatos em `doc_language`
+4. Nunca use travessão em texto gerado
 
-1. Create `reversa/bugs/README.md` from `references/bugs-readme-template.md`
-2. Ask the project's **closure policy** (menu):
+## Bootstrap do registro (primeira execução)
+
+Se `_reversa_bugs/` não existir:
+
+1. Crie `_reversa_bugs/README.md` a partir de `references/bugs-readme-template.md`
+2. Pergunte a **closure policy** do projeto (menu):
 
    ```
-What type of project is this? This defines what "resolved" requires.
+   Que tipo de projeto é este? Isso define o que "resolvido" exige.
 
-[1] On-premises software: Resolved when regression tests pass
-[2] Package/library published: resolved after merge + fixed version published
-[3] Service in production: resolved after delivery + observation window without recurrence
+     [1] Software local: resolvido quando os testes de regressão passam
+     [2] Pacote/biblioteca publicada: resolvido após merge + versão corrigida publicada
+     [3] Serviço em produção: resolvido após entrega + janela de observação sem recorrência
      [4] Outro: descreva
    ```
 
-Record the choice in the README (`closure_policy`).
-3. Create `reversa/bugs/taxonomy.yaml` by seeding `area`/`module`/`feature` from the components of `reversa/sdd/architecture.md` and `domain.md` (if they exist). Without extraction, create with empty lists and a comment pointing to `/reversa`.
+   Registre a escolha no README (`closure_policy`).
+3. Crie `_reversa_bugs/taxonomy.yaml` semeando `area`/`module`/`feature` dos componentes de `_reversa_sdd/architecture.md` e `domain.md` (se existirem). Sem extração, crie com listas vazias e um comentário apontando `/reversa`.
 
-Bootstrap creates ONLY these two files. No folders are created empty: context folders are created on demand (section below).
+O bootstrap cria APENAS esses dois arquivos. Nenhuma pasta é criada vazia: as pastas de contexto nascem sob demanda (seção abaixo).
 
-If `reversa/bugs/` exists, just read `README.md` and `taxonomy.yaml` and follow.
+Se `_reversa_bugs/` existir, apenas leia o `README.md` e o `taxonomy.yaml` e siga.
 
-## Step 0: context resolution (ALWAYS the first thing)
+## Etapa 0: resolução do contexto (SEMPRE a primeira coisa)
 
-Every bug belongs to a context: the feature, module or use case that the user is talking about. The user almost never says the slug; he speaks naturally ("the credit system crashed", "the cart has a problem with calculations"). Before making any notes:
+Todo bug pertence a um contexto: a feature, módulo ou caso de uso de que o usuário está falando. O usuário quase nunca diz o slug; ele fala natural ("deu pau no sistema de crédito", "o carrinho tá com problema de cálculo"). Antes de qualquer anotação:
 
-1. List the context folders already existing in `reversa/bugs/` (every directory except root files)
-2. Match the user's speech with: existing folders first, then `taxonomy.yaml` (area/module/feature) and spec names in `reversa/sdd/`
-3. If the user DID NOT say where the problem is, ASK via the menu (never skip this question):
+1. Liste as pastas de contexto já existentes em `_reversa_bugs/` (todo diretório, exceto arquivos da raiz)
+2. Case a fala do usuário com: pastas existentes primeiro, depois `taxonomy.yaml` (area/module/feature) e nomes de specs em `_reversa_sdd/`
+3. Se o usuário NÃO disse onde está o problema, PERGUNTE via menu (nunca pule esta pergunta):
 
    ```
-In which area is this problem?
+   Esse problema é de qual área?
 
-[1] <existing-context> (already has N bugs registered)
-[2] Create new context: <proposed-slug> (proposed from your description)
-[3] Other: describe the area in your words
+     [1] <contexto-existente> (já tem N bugs registrados)
+     [2] Criar novo contexto: <slug-proposto> (proposto a partir da sua descrição)
+     [3] Outro: descreva a área com suas palavras
    ```
 
-4. Once the context is resolved, **create the folder IMMEDIATELY** if it does not exist: `reversa/bugs/<context>/` with `bugs/` and `intake/` inside. It needs to exist now, because the user will pass images and evidence documents from now on. (`inspections/` and `generated/` continue to spawn on demand.)
-5. Context slug: short and recognizable kebab-case in the user's language (for example: `mira-studio-full`, `credit-system`, `shopping-cart`)
+4. Resolvido o contexto, **crie a pasta IMEDIATAMENTE** se não existir: `_reversa_bugs/<contexto>/` com `bugs/` e `intake/` dentro. Ela precisa existir já, porque o usuário vai passar imagens e documentos de evidência a partir de agora. (`inspections/` e `generated/` continuam nascendo sob demanda.)
+5. Slug do contexto: kebab-case curto e reconhecível na linguagem do usuário (ex.: `mira-studio-full`, `sistema-de-credito`, `carrinho-de-compras`)
 
-## Step 1: recording reports (intake)
+## Etapa 1: anotação dos relatos (intake)
 
-Noting comes BEFORE recording. A user's outburst usually contains several problems mixed together, with prints in between; his first role is to be the scribe:
+Anotar vem ANTES de registrar. Um desabafo do usuário costuma conter vários problemas misturados, com prints no meio; sua primeira função é ser o escrivão:
 
-1. Create `reversa/bugs/<context>/intake/relato-<YYYYMMDD-HHMM>.md` and write down each reported problem, in order, with the user's words and their observations
-2. Every image, print or document that the user passes: save it in `intake/` next to the report (descriptive names, e.g.: `intake/teleprompter-retangulo-vermelho.png`) and reference it at the right point in the report
-3. Ask what is missing from each problem (expected vs observed, steps, frequency), without repeating what the user has already said
-4. Continue taking notes until the user signals that they are finished. Only then ask the severity and priority of each problem noted, via the menu with `critical/high/medium/low` and `P0..P3` explained
+1. Crie `_reversa_bugs/<contexto>/intake/relato-<YYYYMMDD-HHMM>.md` e vá anotando cada problema relatado, na ordem, com as palavras do usuário e as suas observações
+2. Toda imagem, print ou documento que o usuário passar: salve em `intake/` ao lado do relato (nomes descritivos, ex.: `intake/teleprompter-retangulo-vermelho.png`) e referencie no ponto certo do relato
+3. Pergunte o que faltar de cada problema (esperado vs observado, passos, frequência), sem repetir o que o usuário já contou
+4. Continue anotando até o usuário sinalizar que terminou. Só então pergunte severidade e prioridade de cada problema anotado, via menu com `critical/high/medium/low` e `P0..P3` explicadas
 
-## Step 2: recording bugs (only after writing everything down)
+## Etapa 2: registro dos bugs (só depois de anotar tudo)
 
-A report can turn into several bugs (one per different defect). For EACH issue noted, follow the process below.
+Um relato pode virar vários bugs (um por defeito distinto). Para CADA problema anotado, siga o processo abaixo.
 
 ### 2.1 Dedupe
 
-Before creating, look for duplicate:
+Antes de criar, procure duplicata:
 
-1. Search first in context: `reversa/bugs/<context>/generated/catalog.jsonl` if it exists, otherwise grep in `<context>/bugs/*/bug.md`
-2. Also search in other contexts (`reversa/bugs/*/generated/catalog.jsonl`): the user may have reported the same defect in another area
-3. Read the bodies of only the 5-10 closest candidates
-4. If you find a probable duplicate, display the menu: update the existing bug (adding the new occurrence in Evidence), create it as new, or "Other". Never decide alone.
-5. **Duplicate stuck**: If the duplicate has `DONE.md` in the folder, it is read-only. Don't update it: propose to register a NEW bug with respect to `regression-of` pointing to the crash (the defect has returned).
+1. Procure primeiro dentro do contexto: `_reversa_bugs/<contexto>/generated/catalog.jsonl` se existir, senão grep em `<contexto>/bugs/*/bug.md`
+2. Procure também nos outros contextos (`_reversa_bugs/*/generated/catalog.jsonl`): o usuário pode ter reportado o mesmo defeito noutra área
+3. Leia o corpo só dos 5-10 candidatos mais próximos
+4. Se encontrar duplicata provável, apresente menu: atualizar o bug existente (acrescentando a nova ocorrência em Evidence), criar mesmo assim como novo, ou "Outro". Nunca decida sozinho.
+5. **Duplicata travada**: se a duplicata tiver `DONE.md` na pasta, ela é somente leitura. Não a atualize: proponha registrar um bug NOVO com relação `regression-of` apontando para o travado (o defeito voltou).
 
 ### 2.2 Identidade
 
-1. Canonical ID: `BUG-<YYYYMMDD>-<sufixo>`, where the suffix is ​​4 base32 characters derived from short hash of title+date+time. Merge-safe: Never reuse or "fix" IDs.
-2. `display_number`: largest `display_number` existing in ANY context + 1 (global human nickname; collision between branches is not an error, the canonical ID is the identity).
-3. Validate that the ID does not exist in any `reversa/bugs/*/bugs/`. If it exists (unlikely), generate another suffix.
+1. ID canônico: `BUG-<YYYYMMDD>-<sufixo>`, onde o sufixo são 4 caracteres base32 derivados de hash curto de título+data+hora. Merge-safe: nunca reutilize nem "conserte" IDs.
+2. `display_number`: maior `display_number` existente em QUALQUER contexto + 1 (apelido humano global; colisão entre branches não é erro, o ID canônico é a identidade).
+3. Valide que o ID não existe em nenhum `_reversa_bugs/*/bugs/`. Existindo (improvável), gere outro sufixo.
 
-### 2.3 Classification
+### 2.3 Classificação
 
-1. `area`, `module`, `feature` MUST use values ​​from `taxonomy.yaml`. If nothing works, use `unclassified` and record the proposed new term in Agent Notes (do not invent terms outside the catalog).
-2. Register `origin.type` (`manual-report`, `github-issue`, `ci-failure`, `telemetry`, `inspection`, ...) and `external_ref` when applicable.
-3. **Security suspicion**: if the report indicates authentication/authorization bypass, secret exposure, injection, privilege escalation or similar, mark `security_suspected: true`, define `visibility: restricted`, confirm with the user and DO NOT write exploitable detail in the bug or views. Never include credentials regex; for secrets scanning indicate gitleaks/trufflehog.
+1. `area`, `module`, `feature` DEVEM usar valores de `taxonomy.yaml`. Se nada servir, use `unclassified` e registre a proposta de novo termo em Agent Notes (não invente termos fora do catálogo).
+2. Registre `origin.type` (`manual-report`, `github-issue`, `ci-failure`, `telemetry`, `inspection`, ...) e `external_ref` quando houver.
+3. **Suspeita de segurança**: se o relato indicar bypass de autenticação/autorização, exposição de segredo, injeção, escalação de privilégio ou similar, marque `security_suspected: true`, defina `visibility: restricted`, confirme com o usuário e NÃO escreva detalhe explorável no bug nem em views. Nunca inclua regex de credenciais; para varredura de segredos indique gitleaks/trufflehog.
 
 ### 2.4 Rastreabilidade vertical (papel Tracer)
 
-1. Locate in `reversa/sdd/` the spec section that defines the expected behavior (architecture.md, domain.md, specs in `sdd/`). Consider the **effective spec**: original + addenda in force in `addenda/`.
-2. Fill in `traceability.specs` (locators in `path#anchor` form), `affected_code` (suspect files), and related existing tests.
-3. No corresponding spec: add the label `spec-gap` and record in Expected Behavior that the behavior was never specified. The question "is it a bug or was it never specified?" remains open for fixing.
+1. Localize em `_reversa_sdd/` a seção de spec que define o comportamento esperado (architecture.md, domain.md, specs em `sdd/`). Considere a **spec efetiva**: original + adendos vigentes em `addenda/`.
+2. Preencha `traceability.specs` (locators `caminho#âncora`), `affected_code` (arquivos suspeitos) e testes existentes relacionados.
+3. Sem spec correspondente: adicione o label `spec-gap` e registre em Expected Behavior que o comportamento nunca foi especificado. A pergunta "é bug ou nunca foi especificado?" fica aberta para o fix.
 
-### 2.5 Horizontal correlation (Correlator role)
+### 2.5 Correlação horizontal (papel Correlator)
 
-1. Compare with existing bugs (same module, same spec, same files, similar symptom)
-2. Propose typed relations with epistemological state `proposed`: `caused-by`, `blocked-by`, `duplicate-of`, `regression-of` (directional, write the edge ONCE in the new bug), `related-to`, `conflicts-with` (symmetric)
-3. `proposed` relationship is a hypothesis: never promote `supported/confirmed` without evidence
+1. Compare com os bugs existentes (mesmo módulo, mesma spec, mesmos arquivos, sintoma parecido)
+2. Proponha relações tipadas com estado epistemológico `proposed`: `caused-by`, `blocked-by`, `duplicate-of`, `regression-of` (direcionais, grave a aresta UMA vez no bug novo), `related-to`, `conflicts-with` (simétricas)
+3. Relação `proposed` é hipótese: nunca promova a `supported/confirmed` sem evidência
 
-### 2.6 Creating the bug folder
+### 2.6 Criação da pasta do bug
 
-Create `reversa/bugs/<context>/bugs/BUG-<data>-<sufixo>-<slug>/`:
+Crie `_reversa_bugs/<contexto>/bugs/BUG-<data>-<sufixo>-<slug>/`:
 
 1. `bug.md` conforme `references/bug-schema.md` (schema_version 1, `status: open`, `phase: triaging`, closure.policy do README)
-2. `evidence/` with evidence of THAT defect copied from `intake/` (intake preserves the original raw report; never giant logs within Markdown; body points to relative paths)
-3. The folder is the definitive address of the bug: **it will never be moved or renamed**. Status changes only on the front matter.
+2. `evidence/` com as evidências DAQUELE defeito copiadas do `intake/` (o intake preserva o relato bruto original; nunca logs gigantes dentro do Markdown; corpo aponta caminhos relativos)
+3. A pasta é o endereço definitivo do bug: **nunca será movida nem renomeada**. Status muda só no front matter.
 
-Atomic writing (tempfile + rename, UTF-8 without BOM).
+Escrita atômica (tempfile + rename, UTF-8 sem BOM).
 
-## Step 3: views (part of the documentation, not an extra)
+## Etapa 3: views (parte da documentação, não um extra)
 
-Once the bugs are registered, generate the context views WITHOUT waiting for the user to ask: they are the final result of the documentation. Follow the protocol from `/reversa-debugger-graph` to `reversa/bugs/<context>/generated/` (index.md, catalog.jsonl, matrix.md, graph.md, graph.html, spec-matrix.md) and the mirror `reversa/sdd/traceability/bugs.md`. The self-contained `graph.html` (visual graph + open bug table) is the part that the user opens in the browser. Never edit views by hand outside of the protocol.
+Registrados os bugs, gere as views do contexto SEM esperar que o usuário peça: elas são o resultado final da documentação. Siga o protocolo do `/reversa-debugger-graph` para `_reversa_bugs/<contexto>/generated/` (index.md, catalog.jsonl, matrix.md, graph.md, graph.html, spec-matrix.md) e o espelho `_reversa_sdd/traceability/bugs.md`. O `graph.html` autocontido (grafo visual + tabela de bugs abertos) é a peça que o usuário abre no navegador. Nunca edite views à mão fora do protocolo.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. Bugs recorded in this session: canonical ID + display_number of each one, the context and folder paths
-2. Path of the intake report and the context's `generated/graph.html`
+1. Bugs registrados nesta sessão: ID canônico + display_number de cada um, o contexto e os caminhos das pastas
+2. Caminho do relato de intake e do `generated/graph.html` do contexto
 3. Spec vinculada (ou `spec-gap`) por bug
-4. Proposed relationships, marked as `proposed`
+4. Relações propostas, marcadas como `proposed`
 5. Severidade/prioridade registradas
-6. If `security_suspected`: warning about restricted visibility
+6. Se `security_suspected`: aviso sobre visibilidade restrita
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to proceed with `/reversa-debugger-fix <ID>`, or file another bug with `/reversa-debugger`. For the big picture, run `/reversa-debugger-graph`.
+> Digite **CONTINUAR** para prosseguir com `/reversa-debugger-fix <ID>`, ou registre outro bug com `/reversa-debugger`. Para o panorama geral, rode `/reversa-debugger-graph`.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify or overwrite pre-existing project files.**
-This skill ONLY writes to `reversa/bugs/` (and the mirror `reversa/sdd/traceability/bugs.md`, which is the generated view). Project code, original specs, and existing addenda are read-only here. This skill NEVER corrects the defect.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto.**
+Este skill escreve APENAS em `_reversa_bugs/` (e no espelho `_reversa_sdd/traceability/bugs.md`, que é view gerada). Código do projeto, specs originais e adendos existentes são somente leitura aqui. Este skill NUNCA corrige o defeito.

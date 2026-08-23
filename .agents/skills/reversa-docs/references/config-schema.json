@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Reversa Docs Config",
-  "description": "Configuration persisted in reversa/docs/.config.json after /reversa-docs interview. Reused by subsequent runs and by isolated agents.",
+  "description": "Configuração persistida em _reversa_docs/.config.json após a entrevista do /reversa-docs. Reusada por execuções subsequentes e por agentes isolados.",
   "type": "object",
   "required": ["schemaVersion", "generatedAt", "projectName", "interview", "seed", "knowledgeSources"],
   "properties": {
     "schemaVersion": {
       "type": "integer",
       "const": 1,
-      "description": "Schema version. Increment when there is breaking change."
+      "description": "Versão do schema. Incrementar quando houver breaking change."
     },
     "generatedAt": {
       "type": "string",
@@ -23,7 +23,7 @@
     },
     "projectName": {
       "type": "string",
-      "description": "Project name. Comes from soul.md if there is one, otherwise from the name of the root folder."
+      "description": "Nome do projeto. Vem do soul.md se houver, senão do nome da pasta raiz."
     },
     "interview": {
       "type": "object",
@@ -35,7 +35,7 @@
         },
         "readerProfileFreeform": {
           "type": "string",
-          "description": "Free text when readerProfile = other."
+          "description": "Texto livre quando readerProfile = other."
         },
         "depth": {
           "type": "string",
@@ -47,7 +47,7 @@
         "selectedFeatures": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "IDs of specs chosen when depth = features_selection."
+          "description": "IDs das specs escolhidas quando depth = features_selection."
         },
         "visualStyle": {
           "type": "string",
@@ -72,7 +72,7 @@
         },
         "explicitOverride": {
           "type": ["string", "null"],
-          "description": "Value passed through --seed=<value>; overrides the calculated hash."
+          "description": "Valor passado via --seed=<valor>, sobrescreve hash calculado."
         }
       }
     },
@@ -92,7 +92,7 @@
     "pagesPlanned": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Relative paths of the pages that will be generated, decided after the interview."
+      "description": "Paths relativos das páginas que serão geradas, decidido após a entrevista."
     },
     "pagesOmitted": {
       "type": "array",

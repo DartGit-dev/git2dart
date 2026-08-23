@@ -1,5 +1,5 @@
 interface:
   display_name: "Reversa Coding"
-  short_description: "Executes actions.md in code: checks checkboxes [X], writes…"
+  short_description: "Executa o actions.md em código: marca checkboxes [X], escreve…"
 policy:
   allow_implicit_invocation: false

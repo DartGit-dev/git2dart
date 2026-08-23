@@ -30,13 +30,13 @@ Pointer<git_rebase> init({
     final out = arena<Pointer<git_rebase>>();
     final opts = arena<git_rebase_options>();
 
-    final error = libgit2.git_rebase_options_init(
+    final error = libgit2Runtime.bindings.git_rebase_options_init(
       opts,
       GIT_REBASE_OPTIONS_VERSION,
     );
     checkErrorAndThrow(error);
 
-    final initError = libgit2.git_rebase_init(
+    final initError = libgit2Runtime.bindings.git_rebase_init(
       out,
       repoPointer,
       branchPointer ?? nullptr,
@@ -60,13 +60,13 @@ Pointer<git_rebase> open(Pointer<git_repository> repo) {
     final out = arena<Pointer<git_rebase>>();
     final opts = arena<git_rebase_options>();
 
-    final error = libgit2.git_rebase_options_init(
+    final error = libgit2Runtime.bindings.git_rebase_options_init(
       opts,
       GIT_REBASE_OPTIONS_VERSION,
     );
     checkErrorAndThrow(error);
 
-    final openError = libgit2.git_rebase_open(out, repo, opts);
+    final openError = libgit2Runtime.bindings.git_rebase_open(out, repo, opts);
     checkErrorAndThrow(openError);
 
     return out.value;
@@ -75,21 +75,21 @@ Pointer<git_rebase> open(Pointer<git_repository> repo) {
 
 /// Gets the count of rebase operations that are to be applied.
 int operationsCount(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_operation_entrycount(rebase);
+    libgit2Runtime.bindings.git_rebase_operation_entrycount(rebase);
 
 /// Gets the rebase operation specified by the given index.
 Pointer<git_rebase_operation> getOperationByIndex({
   required Pointer<git_rebase> rebase,
   required int index,
 }) {
-  return libgit2.git_rebase_operation_byindex(rebase, index);
+  return libgit2Runtime.bindings.git_rebase_operation_byindex(rebase, index);
 }
 
 /// Gets the index of the rebase operation that is currently being applied. If
 /// the first operation has not yet been applied (because you have called [init]
 /// but not yet [next]) then this returns `-1`.
 int currentOperation(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_operation_current(rebase);
+    libgit2Runtime.bindings.git_rebase_operation_current(rebase);
 
 /// Performs the next rebase operation and returns the information about it.
 /// If the operation is one that applies a patch (which is any operation except
@@ -101,7 +101,7 @@ int currentOperation(Pointer<git_rebase> rebase) =>
 Pointer<git_rebase_operation> next(Pointer<git_rebase> rebase) {
   return using((arena) {
     final out = arena<Pointer<git_rebase_operation>>();
-    final error = libgit2.git_rebase_next(out, rebase);
+    final error = libgit2Runtime.bindings.git_rebase_next(out, rebase);
 
     checkErrorAndThrow(error);
 
@@ -123,7 +123,7 @@ void commit({
     final out = arena<git_oid>();
     final messageC = message?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_rebase_commit(
+    final error = libgit2Runtime.bindings.git_rebase_commit(
       out,
       rebasePointer,
       authorPointer ?? nullptr,
@@ -139,7 +139,10 @@ void commit({
 Pointer<git_index> inmemoryIndex(Pointer<git_rebase> rebase) {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
-    final error = libgit2.git_rebase_inmemory_index(out, rebase);
+    final error = libgit2Runtime.bindings.git_rebase_inmemory_index(
+      out,
+      rebase,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -148,29 +151,31 @@ Pointer<git_index> inmemoryIndex(Pointer<git_rebase> rebase) {
 /// Finishes a rebase that is currently in progress once all patches have been
 /// applied.
 void finish(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_finish(rebase, nullptr);
+    libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
 
 /// Aborts a rebase that is currently in progress, resetting the repository and
 /// working directory to their state before rebase began.
-void abort(Pointer<git_rebase> rebase) => libgit2.git_rebase_abort(rebase);
+void abort(Pointer<git_rebase> rebase) =>
+    libgit2Runtime.bindings.git_rebase_abort(rebase);
 
 /// Gets the original HEAD id for merge rebases.
 Pointer<git_oid> origHeadOid(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_orig_head_id(rebase);
+    libgit2Runtime.bindings.git_rebase_orig_head_id(rebase);
 
 /// Gets the original HEAD ref name for merge rebases.
 String origHeadName(Pointer<git_rebase> rebase) {
-  final result = libgit2.git_rebase_orig_head_name(rebase);
+  final result = libgit2Runtime.bindings.git_rebase_orig_head_name(rebase);
   return result == nullptr ? '' : result.toDartString();
 }
 
 /// Gets the onto id for merge rebases.
 Pointer<git_oid> ontoOid(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_onto_id(rebase);
+    libgit2Runtime.bindings.git_rebase_onto_id(rebase);
 
 /// Gets the onto ref name for merge rebases.
 String ontoName(Pointer<git_rebase> rebase) =>
-    libgit2.git_rebase_onto_name(rebase).toDartString();
+    libgit2Runtime.bindings.git_rebase_onto_name(rebase).toDartString();
 
 /// Free memory allocated for rebase object.
-void free(Pointer<git_rebase> rebase) => libgit2.git_rebase_free(rebase);
+void free(Pointer<git_rebase> rebase) =>
+    libgit2Runtime.bindings.git_rebase_free(rebase);

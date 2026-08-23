@@ -23,6 +23,6 @@
   "auto": false,
   "engine": null,
   "reversaVersion": "{{VERSION}}",
-  "briefPath": "reversa/sdd/migration/migration_brief.md",
+  "briefPath": "_reversa_sdd/migration/migration_brief.md",
   "expectedLegacyArtifacts": "references/expected_legacy_artifacts.yaml"
 }

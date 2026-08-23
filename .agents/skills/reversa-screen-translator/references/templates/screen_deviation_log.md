@@ -6,28 +6,28 @@ reversa:
 kind: screen_deviation_log
 producedBy: screen-translator
 mode: append-only
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Screen Deviation Log
 
-> Record of all divergences between the legacy and the spec generated in `target_screens.md`. Append-only. Pending deviations block the handoff to the Inspector.
-> Approved deviations are propagated to `parity_specs.md § Exceptions` when Inspector runs.
+> Registro de toda divergência entre o legado e a spec gerada em `target_screens.md`. Append-only. Deviations pendentes bloqueiam o handoff ao Inspector.
+> Deviations aprovadas são propagadas para `parity_specs.md § Exceções` quando o Inspector rodar.
 
-## Conventions
+## Convenções
 
-- **ID**: `DEV-NNN` (sequential, three digits).
+- **ID**: `DEV-NNN` (sequencial, três dígitos).
 - **Tipo**:
-- `tecnica`: technical limitation of the target (e.g. Windows terminal without UTF-8 without `chcp 65201`).
-- `modernizacao`: intentional divergence resulting from modernized mode.
-- `plataforma`: divergence forced due to platform incompatibility (ex: Win16 → web).
-- `correcao`: legacy visual bug that the target fixes (e.g. typo in label).
-- **Approval**: `pending` | `approved` | `rejected` (also accept legacy Portuguese values when reading existing files).
-- Deviation `approved` → also listed in `parity_specs.md § Exceptions`.
-- Deviation `pending` → blocks handoff to Inspector.
-- Deviation `rejeitado` → archived with explicit note; agent regenerates the screen in conforming mode.
+  - `tecnica`: limitação técnica do alvo (ex: terminal Windows sem UTF-8 sem `chcp 65201`).
+  - `modernizacao`: divergência intencional decorrente do modo modernizado.
+  - `plataforma`: divergência forçada por incompatibilidade de plataforma (ex: Win16 → web).
+  - `correcao`: bug visual do legado que o alvo corrige (ex: typo em label).
+- **Aprovação**: `pendente` | `aprovado` | `rejeitado`.
+- Deviation `aprovado` → também listada em `parity_specs.md § Exceções`.
+- Deviation `pendente` → bloqueia handoff ao Inspector.
+- Deviation `rejeitado` → arquivada com nota explícita; agente regenera a tela em modo conformante.
 
-## Summary
+## Resumo
 
 - **Total**: <N>
 - **Pendentes**: <N>
@@ -38,29 +38,29 @@ hash: "sha256:<body hash below front-matter>"
 
 ### DEV-001
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Screen affected | <canonical-name> |
+| Tela afetada | <nome-canonical> |
 | Tipo | `tecnica` \| `modernizacao` \| `plataforma` \| `correcao` |
-| Description | <what diverges between legacy and new> |
-| Reason | <why divergence is necessary or acceptable> |
-| Origin in legacy | <file:line> |
-| Implication for parity tests | <ex: false byte-by-byte comparison, use semantic comparison> |
-| Approval | `pending` \| `approved` \| `rejected` |
-| Approved by | <name or identifier, when approved> |
-| Approved in | <ISO-8601, when approved> |
-| Propagates to `parity_specs.md § Exceptions` | yes \| no |
+| Descrição | <o que diverge entre legado e novo> |
+| Motivo | <por que a divergência é necessária ou aceitável> |
+| Origem no legado | <arquivo:linha> |
+| Implicação para parity tests | <ex: comparação byte-a-byte falsa, usar comparação semântica> |
+| Aprovação | `pendente` \| `aprovado` \| `rejeitado` |
+| Aprovado por | <nome ou identificador, quando aprovado> |
+| Aprovado em | <ISO-8601, quando aprovado> |
+| Propaga para `parity_specs.md § Exceções` | sim \| não |
 
 ### DEV-002
 
-(repeat the block above for each deviation)
+(repetir o bloco acima para cada deviation)
 
-## Screens with more than one deviation
+## Telas com mais de uma deviation
 
-| Screen | IDs |
+| Tela | IDs |
 |---|---|
-| <screen X> | DEV-001, DEV-007 |
+| <tela X> | DEV-001, DEV-007 |
 
 ## Notas
 
-<General observations about the set of deviations: patterns, lessons that are valid for future migrations in the same source→target pair, suggestions for an improved adapter for v2.>
+<Observações gerais sobre o conjunto de deviations: padrões, aprendizados que valem para futuras migrações no mesmo par origem→alvo, sugestões de adapter melhorado para v2.>

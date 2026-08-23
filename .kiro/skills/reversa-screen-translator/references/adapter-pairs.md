@@ -1,10 +1,10 @@
 # Adapter Pairs
 
-Map of source→target pairs supported in v1, with mode recommended by default and the canonical spec format to use in `target_screens.md`. Unlisted pairs return `EC-01` and offer raw template.
+Mapa de pares origem→alvo suportados em v1, com modo recomendado por padrão e o formato canônico de spec a usar em `target_screens.md`. Pares não listados retornam `EC-01` e oferecem template raw.
 
 ## Tabela mestre
 
-| Origin | Target | Recommended mode | Adapter | Spec format |
+| Origem | Alvo | Modo recomendado | Adapter | Formato de spec |
 |---|---|---|---|---|
 | `cobol-ansi-tui` | `go-cli` | literal | `cobol_ansi__go_cli` | `ansi-byte-stream` |
 | `cobol-ansi-tui` | `rust-cli` | literal | `cobol_ansi__rust_cli` | `ansi-byte-stream` |
@@ -13,7 +13,7 @@ Map of source→target pairs supported in v1, with mode recommended by default a
 | `ncurses-c` | `go-cli` | literal | `ncurses__go_cli` | `ansi-byte-stream` |
 | `ncurses-c` | `rust-cli` | literal | `ncurses__rust_cli` | `ansi-byte-stream` |
 | `delphi-vcl` | `web-spa` | modernizado | `delphi_vcl__web_spa` | `component-tree` |
-| `delphi-vcl` | `tauri` | modernized (with literal-ish option) | `delphi_vcl__tauri` | `component-tree` |
+| `delphi-vcl` | `tauri` | modernizado (com opção literal-ish) | `delphi_vcl__tauri` | `component-tree` |
 | `delphi-vcl` | `electron` | modernizado | `delphi_vcl__electron` | `component-tree` |
 | `delphi-firemonkey` | `flutter` | modernizado | `delphi_firemonkey__flutter` | `composable` |
 | `vb6` | `web-spa` | modernizado | `vb6__web_spa` | `component-tree` |
@@ -29,69 +29,69 @@ Map of source→target pairs supported in v1, with mode recommended by default a
 | `php-server-rendered` | `web-spa` | modernizado | `php__spa` | `route-component` |
 | `html-legacy-jquery` | `web-spa` | modernizado | `html_legacy__spa` | `route-component` |
 | `android-xml-java` | `flutter` | modernizado | `android_xml__flutter` | `composable` |
-| `android-xml-java` | `compose` | modernized (close language) | `android_xml__compose` | `composable` |
-| `android-xml-kotlin` | `compose` | modernized (close language) | `android_xml_kt__compose` | `composable` |
+| `android-xml-java` | `compose` | modernizado (idioma próximo) | `android_xml__compose` | `composable` |
+| `android-xml-kotlin` | `compose` | modernizado (idioma próximo) | `android_xml_kt__compose` | `composable` |
 | `ios-xib-objc` | `flutter` | modernizado | `ios_xib_objc__flutter` | `composable` |
-| `ios-xib-objc` | `swiftui` | modernized (close language) | `ios_xib_objc__swiftui` | `composable` |
-| `ios-xib-swift` | `swiftui` | modernized (close language) | `ios_xib_swift__swiftui` | `composable` |
+| `ios-xib-objc` | `swiftui` | modernizado (idioma próximo) | `ios_xib_objc__swiftui` | `composable` |
+| `ios-xib-swift` | `swiftui` | modernizado (idioma próximo) | `ios_xib_swift__swiftui` | `composable` |
 
-## Modes available per pair
+## Modos disponíveis por par
 
-For each pair, in general three modes are presented to the user, but some combinations have a literal **infeasible** mode. The table below restricts it.
+Para cada par, em geral três modos são apresentados ao usuário, mas alguns combinações têm modo literal **inviável**. A tabela abaixo restringe.
 
-| Pair | Viable literal? | Why |
+| Par | literal viável? | Por quê |
 |---|---|---|
 | `cobol-ansi-tui` → `go-cli` | sim | terminais textuais respeitam ANSI byte-a-byte |
-| `cobol-ansi-tui` → `web-spa` | no | terminal has no literal equivalent in DOM; refuses literal mode |
-| `delphi-vcl` → `web-spa` | partial | only with a screenshot of the legacy and explicit acceptance; pixel-perfect rare |
-| `win32-mfc` → `web-spa` | no | refuses literal mode; recommends modernized |
-| `android-xml-*` → `flutter` | partial | only with screenshots by density; font-dependent pixel-perfect |
-| `android-xml-*` → `compose` | partial | same language, closer, but widgets differ |
+| `cobol-ansi-tui` → `web-spa` | não | terminal não tem equivalente literal em DOM; recusa modo literal |
+| `delphi-vcl` → `web-spa` | parcial | só com screenshot do legado e aceite explícito; pixel-perfect raro |
+| `win32-mfc` → `web-spa` | não | recusa modo literal; recomenda modernizado |
+| `android-xml-*` → `flutter` | parcial | só com screenshots por densidade; pixel-perfect dependente de fonte |
+| `android-xml-*` → `compose` | parcial | mesmo idioma, mais próximo, mas widgets divergem |
 | `ios-xib-*` → `swiftui` | parcial | mesma plataforma, mas constraints e auto-layout divergem |
 
-When `literal` is not viable, the agent presents only modernized and hybrid as options, and explains to the user why literal it was discarded.
+Quando `literal` não é viável, o agente apresenta apenas modernizado e híbrido como opções, e explica ao usuário por quê literal foi descartado.
 
 ## Formato de spec por kind
 
 ### `ansi-byte-stream` (terminais textuais)
 
-Each line as `bytes` block containing the literal string, including ANSI escapes. Use `\x1b[...m` for colors. Interpolations declared with `interpolations.<name>` per line. User inputs via `spec.input_prompts`.
+Cada linha como bloco `bytes` contendo a sequência literal, incluindo escapes ANSI. Usar `\x1b[...m` para cores. Interpolações declaradas com `interpolations.<nome>` por linha. Inputs do usuário via `spec.input_prompts`.
 
-Typical target implementation: one function per screen in `pkg/menu/screens.<ext>` that writes to `io.Writer`.
+Implementação alvo típica: uma função por tela em `pkg/menu/screens.<ext>` que escreve em `io.Writer`.
 
-### `component-tree` (graphical desktop/web/mobile, modernized mode)
+### `component-tree` (desktop/web/mobile gráfico, modo modernizado)
 
-Nominal component hierarchy (`PageLayout`, `Form`, `FormField`, `Button`, ...). Tokens referenced in `tokens: [...]`. Events in `submit_event`, `action`. States in `spec.states: [idle, loading, error, success]`. Messages by state in `spec.state_messages`.
+Hierarquia de componentes nominais (`PageLayout`, `Form`, `FormField`, `Button`, ...). Tokens referenciados em `tokens: [...]`. Eventos em `submit_event`, `action`. Estados em `spec.states: [idle, loading, error, success]`. Mensagens por estado em `spec.state_messages`.
 
-Target implementation: free framework (React, Vue, Svelte, SwiftUI, Compose, Tauri webview, etc.) unless `target_architecture.md` has already fixed a specific framework.
+Implementação alvo: framework livre (React, Vue, Svelte, SwiftUI, Compose, Tauri webview, etc.) salvo se `target_architecture.md` já fixou um framework específico.
 
 ### `route-component` (web modernizado a partir de server-rendered)
 
-Includes `spec.route` (target canonical URL) and `spec.layout` (parent layout). Body is a `component-tree`. `spec.api_changes` lists HTTP contract changes between legacy and target (URL, method, content-type), referencing deviations.
+Inclui `spec.route` (URL canônica do alvo) e `spec.layout` (layout pai). Body é um `component-tree`. `spec.api_changes` lista mudanças de contrato HTTP entre legado e alvo (URL, método, content-type), referenciando deviations.
 
 ### `composable` (mobile cross-platform)
 
-`spec.composable` block with declarative pseudo-code in the target language (Flutter Dart, Compose Kotlin, SwiftUI Swift). Includes `spec.viewmodel` when the target separates view and state.
+Bloco `spec.composable` com pseudo-código declarativo no idioma do alvo (Flutter Dart, Compose Kotlin, SwiftUI Swift). Inclui `spec.viewmodel` quando o alvo separa view e estado.
 
 ### `raw-prose` (fallback EC-01)
 
-When the adapter does not cover the pair. Content is structured prose with mandatory sections (identity, layout, fields, messages, events, validations). Each screen in `raw-prose` must have deviation recorded indicating that the coder will need to interpret the prose.
+Quando o adapter não cobre o par. Conteúdo é prosa estruturada com seções obrigatórias (identidade, layout, campos, mensagens, eventos, validações). Cada tela em `raw-prose` deve ter deviation registrada apontando que o codificador precisará interpretar a prosa.
 
 ## Entradas e estados especiais
 
-Every spec, in any kind, can include:
+Toda spec, em qualquer kind, pode incluir:
 
-- `spec.normalize`: rules accepted compared to golden file (line endings, trailing spaces, ANSI trim, etc.).
-- `spec.interpolations`: points where dynamic domain data enters (e.g. `{{titular}}`, `{{saldo}}`). With types and restrictions (max_width, regex, lookup).
-- `spec.transitions`: list of events that lead to another screen.
-- `spec.legacy_origin`: legacy path in `file:line` or `file:paragraph` form.
-- `spec.deviations`: `DEV-XXX` ids that affect the screen.
+- `spec.normalize`: regras aceitas em comparação com golden file (line endings, trailing spaces, trim ANSI, etc.).
+- `spec.interpolations`: pontos onde dados dinâmicos do domínio entram (ex: `{{titular}}`, `{{saldo}}`). Com tipos e restrições (max_width, regex, lookup).
+- `spec.transitions`: lista de eventos que levam a outra tela.
+- `spec.legacy_origin`: caminho `arquivo:linha` ou `arquivo:paragrafo` no legado.
+- `spec.deviations`: ids `DEV-XXX` que afetam a tela.
 
-## Pairs not covered in v1
+## Pares não cobertos em v1
 
-- Platforms with custom rendering (Canvas HTML5, OpenGL, games): return `EC-01`.
+- Plataformas com renderização customizada (Canvas HTML5, OpenGL, jogos): retornam `EC-01`.
 - 3D, AR/VR: fora do escopo (NG-07).
 - Voz / conversacional: fora do escopo.
 - Plugins descontinuados embedded (Crystal Reports, Flash, ActiveX): tratamento em v2 (OQ-03).
 
-New pairs can be added as rows in this table, along with a descriptive adapter (not code, it is textual heuristics used by the agent to generate the spec).
+Pares novos podem ser adicionados como linhas nesta tabela, junto com um adapter descritivo (não código, é heurística textual usada pelo agente para gerar a spec).

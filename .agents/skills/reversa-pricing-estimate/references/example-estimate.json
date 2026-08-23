@@ -6,9 +6,9 @@
     "market": "2.0"
   },
   "created_at": "2026-05-06T16:42:00Z",
-  "feature_dir": "reversa/sdd/forward/042-pagamento-pix",
-  "profile_ref": "reversa/sdd/_pricing/profile.json",
-  "size_ref": "reversa/sdd/_pricing/042-pagamento-pix/size.json",
+  "feature_dir": "_reversa_sdd/forward/042-pagamento-pix",
+  "profile_ref": "_reversa_sdd/_pricing/profile.json",
+  "size_ref": "_reversa_sdd/_pricing/042-pagamento-pix/size.json",
   "currency": "BRL",
   "billing_currency": null,
   "exchange_rate_to_local": null,
@@ -31,7 +31,7 @@
       "preco_minimo": 4800.0,
       "preco_maximo": 12000.0,
       "preco_total": 8400.0,
-      "explanation_pt_br": "Range based on 32 to 80 hours for L complexity, senior seniority, direct cost, a 15% tax reserve, and 35% project markup."
+      "explanation_pt_br": "Faixa baseada em 32 a 80h para complexidade L, senioridade senior, custo direto, reserva tributaria de 15% e markup de projeto de 35%."
     },
     "value": {
       "available": true,
@@ -47,7 +47,7 @@
       "preco_maximo": 7200.0,
       "payback_months_min": 1.2,
       "payback_months_max": 3.6,
-      "explanation_pt_br": "Range based on capturing 10% to 30% of declared annual value, with an approximate payback of 1.2 to 3.6 months."
+      "explanation_pt_br": "Faixa baseada em captura de 10% a 30% do valor anual declarado, com payback aproximado de 1.2 a 3.6 meses."
     },
     "market": {
       "available": true,
@@ -70,5 +70,5 @@
       "explanation_pt_br": "Faixa derivada de benchmark horario BR senior e 32 a 80h para complexidade L."
     }
   },
-  "guidance_pt_br": "The declared Value produces a lower range than the average Effort. Use Effort as a defensible floor and Market as an external reference. For this client, charge below 4,800 BRL only when there is a clear strategic reason."
+  "guidance_pt_br": "O Valor declarado gera uma faixa menor que o Esforco medio. Use Esforco como piso defensavel e Mercado como referencia externa. Para este cliente, cobre abaixo de 4800 BRL apenas se houver motivo estrategico claro."
 }

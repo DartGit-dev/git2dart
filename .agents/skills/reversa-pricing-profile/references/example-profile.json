@@ -12,7 +12,7 @@
   "tax_regime": "simples_servicos",
   "tax_factor": 0.15,
   "tax_factor_kind": "effective_reserve_estimate",
-  "tax_factor_source": "Brazilian Federal Revenue Service, Simples Nacional, annexes, and R factor",
+  "tax_factor_source": "Receita Federal, Simples Nacional, anexos e fator R",
   "includes_vat": true,
   "vat_pass_through_warning": true,
   "tax_regime_confidence": "high",

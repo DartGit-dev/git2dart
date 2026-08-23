@@ -1,9 +1,9 @@
 ---
 name: reversa-principles
-description: Creates or updates the project's lasting principles and propagates adjustment suggestions to dependent templates. Principles are rare, change little, and influence all artifacts. It can run even before the first feature.
+description: Cria ou atualiza os princípios duradouros do projeto e propaga sugestões de ajuste nos templates dependentes. Princípios são raros, mudam pouco e influenciam todos os artefatos. Pode rodar antes mesmo da primeira feature.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,71 +12,71 @@ metadata:
   stage: principles
 ---
 
-You are the guardian of principles. This skill deals with lasting project rules, separate from the specific requirements of each feature. Principles change little and influence all other artifacts.
+Você é o guardião dos princípios. Esse skill lida com regras duradouras do projeto, separadas dos requisitos específicos de cada feature. Princípios mudam pouco e influenciam todos os outros artefatos.
 
-This skill is rare, typically less than once a month. It is NOT part of the `requirements`, `plan`, `to-do`, `coding` pipeline. It can run alone, even before the first feature.
+Esse skill é raro, frequência tipicamente menor que uma vez por mês. Ele NÃO faz parte do pipeline `requirements`, `plan`, `to-do`, `coding`. Pode rodar sozinho, antes mesmo da primeira feature.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Try reading `.reversa/principles.md`
-1.1. If absent, mode is `criar`
-1.2. If present, mode is `atualizar`
-2. Apply `before-principles` in the standard way
+1. Tente ler `.reversa/principles.md`
+   1.1. Se ausente, modo é `criar`
+   1.2. Se presente, modo é `atualizar`
+2. Aplique `before-principles` da forma padrão
 
-## Create mode
+## Modo criar
 
 1. Carregue `.reversa/templates/principles-template.md`
-2. Ask the user for candidate principles, in batch or one by one
-3. For each principle:
-3.1. Assign sequential Roman numerals (I, II, III, ...)
-3.2. Ask for short title, description and a concrete application example
-3.3. Record creation date
-4. List, in the "Impact" section, which templates will be affected when the principle changes (always `requirements-template.md`, `roadmap-template.md`, and potentially `actions-template.md`)
-5. Start the "Change History" section with the initial entry
+2. Pergunte ao usuário pelos princípios candidatos, em batch ou um a um
+3. Para cada princípio:
+   3.1. Atribua numeração romana sequencial (I, II, III, ...)
+   3.2. Pergunte por título curto, descrição e um exemplo concreto de aplicação
+   3.3. Registre data de criação
+4. Liste, na seção "Impacto", quais templates serão afetados quando o princípio mudar (sempre `requirements-template.md`, `roadmap-template.md`, e potencialmente `actions-template.md`)
+5. Inicie a seção "Histórico de Alterações" com a entrada inicial
 
-## Update mode
+## Modo atualizar
 
-1. Present the user with the current list of numbered principles
-2. Ask which operation he wants:
-2.1. Add new (continues in the next roman numerals, never recycles)
-2.2. Change text from an existing one (maintains numbering, records change in history)
-2.3. Retire one (DO NOT delete, mark as `aposentado em YYYY-MM-DD` and move to the end of the document)
-3. After operation:
-3.1. Update the "Impact" section if necessary
-3.2. Add entry to "Change History"
+1. Apresente ao usuário a lista atual de princípios numerados
+2. Pergunte qual operação ele quer:
+   2.1. Adicionar novo (continua na próxima numeração romana, jamais recicla)
+   2.2. Alterar texto de um existente (mantém numeração, registra alteração no histórico)
+   2.3. Aposentar um (NÃO apaga, marca como `aposentado em YYYY-MM-DD` e move para o final do documento)
+3. Após a operação:
+   3.1. Atualize a seção "Impacto" se necessário
+   3.2. Adicione entrada à "Histórico de Alterações"
 
-## Impact Propagation
+## Propagação de impacto
 
-1. For each template listed in the "Impact" section:
-1.1. Read the template at `.reversa/templates/<name>`
-1.2. Check if the template needs a new placeholder or section to reflect the principle
-1.3. NEVER rewrite the entire template automatically, only generate an impact report in `.reversa/principles-impact-YYYYMMDD.md`
-2. The report lists, by template, textual adjustment suggestions
-3. Applying these suggestions is a human decision, this skill only suggests
+1. Para cada template listado na seção "Impacto":
+   1.1. Leia o template em `.reversa/templates/<nome>`
+   1.2. Verifique se o template precisa de novo placeholder ou seção para refletir o princípio
+   1.3. NUNCA reescreva o template inteiro automaticamente, gere apenas um relatório de impacto em `.reversa/principles-impact-YYYYMMDD.md`
+2. O relatório lista, por template, sugestões textuais de ajuste
+3. Aplicar essas sugestões é decisão do humano, esse skill só sugere
 
-## Persistence
+## Persistência
 
-- Write `.reversa/principles.md` with atomic writing
-- Save the impact report to `.reversa/principles-impact-YYYYMMDD.md`
-- Never overwrite old impact reports, each run creates a dated file
+- Grave `.reversa/principles.md` com escrita atômica
+- Grave o relatório de impacto em `.reversa/principles-impact-YYYYMMDD.md`
+- Jamais sobrescreva relatórios de impacto antigos, cada execução cria um arquivo datado
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-principles` in the standard way.
+Aplique `after-principles` da forma padrão.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. Absolute path of `principles.md`
-2. List of active ingredients, with numbering and short title
-3. List of retired principles, if any
-4. Path of the generated impact report
-5. Warning: new or changed principles will only be valid for features started after this date
+1. Caminho absoluto de `principles.md`
+2. Lista de princípios ativos, com numeração e título curto
+3. Lista de princípios aposentados, se houver
+4. Caminho do relatório de impacto gerado
+5. Aviso: princípios novos ou alterados só passam a valer em features iniciadas após essa data
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to proceed with the next desired action.
+> Digite **CONTINUAR** para prosseguir com a próxima ação que desejar.

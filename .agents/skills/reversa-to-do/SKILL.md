@@ -1,9 +1,9 @@
 ---
 name: reversa-to-do
-description: Decomposes the roadmap into atomic actions with sequential IDs, dependencies and parallelism marker. Fourth skill in the forward cycle, after `/reversa-plan`.
+description: Decompõe o roadmap em ações atômicas com IDs sequenciais, dependências e marcador de paralelismo. Quarto skill do ciclo forward, depois de `/reversa-plan`.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,78 +12,78 @@ metadata:
   stage: to-do
 ---
 
-You are the decomposer. Its mission is to transform `roadmap.md` into an executable `actions.md`, with atomic tasks, stable IDs and clear marking of what can run in parallel.
+Você é o decompositor. Sua missão é transformar o `roadmap.md` num `actions.md` executável, com tarefas atômicas, IDs estáveis e marcação clara do que pode rodar em paralelo.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If missing, abort pointing `/reversa-requirements`
-2. Check for the existence of `feature-dir/roadmap.md`
-2.1. If absent, abort with clear message indicating `/reversa-plan`. Don't try to fill in the roadmap here
-3. Also load `feature-dir/data-delta.md` and `feature-dir/interfaces/*` if they exist
-4. Apply `before-to-do` in the standard way
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se ausente, aborte apontando `/reversa-requirements`
+2. Verifique a existência de `feature-dir/roadmap.md`
+   2.1. Se ausente, aborte com mensagem clara apontando `/reversa-plan`. Não tente preencher o roadmap aqui
+3. Carregue também `feature-dir/data-delta.md` e `feature-dir/interfaces/*` se existirem
+4. Aplique `before-to-do` da forma padrão
 
-## Decomposition strategy
+## Estratégia de decomposição
 
-1. Use the five standard phases in order:
-1.1. Preparation (setup, scaffolding, initial migrations, configuration)
-1.2. Tests (tests that need to exist before or right after the core, if the team practices TDD)
-1.3. Core (central logic of the feature)
-1.4. Integration (glue with other parts of the system, external contracts, hooks)
-1.5. Polishing (logs, telemetry, messages, short documentation)
-2. For each item in `roadmap.md`, derive one or more actions
-3. Break each action down to the point where it can be performed in a single coherent block, without having to change the subject
-4. Assign ID `T001`, `T002`, ..., zero-padded with three digits
-5. Mark with `[//]` at the beginning of the line tasks that touch different files AND do not depend on each other
-6. In an explicit column, record dependencies by ID (e.g.: `T005 depende de T001, T003`)
-7. In explicit column, register the main target file (`src/payments/pdf.js`, for example)
-8. In the `confidence` column, inherit 🟢 / 🟡 / 🔴 from the corresponding decision in the roadmap
+1. Use as cinco fases padrão na ordem:
+   1.1. Preparação (setup, scaffolding, migrações iniciais, configuração)
+   1.2. Testes (testes que precisam existir antes ou logo após o núcleo, se a equipe pratica TDD)
+   1.3. Núcleo (lógica central da feature)
+   1.4. Integração (cola com outras partes do sistema, contratos externos, hooks)
+   1.5. Polimento (logs, telemetria, mensagens, documentação curta)
+2. Para cada item do `roadmap.md`, derive uma ou mais ações
+3. Quebre cada ação até o ponto em que possa ser executada num único bloco coerente, sem precisar trocar de assunto
+4. Atribua ID `T001`, `T002`, ..., zero-padded com três dígitos
+5. Marque com `[//]` no início da linha as tarefas que tocam arquivos diferentes E não dependem umas das outras
+6. Em coluna explícita, registre dependências por ID (ex.: `T005 depende de T001, T003`)
+7. Em coluna explícita, registre o arquivo alvo principal (`src/payments/pdf.js`, por exemplo)
+8. Em coluna `confidência`, herde 🟢 / 🟡 / 🔴 da decisão correspondente no roadmap
 
-## "Atomic" criteria
+## Critérios de "atômico"
 
-- An action is atomic when it can be completed by an agent in one turn, without needing human feedback in between
-- If an action has more than five logical subpoints, break
-- If an action touches more than three unrelated files, break
-- If an action includes "and also", "after", "then", break
+- Uma ação é atômica quando pode ser concluída por um agente em um turno, sem precisar de feedback humano no meio
+- Se uma ação tem mais de cinco subpontos lógicos, quebre
+- Se uma ação toca mais de três arquivos não relacionados, quebre
+- Se uma ação inclui "e também", "depois", "em seguida", quebre
 
-## Construction of actions.md
+## Construção do actions.md
 
 1. Carregue o template `.reversa/templates/actions-template.md`
-2. For each phase, create a table with `ID | Description | Dependencies | Parallelism | Target file | Confidence | Status` columns
-3. Status always starts as `[ ]`
-4. Before the first table, include summary:
-4.1. Total shares
-4.2. Total parallelizable actions
-4.3. Longest dependency chain
+2. Para cada fase, crie tabela com colunas `ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status`
+3. Status inicia sempre como `[ ]`
+4. Antes da primeira tabela, inclua resumo:
+   4.1. Total de ações
+   4.2. Total de ações paralelizáveis
+   4.3. Maior cadeia de dependência
 
-## Maintenance rules
+## Regras de manutenção
 
-- IDs are never recycled, even if an action is removed in a later review
-- Renumbering only happens when the document is generated for the first time
-- Never insert actions such as "configure IDE", "run lint", "open PR", this is not the responsibility of Reversa
+- IDs jamais são reciclados, mesmo que uma ação seja removida em revisão posterior
+- A renumeração só acontece quando se gera o documento pela primeira vez
+- Nunca insira ações de "configurar IDE", "rodar lint", "abrir PR", isso não é responsabilidade do Reversa
 
-## Persistence
+## Persistência
 
-- Write `feature-dir/actions.md` with atomic writing
+- Grave `feature-dir/actions.md` com escrita atômica
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-to-do` in the standard way.
+Aplique `after-to-do` da forma padrão.
 
-## Final report
+## Relatório final
 
-1. Absolute path of `actions.md`
-2. Total actions per phase
-3. Total marked as `[//]`
-4. Suggested next step, in order:
-4.1. `/reversa-audit` if you noticed inconsistency when decomposing
-4.2. `/reversa-coding` otherwise
+1. Caminho absoluto de `actions.md`
+2. Total de ações por fase
+3. Total marcadas como `[//]`
+4. Sugestão de próximo passo, em ordem:
+   4.1. `/reversa-audit` se você notou inconsistência ao decompor
+   4.2. `/reversa-coding` caso contrário
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestão acima.

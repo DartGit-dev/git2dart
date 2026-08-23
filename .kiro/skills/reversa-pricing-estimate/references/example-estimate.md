@@ -1,88 +1,88 @@
 # Estimativa de Preco
 
-**Feature:** `reversa/sdd/forward/042-pagamento-pix`
-**Generated on:** 2026-05-06 16:42 UTC
-**Calculation version:** Effort v2.0, Value v2.0, Market v2.0
+**Feature:** `_reversa_sdd/forward/042-pagamento-pix`
+**Gerado em:** 2026-05-06 16:42 UTC
+**Versao dos calculos:** Esforco v2.0, Valor v2.0, Mercado v2.0
 
 **Pre-requisitos consumidos:**
-- Profile: `reversa/sdd/_pricing/profile.json`
-- Size: `reversa/sdd/_pricing/042-pagamento-pix/size.json` (classe `L`, score auxiliar `60`)
+- Profile: `_reversa_sdd/_pricing/profile.json`
+- Size: `_reversa_sdd/_pricing/042-pagamento-pix/size.json` (classe `L`, score auxiliar `60`)
 
 ## Visao geral
 
-| Scenario | Range | Comment |
+| Cenario | Faixa | Comentario |
 |---|---|---|
-| **Effort** | 4,800.00 to 12,000.00 BRL | 32 to 80h, cost + tax + markup |
-| **Value** | 2,400.00 to 7,200.00 BRL | 10% to 30% of declared annual value |
-| **Market Range** | 3,200.00 to 16,000.00 BRL | hourly rate sourced by country and seniority |
+| **Esforco** | 4.800,00 a 12.000,00 BRL | 32 a 80h, custo + imposto + markup |
+| **Valor** | 2.400,00 a 7.200,00 BRL | 10% a 30% do valor anual declarado |
+| **Faixa de Mercado** | 3.200,00 a 16.000,00 BRL | taxa hora fonteada por pais e senioridade |
 
-## Effort Scenario
+## Cenario Esforco
 
-**What it is:** price calculated based on probable hours, hourly rate, approximate tax reserve and project markup. And the floor is defensible so as not to subsidize the customer.
+**O que e:** preco calculado a partir de horas provaveis, taxa hora, reserva tributaria aproximada e markup de projeto. E o piso defensavel para nao subsidiar o cliente.
 
-**When to use:** always as a sanity check. Charging below the Effort means assuming a loss or reducing the project's profit too much.
+**Quando usar:** sempre como sanity check. Cobrar abaixo do Esforco significa assumir prejuizo ou reduzir demais o lucro do projeto.
 
-| Item | Value |
+| Item | Valor |
 |---|---|
 | Classe de complexidade | L |
-| Seniority | senior |
-| Seniority factor | 1.00 |
+| Senioridade | senior |
+| Fator de senioridade | 1,00 |
 | Horas estimadas | 32 a 80 h |
 | Ponto medio | 56 h |
-| Hourly rate | 100.00 BRL/h |
-| Direct cost | 3,200.00 to 8,000.00 BRL |
+| Taxa hora | 100,00 BRL/h |
+| Custo direto | 3.200,00 a 8.000,00 BRL |
 | Reserva tributaria aproximada | 480,00 a 1.200,00 BRL |
-| Project markup (35%) | 1,120.00 to 2,800.00 BRL |
-| **Effort range** | **4,800.00 to 12,000.00 BRL** |
+| Markup de projeto (35%) | 1.120,00 a 2.800,00 BRL |
+| **Faixa Esforco** | **4.800,00 a 12.000,00 BRL** |
 | Ponto medio | 8.400,00 BRL |
 
-Warning: part of the tax factor may be tax highlighted and passed on to the customer. Validate with an accountant.
+Aviso: parte do fator tributario pode ser imposto destacado e repassado ao cliente. Valide com contador.
 
-## Value Scenario
+## Cenario Valor
 
-**What it is:** price based on part of the annual economic value that the feature generates or protects for the customer. Reversa uses capture of 10% to 30% of the declared annual value.
+**O que e:** preco baseado em parte do valor economico anual que a feature gera ou protege para o cliente. O Reversa usa captura de 10% a 30% do valor anual declarado.
 
-**When to use:** when the customer is able to declare return, savings or cost of not doing it.
+**Quando usar:** quando o cliente consegue declarar retorno, economia ou custo de nao fazer.
 
-| Item | Value |
+| Item | Valor |
 |---|---|
 | Retorno mensal declarado | 2.000,00 BRL |
 | Usuarios impactados | 500 |
-| Cost of not doing it | 5,000.00 BRL |
-| Annual value used | 24,000.00 BRL |
+| Custo de nao fazer | 5.000,00 BRL |
+| Valor anual usado | 24.000,00 BRL |
 | Captura aplicada | 10% a 30% |
-| Recommended price | 4,800.00 BRL |
-| **Value range** | **2,400.00 to 7,200.00 BRL** |
-| Approximate payback | 1.2 to 3.6 months |
+| Preco recomendado | 4.800,00 BRL |
+| **Faixa Valor** | **2.400,00 a 7.200,00 BRL** |
+| Payback aproximado | 1,2 a 3,6 meses |
 
-## Market Range Scenario
+## Cenario Faixa de Mercado
 
-**What it is:** range derived from hourly benchmark by country and seniority, multiplied by the same range of hours from the Effort scenario.
+**O que e:** faixa derivada de benchmark horario por pais e senioridade, multiplicado pela mesma faixa de horas do cenario Esforco.
 
-**When to use:** as an external reference. v2 does not multiply by customer profile because there is no reliable public dataset for this.
+**Quando usar:** como referencia externa. A v2 nao multiplica por perfil de cliente porque nao ha dataset publico confiavel para isso.
 
-| Item | Value |
+| Item | Valor |
 |---|---|
-| Country / Seniority | Brazil / senior |
+| Pais / Senioridade | Brasil / senior |
 | Modelo / Perfil cliente | escopo_fechado / pequena_empresa |
 | Complexidade | L |
-| Market hourly rate | 100.00 to 200.00 BRL/h |
-| Source type | salary_derived_freelance_estimate |
+| Taxa hora de mercado | 100,00 a 200,00 BRL/h |
+| Tipo de fonte | salary_derived_freelance_estimate |
 | Ano de referencia | 2025-2026 |
 | Fontes | Portal Salario CAGED, Glassdoor Brasil |
-| **Market range** | **3,200.00 to 16,000.00 BRL** |
+| **Faixa Mercado** | **3.200,00 a 16.000,00 BRL** |
 
-## How to choose between the three
+## Como escolher entre os tres
 
-The Declared Value generates a smaller range than the Average Effort. Use Effort as a defensible floor and Market as an external reference. For this client, charge below 4,800 BRL only if there is a clear strategic reason.
+O Valor declarado gera uma faixa menor que o Esforco medio. Use Esforco como piso defensavel e Mercado como referencia externa. Para este cliente, cobre abaixo de 4.800 BRL apenas se houver motivo estrategico claro.
 
 Heuristica geral:
 
-1. Customer without clear return: use Effort as a floor and Market as an external reference
-2. Customer with high and clear return: prefer Value, with Effort only as a minimum floor
-3. Effort above the Market: review the client’s profile, size or suitability
-4. Market above Effort: there is room to increase markup or improve proposal
+1. Cliente sem retorno claro: use Esforco como piso e Mercado como referencia externa
+2. Cliente com retorno alto e claro: prefira Valor, com Esforco apenas como piso minimo
+3. Esforco acima do Mercado: revise profile, size ou adequacao do cliente
+4. Mercado acima do Esforco: ha espaco para subir markup ou melhorar proposta
 
 ## Disclaimer
 
-The numbers in this estimate are approximations for budget guidance, not a guarantee of closing the sale. The tax factor is an approximate reserve, not an exact legal rate. Real tax validation and responsibility of the user's accountant. The market range is static and based on sources documented in `market-benchmarks.md`. The return declared by the client in the Value scenario is raw input, not validated. It is recommended to add `reversa/sdd/_pricing/<feature>/estimate.{md,json}` to `.gitignore` before committing.
+Os numeros nesta estimativa sao aproximacoes para orientacao de orcamento, nao garantia de fechamento de venda. O fator de imposto e uma reserva aproximada, nao uma aliquota legal exata. Validacao tributaria real e responsabilidade do contador do usuario. A faixa de mercado e estatica e baseada nas fontes documentadas em `market-benchmarks.md`. O retorno declarado pelo cliente no cenario Valor e input bruto, nao validado. Recomenda-se adicionar `_reversa_sdd/_pricing/<feature>/estimate.{md,json}` ao `.gitignore` antes de commitar.

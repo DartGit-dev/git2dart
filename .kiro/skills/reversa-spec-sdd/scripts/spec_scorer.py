@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Spec Scorer — Evaluates the quality of a feature specification
+Spec Scorer — Avalia a qualidade de uma spec de feature
 Baseado na rubrica em references/evaluation_rubric.md
 
 Uso:
-    python scripts/spec_scorer.py --spec path/to/spec.md
-    python scripts/spec_scorer.py --spec spec.md --json   # JSON output
+    python scripts/spec_scorer.py --spec caminho/para/spec.md
+    python scripts/spec_scorer.py --spec spec.md --json   # saída em JSON
 """
 
 import argparse
@@ -17,14 +17,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
-# ─── Data structures ────────────────────────────────────────────────────
+# ─── Estruturas de dados ────────────────────────────────────────────────────
 
 @dataclass
 class DimensionScore:
     name: str
     weight: float          # peso relativo (soma = 1.0)
-    raw_score: float       # 0–100 within the dimension
-    max_raw: float         # maximum possible
+    raw_score: float       # 0–100 dentro da dimensão
+    max_raw: float         # máximo possível
     issues: list[str] = field(default_factory=list)
     positives: list[str] = field(default_factory=list)
 
@@ -44,12 +44,12 @@ class SpecReport:
     raw_text: str
 
 
-# ─── Analysis helpers ─────────────────────────────────────────────────────
+# ─── Helpers de análise ─────────────────────────────────────────────────────
 
 def load_spec(path: str) -> str:
     p = Path(path)
     if not p.exists():
-        print(f"❌ File not found: {path}", file=sys.stderr)
+        print(f"❌ Arquivo não encontrado: {path}", file=sys.stderr)
         sys.exit(1)
     return p.read_text(encoding="utf-8")
 
@@ -59,7 +59,7 @@ def has_section(text: str, section_pattern: str) -> bool:
 
 
 def section_content(text: str, section_pattern: str) -> str:
-    """Extracts section content up to the next section at the same level."""
+    """Extrai conteúdo da seção até a próxima seção de mesmo nível."""
     match = re.search(section_pattern, text, re.IGNORECASE | re.MULTILINE)
     if not match:
         return ""
@@ -95,7 +95,7 @@ def count_unfilled_placeholders(text: str) -> int:
 
 
 def has_numeric_metric(text: str) -> bool:
-    # Search for patterns such as "< 200ms", "≥ 25%", "99,9%", "< 2min"
+    # Busca padrões como "< 200ms", "≥ 25%", "99,9%", "< 2min"
     return bool(re.search(r'[<>≤≥]\s*\d+|=\s*\d+\s*%|\d+\s*(ms|min|h|%|dias?|days?)', text))
 
 
@@ -112,25 +112,25 @@ def has_vague_terms(text: str) -> list[str]:
 
 
 def has_contradictions_signal(text: str) -> bool:
-    # Simple heuristic: presence of "mas" / "porém" / "entretanto" after a requirement
+    # Heurística simples: presença de "mas" / "porém" / "entretanto" depois de requisito
     return bool(re.search(r'RF-\d+.*?\b(mas|porém|entretanto|however|but)\b', text,
                            re.IGNORECASE | re.DOTALL))
 
 
-# ─── Evaluators by dimension ────────────────────────────────────────────────
+# ─── Avaliadores por dimensão ────────────────────────────────────────────────
 
 def score_completude(text: str) -> DimensionScore:
     dim = DimensionScore(name="Completude", weight=0.30, raw_score=0, max_raw=30)
     score = 0
 
-    # Essential sections (1–6) are present and contain content
+    # Seções essenciais (1–6) presentes e com conteúdo
     required_sections = [
-        (r'^#{1,2}\s+1[\.\s]+(?:Resum|Summary)', "Section 1 (Summary)"),
-        (r'^#{1,2}\s+2[\.\s]+(?:Contexto|Context)', "Section 2 (Context)"),
-        (r'^#{1,2}\s+3[\.\s]+Goals', "Section 3 (Goals)"),
-        (r'^#{1,2}\s+4[\.\s]+Non.Goals', "Section 4 (Non-Goals)"),
-        (r'^#{1,2}\s+5[\.\s]+(?:Usuári|User)', "Section 5 (Users)"),
-        (r'^#{1,2}\s+6[\.\s]+(?:Requisitos|Requirements)', "Section 6 (Requirements)"),
+        (r'^#{1,2}\s+1[\.\s]+Resum', "Seção 1 (Resumo)"),
+        (r'^#{1,2}\s+2[\.\s]+Contexto', "Seção 2 (Contexto)"),
+        (r'^#{1,2}\s+3[\.\s]+Goals', "Seção 3 (Goals)"),
+        (r'^#{1,2}\s+4[\.\s]+Non.Goals', "Seção 4 (Non-Goals)"),
+        (r'^#{1,2}\s+5[\.\s]+Usuári', "Seção 5 (Usuários)"),
+        (r'^#{1,2}\s+6[\.\s]+Requisitos', "Seção 6 (Requisitos)"),
     ]
     present = 0
     for pattern, name in required_sections:
@@ -138,47 +138,47 @@ def score_completude(text: str) -> DimensionScore:
             content = section_content(text, pattern)
             if has_content(content, 8):
                 present += 1
-                dim.positives.append(f"✅ {name} present and complete")
+                dim.positives.append(f"✅ {name} presente e preenchida")
             else:
-                dim.issues.append(f"⚠️ {name} present but with insufficient content")
+                dim.issues.append(f"⚠️ {name} presente mas com conteúdo insuficiente")
         else:
-            dim.issues.append(f"❌ {name} missing")
+            dim.issues.append(f"❌ {name} ausente")
     score += (present / len(required_sections)) * 10
 
-    # Requirements with IDs
+    # Requisitos com IDs
     rf_count = count_rf_items(text)
     if rf_count >= 5:
         score += 8
-        dim.positives.append(f"✅ {rf_count} numbered RF requirements")
+        dim.positives.append(f"✅ {rf_count} requisitos RF numerados")
     elif rf_count >= 3:
         score += 5
-        dim.issues.append(f"⚠️ Only {rf_count} RF requirements — recommended minimum is 5")
+        dim.issues.append(f"⚠️ Apenas {rf_count} requisitos RF — recomendado mínimo 5")
     elif rf_count > 0:
         score += 2
-        dim.issues.append(f"❌ Too few RF requirements ({rf_count}) — incomplete specification")
+        dim.issues.append(f"❌ Poucos requisitos RF ({rf_count}) — spec incompleta")
     else:
-        dim.issues.append("❌ No numbered RF requirements — traceability is impossible")
+        dim.issues.append("❌ Nenhum requisito RF numerado — impossível rastrear")
 
     # Non-goals
     ng_count = count_nf_items(text)
     if ng_count >= 3:
         score += 7
-        dim.positives.append(f"✅ {ng_count} defined non-goals")
+        dim.positives.append(f"✅ {ng_count} non-goals definidos")
     elif ng_count >= 1:
         score += 4
-        dim.issues.append(f"⚠️ Only {ng_count} non-goal(s) — add more for clarity")
+        dim.issues.append(f"⚠️ Apenas {ng_count} non-goal(s) — adicione mais para clareza")
     else:
-        dim.issues.append("❌ Non-goals missing — scope-creep risk")
+        dim.issues.append("❌ Non-goals ausentes — risco de scope creep")
 
-    # Unfilled placeholders
+    # Placeholders não preenchidos
     placeholders = count_unfilled_placeholders(text)
     if placeholders == 0:
         score += 5
-        dim.positives.append("✅ No unfilled [bracket] placeholders")
+        dim.positives.append("✅ Nenhum placeholder [colchete] não preenchido")
     else:
         penalty = min(placeholders * 2, 10)
         score = max(0, score - penalty)
-        dim.issues.append(f"❌ {placeholders} unfilled placeholder(s) — incomplete specification")
+        dim.issues.append(f"❌ {placeholders} placeholder(s) não preenchido(s) — spec incompleta")
 
     dim.raw_score = min(score, dim.max_raw)
     return dim
@@ -188,15 +188,15 @@ def score_testabilidade(text: str) -> DimensionScore:
     dim = DimensionScore(name="Testabilidade", weight=0.25, raw_score=0, max_raw=25)
     score = 0
 
-    # Concrete verbs — heuristic: absence of vague terms in requirements
+    # Verbos concretos — heurística: ausência de termos vagos em requisitos
     vague = has_vague_terms(text)
     if not vague:
         score += 10
-        dim.positives.append("✅ No vague terms in requirements")
+        dim.positives.append("✅ Ausência de termos vagos nos requisitos")
     else:
         penalty = min(len(vague) * 3, 10)
         score += max(0, 10 - penalty)
-        dim.issues.append(f"⚠️ Vague terms found: {', '.join(vague[:5])}")
+        dim.issues.append(f"⚠️ Termos vagos encontrados: {', '.join(vague[:5])}")
 
     # Fluxo principal (happy path)
     has_happy_path = has_section(text, r'Fluxo Principal|Happy Path|6\.2')
@@ -206,20 +206,20 @@ def score_testabilidade(text: str) -> DimensionScore:
         steps = count_pattern(happy_content, r'^\s*\d+\.')
         if steps >= 3:
             score += 8
-            dim.positives.append(f"✅ Main flow with {steps} steps")
+            dim.positives.append(f"✅ Fluxo principal com {steps} passos")
         else:
             score += 4
-            dim.issues.append("⚠️ Main flow is incomplete (< 3 steps)")
+            dim.issues.append("⚠️ Fluxo principal incompleto (< 3 passos)")
     else:
-        dim.issues.append("❌ Main flow (happy path) missing — essential for testing")
+        dim.issues.append("❌ Fluxo principal (happy path) ausente — essencial para testes")
 
-    # Numeric metrics in goals
+    # Métricas numéricas nos goals
     goals_content = section_content(text, r'^#{1,2}\s+3[\.\s]+Goals')
     if has_numeric_metric(goals_content) or has_numeric_metric(text[:2000]):
         score += 7
-        dim.positives.append("✅ Numeric success metrics present")
+        dim.positives.append("✅ Métricas de sucesso numéricas presentes")
     else:
-        dim.issues.append("⚠️ Success metrics lack numeric values — validation is difficult")
+        dim.issues.append("⚠️ Métricas de sucesso sem valores numéricos — dificulta validação")
 
     dim.raw_score = min(score, dim.max_raw)
     return dim
@@ -231,33 +231,33 @@ def score_clareza(text: str) -> DimensionScore:
 
     # Open questions sinalizadas
     open_questions = count_pattern(text, r'⚠️\s*ABERTO:|OQ-\d+')
-    ambiguities_hidden = count_pattern(text, r'\?.*\?')  # multiple question marks — sign of uncertainty
+    ambiguities_hidden = count_pattern(text, r'\?.*\?')  # múltiplas interrogações — sinal de dúvida
     if open_questions > 0:
         score += 6
-        dim.positives.append(f"✅ {open_questions} explicitly marked open question(s)")
+        dim.positives.append(f"✅ {open_questions} open question(s) sinalizadas explicitamente")
     elif ambiguities_hidden > 3:
-        dim.issues.append("⚠️ Possible unmarked ambiguities (use ⚠️ OPEN: or section 14)")
+        dim.issues.append("⚠️ Possíveis ambiguidades não sinalizadas (use ⚠️ ABERTO: ou seção 14)")
 
-    # Clear subject in requirements
-    rf_section = section_content(text, r'^#{1,2}\s+6[\.\s]+(?:Requisitos|Requirements)')
+    # Sujeito claro nos requisitos
+    rf_section = section_content(text, r'^#{1,2}\s+6[\.\s]+Requisitos')
     subjects = count_pattern(rf_section, r'\b(o sistema|o usuário|a plataforma|the system|the user)\b')
     rf_count = count_rf_items(rf_section)
     if rf_count > 0 and subjects >= rf_count * 0.5:
         score += 6
-        dim.positives.append("✅ Requirements have a clear subject (system/user)")
+        dim.positives.append("✅ Requisitos com sujeito claro (sistema/usuário)")
     elif rf_count > 0:
-        dim.issues.append("⚠️ Some requirements lack an explicit subject — who does what?")
+        dim.issues.append("⚠️ Alguns requisitos sem sujeito explícito — quem faz o quê?")
 
-    # Contradictions
+    # Contradições
     if has_contradictions_signal(text):
         score = max(0, score - 5)
-        dim.issues.append("⚠️ Possible contradiction between requirements — review")
+        dim.issues.append("⚠️ Possível contradição entre requisitos — revisar")
 
-    # Undefined technical language (heuristic)
+    # Linguagem técnica sem definição (heurística)
     vague = has_vague_terms(text)
     if not vague:
         score += 8
-        dim.positives.append("✅ Precise language without vague terms")
+        dim.positives.append("✅ Linguagem precisa e sem termos vagos")
     else:
         score += max(0, 8 - len(vague) * 2)
 
@@ -269,38 +269,38 @@ def score_escopo(text: str) -> DimensionScore:
     dim = DimensionScore(name="Escopo", weight=0.15, raw_score=0, max_raw=15)
     score = 0
 
-    # Useful non-goals
+    # Non-goals úteis
     ng_section = section_content(text, r'^#{1,2}\s+4[\.\s]+Non.Goals')
     ng_count = count_nf_items(text)
     if ng_count >= 3 and has_content(ng_section, 15):
         score += 7
-        dim.positives.append(f"✅ clear and specific non-goals ({ng_count} items)")
+        dim.positives.append(f"✅ Non-goals claros e específicos ({ng_count} itens)")
     elif ng_count >= 1:
         score += 4
-        dim.issues.append("⚠️ Non-goals are present but could be more specific")
+        dim.issues.append("⚠️ Non-goals presentes mas podem ser mais específicos")
     else:
-        dim.issues.append("❌ Non-goals missing")
+        dim.issues.append("❌ Non-goals ausentes")
 
-    # Mapped dependencies
+    # Dependências mapeadas
     has_deps = has_section(text, r'10[\.\s]+Integra|Dependências|Dependencies')
     if has_deps:
         deps_content = section_content(text, r'10[\.\s]+Integra|Dependências')
         if has_content(deps_content, 5):
             score += 5
-            dim.positives.append("✅ Dependencies and integrations mapped")
+            dim.positives.append("✅ Dependências e integrações mapeadas")
         else:
             score += 2
-            dim.issues.append("⚠️ Dependency section is present but empty")
+            dim.issues.append("⚠️ Seção de dependências presente mas vazia")
     else:
-        dim.issues.append("⚠️ External dependencies are not mapped (section 10)")
+        dim.issues.append("⚠️ Dependências externas não mapeadas (seção 10)")
 
     # Plano de rollout
     has_rollout = has_section(text, r'Rollout|Plano de Lançamento|13[\.\s]+')
     if has_rollout:
         score += 3
-        dim.positives.append("✅ Rollout/rollback plan present")
+        dim.positives.append("✅ Plano de rollout/rollback presente")
     else:
-        dim.issues.append("⚠️ Rollout/rollback plan missing (section 13)")
+        dim.issues.append("⚠️ Plano de rollout/rollback ausente (seção 13)")
 
     dim.raw_score = min(score, dim.max_raw)
     return dim
@@ -314,27 +314,27 @@ def score_edge_cases(text: str) -> DimensionScore:
     ec_section = section_content(text, r'^#{1,2}\s+11[\.\s]+Edge|Edge Cases')
 
     if ec_count == 0:
-        dim.issues.append("❌ CRITICAL: No edge cases defined — the implementation will not know how to handle errors")
+        dim.issues.append("❌ CRÍTICO: Nenhum edge case definido — a implementação não saberá como tratar erros")
         dim.raw_score = 0
         return dim
 
     if ec_count >= 4:
         score += 5
-        dim.positives.append(f"✅ {ec_count} edge cases covered")
+        dim.positives.append(f"✅ {ec_count} edge cases cobertos")
     elif ec_count >= 2:
         score += 3
-        dim.issues.append(f"⚠️ Only {ec_count} edge case(s) — add external-failure cases and invalid inputs")
+        dim.issues.append(f"⚠️ Apenas {ec_count} edge case(s) — adicione casos de falha externa e inputs inválidos")
     else:
         score += 1
-        dim.issues.append(f"❌ Only {ec_count} edge case — far from sufficient")
+        dim.issues.append(f"❌ Apenas {ec_count} edge case — muito insuficiente")
 
-    # Edge cases with defined behavior
+    # Edge cases com comportamento definido
     has_behavior = count_pattern(ec_section, r'\|[^|]{5,}')
     if has_behavior >= ec_count * 2:  # pelo menos trigger + comportamento
         score += 3
-        dim.positives.append("✅ Edge cases define expected behavior")
+        dim.positives.append("✅ Edge cases com comportamento esperado definido")
     else:
-        dim.issues.append("⚠️ Edge cases lack defined behavior — they are questions, not a specification")
+        dim.issues.append("⚠️ Edge cases sem comportamento definido — são apenas perguntas, não spec")
 
     # Cobertura de falhas externas
     covers_external = bool(re.search(
@@ -343,22 +343,22 @@ def score_edge_cases(text: str) -> DimensionScore:
     ))
     if covers_external:
         score += 2
-        dim.positives.append("✅ Covers external-dependency failures")
+        dim.positives.append("✅ Cobre falhas de dependências externas")
     else:
-        dim.issues.append("⚠️ Does not cover external-system failures (timeouts, unavailability)")
+        dim.issues.append("⚠️ Não cobre falhas de sistemas externos (timeouts, indisponibilidade)")
 
     dim.raw_score = min(score, dim.max_raw)
     return dim
 
 
-# ─── Final score and report ─────────────────────────────────────────────────
+# ─── Score final e relatório ─────────────────────────────────────────────────
 
 def classify(score: float) -> str:
-    if score >= 90: return "⭐ Excellent — Ready for implementation"
-    if score >= 80: return "✅ Good — Ready with minor adjustments"
-    if score >= 65: return "⚠️  Adequate — Implementable with risks"
-    if score >= 50: return "🔶 Incomplete — Review before implementation"
-    return "❌ Insufficient — Return to interview/draft"
+    if score >= 90: return "⭐ Excelente — Pronta para implementação"
+    if score >= 80: return "✅ Boa — Pronta com ajustes menores"
+    if score >= 65: return "⚠️  Adequada — Implementável com riscos"
+    if score >= 50: return "🔶 Incompleta — Revisar antes de implementar"
+    return "❌ Insuficiente — Volta para entrevista/rascunho"
 
 
 def build_report(spec_path: str) -> SpecReport:
@@ -397,12 +397,12 @@ def build_report(spec_path: str) -> SpecReport:
 def print_report(report: SpecReport):
     print(f"\n{'='*60}")
     print(f"  SPEC QUALITY REPORT")
-    print(f"  File: {report.file}")
+    print(f"  Arquivo: {report.file}")
     print(f"{'='*60}")
     print(f"\n  SCORE TOTAL: {report.total_score}/100  —  {report.classification}\n")
 
-    print("  BREAKDOWN BY DIMENSION:")
-    print(f"  {'Dimension':<20} {'Score':<10} {'Weight':<8} {'Contribution'}")
+    print("  BREAKDOWN POR DIMENSÃO:")
+    print(f"  {'Dimensão':<20} {'Score':<10} {'Peso':<8} {'Contribuição'}")
     print(f"  {'-'*50}")
     for d in report.dimensions:
         pct = round(d.raw_score / d.max_raw * 100)
@@ -410,20 +410,20 @@ def print_report(report: SpecReport):
         print(f"  {d.name:<20} {pct:>3}%{'':<5} {int(d.weight*100):>3}%{'':<3} {contrib:>5}/pt")
 
     if report.critical_gaps:
-        print(f"\n  ❌ CRITICAL GAPS ({len(report.critical_gaps)}):")
+        print(f"\n  ❌ GAPS CRÍTICOS ({len(report.critical_gaps)}):")
         for g in report.critical_gaps:
             print(f"     {g}")
 
     if report.suggestions:
-        print(f"\n  ⚠️  RECOMMENDED IMPROVEMENTS ({len(report.suggestions)}):")
+        print(f"\n  ⚠️  MELHORIAS RECOMENDADAS ({len(report.suggestions)}):")
         for s in report.suggestions[:8]:  # top 8
             print(f"     {s}")
         if len(report.suggestions) > 8:
-            print(f"     ... and {len(report.suggestions) - 8} more suggestion(s)")
+            print(f"     ... e mais {len(report.suggestions) - 8} sugestão(ões)")
 
     positives = [p for d in report.dimensions for p in d.positives]
     if positives:
-        print(f"\n  ✅ STRENGTHS:")
+        print(f"\n  ✅ PONTOS FORTES:")
         for p in positives[:5]:
             print(f"     {p}")
 
@@ -455,10 +455,10 @@ def print_json(report: SpecReport):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Evaluates the quality of a feature specification (0–100)"
+        description="Avalia a qualidade de uma spec de feature (0–100)"
     )
-    parser.add_argument("--spec", required=True, help="Path to the specification .md file")
-    parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("--spec", required=True, help="Caminho para o arquivo .md da spec")
+    parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
 
     args = parser.parse_args()
     report = build_report(args.spec)
@@ -468,7 +468,7 @@ def main():
     else:
         print_report(report)
 
-    # Non-zero exit code when score < 65 (for CI/CD use)
+    # Exit code não-zero se score < 65 (para uso em CI/CD)
     sys.exit(0 if report.total_score >= 65 else 1)
 
 

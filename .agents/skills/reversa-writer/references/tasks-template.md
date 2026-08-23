@@ -1,39 +1,39 @@
-# [Unit Name], Implementation Tasks
+# [Nome da Unit], Tarefas de Implementação
 
-> Template file `tasks.md`. Focuses on a sequence of executable tasks to reimplement the unit from the legacy, with traceability to the original code.
+> Template do arquivo `tasks.md`. Foca em uma sequência de tarefas executáveis para reimplementar a unit a partir do legado, com rastreabilidade ao código original.
 
-## Prerequisites
-- [ ] Unit dependencies listed in `design.md` are available
-- [ ] Compatible bank schema/migrations (if applicable)
-- [ ] Documented required environment variables/configs
+## Pré-requisitos
+- [ ] Dependências da unit listadas em `design.md` estão disponíveis
+- [ ] Schema/migrations do banco compatíveis (se aplicável)
+- [ ] Variáveis de ambiente / configs necessárias documentadas
 
-## Tasks
+## Tarefas
 
-> Each task references the legacy file from which the behavior was extracted.
+> Cada tarefa referencia o arquivo do legado de onde o comportamento foi extraído.
 
-- [ ] T-01, [Task Description]
-- Origin in legacy: `path/file.ext:line`
-- Ready criteria: [how to validate]
-- Trust: 🟢 / 🟡 / 🔴
+- [ ] T-01, [Descrição da tarefa]
+  - Origem no legado: `caminho/arquivo.ext:linha`
+  - Critério de pronto: [como validar]
+  - Confiança: 🟢 / 🟡 / 🔴
 
-- [ ] T-02, [Task Description]
-- Origin in legacy: `path/file.ext:line`
-- Ready criteria: [how to validate]
-- Trust: 🟢 / 🟡 / 🔴
+- [ ] T-02, [Descrição da tarefa]
+  - Origem no legado: `caminho/arquivo.ext:linha`
+  - Critério de pronto: [como validar]
+  - Confiança: 🟢 / 🟡 / 🔴
 
-## Test Tasks
+## Tarefas de Teste
 
-- [ ] TT-01, Main flow happy path test (see `requirements.md`, Acceptance Criteria)
-- [ ] TT-02, Main error case test
-- [ ] TT-03, [Other relevant scenarios]
+- [ ] TT-01, Teste do happy path do fluxo principal (ver `requirements.md`, Critérios de Aceitação)
+- [ ] TT-02, Teste do caso de erro principal
+- [ ] TT-03, [Outros cenários relevantes]
 
-## Data Migration Tasks (if applicable)
+## Tarefas de Migração de Dados (se aplicável)
 
-- [ ] TM-01, [X data migration, with reference to legacy schema]
+- [ ] TM-01, [Migração de dados X, com referência ao schema legado]
 
 ## Ordem Sugerida
-1. [Which tasks should be done first and why]
-2. [Inter-task blocks]
+1. [Quais tarefas devem ser feitas primeiro e por quê]
+2. [Bloqueios entre tarefas]
 
 ## Lacunas Pendentes (🔴)
-[List here decisions that depend on human validation before implementation]
+[Liste aqui as decisões que dependem de validação humana antes da implementação]

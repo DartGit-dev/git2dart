@@ -10,42 +10,42 @@ sourcePlatform: <slug>
 targetPlatform: <slug>
 adapter: <adapters/origem__alvo>
 screenCount: <int>
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Target Screens
 
-> Executable specification of each screen of the new system, derived from the legacy according to the method approved in `screen_modernization_decision.md`. Textual content preserved verbatim, unless explicit linguistic revision approval.
-> Primary reading for the encoder. Each section is a contract.
+> Especificação executável de cada tela do sistema novo, derivada do legado segundo o modo aprovado em `screen_modernization_decision.md`. Conteúdo textual preservado literalmente, salvo aprovação explícita de revisão linguística.
+> Leitura primária para o codificador. Cada seção é um contrato.
 
-## Summary
+## Resumo
 
-- **Applied mode**: <literal | modernized | hybrid>
+- **Modo aplicado**: <literal | modernizado | híbrido>
 - **Telas geradas**: <N>
 - **Adapter**: <slug>
-- **Tokens consumed**: see `reversa/sdd/design-system/tokens.md` and `tokens-derived.md` when applicable
-- **Golden files**: <N> em `reversa/sdd/screens/golden/` (manifest em `golden/manifest.yaml`)
+- **Tokens consumidos**: ver `_reversa_sdd/design-system/tokens.md` e `tokens-derived.md` quando aplicável
+- **Golden files**: <N> em `_reversa_sdd/screens/golden/` (manifest em `golden/manifest.yaml`)
 - **Deviations registradas**: <N> em `screen_deviation_log.md`
 
-> If the legacy does not have a UI (batch system / API / daemon), replace this section with:
-> "No screen detected. Agent skipped in `skipped` mode. Next agent: Inspector."
+> Caso o legado não possua UI (sistema batch / API / daemon), substituir esta seção por:
+> "Nenhuma tela detectada. Agente pulado em modo `skipped`. Próximo agente: Inspector."
 
 ---
 
-## Screen: <canonical-name>
+## Tela: <nome-canonical>
 
-**Origin**: `<legacy-file>:<linha-ou-paragrafo>`
-**Applied mode**: literal | modernized
-**Design-system components**: [<token1>, <token2>, ...]
-**Interpolation points**: `{{var1}}`, `{{var2}}`
-**Exit transitions**: [<next screen or event>]
-**Critical screen?**: yes | no (query `reversa-detective` when available)
+**Origem**: `<arquivo-legado>:<linha-ou-paragrafo>`
+**Modo aplicado**: literal | modernizado
+**Componentes do design-system**: [<token1>, <token2>, ...]
+**Pontos de interpolação**: `{{var1}}`, `{{var2}}`
+**Transições de saída**: [<próxima tela ou evento>]
+**Tela crítica?**: sim | não (consulta `reversa-detective` quando disponível)
 
-### Specification
+### Especificação
 
-> The block below varies depending on the source→target pair and the mode. See `references/adapter-pairs.md` for the canonical format of each pair. Examples below.
+> O bloco abaixo varia conforme o par origem→alvo e o modo. Veja `references/adapter-pairs.md` para o formato canônico de cada par. Exemplos abaixo.
 
-#### Example: COBOL TUI → Go CLI/TUI (literal)
+#### Exemplo: COBOL TUI → Go CLI/TUI (literal)
 
 ```yaml
 spec.kind: ansi-byte-stream
@@ -54,22 +54,22 @@ spec.normalize:
   - line_endings: "\n"
 spec.lines:
   - bytes: "\x1b[96m╔══════════════════════════════════════════════════╗\x1b[0m\n"
-  - bytes: "\x1b[96m║ \x1b[93m▓▓▓ BANCO ATM ▓▓▓\x1b[96m ║\x1b[0m\n"
+  - bytes: "\x1b[96m║                \x1b[93m▓▓▓  BANCO ATM  ▓▓▓\x1b[96m               ║\x1b[0m\n"
   - bytes: "\x1b[96m║                  \x1b[97m{{header_subtitle}}\x1b[96m                ║\x1b[0m\n"
     interpolations:
       header_subtitle:
         type: string
         max_width: 16
-        source: literal "ATM" | literal "System Access"
+        source: literal "Caixa Eletronico" | literal "Acesso ao Sistema"
   - bytes: "\x1b[96m╚══════════════════════════════════════════════════╝\x1b[0m\n"
 spec.input_prompts:
   - kind: accept-line
-    prompt_bytes: " \x1b[96m>>\x1b[97m Select an option: \x1b[0m"
+    prompt_bytes: "   \x1b[96m>>\x1b[97m Selecione uma opcao: \x1b[0m"
     captures: opcao
     valid: ["0", "1", "2", "3", "4", "5"]
 ```
 
-#### Example: Win32/Delphi VCL → Web SPA (modernized)
+#### Exemplo: Win32/Delphi VCL → Web SPA (modernizado)
 
 ```yaml
 spec.kind: component-tree
@@ -87,7 +87,7 @@ spec.root:
       children:
         - component: FormField
           name: nome
-          label: "Full name"
+          label: "Nome completo"
           legacy_origin: "TForm1.edtNome"
           validation:
             required: true
@@ -115,14 +115,14 @@ spec.root:
 spec.state_messages:
   loading: "Salvando..."
   error: "{{error_message}}"
-  success: "Client registered successfully."
+  success: "Cliente cadastrado com sucesso."
 ```
 
-#### Example: server-rendered legacy HTML → componentized SPA (modernized)
+#### Exemplo: HTML legado server-rendered → SPA componentizada (modernizado)
 
 ```yaml
 spec.kind: route-component
-spec.route: /clients/new
+spec.route: /clientes/novo
 spec.layout: AppLayout
 spec.states: [idle, loading, error, success]
 spec.component:
@@ -134,7 +134,7 @@ spec.component:
       initial: empty
   children:
     - component: PageTitle
-      content: "New Customer"
+      content: "Novo Cliente"
     - component: ClienteForm
       props:
         onSubmit: clienteService.create
@@ -145,7 +145,7 @@ spec.api_changes:
     deviation: DEV-014
 ```
 
-#### Example: Android XML → Flutter (modernized)
+#### Exemplo: Android XML → Flutter (modernizado)
 
 ```yaml
 spec.kind: composable
@@ -175,32 +175,32 @@ spec.viewmodel:
     - load(): chama clienteService.listar
 ```
 
-### Points of divergence accepted
+### Pontos de divergência aceitos
 
-- DEV-XXX: <short description> (see `screen_deviation_log.md#DEV-XXX`)
+- DEV-XXX: <descrição curta> (ver `screen_deviation_log.md#DEV-XXX`)
 
-### States (modernized mode only)
+### Estados (apenas modo modernizado)
 
-| Status | Description | Content/message |
+| Estado | Descrição | Conteúdo / mensagem |
 |---|---|---|
-| Idle | Default state before any action | <content> |
-| Loading | Asynchronous operation in progress | <spinner/skeleton> |
-| Error | Operation failed or invalid data | `{{error_message}}` |
-| Success | Operation completed successfully | <confirmation message> |
+| Idle | Estado padrão antes de qualquer ação | <conteúdo> |
+| Loading | Operação assíncrona em curso | <spinner / skeleton> |
+| Error | Falha na operação ou dado inválido | `{{error_message}}` |
+| Success | Operação concluída com sucesso | <mensagem confirmação> |
 
-> In literal mode, this section can be omitted or replaced with "preserves the states of the legacy" if the legacy has no explicit arrangement of states.
+> Em modo literal, esta seção pode ser omitida ou substituída por "preserva os estados do legado" se o legado não tiver disposição explícita de estados.
 
 ---
 
-## Screen: <second-screen>
+## Tela: <segunda-tela>
 
-(repeat the block above for each screen)
+(repetir o bloco acima para cada tela)
 
 ---
 
-## Appendix: inventory traceability
+## Apêndice: rastreabilidade ao inventário
 
-| `target_screens.md` Screen | Source in `reversa/sdd/ui/inventory.md` | Source in `reversa/sdd/screens/inventory.json` |
+| Tela do `target_screens.md` | Origem em `_reversa_sdd/ui/inventory.md` | Origem em `_reversa_sdd/screens/inventory.json` |
 |---|---|---|
-| <screen 1> | <inventory line> | <internal inventory id> |
-| <screen 2> | <inventory line> | <internal inventory id> |
+| <tela 1> | <linha do inventário> | <id do inventário interno> |
+| <tela 2> | <linha do inventário> | <id do inventário interno> |

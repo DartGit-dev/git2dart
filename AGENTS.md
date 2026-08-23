@@ -158,8 +158,32 @@ Use the appropriate workflow in the chat:
 
 When the user sends `reversa` as a standalone message:
 
-1. Activate the `reversa` skill at `.agents/skills/reversa/SKILL.md`.
-2. Read the entire `SKILL.md` and follow the Reversa instructions exactly.
+1. Read `.agents/skills/reversa/references/codex-routing.md` and select the
+   dispatch transport that the current runtime actually exposes.
+2. If a native project custom-agent selector is available, delegate once to
+   the exact profile for the workflow.
+3. If only `spawn_agent` model and reasoning overrides are available, use the
+   portable profile dispatch described in the routing reference; never start a
+   nested `codex exec` process.
+4. If dispatch is unavailable or fails, activate the corresponding skill at
+   `.agents/skills/<workflow>/SKILL.md` locally.
+5. Read the entire `SKILL.md` and follow the Reversa instructions exactly.
+
+## Codex Compute Routing
+
+Profiles in `.codex/agents/reversa-*.toml` are derived configuration and the
+source of their `model` and `model_reasoning_effort`. Installed `SKILL.md`
+files remain the source of truth for workflow behavior.
+
+Every Reversa orchestrator must read
+`.agents/skills/reversa/references/codex-routing.md` before invoking another
+agent. When the runtime has no custom-profile selector, reproduce the profile
+with `spawn_agent`, `fork_turns: "none"`, and the model and reasoning overrides
+declared in its TOML. A valid `compute_escalation` may use only the generated
+`recommended_profile` for the next Compute Class and only once per logical
+task. Never select `max` automatically or create an escalation loop. If
+dispatch fails, use the local fallback without duplicating partial side
+effects.
 
 ## Path resolution
 

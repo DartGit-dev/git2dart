@@ -23,7 +23,7 @@ Pointer<git_pathspec> create(List<String> patterns) {
   return using((arena) {
     final out = arena<Pointer<git_pathspec>>();
     final patternsC = _strArray(arena, patterns);
-    final error = libgit2.git_pathspec_new(out, patternsC);
+    final error = libgit2Runtime.bindings.git_pathspec_new(out, patternsC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -38,7 +38,11 @@ bool matchesPath({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    return libgit2.git_pathspec_matches_path(pathspecPointer, flags, pathC) ==
+    return libgit2Runtime.bindings.git_pathspec_matches_path(
+          pathspecPointer,
+          flags,
+          pathC,
+        ) ==
         1;
   });
 }
@@ -51,7 +55,7 @@ Pointer<git_pathspec_match_list> matchWorkdir({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_pathspec_match_list>>();
-    final error = libgit2.git_pathspec_match_workdir(
+    final error = libgit2Runtime.bindings.git_pathspec_match_workdir(
       out,
       repoPointer,
       flags,
@@ -71,7 +75,7 @@ Pointer<git_pathspec_match_list> matchIndex({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_pathspec_match_list>>();
-    final error = libgit2.git_pathspec_match_index(
+    final error = libgit2Runtime.bindings.git_pathspec_match_index(
       out,
       indexPointer,
       flags,
@@ -91,7 +95,7 @@ Pointer<git_pathspec_match_list> matchTree({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_pathspec_match_list>>();
-    final error = libgit2.git_pathspec_match_tree(
+    final error = libgit2Runtime.bindings.git_pathspec_match_tree(
       out,
       treePointer,
       flags,
@@ -111,7 +115,7 @@ Pointer<git_pathspec_match_list> matchDiff({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_pathspec_match_list>>();
-    final error = libgit2.git_pathspec_match_diff(
+    final error = libgit2Runtime.bindings.git_pathspec_match_diff(
       out,
       diffPointer,
       flags,
@@ -125,21 +129,24 @@ Pointer<git_pathspec_match_list> matchDiff({
 
 /// Return matched paths from [matchListPointer].
 List<String> entries(Pointer<git_pathspec_match_list> matchListPointer) {
-  final count = libgit2.git_pathspec_match_list_entrycount(matchListPointer);
+  final count = libgit2Runtime.bindings.git_pathspec_match_list_entrycount(
+    matchListPointer,
+  );
   return <String>[
     for (var i = 0; i < count; i++)
-      libgit2.git_pathspec_match_list_entry(matchListPointer, i).toDartString(),
+      libgit2Runtime.bindings
+          .git_pathspec_match_list_entry(matchListPointer, i)
+          .toDartString(),
   ];
 }
 
 /// Return unmatched patterns from [matchListPointer].
 List<String> failedEntries(Pointer<git_pathspec_match_list> matchListPointer) {
-  final count = libgit2.git_pathspec_match_list_failed_entrycount(
-    matchListPointer,
-  );
+  final count = libgit2Runtime.bindings
+      .git_pathspec_match_list_failed_entrycount(matchListPointer);
   return <String>[
     for (var i = 0; i < count; i++)
-      libgit2
+      libgit2Runtime.bindings
           .git_pathspec_match_list_failed_entry(matchListPointer, i)
           .toDartString(),
   ];
@@ -147,10 +154,10 @@ List<String> failedEntries(Pointer<git_pathspec_match_list> matchListPointer) {
 
 /// Free a pathspec match list.
 void freeMatchList(Pointer<git_pathspec_match_list> matchList) {
-  libgit2.git_pathspec_match_list_free(matchList);
+  libgit2Runtime.bindings.git_pathspec_match_list_free(matchList);
 }
 
 /// Free a pathspec.
 void free(Pointer<git_pathspec> pathspec) {
-  libgit2.git_pathspec_free(pathspec);
+  libgit2Runtime.bindings.git_pathspec_free(pathspec);
 }

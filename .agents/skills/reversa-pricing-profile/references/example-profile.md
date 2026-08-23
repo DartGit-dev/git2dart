@@ -5,42 +5,42 @@
 
 ## Identificacao
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Country | Brazil (BR) |
+| Pais | Brasil (BR) |
 | Moeda local | Real Brasileiro (BRL) |
-| Seniority | senior |
+| Senioridade | senior |
 
-## Direct cost
+## Custo direto
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Hourly rate mode | Derived |
+| Modo de taxa hora | Derivado |
 | Renda mensal liquida desejada | 12.000,00 BRL |
 | Horas faturaveis por mes | 120 |
-| Calculated hourly rate | 100.00 BRL/h |
+| Taxa hora calculada | 100,00 BRL/h |
 
 ## Markup e impostos
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Project markup | 35% |
-| Tax regime | Simples Nacional, IT services |
-| Approximate factor | 15% |
-| Factor type | effective_reserve_estimate |
-| Factor source | Brazilian Federal Revenue Service, Simples Nacional, annexes, and R factor |
+| Markup de projeto | 35% |
+| Regime tributario | Simples Nacional, servicos de TI |
+| Fator aproximado | 15% |
+| Tipo do fator | effective_reserve_estimate |
+| Fonte do fator | Receita Federal, Simples Nacional, anexos e fator R |
 | Inclui imposto destacado | Sim |
 | Aviso de repasse | Sim |
-| Regime confidence | High, explicit choice |
+| Confianca no regime | Alta, escolha explicita |
 
 ## Modelo comercial
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
 | Modelos de cobranca | escopo_fechado, time_and_materials |
 | Perfil de cliente | pequena_empresa |
-| Foreign-currency billing | No |
+| Cobranca em moeda estrangeira | Nao |
 
 ## Disclaimer
 
-The recorded tax factor is an approximate budget reserve, not an exact legal rate. Real tax validation and responsibility of the user's accountant. This file contains sensitive financial data. It is recommended to add `reversa/sdd/_pricing/profile.json` and `reversa/sdd/_pricing/profile.md` to `.gitignore` before committing.
+O fator de imposto registrado e uma reserva aproximada para orcamento, nao uma aliquota legal exata. Validacao tributaria real e responsabilidade do contador do usuario. Este arquivo contem dados financeiros sensiveis. Recomenda-se adicionar `_reversa_sdd/_pricing/profile.json` e `_reversa_sdd/_pricing/profile.md` ao `.gitignore` antes de commitar.

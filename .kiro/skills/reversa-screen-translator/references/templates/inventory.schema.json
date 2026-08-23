@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://reversa.dev/schemas/screens/inventory.json",
   "title": "Screen Translator Internal Inventory",
-  "description": "Screen Translator internal inventory. Lists each visual unit detected in the legacy, with stable identity and traceability to source code. Saved in reversa/sdd/screens/inventory.json. Overwritten with each run.",
+  "description": "Inventário interno do Screen Translator. Lista cada unidade visual detectada no legado, com identidade estável e rastreabilidade ao código fonte. Salvo em _reversa_sdd/screens/inventory.json. Sobrescrito a cada execução.",
   "type": "object",
   "required": ["schemaVersion", "generatedAt", "sourcePlatform", "screens"],
   "properties": {
@@ -20,7 +20,7 @@
     },
     "sourcePlatform": {
       "type": "string",
-      "description": "Slug of the detected source platform (for example: cobol-ansi-tui, delphi-vcl, asp-classic, android-xml, ios-xib)."
+      "description": "Slug da plataforma origem detectada (ex: cobol-ansi-tui, delphi-vcl, asp-classic, android-xml, ios-xib)."
     },
     "detectionConfidence": {
       "type": "string",
@@ -28,25 +28,25 @@
     },
     "screens": {
       "type": "array",
-      "description": "List of screens detected in legacy.",
+      "description": "Lista de telas detectadas no legado.",
       "items": {
         "type": "object",
         "required": ["id", "canonicalName", "legacyOrigin"],
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique and stable identifier within this inventory (ex: SCR-0001)."
+            "description": "Identificador único e estável dentro deste inventário (ex: SCR-0001)."
           },
           "canonicalName": {
             "type": "string",
-            "description": "Canonical screen name used in target_screens.md."
+            "description": "Nome canônico da tela usado em target_screens.md."
           },
           "legacyOrigin": {
             "type": "object",
             "required": ["file"],
             "properties": {
-              "file": { "type": "string", "description": "Relative path of the legacy file." },
-              "line": { "type": ["integer", "null"], "description": "File line, where applicable." },
+              "file": { "type": "string", "description": "Caminho relativo do arquivo legado." },
+              "line": { "type": ["integer", "null"], "description": "Linha do arquivo, quando aplicável." },
               "paragraph": { "type": ["string", "null"], "description": "Nome do paragrafo COBOL, do form Delphi/VB6, da Activity Android, etc." }
             }
           },
@@ -68,29 +68,29 @@
               "report",
               "raw"
             ],
-            "description": "Structural type of the screen. Use 'raw' when the adapter does not cover the type."
+            "description": "Tipo estrutural da tela. Use 'raw' quando o adapter não cobre o tipo."
           },
           "isCritical": {
             "type": "boolean",
-            "description": "Marks critical vs auxiliary screens (powered by reversa-detective when available). In hybrid mode, critical screens tend to go to literal."
+            "description": "Marca telas críticas vs auxiliares (alimentado por reversa-detective quando disponível). Em modo híbrido, telas críticas tendem a ir para literal."
           },
           "matchesUiInventory": {
             "type": "boolean",
-            "description": "true if the screen appears in reversa/sdd/ui/inventory.md."
+            "description": "true se a tela aparece em _reversa_sdd/ui/inventory.md."
           },
           "uiInventoryRef": {
             "type": ["string", "null"],
-            "description": "Corresponding line or anchor in reversa/sdd/ui/inventory.md."
+            "description": "Linha ou âncora correspondente em _reversa_sdd/ui/inventory.md."
           },
           "interpolations": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Dynamic variables detected (e.g. '{{titular}}', '{{saldo}}')."
+            "description": "Variáveis dinâmicas detectadas (ex: '{{titular}}', '{{saldo}}')."
           },
           "transitions": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Next screens or events triggered from this one."
+            "description": "Próximas telas ou eventos disparados a partir desta."
           },
           "tokens": {
             "type": "array",
@@ -99,9 +99,9 @@
           },
           "i18n": {
             "type": "object",
-            "description": "When the screen has an external string catalog.",
+            "description": "Quando a tela tem catálogo de strings externo.",
             "properties": {
-              "catalog": { "type": "string", "description": "Catalog path (e.g. 'res/values/strings.xml', 'locale/pt_BR.po')." },
+              "catalog": { "type": "string", "description": "Caminho do catálogo (ex: 'res/values/strings.xml', 'locale/pt_BR.po')." },
               "keysReferenced": { "type": "array", "items": { "type": "string" } }
             }
           }
@@ -110,7 +110,7 @@
     },
     "skipped": {
       "type": "object",
-      "description": "When the legacy has no UI, this field is filled and screens[] is empty.",
+      "description": "Quando o legado não tem UI, este campo é preenchido e screens[] fica vazio.",
       "properties": {
         "reason": { "type": "string" },
         "emittedAt": { "type": "string", "format": "date-time" }
@@ -118,7 +118,7 @@
     },
     "divergenceFromUiInventory": {
       "type": "object",
-      "description": "Comparison against reversa/sdd/ui/inventory.md. If divergencePercent > 10, the agent stops and requests review (RF-05).",
+      "description": "Comparação contra _reversa_sdd/ui/inventory.md. Se divergencePercent > 10, o agente para e pede revisão (RF-05).",
       "properties": {
         "totalInUiInventory": { "type": "integer" },
         "totalInThisInventory": { "type": "integer" },

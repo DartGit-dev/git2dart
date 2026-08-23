@@ -1,13 +1,13 @@
-# References Core D3.js (v7)
+# Referências Core D3.js (v7)
 
-## Selections and Data
-- [d3-selection](https://github.com/d3/d3-selection/tree/main/docs): Select elements, modify attributes and manage the `join` cycle.
-- [d3-array](https://github.com/d3/d3-array/tree/main/docs): Statistical methods (`max`, `min`, `median`) and transformations.
+## Seleções e Dados
+- [d3-selection](https://github.com/d3/d3-selection/tree/main/docs): Selecionar elementos, modificar atributos e gerir o ciclo `join`.
+- [d3-array](https://github.com/d3/d3-array/tree/main/docs): Métodos estatísticos (`max`, `min`, `median`) e transformações.
 
 ## Escalas e Cores
-- [d3-scale](https://github.com/d3/d3-scale/tree/main/docs): Mapping data domains to visual ranges.
-- [d3-color](https://github.com/d3/d3-color/tree/main/docs): Color spaces (RGB, HSL, Lab).
+- [d3-scale](https://github.com/d3/d3-scale/tree/main/docs): Mapeamento de domínios de dados para intervalos visuais.
+- [d3-color](https://github.com/d3/d3-color/tree/main/docs): Espaços de cor (RGB, HSL, Lab).
 
 ## Formas e Geometria
-- [d3-shape](https://github.com/d3/d3-shape/tree/main/docs): Arcs, lines, areas and symbol generators.
-- [d3-path](https://github.com/d3/d3-path/tree/main/docs): Canvas/SVG path serialization.
+- [d3-shape](https://github.com/d3/d3-shape/tree/main/docs): Arcos, linhas, áreas e geradores de símbolos.
+- [d3-path](https://github.com/d3/d3-path/tree/main/docs): Serialização de caminhos Canvas/SVG.

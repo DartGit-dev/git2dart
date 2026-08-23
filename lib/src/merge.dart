@@ -273,8 +273,6 @@ class Merge {
     GitMergeFileFavor favor = GitMergeFileFavor.normal,
     Set<GitMergeFileFlag> flags = const {GitMergeFileFlag.defaults},
   }) {
-    libgit2.git_libgit2_init();
-
     return bindings.mergeFile(
       ancestor: ancestor,
       ancestorLabel: ancestorLabel,

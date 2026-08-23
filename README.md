@@ -82,6 +82,12 @@ a safety net, but long-running tools and apps should call `free()` when they are
 done with repositories, objects, streams, iterators, and other native-backed
 values.
 
+Applications that need deterministic process cleanup may call
+`Libgit2.shutdown()` after explicitly freeing every live `Repository` and
+independently usable `Commit`. Shutdown is rejected while either owner remains
+live, and a successful shutdown is terminal for that isolate. Repeated calls
+return the original native result.
+
 ## Mobile Initialization
 
 Flutter apps on Android and iOS should initialize platform support before using

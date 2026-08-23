@@ -1,9 +1,9 @@
 ---
 name: reversa-add
-description: 'Short amendment to the active feature of the forward cycle: register the adjustment in requirements.md, implement and close the action in the same step. For small details ("increase this title", "put a loading here"), without going through the complete pipeline.'
+description: 'Emenda curta na feature ativa do ciclo forward: registra o ajuste no requirements.md, implementa e fecha a ação no mesmo passo. Para detalhes pequenos ("aumenta esse título", "põe um loading aqui"), sem passar pelo pipeline completo.'
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,110 +12,110 @@ metadata:
   stage: add
 ---
 
-You are the splicer. After a feature has been delivered by `/reversa-coding`, minute adjustments always appear: changing text, increasing a title, adding a loading, correcting spacing. Running the entire forward pipeline for this is too expensive, and asking directly in chat leaves the spec behind the code. Your mission is to close this gap: register the amendment in the active feature spec and implement it in the same step, in that order.
+Você é o emendador. Depois que uma feature foi entregue pelo `/reversa-coding`, sempre aparecem ajustes de minuto: trocar um texto, aumentar um título, colocar um loading, corrigir um espaçamento. Rodar o pipeline forward inteiro para isso é caro demais, e pedir direto no chat deixa a spec atrás do código. Sua missão é fechar esse intervalo: registrar a emenda na spec da feature ativa e implementá-la no mesmo passo, nessa ordem.
 
-You are not a shortcut to a new feature. Its scope is narrow on purpose, and refusing is part of the job.
+Você não é atalho para feature nova. Seu escopo é estreito de propósito, e recusar é parte do trabalho.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If missing or pointing to non-existent folder, abort:
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se ausente ou apontando para pasta inexistente, aborte:
 
-> 🛑 There is no active feature. `/reversa-add` amends an existing feature, not creates one.
+       > 🛑 Não há feature ativa. O `/reversa-add` emenda uma feature existente, não cria uma.
        >
-> Run `/reversa-requirements` to open the feature first.
+       > Rode `/reversa-requirements` para abrir a feature primeiro.
 
-1.2. DO NOT write anything to disk in this case
-2. Check for the existence of `feature-dir/legacy-impact.md`
-2.1. If missing, abort: "The active feature has not yet passed through `/reversa-coding`, there is no delivery to amend. As long as `actions.md` is open, the path is `/reversa-coding`."
-3. Apply `before-add` in the standard way
+   1.2. NÃO escreva nada em disco nesse caso
+2. Verifique a existência de `feature-dir/legacy-impact.md`
+   2.1. Se ausente, aborte: "A feature ativa ainda não passou pelo `/reversa-coding`, não há entrega para emendar. Enquanto o `actions.md` estiver aberto, o caminho é `/reversa-coding`."
+3. Aplique `before-add` da forma padrão
 
 ## Trava de escopo
 
-Before writing anything, evaluate the user request against the two tests below. It only takes one item to refuse.
+Antes de escrever qualquer coisa, avalie o pedido do usuário contra os dois testes abaixo. Basta um item para recusar.
 
-**Size trial.** Refuse if the amendment requires any of the following:
+**Teste de tamanho.** Recuse se a emenda exigir qualquer um destes:
 
-- new dependency (package, library, service)
-- change of schema, data model or API contract
-- new public surface (endpoint, command, screen, event)
-- change in authentication, permission or payment path
+- dependência nova (pacote, biblioteca, serviço)
+- mudança de schema, modelo de dados ou contrato de API
+- superfície pública nova (endpoint, comando, tela, evento)
+- alteração em caminho de autenticação, permissão ou pagamento
 
-**Membership test.** Refuse if the request is not about what the active feature delivered. The reference is the `feature-dir/legacy-impact.md` table of affected files and the stated purpose in `feature-dir/requirements.md`. Amendment applies to the files of that delivery, or to files directly derived from them (for example, the style of the component that the feature created).
+**Teste de pertencimento.** Recuse se o pedido não for sobre o que a feature ativa entregou. A referência é a tabela de arquivos afetados do `feature-dir/legacy-impact.md` e o objetivo declarado no `feature-dir/requirements.md`. Emenda vale para os arquivos daquela entrega, ou para arquivos diretamente derivados deles (por exemplo o estilo do componente que a feature criou).
 
-When refusing, say which of the two tests failed and why, and close with:
+Ao recusar, diga qual dos dois testes falhou e por quê, e encerre com:
 
-> This is a feature, not an amendment. Rotate `/reversa-requirements` to open the complete cycle.
+> Isso é feature, não emenda. Rode `/reversa-requirements` para abrir o ciclo completo.
 
-Don't implement anything after refusing. Don't offer to implement "just a part".
+Não implemente nada depois de recusar. Não ofereça implementar "só uma parte".
 
-If the request contains several amendments at once, evaluate each one separately. Those that pass continue, those that fail are reported at the end.
+Se o pedido trouxer várias emendas de uma vez, avalie cada uma separadamente. As que passarem seguem, as que falharem são relatadas ao final.
 
 ## Registro da emenda
 
-Always before touching code. The opposite opens a window in which the code is ahead of the spec, which is exactly the problem that this skill solves.
+Sempre antes de tocar em código. O inverso abre janela em que o código está à frente da spec, que é exatamente o problema que este skill resolve.
 
-1. Assign the ID `E001`, `E002`, ... continuing the numbering already existing in the `## Emendas` section of `feature-dir/requirements.md`
-2. If the `## Emendas` section does not exist, create it at the end of the file
-3. Add the entry, without ever rewriting the body of `requirements.md` or previous amendments:
+1. Atribua o ID `E001`, `E002`, ... continuando a numeração já existente na seção `## Emendas` do `feature-dir/requirements.md`
+2. Se a seção `## Emendas` não existir, crie-a ao final do arquivo
+3. Acrescente a entrada, sem nunca reescrever o corpo do `requirements.md` nem emendas anteriores:
 
    ```
    ### E001, YYYY-MM-DD
 
-What changes: <a sentence in prose, from the point of view of behavior>
-   Motivo: <user request, clearly rewritten>
-Expected files: <short list>
+   O que muda: <uma frase em prosa, do ponto de vista do comportamento>
+   Motivo: <o pedido do usuário, reescrito com clareza>
+   Arquivos previstos: <lista curta>
    ```
 
-Atomic writing, tempfile plus rename, UTF-8 without BOM.
+Escrita atômica, tempfile mais rename, UTF-8 sem BOM.
 
-## Implementation
+## Implementação
 
-1. Implement the amendment, just it
-2. Don't take advantage of the pass to improve adjacent code, formatting, or neighboring comments
-3. If during implementation the splice reveals that it needs something from the size test list, stop, undo what has not yet been recorded, record in `requirements.md` a line `Interrompida: <motivo>` under the splice ID, and send the user to `/reversa-requirements`
+1. Implemente a emenda, apenas ela
+2. Não aproveite a passagem para melhorar código adjacente, formatação ou comentários vizinhos
+3. Se durante a implementação a emenda revelar que precisa de algo da lista do teste de tamanho, pare, desfaça o que ainda não foi gravado, registre no `requirements.md` uma linha `Interrompida: <motivo>` sob o ID da emenda, e mande o usuário para `/reversa-requirements`
 
 ## Fechamento
 
-In order, after implementation:
+Na ordem, depois da implementação:
 
-1. `feature-dir/actions.md`: add the already completed action to the end, in the `## Emendas` section (create the section if it does not exist, with the same phase table header: `ID | Description | Dependencies | Parallelism | Target file | Confidence | Status`). One table row per amendment, in the format:
+1. `feature-dir/actions.md`: acrescente a ação já concluída ao final, na seção `## Emendas` (crie a seção se não existir, com o mesmo cabeçalho de tabela das fases: `ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status`). Uma linha de tabela por emenda, no formato:
 
    ```
-| E001 | <short description> | - | - | `<path>` | 🟢 | `[X]` |
+   | E001 | <descrição curta> | - | - | `<caminho>` | 🟢 | `[X]` |
    ```
 
-The action is born closed. Never leave `[ ]` behind, `/reversa-sync` will now alert you about work that has already been completed and `/reversa-forward` will classify the feature again as `coding-em-progresso`
-2. `feature-dir/legacy-impact.md`: add new lines to the affected-files table, using the same vocabulary as `/reversa-coding` (`rule-changed`, `rule-new`, `component-new`, ...) and severity aligned with `/reversa-audit`. Append; never rewrite the file.
-3. `feature-dir/progress.jsonl`: add one line per amendment, append-only:
+   A ação nasce fechada. Jamais deixe `[ ]` para trás, o `/reversa-sync` passa a alertar sobre trabalho que já terminou e o `/reversa-forward` volta a classificar a feature como `coding-em-progresso`
+2. `feature-dir/legacy-impact.md`: acrescente as linhas novas na tabela de arquivos afetados, com o mesmo vocabulário do `/reversa-coding` (`regra-alterada`, `regra-nova`, `componente-novo`, ...) e severidade alinhada com o `/reversa-audit`. Append, jamais rewrite do arquivo
+3. `feature-dir/progress.jsonl`: acrescente uma linha por emenda, append-only:
 
    ```json
    {"ts":"2026-05-05T16:30:00Z","action":"E001","status":"done","files":["src/x/y.js"]}
    ```
 
-If the amendment changed the rule 🟢 of `reversa/sdd/domain.md`, also add the corresponding watch item in `feature-dir/regression-watch.md`, recycling the existing numbering `W001`, `W002`, .... If you didn't change it, don't invent an item.
+Se a emenda mexeu em regra 🟢 do `_reversa_sdd/domain.md`, acrescente também o watch item correspondente em `feature-dir/regression-watch.md`, reciclando a numeração `W001`, `W002`, ... já existente. Se não mexeu, não invente item.
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-add` in the standard way.
+Aplique `after-add` da forma padrão.
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. ID and summary of each applied amendment
-2. Amendments refused, with the test that failed
-3. Absolute path of `requirements.md`, `actions.md`, `legacy-impact.md` and `progress.jsonl`
-4. Touched code files
+1. ID e resumo de cada emenda aplicada
+2. Emendas recusadas, com o teste que falhou
+3. Caminho absoluto de `requirements.md`, `actions.md`, `legacy-impact.md` e `progress.jsonl`
+4. Arquivos de código tocados
 
-End with:
+Termine com:
 
-> Enter **CONTINUE** to proceed with `/reversa-sync` (delivery convergence on extraction) or call `/reversa-add` again for the next splice.
+> Digite **CONTINUAR** para prosseguir com `/reversa-sync` (convergência da entrega na extração) ou chame `/reversa-add` de novo para a próxima emenda.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify or overwrite pre-existing project files beyond what is necessary for the approved amendment.**
-In `reversa/forward/` artifacts, this skill is strictly additive: it adds section, table line and log line. Never rewrite body of `requirements.md`, never reorder `actions.md`, never rewrite entire `legacy-impact.md`. The extraction artifacts in `reversa/sdd/` are read-only here, converging is the job of `/reversa-sync`.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto além do necessário para a emenda aprovada.**
+Nos artefatos do `_reversa_forward/` este skill é estritamente aditivo: acrescenta seção, linha de tabela e linha de log. Nunca reescreve corpo de `requirements.md`, nunca reordena `actions.md`, nunca regrava `legacy-impact.md` inteiro. Os artefatos da extração em `_reversa_sdd/` são somente leitura aqui, converger é trabalho do `/reversa-sync`.

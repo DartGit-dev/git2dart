@@ -1,73 +1,73 @@
-> Local copy of the advisory catalogue. The canonical source is at `templates/migration/catalogs/paradigm_catalog.md`.
-> This copy is installed together with the agent so that it has access to the catalog within the user's project, without depending on the location of the npm package.
+> Cópia local do catálogo consultivo. A fonte canônica fica em `templates/migration/catalogs/paradigm_catalog.md`.
+> Esta cópia é instalada junto com o agente para que ele tenha acesso ao catálogo dentro do projeto do usuário, sem depender de localização do pacote npm.
 
-# Paradigm Catalog (local copy)
+# Paradigm Catalog (cópia local)
 
-## Paradigm catalog
+## Catálogo de paradigmas
 
 ### Procedural
-- **Features**: top-level functions, linear flow in controllers, absence of classes or ornamental use, data as dicts/structs, open side effects.
-- **Legacy examples**: classic PHP scripts, COBOL batch, pre-OO Perl systems, shell scripts.
-- **Signals in `reversa/sdd/`**: domain described as "functions", linear flows in `process_flows`, absence of explicit aggregates.
+- **Características**: funções top-level, fluxo linear em controllers, ausência de classes ou uso ornamental, dados como dicts/structs, side effects abertos.
+- **Exemplos no legado**: scripts PHP clássicos, COBOL batch, sistemas Perl pré-OO, scripts shell.
+- **Sinais em `_reversa_sdd/`**: domínio descrito como "funções", fluxos lineares em `process_flows`, ausência de aggregates explícitos.
 
-### Classic OO
-- **Features**: class hierarchy, strong inheritance, Active Record pattern, logic coupled to models.
-- **Examples in legacy**: Monolithic Rails, traditional Django, Java EE pre-DI, .NET WebForms / classic.
-- **Signals in `reversa/sdd/`**: classes with broad responsibilities, domain model inheritance, anemic controllers calling model methods.
+### OO clássico
+- **Características**: hierarquia de classes, herança forte, padrão Active Record, lógica acoplada aos modelos.
+- **Exemplos no legado**: Rails monolítico, Django tradicional, Java EE pré-DI, .NET WebForms / clássico.
+- **Sinais em `_reversa_sdd/`**: classes com responsabilidades amplas, herança em domain model, controllers anêmicos chamando métodos do modelo.
 
-### OO with DI
-- **Features**: injection containers, explicit interfaces, Repository / Service pattern, clear separation between layers.
-- **Examples in legacy**: Modern Spring, .NET 6+, NestJS, Modern Symfony.
-- **Signals in `reversa/sdd/`**: explicit aggregates, repository interfaces, absence of Active Record.
+### OO com DI
+- **Características**: containers de injeção, interfaces explícitas, padrão Repository / Service, separação clara entre camadas.
+- **Exemplos no legado**: Spring moderno, .NET 6+, NestJS, Symfony moderno.
+- **Sinais em `_reversa_sdd/`**: aggregates explícitos, interfaces de repositório, ausência de Active Record.
 
-### Functional
-- **Characteristics**: dominant immutability, pure functions, composition, absence of implicit side effects, rich typing.
-- **Examples in legacy**: Haskell, Elm, F#, functional Scala, Clojure.
-- **Signs in `reversa/sdd/`**: algebraic types, absence of classes, flow expressed as composition.
+### Funcional
+- **Características**: imutabilidade dominante, funções puras, composição, ausência de side effects implícitos, tipagem rica.
+- **Exemplos no legado**: Haskell, Elm, F#, Scala funcional, Clojure.
+- **Sinais em `_reversa_sdd/`**: tipos algébricos, ausência de classes, fluxo expresso como composição.
 
-### Event-driven (asynchronous)
-- **Features**: queues / topics, decoupled handlers, lack of linear flow, eventual consistency, explicit idempotence.
-- **Legacy examples**: modern queue-driven Node backends, SQS / Kafka heavy systems, asynchronous microservices.
-- **Signals in `reversa/sdd/`**: events in the domain model, integrations via queue, long-running processes with retry.
+### Event-driven (assíncrono)
+- **Características**: filas / tópicos, handlers desacoplados, ausência de fluxo linear, consistência eventual, idempotência explícita.
+- **Exemplos no legado**: backends Node moderno orientado a fila, sistemas SQS / Kafka heavy, microsserviços assíncronos.
+- **Sinais em `_reversa_sdd/`**: eventos no domain model, integrações via fila, processos de longa duração com retry.
 
 ### Actor model
-- **Features**: isolated actors with mailbox, supervision, state isolation.
-- **Examples in legacy**: Erlang / Elixir / OTP, Akka.
-- **Signals in `reversa/sdd/`**: supervised processes, messages between actors.
+- **Características**: atores isolados com mailbox, supervisão, isolamento de estado.
+- **Exemplos no legado**: Erlang / Elixir / OTP, Akka.
+- **Sinais em `_reversa_sdd/`**: processos supervisionados, mensagens entre atores.
 
 ### Dataflow
-- **Features**: declarative pipelines, flow transformations, absence of imperative loops in the domain.
-- **Examples in legacy**: Classic ETLs, Spark, Flink.
-- **Signals in `reversa/sdd/`**: description in DAG, transformations in stages.
+- **Características**: pipelines declarativos, transformações em fluxo, ausência de loops imperativos no domínio.
+- **Exemplos no legado**: ETLs clássicos, Spark, Flink.
+- **Sinais em `_reversa_sdd/`**: descrição em DAG, transformações em estágios.
 
 ## Mapeamento stack → paradigma natural
 
-| Target Stack | Natural paradigm | Viable alternatives | Notes |
+| Stack alvo | Paradigma natural | Alternativas viáveis | Notas |
 |---|---|---|---|
-| Node.js 20 (Fastify, Express, NestJS) | asynchronous event-driven | OO with DI (NestJS), lightweight functional | async-first runtime; Heavy CPU blocking goes to worker threads |
-| Go (net/http, Echo, Fiber) | CSP / goroutines (lightweight event-driven) | structured procedural | competition via channels; OO simulated via interfaces |
-| Rust (axum, Actix, tokio) | ownership / functional async | event-driven | immutability by default, security via types |
-| Elixir / Phoenix | actor model (BEAM) | functional | supervision via OTP |
-| Modern Python (FastAPI, Django 5) | OO with rich DI or procedural | event-driven (Celery, asyncio) | choice depends on the framework |
-| Kotlin (Spring Boot, Ktor) | OO with DI | event-driven (Reactor) | coroutines enable ergonomic async |
-| .NET 8 (ASP.NET Core, Minimal API) | OO with DI | event-driven (Channels, MediatR) | OO tradition + first-class asynchronism |
-| Modern Java (Spring Boot 3, Quarkus) | OO with DI | event-driven (Project Reactor) | functional libraries possible but not dominant |
-| Modern Ruby (Rails 7, Hanami) | Classic OO (Rails) or OO with DI (Hanami) | lightweight functional (dry-rb) | Rails dictates Active Record; Hanami is DI-heavy |
-| Serverless TypeScript (AWS Lambda, Cloudflare Workers) | event-driven | functional | invocation by event; cold start influences design |
+| Node.js 20 (Fastify, Express, NestJS) | event-driven assíncrono | OO com DI (NestJS), funcional leve | runtime async-first; bloqueio CPU pesado vai para worker threads |
+| Go (net/http, Echo, Fiber) | CSP / goroutines (event-driven leve) | procedural estruturado | concorrência via channels; OO simulada via interfaces |
+| Rust (axum, Actix, tokio) | ownership / async funcional | event-driven | imutabilidade por default, segurança via tipos |
+| Elixir / Phoenix | actor model (BEAM) | funcional | supervisão via OTP |
+| Python moderno (FastAPI, Django 5) | OO com DI ou procedural rico | event-driven (Celery, asyncio) | escolha depende do framework |
+| Kotlin (Spring Boot, Ktor) | OO com DI | event-driven (Reactor) | corrotinas habilitam async ergonômico |
+| .NET 8 (ASP.NET Core, Minimal API) | OO com DI | event-driven (Channels, MediatR) | tradição OO + assincronismo first-class |
+| Java moderno (Spring Boot 3, Quarkus) | OO com DI | event-driven (Project Reactor) | bibliotecas funcionais possíveis mas não dominantes |
+| Ruby moderno (Rails 7, Hanami) | OO clássico (Rails) ou OO com DI (Hanami) | funcional leve (dry-rb) | Rails dita Active Record; Hanami é DI-heavy |
+| TypeScript serverless (AWS Lambda, Cloudflare Workers) | event-driven | funcional | invocação por evento; cold start influencia design |
 
-## Table of typical gaps per pair
+## Tabela de gaps típicos por par
 
-| From → To | Main Gap | Concrete implications |
+| De → Para | Gap principal | Implicações concretas |
 |---|---|---|
-| procedural → event-driven | synchrony → asynchronism | response is no longer immediate; error handling becomes retry/DLQ; mandatory idempotence; order of events starts to matter |
-| procedural → OO with DI | data as dict → aggregates | invariants are inside aggregates; logic stops living in controllers; dependencies via interfaces |
-| procedural → functional | open side effects → pure + isolated | mutability becomes the exception; composition replaces sequence; algebraic types for states |
-| Classic OO → event-driven | synchronous flow → choreography | actions are no longer atomic; distributed transactions become sagas; strong consistency → eventual |
-| Classic OO → OO with DI | inheritance → composition via interfaces | Active Record disappears; persistence becomes repository; tests win natural mocks |
-| Classic OO → functional | mutable encapsulation → immutability | effective methods become pure functions + explicit update; state expressed as a sequence of transformations |
-| OO with DI → event-driven | synchronous command → event | return is no longer immediate; orchestration becomes choreography; order by key |
-| OO with DI → functional | mocks → testable composition | DI stops being an interface, it becomes a function argument |
-| functional → event-driven | synchronous composition → messaging | latency increases; failure becomes a message in DLQ; distributed state |
-| event-driven → synchronous procedural | unnatural; only makes sense for small systems | collapse handlers into direct calls; loss of decoupling; strong consistency back |
-| dataflow → event-driven | Declarative DAG → mutable choreography | control becomes less predictable; order needs to be guaranteed by key |
-| actor model → OO with DI | messages between actors → synchronous calls | loss of fault isolation; supervision needs to become try/catch or orchestrated retry |
+| procedural → event-driven | sincronia → assincronismo | resposta deixa de ser imediata; tratamento de erro vira retry/DLQ; idempotência obrigatória; ordem de eventos passa a importar |
+| procedural → OO com DI | dados como dict → aggregates | invariantes ficam dentro de aggregates; lógica deixa de viver em controllers; dependências via interfaces |
+| procedural → funcional | side effects abertos → puros + isolados | mutabilidade vira exceção; composição substitui sequência; tipos algébricos para estados |
+| OO clássico → event-driven | fluxo síncrono → coreografia | ações deixam de ser atômicas; transações distribuídas viram sagas; consistência forte → eventual |
+| OO clássico → OO com DI | herança → composição via interfaces | Active Record desaparece; persistência vira repositório; testes ganham mocks naturais |
+| OO clássico → funcional | encapsulamento mutável → imutabilidade | métodos com efeito viram funções puras + atualização explícita; estado expresso como sequência de transformações |
+| OO com DI → event-driven | comando síncrono → evento | retorno deixa de ser imediato; orquestração vira coreografia; ordem por chave |
+| OO com DI → funcional | mocks → composição testável | DI deixa de ser por interface, vira por argumento de função |
+| funcional → event-driven | composição síncrona → mensageria | latência aumenta; falha vira mensagem em DLQ; estado distribuído |
+| event-driven → procedural síncrono | desnatural; só faz sentido para sistemas pequenos | colapsar handlers em chamadas diretas; perda de desacoplamento; consistência forte volta |
+| dataflow → event-driven | DAG declarativa → coreografia mutável | controle fica menos previsível; ordem precisa ser garantida por chave |
+| actor model → OO com DI | mensagens entre atores → chamadas síncronas | perda de isolamento de falha; supervisão precisa virar try/catch ou retry orquestrado |

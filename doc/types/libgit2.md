@@ -83,6 +83,19 @@ libgit2 option failures throw `LibGit2Error`.
 These options are process-wide. Change them deliberately and restore previous
 values in tests or shared runtimes.
 
+For deterministic cleanup, free every live `Repository` and independently
+usable `Commit`, then release the isolate's managed native lease:
+
+```dart
+commit.free();
+repository.free();
+final remainingNativeCount = Libgit2.shutdown();
+```
+
+`shutdown()` throws `StateError` while one of those owners is live. After a
+successful shutdown, the isolate cannot enter libgit2 again; repeated shutdown
+calls return the original result.
+
 ## Important Options
 
 Use the options shown in the example for this API. Related enum and flag details are collected in [Shared Git enums and options](git_types.md).

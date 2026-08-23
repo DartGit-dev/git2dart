@@ -1,137 +1,137 @@
-# `estimate.md` Template
+# Template do estimate.md
 
-This is the Markdown template that the `reversa-pricing-estimate` agent uses to generate `reversa/sdd/_pricing/<feature>/estimate.md`. Replace all `<placeholders>` with actual values. Keep the structure fixed.
+Este e o template Markdown que o agente `reversa-pricing-estimate` usa para gerar `_reversa_sdd/_pricing/<feature>/estimate.md`. Substitua todos os `<placeholders>` pelos valores reais. Mantenha a estrutura fixa.
 
 ```markdown
-# Price Estimate
+# Estimativa de Preco
 
 **Feature:** `<feature_dir_relativa>`
-**Generated on:** <created_at_local_legivel>
-**Calculation version:** Effort v<effort_formula_version>, Value v<value_formula_version>, Market v<market_table_version>
+**Gerado em:** <created_at_local_legivel>
+**Versao dos calculos:** Esforco v<effort_formula_version>, Valor v<value_formula_version>, Mercado v<market_table_version>
 
-**Consumed prerequisites:**
+**Pre-requisitos consumidos:**
 - Profile: `<output_folder>/_pricing/profile.json`
-- Size: `<output_folder>/_pricing/<feature>/size.json` (class `<complexity_class>`, auxiliary score `<size_score>`)
+- Size: `<output_folder>/_pricing/<feature>/size.json` (classe `<complexity_class>`, score auxiliar `<size_score>`)
 
-## Overview
+## Visao geral
 
-| Scenario | Range | Comment |
+| Cenario | Faixa | Comentario |
 |---|---|---|
-| **Effort** | <esforco_str> | <horas_min> to <horas_max>h, cost + tax + markup |
-| **Value** | <valor_str> | 10% to 30% of declared annual value |
-| **Market Range** | <mercado_str> | hourly rate sourced by country and seniority |
+| **Esforco** | <esforco_str> | <horas_min> a <horas_max>h, custo + imposto + markup |
+| **Valor** | <valor_str> | 10% a 30% do valor anual declarado |
+| **Faixa de Mercado** | <mercado_str> | taxa hora fonteada por pais e senioridade |
 
-## Effort Scenario
+## Cenario Esforco
 
-**What it is:** price calculated based on probable hours, hourly rate, approximate tax reserve and project markup. And the floor is defensible so as not to subsidize the customer.
+**O que e:** preco calculado a partir de horas provaveis, taxa hora, reserva tributaria aproximada e markup de projeto. E o piso defensavel para nao subsidiar o cliente.
 
-**When to use:** always as a sanity check. Charging below the Effort means assuming a loss or reducing the project's profit too much.
+**Quando usar:** sempre como sanity check. Cobrar abaixo do Esforco significa assumir prejuizo ou reduzir demais o lucro do projeto.
 
-| Item | Value |
+| Item | Valor |
 |---|---|
-| Complexity class | <complexity_class> |
-| Seniority | <seniority> |
-| Seniority factor | <seniority_factor> |
-| Estimated hours | <horas_min> to <horas_max> h |
-| Midpoint | <horas_estimadas> h |
-| Hourly rate | <hourly_rate> <currency>/h |
-| Direct cost | <custo_direto_min> to <custo_direto_max> <currency> |
-| Approximate tax reserve | <imposto_aproximado_min> to <imposto_aproximado_max> <currency> |
-| Project markup (<margin_percent>%) | <markup_aplicado_min> to <markup_aplicado_max> <currency> |
-| **Effort range** | **<preco_minimo> to <preco_maximo> <currency>** |
-| Midpoint | <preco_total> <currency> |
+| Classe de complexidade | <complexity_class> |
+| Senioridade | <seniority> |
+| Fator de senioridade | <seniority_factor> |
+| Horas estimadas | <horas_min> a <horas_max> h |
+| Ponto medio | <horas_estimadas> h |
+| Taxa hora | <hourly_rate> <currency>/h |
+| Custo direto | <custo_direto_min> a <custo_direto_max> <currency> |
+| Reserva tributaria aproximada | <imposto_aproximado_min> a <imposto_aproximado_max> <currency> |
+| Markup de projeto (<margin_percent>%) | <markup_aplicado_min> a <markup_aplicado_max> <currency> |
+| **Faixa Esforco** | **<preco_minimo> a <preco_maximo> <currency>** |
+| Ponto medio | <preco_total> <currency> |
 
 <aviso_vat_se_aplicavel>
 <bloco_billing_currency_se_aplicavel>
 
-## Value Scenario
+## Cenario Valor
 
-**What it is:** price based on part of the annual economic value that the feature generates or protects for the customer. Reversa uses capture of 10% to 30% of the declared annual value.
+**O que e:** preco baseado em parte do valor economico anual que a feature gera ou protege para o cliente. O Reversa usa captura de 10% a 30% do valor anual declarado.
 
-**When to use:** when the customer is able to declare return, savings or cost of not doing it.
+**Quando usar:** quando o cliente consegue declarar retorno, economia ou custo de nao fazer.
 
-<if value.available>
+<se valor.available>
 
-| Item | Value |
+| Item | Valor |
 |---|---|
-| Declared monthly return | <monthly_return_declared> <currency> |
-| Users impacted | <users_impacted> |
-| Cost of not doing it | <cost_of_not_doing> <currency> |
-| Annual value used | <annual_value> <currency> |
-| Applied capture | 10% to 30% |
-| Recommended price | <preco_recomendado> <currency> |
-| **Value range** | **<preco_minimo> to <preco_maximo> <currency>** |
-| Approximate payback | <payback_str> |
+| Retorno mensal declarado | <monthly_return_declared> <currency> |
+| Usuarios impactados | <users_impacted> |
+| Custo de nao fazer | <cost_of_not_doing> <currency> |
+| Valor anual usado | <annual_value> <currency> |
+| Captura aplicada | 10% a 30% |
+| Preco recomendado | <preco_recomendado> <currency> |
+| **Faixa Valor** | **<preco_minimo> a <preco_maximo> <currency>** |
+| Payback aproximado | <payback_str> |
 
 <bloco_billing_currency_se_aplicavel>
 
-<if NOT value.available>
+<se NOT valor.available>
 
-> **Value Scenario unavailable:** <razao_unavailable>
+> **Cenario Valor nao disponivel:** <razao_unavailable>
 
-</if>
+</se>
 
-## Market Range Scenario
+## Cenario Faixa de Mercado
 
-**What it is:** range derived from hourly benchmark by country and seniority, multiplied by the same range of hours from the Effort scenario.
+**O que e:** faixa derivada de benchmark horario por pais e senioridade, multiplicado pela mesma faixa de horas do cenario Esforco.
 
-**When to use:** as an external reference. v2 does not multiply by customer profile because there is no reliable public dataset for this.
+**Quando usar:** como referencia externa. A v2 nao multiplica por perfil de cliente porque nao ha dataset publico confiavel para isso.
 
-<if market.available>
+<se mercado.available>
 
-| Item | Value |
+| Item | Valor |
 |---|---|
-| Country / Seniority | <country_name> / <seniority> |
-| Pricing model / Client profile | <pricing_model> / <client_profile> |
-| Complexity | <complexity_class> |
-| Market hourly rate | <market_hourly_min> to <market_hourly_max> <currency>/h |
-| Source type | <source_kind> |
-| Reference year | <source_year> |
-| Sources | <sources> |
-| **Market range** | **<preco_minimo_mercado> to <preco_maximo_mercado> <currency>** |
+| Pais / Senioridade | <country_nome> / <seniority> |
+| Modelo / Perfil cliente | <pricing_model> / <client_profile> |
+| Complexidade | <complexity_class> |
+| Taxa hora de mercado | <market_hourly_min> a <market_hourly_max> <currency>/h |
+| Tipo de fonte | <source_kind> |
+| Ano de referencia | <source_year> |
+| Fontes | <sources> |
+| **Faixa Mercado** | **<preco_minimo_mercado> a <preco_maximo_mercado> <currency>** |
 
-<if fallback applied>
+<se fallback aplicado>
 
-> Fallback applied: <razao>
+> Fallback aplicado: <razao>
 
-</if>
+</se>
 
 <bloco_billing_currency_se_aplicavel>
 
-<if NOT market.available>
+<se NOT mercado.available>
 
-> **Market Scenario unavailable:** <razao_unavailable>
+> **Cenario Mercado nao disponivel:** <razao_unavailable>
 
-</if>
+</se>
 
-## How to choose between the three
+## Como escolher entre os tres
 
 <orientacao_pt_br_baseada_nos_cenarios>
 
-General heuristic:
+Heuristica geral:
 
-1. Customer without clear return: use Effort as a floor and Market as an external reference
-2. Customer with high and clear return: prefer Value, with Effort only as a minimum floor
-3. Effort above the Market: review the client’s profile, size or suitability
-4. Market above Effort: there is room to increase markup or improve proposal
+1. Cliente sem retorno claro: use Esforco como piso e Mercado como referencia externa
+2. Cliente com retorno alto e claro: prefira Valor, com Esforco apenas como piso minimo
+3. Esforco acima do Mercado: revise profile, size ou adequacao do cliente
+4. Mercado acima do Esforco: ha espaco para subir markup ou melhorar proposta
 
 ## Disclaimer
 
-The numbers in this estimate are approximations for budget guidance, not a guarantee of closing the sale. The tax factor is an approximate reserve, not an exact legal rate. Real tax validation and responsibility of the user's accountant. The market range is static and based on sources documented in `market-benchmarks.md`. The return declared by the client in the Value scenario is raw input, not validated. It is recommended to add `reversa/sdd/_pricing/<feature>/estimate.{md,json}` to `.gitignore` before committing.
+Os numeros nesta estimativa sao aproximacoes para orientacao de orcamento, nao garantia de fechamento de venda. O fator de imposto e uma reserva aproximada, nao uma aliquota legal exata. Validacao tributaria real e responsabilidade do contador do usuario. A faixa de mercado e estatica e baseada nas fontes documentadas em `market-benchmarks.md`. O retorno declarado pelo cliente no cenario Valor e input bruto, nao validado. Recomenda-se adicionar `_reversa_sdd/_pricing/<feature>/estimate.{md,json}` ao `.gitignore` antes de commitar.
 ```
 
 ## Billing currency
 
-When `profile.billing_currency` is filled, each scenario gets an extra line:
+Quando `profile.billing_currency` esta preenchido, cada cenario ganha linha extra:
 
 ```markdown
-| In <billing_currency> | <valor_billing> <billing_currency> (exchange rate: 1 <billing_currency> = <exchange_rate_to_local> <currency>) |
+| Em <billing_currency> | <valor_billing> <billing_currency> (cambio: 1 <billing_currency> = <exchange_rate_to_local> <currency>) |
 ```
 
-## Short comments
+## Comentarios curtos
 
-| Scenario | Short comment |
+| Cenario | Comentario curto |
 |---|---|
-| Effort | `<horas_min> to <horas_max>h, cost + tax + markup` |
-| Value | `10% to 30% of declared annual value` or `Unavailable` |
-| Market | `hourly rate sourced by country and seniority` or `Unavailable` |
+| Esforco | `<horas_min> a <horas_max>h, custo + imposto + markup` |
+| Valor | `10% a 30% do valor anual declarado` ou `Nao disponivel` |
+| Mercado | `taxa hora fonteada por pais e senioridade` ou `Nao disponivel` |

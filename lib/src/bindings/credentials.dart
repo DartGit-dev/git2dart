@@ -24,7 +24,7 @@ Pointer<git_credential> userPass({
     final usernameC = username.toChar(arena);
     final passwordC = password.toChar(arena);
 
-    final error = libgit2.git_credential_userpass_plaintext_new(
+    final error = libgit2Runtime.bindings.git_credential_userpass_plaintext_new(
       out,
       usernameC,
       passwordC,
@@ -59,7 +59,7 @@ Pointer<git_credential> sshKey({
     final privateKeyC = privateKey.toChar(arena);
     final passPhraseC = passPhrase.toChar(arena);
 
-    final error = libgit2.git_credential_ssh_key_new(
+    final error = libgit2Runtime.bindings.git_credential_ssh_key_new(
       out,
       usernameC,
       publicKeyC,
@@ -85,7 +85,10 @@ Pointer<git_credential> sshKeyFromAgent(String username) {
     final out = arena<Pointer<git_credential>>();
     final usernameC = username.toChar(arena);
 
-    final error = libgit2.git_credential_ssh_key_from_agent(out, usernameC);
+    final error = libgit2Runtime.bindings.git_credential_ssh_key_from_agent(
+      out,
+      usernameC,
+    );
     checkErrorAndThrow(error);
 
     return out.value;
@@ -116,7 +119,7 @@ Pointer<git_credential> sshKeyFromMemory({
     final privateKeyC = privateKey.toChar(arena);
     final passPhraseC = passPhrase.toChar(arena);
 
-    final error = libgit2.git_credential_ssh_key_memory_new(
+    final error = libgit2Runtime.bindings.git_credential_ssh_key_memory_new(
       out,
       usernameC,
       publicKeyC,
@@ -134,7 +137,7 @@ Pointer<git_credential> sshKeyFromMemory({
 Pointer<git_credential> defaultCredential() {
   return using((arena) {
     final out = arena<Pointer<git_credential>>();
-    final error = libgit2.git_credential_default_new(out);
+    final error = libgit2Runtime.bindings.git_credential_default_new(out);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -145,7 +148,10 @@ Pointer<git_credential> username(String username) {
   return using((arena) {
     final out = arena<Pointer<git_credential>>();
     final usernameC = username.toChar(arena);
-    final error = libgit2.git_credential_username_new(out, usernameC);
+    final error = libgit2Runtime.bindings.git_credential_username_new(
+      out,
+      usernameC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -153,13 +159,14 @@ Pointer<git_credential> username(String username) {
 
 /// Check whether a credential object contains username information.
 bool hasUsername(Pointer<git_credential> cred) =>
-    libgit2.git_credential_has_username(cred) == 1;
+    libgit2Runtime.bindings.git_credential_has_username(cred) == 1;
 
 /// Return the username associated with a credential object, if any.
 String? getUsername(Pointer<git_credential> cred) {
-  final result = libgit2.git_credential_get_username(cred);
+  final result = libgit2Runtime.bindings.git_credential_get_username(cred);
   return result == nullptr ? null : result.toDartString();
 }
 
 /// Free a previously allocated credential.
-void free(Pointer<git_credential> cred) => libgit2.git_credential_free(cred);
+void free(Pointer<git_credential> cred) =>
+    libgit2Runtime.bindings.git_credential_free(cred);

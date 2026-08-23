@@ -32,7 +32,10 @@ void reset({
 }) {
   using((arena) {
     final opts = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(opts, GIT_CHECKOUT_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_checkout_options_init(
+      opts,
+      GIT_CHECKOUT_OPTIONS_VERSION,
+    );
 
     if (strategy != null) {
       opts.ref.checkout_strategy = strategy;
@@ -51,7 +54,7 @@ void reset({
       opts.ref.paths.count = pathspec.length;
     }
 
-    final error = libgit2.git_reset(
+    final error = libgit2Runtime.bindings.git_reset(
       repoPointer,
       targetPointer,
       resetType,
@@ -72,7 +75,10 @@ void resetFromAnnotated({
 }) {
   using((arena) {
     final opts = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(opts, GIT_CHECKOUT_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_checkout_options_init(
+      opts,
+      GIT_CHECKOUT_OPTIONS_VERSION,
+    );
 
     if (strategy != null) {
       opts.ref.checkout_strategy = strategy;
@@ -91,7 +97,7 @@ void resetFromAnnotated({
       opts.ref.paths.count = pathspec.length;
     }
 
-    final error = libgit2.git_reset_from_annotated(
+    final error = libgit2Runtime.bindings.git_reset_from_annotated(
       repoPointer,
       annotatedPointer,
       resetType,
@@ -132,7 +138,7 @@ void resetDefault({
     pathspecC.ref.strings = strArray;
     pathspecC.ref.count = pathspec.length;
 
-    final error = libgit2.git_reset_default(
+    final error = libgit2Runtime.bindings.git_reset_default(
       repoPointer,
       targetPointer ?? nullptr,
       pathspecC,

@@ -34,7 +34,7 @@ Pointer<git_revspec> revParse({
     final out = calloc<git_revspec>();
     final specC = spec.toChar(arena);
 
-    final error = libgit2.git_revparse(out, repoPointer, specC);
+    final error = libgit2Runtime.bindings.git_revparse(out, repoPointer, specC);
     checkErrorAndThrow(error);
     return out;
   });
@@ -68,7 +68,11 @@ Pointer<git_object> revParseSingle({
     final out = arena<Pointer<git_object>>();
     final specC = spec.toChar(arena);
 
-    final error = libgit2.git_revparse_single(out, repoPointer, specC);
+    final error = libgit2Runtime.bindings.git_revparse_single(
+      out,
+      repoPointer,
+      specC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -104,7 +108,12 @@ Pointer<git_object> revParseSingle({
     final refOut = arena<Pointer<git_reference>>();
     final specC = spec.toChar(arena);
 
-    final error = libgit2.git_revparse_ext(objOut, refOut, repoPointer, specC);
+    final error = libgit2Runtime.bindings.git_revparse_ext(
+      objOut,
+      refOut,
+      repoPointer,
+      specC,
+    );
     checkErrorAndThrow(error);
 
     final obj = objOut.value;

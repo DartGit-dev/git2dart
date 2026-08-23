@@ -5,78 +5,78 @@ reversa:
   version: "x.y.z"
 kind: topology_decision
 producedBy: designer
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Topology Decision
 
-> Conscious decision on how to organize the new system: preserve the legacy topology, adopt a modern topology or apply a hybrid.
-> This artifact is mandatory reading by the Designer himself (to decompose bounded contexts) and by the coding agent (to create the folder tree).
+> Decisão consciente sobre como organizar o sistema novo: preservar a topologia do legado, adotar uma topologia moderna ou aplicar um híbrido.
+> Este artefato é leitura obrigatória do próprio Designer (para decompor bounded contexts) e do agente de codificação (para criar a árvore de pastas).
 
-## Legacy topology detected
-- **Organizational pattern**: <package-by-layer | package-by-feature | feature-sliced ​​| modules per domain | DDD with bounded contexts | monorepo | monolith without clear borders | hybrid: ...>
-- **Confidence**: 🟢 CONFIRMED | 🟡 INFERRED | 🔴 GAP | ⚠️ AMBIGUOUS
-- **Evidence**:
-- <evidence 1, with reference to `reversa/sdd/` artifact (architecture.md, inventory.md, dependencies.md)>
-- <evidence 2>
-- **Legacy tree map** (summarized):
+## Topologia do legado detectada
+- **Padrão organizacional**: <package-by-layer | package-by-feature | feature-sliced | módulos por domínio | DDD com bounded contexts | monorepo | monolito sem fronteiras claras | híbrido: ...>
+- **Confiança**: 🟢 CONFIRMADO | 🟡 INFERIDO | 🔴 LACUNA | ⚠️ AMBÍGUO
+- **Evidências**:
+  - <evidência 1, com referência a artefato do `_reversa_sdd/` (architecture.md, inventory.md, dependencies.md)>
+  - <evidência 2>
+- **Mapa da árvore legada** (resumido):
   ```
-<short tree with main folders/modules>
+  <árvore curta com pastas/módulos principais>
   ```
 
-## Structural diagnosis
-- **Coupling**: <high ​​| medium | low, with evidence>
-- **Cohesion per module**: <high ​​| average | low, with evidence>
-- **Orphaned/dead modules**: <list, or "none">
-- **Redundant layers**: <list, or "none">
-- **Border Violations**: <list, or "none">
-- **Mix of paradigms/styles**: <description, or "homogeneous">
-- **Overall assessment**: <healthy | problematic | partially problematic>
+## Diagnóstico estrutural
+- **Acoplamento**: <alto | médio | baixo, com evidência>
+- **Coesão por módulo**: <alta | média | baixa, com evidência>
+- **Módulos órfãos / mortos**: <lista, ou "nenhum">
+- **Camadas redundantes**: <lista, ou "nenhuma">
+- **Violações de fronteira**: <lista, ou "nenhuma">
+- **Mistura de paradigmas/estilos**: <descrição, ou "homogêneo">
+- **Avaliação geral**: <saudável | problemática | parcialmente problemática>
 
 ## Topologia moderna proposta
-- **Pattern**: <hexagonal | vertical slices | feature-sliced ​​| DDD with bounded contexts | package-by-feature | modularization by capability | monorepo with pnpm/turborepo | ...>
-- **Justification**: <why this pattern fits the target stack, domain, team size and chosen migration strategy>
+- **Padrão**: <hexagonal | vertical slices | feature-sliced | DDD com bounded contexts | package-by-feature | modularização por capability | monorepo com pnpm/turborepo | ...>
+- **Justificativa**: <por que esse padrão se encaixa no stack alvo, no domínio, no tamanho do time e na estratégia de migração escolhida>
 - **Ganhos concretos esperados**:
   - <ganho 1: ex. testabilidade isolada por feature>
   - <ganho 2: ex. deploy independente por bounded context>
-- <gain 3: e.g. faster onboarding>
+  - <ganho 3: ex. onboarding mais rápido>
 - **Custo / risco**:
   - <custo 1: ex. curva de aprendizado da equipe>
-- <cost 2: e.g. reorganization effort>
-- **Sketch of the proposed tree**:
+  - <custo 2: ex. esforço de reorganização>
+- **Esboço da árvore proposta**:
   ```
-<short tree with folders/modules in modern pattern>
+  <árvore curta com pastas/módulos no padrão moderno>
   ```
 
-## Options presented to the user
+## Opções apresentadas ao usuário
 1. **Preservar topologia legada** (conservador)
-- Consequences: maintains mental map of the current team; perpetuates possible structural debts; reduces migration risk.
+   - Consequências: mantém mapa mental do time atual; perpetua eventuais débitos estruturais; reduz risco de migração.
 2. **Adotar topologia moderna proposta** (transformacional)
-- Consequences: breaks with structural debt; requires learning; maximizes gains from the target stack.
-3. **Hybrid** (balanced)
-- Consequences: <describe which edges preserve the legacy and which adopt the modern, with justification per edge>
+   - Consequências: rompe com débito estrutural; exige aprendizado; maximiza ganhos do stack alvo.
+3. **Híbrido** (equilibrado)
+   - Consequências: <descrever quais bordas preservam o legado e quais adotam o moderno, com justificativa por borda>
 
-## User decision
+## Decisão do usuário
 - **Escolha**: <1 | 2 | 3>
-- **User justification**: <free text>
+- **Justificativa do usuário**: <texto livre>
 - **Decidido em**: <ISO-8601>
 
-## Legacy mapping → new
-| Legacy module/folder | Bounded context new | Type | Observations |
+## Mapeamento legado → novo
+| Módulo / pasta legada | Bounded context novo | Tipo | Observações |
 |---|---|---|---|
-| <legacy A> | <new X> | preserved | <obs> |
-| <legacy B+C> | <new Y> | cast | <justification> |
-| <legacy D> | <new Y1, Y2> | divided | <justification> |
-| (empty) | <new Z> | new | <justification> |
-| <legacy E> | (discarded) | removed | see `discard_log.md` |
+| <legado A> | <novo X> | preservado | <obs> |
+| <legado B + C> | <novo Y> | fundido | <justificativa> |
+| <legado D> | <novo Y1, Y2> | dividido | <justificativa> |
+| (vazio) | <novo Z> | novo | <justificativa> |
+| <legado E> | (descartado) | removido | ver `discard_log.md` |
 
-## Pending implications for the Designer’s next steps
-| Designer Stage | Implication | How to honor |
+## Implicações pendentes para próximos passos do Designer
+| Etapa do Designer | Implicação | Como honrar |
 |---|---|---|
-| Bound contexts | <implication> | <expected action> |
-| target_architecture | <implication> | <expected action> |
-| target_domain_model | <implication> | <expected action> |
-| target_data_model | <implication> | <expected action> |
+| Bounded contexts | <implicação> | <ação esperada> |
+| target_architecture | <implicação> | <ação esperada> |
+| target_domain_model | <implicação> | <ação esperada> |
+| target_data_model | <implicação> | <ação esperada> |
 
 ## Notas
-<Any additional points that the encoding agent needs to know to create the folder tree and respect the chosen topology.>
+<Qualquer ponto adicional que o agente de codificação precisa saber para criar a árvore de pastas e respeitar a topologia escolhida.>

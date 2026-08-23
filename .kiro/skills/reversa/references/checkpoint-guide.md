@@ -1,32 +1,32 @@
 # Guia de Checkpoints — .reversa/state.json
 
-Reversa is the only agent that **writes** to state.json. The other agents just read.
+O Reversa é o único agente que **escreve** no state.json. Os demais agentes apenas leem.
 
-## Absolute rules
+## Regras absolutas
 
-1. **Never remove existing fields.** Only add or update.
-2. **Always read the file before writing** — another agent may have updated `checkpoints`.
-3. **Save after each completed level**, not just at the end.
-4. **In case of context overflow**, save immediately before pausing.
+1. **Nunca remova campos existentes.** Apenas adicione ou atualize.
+2. **Sempre leia o arquivo antes de escrever** — outro agente pode ter atualizado `checkpoints`.
+3. **Salve após cada fase concluída**, não apenas no final.
+4. **Em caso de estouro de contexto**, salve imediatamente antes de pausar.
 
-## What to save at each stage
+## O que salvar a cada fase
 
-### When starting a phase
+### Ao iniciar uma fase
 ```json
 {
   "phase": "reconhecimento"
 }
 ```
 
-### When completing an agent
+### Ao concluir um agente
 ```json
 {
   "checkpoints": {
     "scout": {
       "completed_at": "2026-04-26T10:30:00Z",
       "files": [
-        "reversa/sdd/inventory.md",
-        "reversa/sdd/dependencies.md",
+        "_reversa_sdd/inventory.md",
+        "_reversa_sdd/dependencies.md",
         ".reversa/context/surface.json"
       ]
     }
@@ -34,7 +34,7 @@ Reversa is the only agent that **writes** to state.json. The other agents just r
 }
 ```
 
-### When completing an entire level
+### Ao concluir uma fase inteira
 ```json
 {
   "phase": "escavacao",
@@ -43,7 +43,7 @@ Reversa is the only agent that **writes** to state.json. The other agents just r
 }
 ```
 
-### When marking an Archaeologist partial task
+### Ao marcar uma tarefa parcial do Archaeologist
 ```json
 {
   "checkpoints": {
@@ -55,27 +55,27 @@ Reversa is the only agent that **writes** to state.json. The other agents just r
 }
 ```
 
-## Phase sequence
+## Sequência de fases
 
 ```
 null → reconhecimento → escavacao → interpretacao → geracao → revisao
 ```
 
-When moving phase:
-- Remove the completed phase from `pending` and add to `completed`
-- Update `phase` to the next phase
+Ao mover de fase:
+- Retire a fase concluída de `pending` e adicione a `completed`
+- Atualize `phase` para a próxima fase
 
-## Example of state.json with analysis in progress
+## Exemplo de state.json com análise em andamento
 
 ```json
 {
   "version": "1.0.0",
-  "project": "my-system",
+  "project": "meu-sistema",
   "user_name": "Ana",
   "chat_language": "pt-br",
-  "doc_language": "Portuguese",
+  "doc_language": "Português",
   "answer_mode": "chat",
-  "output_folder": "reversa/sdd",
+  "output_folder": "_reversa_sdd",
   "phase": "escavacao",
   "completed": ["reconhecimento"],
   "pending": ["escavacao", "interpretacao", "geracao", "revisao"],
@@ -83,8 +83,8 @@ When moving phase:
     "scout": {
       "completed_at": "2026-04-26T10:30:00Z",
       "files": [
-        "reversa/sdd/inventory.md",
-        "reversa/sdd/dependencies.md",
+        "_reversa_sdd/inventory.md",
+        "_reversa_sdd/dependencies.md",
         ".reversa/context/surface.json"
       ]
     },
@@ -99,8 +99,8 @@ When moving phase:
 }
 ```
 
-## Pause message due to context overflow
+## Mensagem de pausa por estouro de contexto
 
-If context is running out, save the current checkpoint and say:
+Se o contexto estiver se esgotando, salve o checkpoint atual e diga:
 
-> "[Name], I'm going to pause here to preserve context. Everything is saved in `.reversa/state.json`. Type `reversa` in a new session to pick up where we left off."
+> "[Nome], vou pausar aqui para preservar o contexto. Tudo está salvo em `.reversa/state.json`. Digite `reversa` em uma nova sessão para continuar de onde paramos."

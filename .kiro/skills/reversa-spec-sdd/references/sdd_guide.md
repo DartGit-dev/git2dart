@@ -1,46 +1,46 @@
 # Guia de Metodologia — Spec-Driven Development
 
-## What is SDD?
+## O que é SDD?
 
-Spec-Driven Development is the practice of writing a detailed specification of behavior **before** writing any code. The spec responds to **what** the system should do — not **how** to implement it.
+Spec-Driven Development é a prática de escrever uma especificação detalhada de comportamento **antes** de escrever qualquer código. A spec responde ao **quê** o sistema deve fazer — não ao **como** implementar.
 
-Not to be confused with:
-- **TDD** (Test-Driven Development): writes tests before code — complementary to SDD
-- **DDD** (Domain-Driven Design): architectural pattern — independent of SDD
-- **BDD** (Behavior-Driven Development): focus on behaviors with Gherkin — a subset of SDD
+Não confundir com:
+- **TDD** (Test-Driven Development): escreve testes antes do código — complementar ao SDD
+- **DDD** (Domain-Driven Design): padrão arquitetural — independente do SDD
+- **BDD** (Behavior-Driven Development): foco em comportamentos com Gherkin — um subconjunto de SDD
 
 ---
 
-## Fundamental Principles
+## Princípios Fundamentais
 
 ### 1. Behavior, not Implementation
 
-The spec describes the observable behavior, not the internal implementation.
+A spec descreve o comportamento observável, não a implementação interna.
 
-❌ Bad: "The system must use Redis to cache sessions"
-✅ Good: "The system must keep the user's session active for 30 days on devices where they have checked 'remember me'"
+❌ Ruim: "O sistema deve usar Redis para cache das sessões"
+✅ Bom: "O sistema deve manter a sessão do usuário ativa por 30 dias em dispositivos onde ele marcou 'lembrar de mim'"
 
-The implementation (Redis, JWT, database) is a technical decision for the implementer — not the spec.
+A implementação (Redis, JWT, banco de dados) é uma decisão técnica de quem implementa — não da spec.
 
 ### 2. Ambiguidade = Bug Futuro
 
-Every ambiguity in the spec becomes a bug, an alignment meeting, or a PR discussion in the future. Make ambiguities explicit with `⚠️ ABERTO:` — a visible open item is better than a silent assumption.
+Toda ambiguidade na spec se torna um bug, uma reunião de alinhamento ou uma discussão em PR no futuro. Torne ambiguidades explícitas com `⚠️ ABERTO:` — é melhor um item aberto visível do que uma suposição silenciosa.
 
-### 3. Non-Goals are as important as Goals
+### 3. Non-Goals são tão importantes quanto Goals
 
-"What we won't do" prevents scope creep, aligns expectations and accelerates decisions. A feature without non-goals tends to grow indefinitely.
+"O que não vamos fazer" previne scope creep, alinha expectativas e acelera decisões. Uma feature sem non-goals tende a crescer indefinidamente.
 
-### 4. The Spec is a Living Contract
+### 4. A Spec é um Contrato Vivo
 
-The spec changes as understanding evolves — and that's healthy. What matters is that the changes are recorded (Decision Log) and that all stakeholders are aligned with the current version.
+A spec muda conforme o entendimento evolui — e isso é saudável. O que importa é que as mudanças sejam registradas (Decision Log) e que todos os stakeholders estejam alinhados com a versão atual.
 
 ### 5. LLM-Readiness
 
-A good modern spec should be readable by LLMs that will help implement it. This means:
-- Numbered requirements (traceable IDs)
-- Explicit, not implicit, behaviors
-- Documented edge cases (LLMs don't guess edge cases)
-- Business context included (the “why” helps you make good implementation decisions)
+Uma boa spec moderna deve ser legível por LLMs que vão ajudar a implementar. Isso significa:
+- Requisitos numerados (IDs rastreáveis)
+- Comportamentos explícitos, não implícitos
+- Edge cases documentados (LLMs não adivinham casos extremos)
+- Contexto de negócio incluído (o "porquê" ajuda a tomar boas decisões de implementação)
 
 ---
 
@@ -53,72 +53,72 @@ Ideia/Problema
       ↓                              │
   Rascunho da Spec                   │
       ↓                              │
-Assessment (Score) │
+  Avaliação (Score)                  │
       ↓                              │
   Score < 80? ──── Sim ──── Identificar gaps
-↓ No
-Spec Approved
+      ↓ Não
+  Spec Aprovada
       ↓
-Implementation
+  Implementação
       ↓
-Spec vs. Code (final validation)
+  Spec vs. Código (validação final)
 ```
 
 ---
 
-## When to Write the Spec
+## Quando Escrever a Spec
 
-| Feature size | Recommendation |
+| Tamanho da feature | Recomendação |
 |-------------------|--------------|
-| Bug Fix | No spec needed |
-| Small improvement (< 1 dev day) | Minimum spec: goals + main requirements |
-| New Feature (1–5 days) | Spec complete but concise |
-| Complex feature (> 5 days) | Spec complete + review by 2+ people |
-| New system | Architecture spec + feature specs |
+| Fix de bug | Não precisa de spec |
+| Melhoria pequena (< 1 dia dev) | Spec mínima: goals + requisitos principais |
+| Feature nova (1–5 dias) | Spec completa, mas concisa |
+| Feature complexa (> 5 dias) | Spec completa + revisão por 2+ pessoas |
+| Sistema novo | Spec de arquitetura + specs por feature |
 
 ---
 
 ## Prioridades de Requisitos (MoSCoW)
 
-| Priority | Meaning | Decision if it does not fit within the deadline |
+| Prioridade | Significado | Decisão se não couber no prazo |
 |-----------|-------------|-------------------------------|
-| **Must** | Mandatory — without it it won't launch | Blocks the launch |
-| **Should** | Important — but there is workaround | Postpone to next version |
-| **Could** | Nice-to-have | Discard if necessary |
-| **Won't** | Consciously out of scope | Documents as Non-Goal |
+| **Must** | Obrigatório — sem isso não lança | Bloqueia o lançamento |
+| **Should** | Importante — mas há workaround | Adia para próxima versão |
+| **Could** | Nice-to-have | Descarta se necessário |
+| **Won't** | Conscientemente fora do escopo | Documenta como Non-Goal |
 
 ---
 
-## Common Antipatterns
+## Antipadrões Comuns
 
 ### "Spec like a PRD de grande empresa"
-50-page specs that no one reads. Prefer concise specs that cover the essentials clearly.
+Specs de 50 páginas que ninguém lê. Prefira specs concisas que cobrem o essencial com clareza.
 
-### "Spec as technical task list"
-"Create users table, add POST /auth endpoint, integrate with OAuth..." — this is an implementation plan, not a spec. The spec talks about behavior.
+### "Spec como lista de tarefas técnicas"
+"Criar tabela users, adicionar endpoint POST /auth, integrar com OAuth..." — isso é um plano de implementação, não uma spec. A spec fala em comportamento.
 
 ### "Spec verbal / em Slack"
-Decisions made in unrecorded conversations are lost and generate conflicts. Every spec must exist as a written document.
+Decisões tomadas em conversa sem registro se perdem e geram conflitos. Toda spec deve existir como documento escrito.
 
 ### "Spec que nunca muda"
-Frozen specs that do not reflect the reality of what was implemented. The spec must be updated when the implementation intentionally diverges.
+Specs congeladas que não refletem a realidade do que foi implementado. A spec deve ser atualizada quando a implementação divergir intencionalmente.
 
 ### "Open Questions silenciosas"
-Assume answers to unanswered questions. Always use `⚠️ ABERTO:` and resolve before implementing.
+Assumir respostas para perguntas não respondidas. Sempre use `⚠️ ABERTO:` e resolva antes de implementar.
 
 ---
 
-## SDD Vocabulary
+## Vocabulário do SDD
 
-| Term | Definition |
+| Termo | Definição |
 |-------|-----------|
-| **Spec** | Document that describes the expected behavior of a feature |
-| **RF** | Functional Requirement — what the system must do |
-| **RNF** | Non-Functional Requirement — how the system should behave (performance, security...) |
-| **Goal** | Objective that the feature must achieve |
-| **Non-Goal** | What is explicitly out of scope |
-| **Edge Case** | Limit or non-obvious case that the system must handle correctly |
-| **Happy Path** | The main and most common flow of use |
-| **Acceptance Criteria** | Verifiable condition that defines when a requirement is implemented |
-| **Open Question** | Unresolved question that could impact the design |
-| **Decision Log** | Record of important decisions and why they were taken |
+| **Spec** | Documento que descreve o comportamento esperado de uma feature |
+| **RF** | Requisito Funcional — o que o sistema deve fazer |
+| **RNF** | Requisito Não-Funcional — como o sistema deve se comportar (performance, segurança...) |
+| **Goal** | Objetivo que a feature deve atingir |
+| **Non-Goal** | O que está explicitamente fora do escopo |
+| **Edge Case** | Caso limite ou não-óbvio que o sistema deve tratar corretamente |
+| **Happy Path** | O fluxo principal e mais comum de uso |
+| **Critério de Aceite** | Condição verificável que define quando um requisito está implementado |
+| **Open Question** | Dúvida não resolvida que pode impactar o design |
+| **Decision Log** | Registro de decisões importantes e o porquê foram tomadas |

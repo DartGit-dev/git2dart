@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/commit.dart' as bindings;
 import 'package:git2dart/src/bindings/graph.dart' as graph_bindings;
+import 'package:git2dart/src/helpers/native_owner.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
@@ -23,7 +24,11 @@ class Commit extends Equatable {
   /// [commitPointer] is a pointer to the underlying libgit2 commit object.
   @internal
   Commit(this._commitPointer) {
-    _finalizer.attach(this, _commitPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'commit',
+      destroy: () => bindings.free(_commitPointer),
+    );
   }
 
   /// Creates a new commit instance by looking up a commit object in the repository.
@@ -37,9 +42,14 @@ class Commit extends Equatable {
       repoPointer: repo.pointer,
       oidPointer: oid.pointer,
     );
-    _finalizer.attach(this, _commitPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'commit',
+      destroy: () => bindings.free(_commitPointer),
+    );
   }
 
+  late final ManagedNativeOwner _nativeOwner;
   late final Pointer<git_commit> _commitPointer;
 
   /// Gets the pointer to the underlying libgit2 commit object.
@@ -395,8 +405,7 @@ class Commit extends Equatable {
   ///
   /// This should be called when the commit object is no longer needed.
   void free() {
-    bindings.free(_commitPointer);
-    _finalizer.detach(this);
+    _nativeOwner.release(this);
   }
 
   @override
@@ -411,7 +420,3 @@ class Commit extends Equatable {
 }
 
 // coverage:ignore-start
-final _finalizer = Finalizer<Pointer<git_commit>>(
-  (pointer) => bindings.free(pointer),
-);
-// coverage:ignore-end

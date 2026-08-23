@@ -1,10 +1,10 @@
-# Reference Examples — Image Prompt Builder
+# Exemplos de Referência — Image Prompt Builder
 
-These examples demonstrate the standard language and structure expected in the generated prompts.
+Estes exemplos demonstram o padrão de linguagem e estrutura esperados nos prompts gerados.
 
 ---
 
-## Example 1 — Dessert (Lava Cake)
+## Exemplo 1 — Sobremesa (Lava Cake)
 
 ```json
 {
@@ -51,17 +51,7 @@ These examples demonstrate the standard language and structure expected in the g
     },
     "output_specs": {
       "resolution": "4K",
-      "aspect_ratio": "16:9",
-      "model": "nano-banana-2",
-      "synthid_watermark": true
-    }
-  }
-}
-```
-
----
-
-## Example 2 — Beverage (Shake)
+      "aspect_ratio": "16:9", — Bebida (Shake)
 
 ```json
 {
@@ -69,7 +59,7 @@ These examples demonstrate the standard language and structure expected in the g
     "scene_type": "high-speed commercial luxury shake photography",
     "product": {
       "type": "elegant frosted glass bottle filled with velvety strawberry shake",
-"brand_name": "ROSÉ VELVET",
+      "brand_name": "ROSÉ VELVET",
       "appearance": "minimalist vertical blush label with embossed rose-gold serif typography, creamy pastel pink liquid with natural strawberry swirls",
       "accompaniments": [
         "fresh strawberry halves with visible seeds and juicy texture",
@@ -116,18 +106,18 @@ These examples demonstrate the standard language and structure expected in the g
 
 ---
 
-## Mandatory language standards
+## Padrões linguísticos obrigatórios
 
-| Field | Expected pattern |
+| Campo | Padrão esperado |
 |---|---|
-| `type` | premium adjective + material + product name |
-| `action` | impact verb + frozen movement + context |
-| `surrounding_elements` | visual noun + movement/texture detail |
-| `placement` | "centered hero [product] on [surface] with [reflection]" |
-| `lighting.effects` | rim / key / top or back / optional extra |
-| `background` | main color + transition + effect (bokeh, gradient...) |
+| `type` | adjetivo premium + material + nome do produto |
+| `action` | verbo de impacto + movimento congelado + contexto |
+| `surrounding_elements` | substantivo visual + detalhe de movimento/textura |
+| `placement` | "centered hero [produto] on [superfície] with [reflexo]" |
+| `lighting.effects` | rim / key / top ou back / extra opcional |
+| `background` | cor principal + transição + efeito (bokeh, gradiente...) |
 | `rendering_style` | descritor de realismo ou estilo visual |
 | `resolution` | `512px` / `1K` / `2K` / `4K` |
 | `aspect_ratio` | `1:1` / `16:9` / `9:16` / `4:3` / `3:4` / `4:1` / `1:4` / `8:1` / `1:8` |
-| `model` | always `"nano-banana-2"` |
-| `synthid_watermark` | always `true` |
+| `model` | sempre `"nano-banana-2"` |
+| `synthid_watermark` | sempre `true` |

@@ -16,7 +16,11 @@ Pointer<git_commit> lookup({
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
 
-    final error = libgit2.git_commit_lookup(out, repoPointer, oidPointer);
+    final error = libgit2Runtime.bindings.git_commit_lookup(
+      out,
+      repoPointer,
+      oidPointer,
+    );
     checkErrorAndThrow(error);
 
     return out.value;
@@ -34,7 +38,7 @@ Pointer<git_commit> lookupPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
-    final error = libgit2.git_commit_lookup_prefix(
+    final error = libgit2Runtime.bindings.git_commit_lookup_prefix(
       out,
       repoPointer,
       oidPointer,
@@ -77,7 +81,7 @@ Pointer<git_oid> create({
       }
     }
 
-    final error = libgit2.git_commit_create(
+    final error = libgit2Runtime.bindings.git_commit_create(
       out,
       repoPointer,
       updateRefC,
@@ -125,7 +129,7 @@ String createBuffer({
       }
     }
 
-    final error = libgit2.git_commit_create_buffer(
+    final error = libgit2Runtime.bindings.git_commit_create_buffer(
       out,
       repoPointer,
       authorPointer,
@@ -172,7 +176,7 @@ Pointer<git_oid> createFromIds({
       }
     }
 
-    final error = libgit2.git_commit_create_from_ids(
+    final error = libgit2Runtime.bindings.git_commit_create_from_ids(
       out,
       repoPointer,
       updateRefC,
@@ -205,7 +209,7 @@ Pointer<git_oid> createWithSignature({
     final signatureC = signature?.toChar(arena) ?? nullptr;
     final fieldC = signatureField?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_commit_create_with_signature(
+    final error = libgit2Runtime.bindings.git_commit_create_with_signature(
       out,
       repoPointer,
       commitContentC,
@@ -231,7 +235,7 @@ MapEntry<String, String> extractSignature({
     final signedDataOut = arena<git_buf>();
     final fieldC = field?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_commit_extract_signature(
+    final error = libgit2Runtime.bindings.git_commit_extract_signature(
       signatureOut,
       signedDataOut,
       repoPointer,
@@ -280,7 +284,7 @@ Pointer<git_oid> amend({
     final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
     final messageC = message?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_commit_amend(
+    final error = libgit2Runtime.bindings.git_commit_amend(
       out,
       commitPointer,
       updateRefC,
@@ -302,7 +306,7 @@ Pointer<git_commit> duplicate(Pointer<git_commit> source) {
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
 
-    libgit2.git_commit_dup(out, source);
+    libgit2Runtime.bindings.git_commit_dup(out, source);
 
     return out.value;
   });
@@ -313,7 +317,7 @@ Pointer<git_commit> duplicate(Pointer<git_commit> source) {
 ///
 /// If the encoding header in the commit is missing UTF-8 is assumed.
 String messageEncoding(Pointer<git_commit> commit) {
-  final result = libgit2.git_commit_message_encoding(commit);
+  final result = libgit2Runtime.bindings.git_commit_message_encoding(commit);
   return result == nullptr ? 'utf-8' : result.toDartString();
 }
 
@@ -322,12 +326,12 @@ String messageEncoding(Pointer<git_commit> commit) {
 /// The returned message will be slightly prettified by removing any potential
 /// leading newlines.
 String message(Pointer<git_commit> commit) {
-  return libgit2.git_commit_message(commit).toDartString();
+  return libgit2Runtime.bindings.git_commit_message(commit).toDartString();
 }
 
 /// Get the full raw message of a commit.
 String messageRaw(Pointer<git_commit> commit) {
-  return libgit2.git_commit_message_raw(commit).toDartString();
+  return libgit2Runtime.bindings.git_commit_message_raw(commit).toDartString();
 }
 
 /// Get the short "summary" of the git commit message.
@@ -337,10 +341,10 @@ String messageRaw(Pointer<git_commit> commit) {
 ///
 /// Throws a [LibGit2Error] if error occured.
 String summary(Pointer<git_commit> commit) {
-  final result = libgit2.git_commit_summary(commit);
+  final result = libgit2Runtime.bindings.git_commit_summary(commit);
 
   if (result == nullptr) {
-    throw LibGit2Error(libgit2.git_error_last());
+    throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
   } else {
     return result.toDartString();
   }
@@ -352,7 +356,7 @@ String summary(Pointer<git_commit> commit) {
 /// the first paragraph of the message. Leading and trailing whitespaces are
 /// trimmed.
 String body(Pointer<git_commit> commit) {
-  final result = libgit2.git_commit_body(commit);
+  final result = libgit2Runtime.bindings.git_commit_body(commit);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -367,7 +371,11 @@ String headerField({
     final out = arena<git_buf>();
     final fieldC = field.toChar(arena);
 
-    final error = libgit2.git_commit_header_field(out, commitPointer, fieldC);
+    final error = libgit2Runtime.bindings.git_commit_header_field(
+      out,
+      commitPointer,
+      fieldC,
+    );
     checkErrorAndThrow(error);
 
     return out.ref.ptr.toDartString(length: out.ref.size);
@@ -376,23 +384,23 @@ String headerField({
 
 /// Get the full raw header of a commit.
 String rawHeader(Pointer<git_commit> commit) {
-  return libgit2.git_commit_raw_header(commit).toDartString();
+  return libgit2Runtime.bindings.git_commit_raw_header(commit).toDartString();
 }
 
 /// Get the id of a commit.
 Pointer<git_oid> id(Pointer<git_commit> commit) =>
-    libgit2.git_commit_id(commit);
+    libgit2Runtime.bindings.git_commit_id(commit);
 
 /// Get the number of parents of this commit.
 int parentCount(Pointer<git_commit> commit) =>
-    libgit2.git_commit_parentcount(commit);
+    libgit2Runtime.bindings.git_commit_parentcount(commit);
 
 /// Get the oid of a specified parent for a commit.
 Pointer<git_oid> parentId({
   required Pointer<git_commit> commitPointer,
   required int position,
 }) {
-  return libgit2.git_commit_parent_id(commitPointer, position);
+  return libgit2Runtime.bindings.git_commit_parent_id(commitPointer, position);
 }
 
 /// Get the specified parent of the commit (0-based).
@@ -404,7 +412,11 @@ Pointer<git_commit> parent({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
-    final error = libgit2.git_commit_parent(out, commitPointer, position);
+    final error = libgit2Runtime.bindings.git_commit_parent(
+      out,
+      commitPointer,
+      position,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -424,7 +436,11 @@ Pointer<git_commit> nthGenAncestor({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_commit>>();
-    final error = libgit2.git_commit_nth_gen_ancestor(out, commitPointer, n);
+    final error = libgit2Runtime.bindings.git_commit_nth_gen_ancestor(
+      out,
+      commitPointer,
+      n,
+    );
 
     checkErrorAndThrow(error);
 
@@ -433,16 +449,17 @@ Pointer<git_commit> nthGenAncestor({
 }
 
 /// Get the commit time (i.e. committer time) of a commit.
-int time(Pointer<git_commit> commit) => libgit2.git_commit_time(commit);
+int time(Pointer<git_commit> commit) =>
+    libgit2Runtime.bindings.git_commit_time(commit);
 
 /// Get the commit timezone offset in minutes (i.e. committer's preferred
 /// timezone) of a commit.
 int timeOffset(Pointer<git_commit> commit) =>
-    libgit2.git_commit_time_offset(commit);
+    libgit2Runtime.bindings.git_commit_time_offset(commit);
 
 /// Get the committer of a commit.
 Pointer<git_signature> committer(Pointer<git_commit> commit) =>
-    libgit2.git_commit_committer(commit);
+    libgit2Runtime.bindings.git_commit_committer(commit);
 
 /// Get the committer of a commit, using a mailmap to resolve names and emails.
 ///
@@ -453,7 +470,7 @@ Pointer<git_signature> committerWithMailmap({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
-    final error = libgit2.git_commit_committer_with_mailmap(
+    final error = libgit2Runtime.bindings.git_commit_committer_with_mailmap(
       out,
       commitPointer,
       mailmapPointer,
@@ -468,7 +485,7 @@ Pointer<git_signature> committerWithMailmap({
 ///
 /// The returned signature must be freed.
 Pointer<git_signature> author(Pointer<git_commit> commit) =>
-    libgit2.git_commit_author(commit);
+    libgit2Runtime.bindings.git_commit_author(commit);
 
 /// Get the author of a commit, using a mailmap to resolve names and emails.
 ///
@@ -479,7 +496,7 @@ Pointer<git_signature> authorWithMailmap({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
-    final error = libgit2.git_commit_author_with_mailmap(
+    final error = libgit2Runtime.bindings.git_commit_author_with_mailmap(
       out,
       commitPointer,
       mailmapPointer,
@@ -492,7 +509,7 @@ Pointer<git_signature> authorWithMailmap({
 
 /// Get the id of the tree pointed to by a commit.
 Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>
-    libgit2.git_commit_tree_id(commit);
+    libgit2Runtime.bindings.git_commit_tree_id(commit);
 
 /// Get the tree pointed to by a commit.
 ///
@@ -500,7 +517,7 @@ Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>
 Pointer<git_tree> tree(Pointer<git_commit> commit) {
   return using((arena) {
     final out = arena<Pointer<git_tree>>();
-    libgit2.git_commit_tree(out, commit);
+    libgit2Runtime.bindings.git_commit_tree(out, commit);
     return out.value;
   });
 }
@@ -522,7 +539,10 @@ void revert({
 }) {
   using((arena) {
     final opts = arena<git_revert_options>();
-    libgit2.git_revert_options_init(opts, GIT_REVERT_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_revert_options_init(
+      opts,
+      GIT_REVERT_OPTIONS_VERSION,
+    );
 
     opts.ref.mainline = mainline;
 
@@ -548,7 +568,11 @@ void revert({
       opts.ref.checkout_opts.paths.count = checkoutPaths.length;
     }
 
-    final error = libgit2.git_revert(repoPointer, commitPointer, opts);
+    final error = libgit2Runtime.bindings.git_revert(
+      repoPointer,
+      commitPointer,
+      opts,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -572,13 +596,16 @@ Pointer<git_index> revertCommit({
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_merge_options>();
-    libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_merge_options_init(
+      opts,
+      GIT_MERGE_OPTIONS_VERSION,
+    );
 
     if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;
     if (mergeFlags != null) opts.ref.flags = mergeFlags;
     if (mergeFileFlags != null) opts.ref.file_flags = mergeFileFlags;
 
-    final error = libgit2.git_revert_commit(
+    final error = libgit2Runtime.bindings.git_revert_commit(
       out,
       repoPointer,
       revertCommitPointer,
@@ -593,7 +620,8 @@ Pointer<git_index> revertCommit({
 
 /// Get the repository that contains the commit.
 Pointer<git_repository> owner(Pointer<git_commit> commit) =>
-    libgit2.git_commit_owner(commit);
+    libgit2Runtime.bindings.git_commit_owner(commit);
 
 /// Close an open commit to release memory.
-void free(Pointer<git_commit> commit) => libgit2.git_commit_free(commit);
+void free(Pointer<git_commit> commit) =>
+    libgit2Runtime.bindings.git_commit_free(commit);

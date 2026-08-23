@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Generates sample data ready for different Highcharts chart types.
+Gera dados de exemplo prontos para diferentes tipos de gráfico Highcharts.
 
-Useful when the user wants to explore a chart type without real data.
+Útil quando o usuário quer explorar um tipo de gráfico sem ter dados reais.
 
-Usage:
+Uso:
     python sample_data.py --type line
     python sample_data.py --type pie --items 6
     python sample_data.py --type stock --days 365
     python sample_data.py --type sankey
-    python sample_data.py --list  (lists all types)
+    python sample_data.py --list  (lista todos os tipos)
 
-Output:
-    JSON with ready-to-use Highcharts options.
+Saída:
+    JSON com opções Highcharts prontas para usar.
 """
 
 import sys
@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 
 def sample_line(months: int = 12, series_count: int = 2) -> dict:
-    """Sample data for line/spline/area chart."""
+    """Dados de exemplo para line/spline/area chart."""
     months_list = ['Jan','Fev','Mar','Abr','Mai','Jun',
                    'Jul','Ago','Set','Out','Nov','Dez'][:months]
     series = []
@@ -31,12 +31,12 @@ def sample_line(months: int = 12, series_count: int = 2) -> dict:
         base = random.randint(50, 200)
         data = [round(base + random.gauss(0, 20) + j * random.uniform(-2, 5), 1)
                 for j in range(months)]
-        series.append({"name": f"Series {chr(65+i)}", "data": data})
+        series.append({"name": f"Série {chr(65+i)}", "data": data})
     return {"categories": months_list, "series": series, "suggested_type": "line"}
 
 
 def sample_column(categories: int = 6, series_count: int = 2) -> dict:
-    """Sample data for column/bar chart."""
+    """Dados de exemplo para column/bar chart."""
     cats = [f"Categoria {chr(65+i)}" for i in range(categories)]
     series = []
     for i in range(series_count):
@@ -46,9 +46,9 @@ def sample_column(categories: int = 6, series_count: int = 2) -> dict:
 
 
 def sample_pie(items: int = 6) -> dict:
-    """Sample data for pie/donut chart."""
-    names = ['Technology', 'Healthcare', 'Finance', 'Education',
-             'Retail', 'Industry', 'Energy', 'Transportation'][:items]
+    """Dados de exemplo para pie/donut chart."""
+    names = ['Tecnologia', 'Saúde', 'Finanças', 'Educação',
+             'Varejo', 'Indústria', 'Energia', 'Transporte'][:items]
     values = [random.randint(5, 35) for _ in range(items)]
     total = sum(values)
     data = [{"name": n, "y": round(v / total * 100, 1)} for n, v in zip(names, values)]
@@ -56,12 +56,12 @@ def sample_pie(items: int = 6) -> dict:
     max_idx = max(range(len(data)), key=lambda i: data[i]["y"])
     data[max_idx]["sliced"] = True
     data[max_idx]["selected"] = True
-    return {"series": [{"name": "Share", "colorByPoint": True, "data": data}],
+    return {"series": [{"name": "Participação", "colorByPoint": True, "data": data}],
             "suggested_type": "pie"}
 
 
 def sample_scatter(points: int = 50) -> dict:
-    """Sample data for scatter chart."""
+    """Dados de exemplo para scatter chart."""
     data_a = [[round(random.gauss(5, 2), 1), round(random.gauss(5, 2), 1)]
               for _ in range(points)]
     data_b = [[round(random.gauss(8, 1.5), 1), round(random.gauss(3, 1.5), 1)]
@@ -73,8 +73,8 @@ def sample_scatter(points: int = 50) -> dict:
 
 
 def sample_heatmap(rows: int = 7, cols: int = 12) -> dict:
-    """Sample data for heatmap."""
-    row_cats = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][:rows]
+    """Dados de exemplo para heatmap."""
+    row_cats = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][:rows]
     col_cats = ['Jan','Fev','Mar','Abr','Mai','Jun',
                 'Jul','Ago','Set','Out','Nov','Dez'][:cols]
     data = [[x, y, random.randint(0, 100)] for x in range(cols) for y in range(rows)]
@@ -85,11 +85,11 @@ def sample_heatmap(rows: int = 7, cols: int = 12) -> dict:
 
 
 def sample_sankey() -> dict:
-    """Sample data for Sankey diagram."""
+    """Dados de exemplo para Sankey diagram."""
     data = [
         ['Marketing', 'Leads', 1000],
         ['Vendas Diretas', 'Leads', 500],
-        ['Referrals', 'Leads', 300],
+        ['Indicação', 'Leads', 300],
         ['Leads', 'Qualificados', 900],
         ['Leads', 'Descartados', 900],
         ['Qualificados', 'Proposta', 600],
@@ -104,7 +104,7 @@ def sample_sankey() -> dict:
 
 
 def sample_gauge(value: float = None) -> dict:
-    """Sample data for gauge/solid gauge."""
+    """Dados de exemplo para gauge/solid gauge."""
     val = value or round(random.uniform(30, 95), 1)
     return {
         "series": [{"name": "Performance", "data": [val]}],
@@ -114,11 +114,11 @@ def sample_gauge(value: float = None) -> dict:
 
 
 def sample_treemap() -> dict:
-    """Sample data for treemap."""
+    """Dados de exemplo para treemap."""
     data = [
         {"name": "Brasil", "value": 211, "colorValue": 1},
-        {"name": "Mexico", "value": 128, "colorValue": 2},
-        {"name": "Colombia", "value": 50, "colorValue": 3},
+        {"name": "México", "value": 128, "colorValue": 2},
+        {"name": "Colômbia", "value": 50, "colorValue": 3},
         {"name": "Argentina", "value": 45, "colorValue": 4},
         {"name": "Peru", "value": 32, "colorValue": 5},
         {"name": "Venezuela", "value": 28, "colorValue": 6},
@@ -129,7 +129,7 @@ def sample_treemap() -> dict:
 
 
 def sample_stock(days: int = 365) -> dict:
-    """Sample data for stock chart (OHLC)."""
+    """Dados de exemplo para stock chart (OHLC)."""
     start = datetime(2024, 1, 1)
     price = 150.0
     data = []
@@ -149,7 +149,7 @@ def sample_stock(days: int = 365) -> dict:
 
 
 def sample_funnel() -> dict:
-    """Sample data for funnel chart."""
+    """Dados de exemplo para funnel chart."""
     data = [
         ['Visitantes do Site', 15654],
         ['Downloads', 4064],
@@ -175,15 +175,15 @@ GENERATORS = {
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generates sample data for Highcharts")
+    parser = argparse.ArgumentParser(description="Gera dados de exemplo para Highcharts")
     parser.add_argument("--type", "-t", choices=list(GENERATORS.keys()),
-                        help="Chart type")
-    parser.add_argument("--list", "-l", action="store_true", help="Lists available types")
-    parser.add_argument("--output", "-o", help="Save to a file")
+                        help="Tipo de gráfico")
+    parser.add_argument("--list", "-l", action="store_true", help="Lista tipos disponíveis")
+    parser.add_argument("--output", "-o", help="Salvar em arquivo")
     args = parser.parse_args()
 
     if args.list:
-        print("Available types:")
+        print("Tipos disponíveis:")
         for t in sorted(set(GENERATORS.keys())):
             print(f"  • {t}")
         return
@@ -199,7 +199,7 @@ def main():
     if args.output:
         with open(args.output, 'w', encoding='utf-8') as f:
             f.write(output)
-        print(f"[INFO] Saved to: {args.output}", file=sys.stderr)
+        print(f"[INFO] Salvo em: {args.output}", file=sys.stderr)
     else:
         print(output)
 

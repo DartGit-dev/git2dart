@@ -11,13 +11,13 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 List<String> list(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<git_strarray>();
-    final error = libgit2.git_tag_list(out, repo);
+    final error = libgit2Runtime.bindings.git_tag_list(out, repo);
     checkErrorAndThrow(error);
 
     final result = <String>[
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -32,7 +32,11 @@ Pointer<git_tag> lookup({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_tag>>();
-    final error = libgit2.git_tag_lookup(out, repoPointer, oidPointer);
+    final error = libgit2Runtime.bindings.git_tag_lookup(
+      out,
+      repoPointer,
+      oidPointer,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -50,7 +54,7 @@ Pointer<git_tag> lookupPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_tag>>();
-    final error = libgit2.git_tag_lookup_prefix(
+    final error = libgit2Runtime.bindings.git_tag_lookup_prefix(
       out,
       repoPointer,
       oidPointer,
@@ -71,7 +75,7 @@ Pointer<git_tag> lookupPrefix({
 Pointer<git_object> target(Pointer<git_tag> tag) {
   return using((arena) {
     final out = arena<Pointer<git_object>>();
-    final error = libgit2.git_tag_target(out, tag);
+    final error = libgit2Runtime.bindings.git_tag_target(out, tag);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -79,25 +83,27 @@ Pointer<git_object> target(Pointer<git_tag> tag) {
 
 /// Get the type of a tag's tagged object.
 git_object_t targetType(Pointer<git_tag> tag) =>
-    libgit2.git_tag_target_type(tag);
+    libgit2Runtime.bindings.git_tag_target_type(tag);
 
 /// Get the OID of the tagged object of a tag.
 Pointer<git_oid> targetOid(Pointer<git_tag> tag) =>
-    libgit2.git_tag_target_id(tag);
+    libgit2Runtime.bindings.git_tag_target_id(tag);
 
 /// Get the id of a tag.
-Pointer<git_oid> id(Pointer<git_tag> tag) => libgit2.git_tag_id(tag);
+Pointer<git_oid> id(Pointer<git_tag> tag) =>
+    libgit2Runtime.bindings.git_tag_id(tag);
 
 /// Get the repository that owns this tag.
 Pointer<git_repository> owner(Pointer<git_tag> tag) =>
-    libgit2.git_tag_owner(tag);
+    libgit2Runtime.bindings.git_tag_owner(tag);
 
 /// Get the name of a tag.
-String name(Pointer<git_tag> tag) => libgit2.git_tag_name(tag).toDartString();
+String name(Pointer<git_tag> tag) =>
+    libgit2Runtime.bindings.git_tag_name(tag).toDartString();
 
 /// Get the message of a tag.
 String message(Pointer<git_tag> tag) {
-  final result = libgit2.git_tag_message(tag);
+  final result = libgit2Runtime.bindings.git_tag_message(tag);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -106,7 +112,7 @@ bool nameIsValid(String name) {
   return using((arena) {
     final valid = arena<Int>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_tag_name_is_valid(valid, nameC);
+    final error = libgit2Runtime.bindings.git_tag_name_is_valid(valid, nameC);
     checkErrorAndThrow(error);
     return valid.value == 1;
   });
@@ -114,7 +120,7 @@ bool nameIsValid(String name) {
 
 /// Get the tagger (author) of a tag. The returned signature must be freed.
 Pointer<git_signature> tagger(Pointer<git_tag> tag) =>
-    libgit2.git_tag_tagger(tag);
+    libgit2Runtime.bindings.git_tag_tagger(tag);
 
 /// Recursively peel a tag until an object of the specified type is found.
 ///
@@ -125,18 +131,23 @@ Pointer<git_object> peel({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_object>>();
-    final error = libgit2.git_tag_peel(out, tagPointer);
+    final error = libgit2Runtime.bindings.git_tag_peel(out, tagPointer);
     checkErrorAndThrow(error);
 
     final object = out.value;
     if (targetType == git_object_t.GIT_OBJECT_ANY ||
-        libgit2.git_object_type(object).value == targetType.value) {
+        libgit2Runtime.bindings.git_object_type(object).value ==
+            targetType.value) {
       return object;
     }
 
     final peeled = arena<Pointer<git_object>>();
-    final peelError = libgit2.git_object_peel(peeled, object, targetType);
-    libgit2.git_object_free(object);
+    final peelError = libgit2Runtime.bindings.git_object_peel(
+      peeled,
+      object,
+      targetType,
+    );
+    libgit2Runtime.bindings.git_object_free(object);
     checkErrorAndThrow(peelError);
     return peeled.value;
   });
@@ -167,7 +178,7 @@ Pointer<git_oid> createAnnotated({
     final out = calloc<git_oid>();
     final tagNameC = tagName.toChar(arena);
     final messageC = message.toChar(arena);
-    final error = libgit2.git_tag_create(
+    final error = libgit2Runtime.bindings.git_tag_create(
       out,
       repoPointer,
       tagNameC,
@@ -195,7 +206,7 @@ Pointer<git_oid> createAnnotation({
     final out = calloc<git_oid>();
     final tagNameC = tagName.toChar(arena);
     final messageC = message.toChar(arena);
-    final error = libgit2.git_tag_annotation_create(
+    final error = libgit2Runtime.bindings.git_tag_annotation_create(
       out,
       repoPointer,
       tagNameC,
@@ -227,7 +238,7 @@ Pointer<git_oid> createLightweight({
   return using((arena) {
     final out = calloc<git_oid>();
     final tagNameC = tagName.toChar(arena);
-    final error = libgit2.git_tag_create_lightweight(
+    final error = libgit2Runtime.bindings.git_tag_create_lightweight(
       out,
       repoPointer,
       tagNameC,
@@ -248,7 +259,7 @@ Pointer<git_oid> createFromBuffer({
   return using((arena) {
     final out = calloc<git_oid>();
     final bufferC = buffer.toChar(arena);
-    final error = libgit2.git_tag_create_from_buffer(
+    final error = libgit2Runtime.bindings.git_tag_create_from_buffer(
       out,
       repoPointer,
       bufferC,
@@ -263,7 +274,7 @@ Pointer<git_oid> createFromBuffer({
 Pointer<git_tag> duplicate(Pointer<git_tag> tag) {
   return using((arena) {
     final out = arena<Pointer<git_tag>>();
-    final error = libgit2.git_tag_dup(out, tag);
+    final error = libgit2Runtime.bindings.git_tag_dup(out, tag);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -277,12 +288,16 @@ List<String> listMatch({
   return using((arena) {
     final out = arena<git_strarray>();
     final patternC = pattern.toChar(arena);
-    final error = libgit2.git_tag_list_match(out, patternC, repoPointer);
+    final error = libgit2Runtime.bindings.git_tag_list_match(
+      out,
+      patternC,
+      repoPointer,
+    );
     checkErrorAndThrow(error);
     final result = [
       for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
     ];
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -311,7 +326,11 @@ void foreach({
     _tagForeachCallback,
     except,
   );
-  final error = libgit2.git_tag_foreach(repoPointer, c, nullptr);
+  final error = libgit2Runtime.bindings.git_tag_foreach(
+    repoPointer,
+    c,
+    nullptr,
+  );
   _currentTagCallback = null;
   checkErrorAndThrow(error);
 }
@@ -327,10 +346,10 @@ void delete({
 }) {
   using((arena) {
     final tagNameC = tagName.toChar(arena);
-    final error = libgit2.git_tag_delete(repoPointer, tagNameC);
+    final error = libgit2Runtime.bindings.git_tag_delete(repoPointer, tagNameC);
     checkErrorAndThrow(error);
   });
 }
 
 /// Close an open tag to release memory.
-void free(Pointer<git_tag> tag) => libgit2.git_tag_free(tag);
+void free(Pointer<git_tag> tag) => libgit2Runtime.bindings.git_tag_free(tag);

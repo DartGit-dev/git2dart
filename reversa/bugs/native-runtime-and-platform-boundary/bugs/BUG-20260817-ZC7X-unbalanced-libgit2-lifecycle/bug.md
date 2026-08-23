@@ -4,11 +4,11 @@ id: BUG-20260817-ZC7X
 display_number: 1
 title: Libgit2 initialization refcount is never balanced by shutdown
 status: active
-phase: planning
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-22
+updated: 2026-08-23
 origin:
   type: inspection
   external_ref: null
@@ -22,8 +22,7 @@ reproduction:
   classification: deterministic
   rate: "1/1; initialization probe increased 2 -> 3 -> 4"
   suspected_triggers: [repeated public API calls]
-blocking:
-  - "The native lifecycle and library-loading contract must be implemented first as a new Reversa feature in git2dart_binaries."
+blocking: []
 relationships:
   - bug: BUG-20260817-3PON
     type: related-to
@@ -49,14 +48,17 @@ traceability:
       - {ref: "evidence/static-analysis.md", observation: "Fresh scan finds 66 init calls and zero shutdown calls under lib/."}
       - {ref: "evidence/reproduction.md", observation: "Two Libgit2.version calls increased the isolated native probe count from 2 to 3 to 4."}
       - {ref: "evidence/companion-eager-init.md", observation: "The companion package owns native loading and its exported binding currently performs an eager init in each isolate, so the lifecycle correction belongs in git2dart_binaries."}
+      - {ref: "evidence/companion-lifecycle-contract.md", observation: "Companion commit ea87cf2 implements the managed lifecycle API and clears the prerequisite for a separately gated git2dart consumer migration."}
     code_refs:
       - {file: "lib/src/libgit2.dart", symbol: "Libgit2.version and global option entry points", commit: "0933dbf4af4e3fcf5cab067f757a365c24ad510a"}
       - {file: "lib/src/repository.dart", symbol: "Repository constructors", commit: "0933dbf4af4e3fcf5cab067f757a365c24ad510a"}
   reproduction_tests:
     - "evidence/reproduction_test.dart"
+    - "test/libgit2_lifecycle_source_test.dart"
   regression_tests:
-    - "fix/CHG-001.diff (approved RED consumer contract; not active in the working test suite)"
-spec_verdict: null
+    - "fix/CHG-001.diff (historical approved RED contract; superseded and not active in the working test suite)"
+    - "test/libgit2_lifecycle_test.dart"
+spec_verdict: spec-correta
 change_risk:
   classification: high
   reasons:
@@ -67,12 +69,46 @@ change_set:
   - id: CHG-001
     kind: test
     artifact: fix/CHG-001.diff
-    purpose: "Preserve the approved RED consumer contract for adaptation after git2dart_binaries exposes the lifecycle API."
+    purpose: "Preserve the historical approved RED contract; it is superseded by the refreshed consumer CHG-002 plan."
     diff: fix/CHG-001.diff
+  - id: CHG-002
+    kind: test
+    artifact: "test/libgit2_lifecycle_source_test.dart and test/libgit2_lifecycle_test.dart"
+    purpose: "Prove the removed-global migration and the managed lifecycle consumer contract."
+    diff: fix/CHG-002.diff
+  - id: CHG-003
+    kind: migration
+    artifact: "Managed runtime API migration across 58 source and test files"
+    purpose: "Replace removed companion globals and all direct initialization increments with the companion-owned managed runtime API."
+    diff: fix/CHG-003.diff
+  - id: CHG-004
+    kind: code
+    artifact: "lib/src/helpers/native_owner.dart, lib/src/repository.dart, and lib/src/commit.dart"
+    purpose: "Guard Repository and independently usable Commit owners with exact-once runtime leases."
+    diff: fix/CHG-004.diff
+  - id: CHG-005
+    kind: api-contract
+    artifact: "lib/src/libgit2.dart, README.md, and doc/types/libgit2.md"
+    purpose: "Expose and document guarded terminal shutdown and owner-release behavior."
+    diff: fix/CHG-005.diff
+  - id: CHG-006
+    kind: dependency
+    artifact: "pubspec.yaml and tool/api_diff/git2dart_binaries.baseline"
+    purpose: "Require the companion 1.12.2 managed-runtime contract."
+    diff: fix/CHG-006.diff
 closure:
   policy: package
   satisfied: false
-resolution_kind: null
+resolution_kind: fixed
+delivery:
+  branch: "0.5.5"
+  commit: null
+  pull_request: null
+  merge: pending
+  publication: pending
+  compatible_companion: pending
+versions: {fixed_in: null}
+backports: []
 ---
 
 # Libgit2 initialization refcount is never balanced by shutdown
@@ -102,6 +138,15 @@ Static inspection found 66 `git_libgit2_init()` calls under `lib/` and no `git_l
 - `evidence/reproduction.md`
 - `evidence/reproduction_test.dart`
 - `evidence/root-cause.md`
+- `evidence/companion-lifecycle-contract.md`
+- `evidence/consumer-plan-approval.md`
+- `evidence/gate-1-chg-002-approval.md`
+- `evidence/gate-1-chg-002-red.md`
+- `evidence/gate-2-proposal-validation.md`
+- `evidence/gate-2-approval.md`
+- `evidence/gate-2-green.md`
+- `evidence/spec-verdict-recommendation.md`
+- `evidence/spec-verdict.md`
 
 ## Suspected Area
 
@@ -120,9 +165,59 @@ Native runtime lifecycle management shared by all wrappers.
 
 ## Resolution
 
-The git2dart-side Gate 2 plan is superseded. Implementation must begin as a new
-Reversa feature in `git2dart_binaries`; this package will consume the resulting
-public lifecycle API without loading or locating native libraries itself.
+### Root cause
+
+Confirmed. Sixty-six public constructors, getters, and operations repeatedly
+called reference-counted `git_libgit2_init()` while the package exposed no
+balancing shutdown path. The companion package now owns the managed runtime;
+the consumer correction removes the uncontrolled increments and uses that
+single lifecycle boundary without duplicating native loading.
+
+### Specification verdict
+
+`spec-correta`, selected by the user on 2026-08-23. FR-NP-01 already requires
+libgit2 initialization and shutdown, FR-NP-05 requires exactly one
+owner/destructor path, and FL-NP-02 defines explicit release, finalizer
+fallback, and ownership transfer. The code diverged from the effective
+specification. No specification or addendum was changed.
+
+### Correction change set
+
+| Change | Kind | Artifact | Purpose | Diff |
+| --- | --- | --- | --- | --- |
+| CHG-002 | test | `test/libgit2_lifecycle_source_test.dart`; `test/libgit2_lifecycle_test.dart` | Prove removed-global migration and managed lifecycle behavior. | `fix/CHG-002.diff` |
+| CHG-003 | migration | 58 managed-runtime source/test consumers | Replace removed globals and direct initialization increments with the companion runtime API. | `fix/CHG-003.diff` |
+| CHG-004 | code | `lib/src/helpers/native_owner.dart`; `lib/src/repository.dart`; `lib/src/commit.dart` | Guard Repository and independently usable Commit owners with exact-once leases. | `fix/CHG-004.diff` |
+| CHG-005 | api-contract | `lib/src/libgit2.dart`; `README.md`; `doc/types/libgit2.md` | Expose and document guarded terminal shutdown. | `fix/CHG-005.diff` |
+| CHG-006 | dependency | `pubspec.yaml`; `tool/api_diff/git2dart_binaries.baseline` | Require the companion 1.12.2 managed-runtime contract. | `fix/CHG-006.diff` |
+
+The historical CHG-001 RED contract is superseded and is not part of the
+active applied resolution.
+
+### Red-to-green proof
+
+- RED: the approved CHG-002 tests exited 1 because production still referenced
+  removed `libgit2`/`libgit2Opts` globals and `Libgit2.shutdown()` did not
+  exist. See `evidence/gate-1-chg-002-red.md`.
+- GREEN scoped lifecycle: 8/8 tests passed.
+- GREEN bounded Repository/Commit/Libgit2 suites: 111/111 tests passed.
+- GREEN static validation: `flutter analyze lib test` reported no issues.
+- The Windows proof used the direct companion checkout for Dart lifecycle code
+  and hosted 1.12.1 only for the missing DLL payload. It does not prove the
+  wider owner inventory, full suite, other platforms, or CI.
+
+### Data and delivery
+
+No persistent data is changed and no data repair is required. The approved
+consumer change set is applied but uncommitted on branch `0.5.5`. No pull
+request or merge exists, and no fixed `git2dart` package version is published.
+The direct companion checkout still declares 1.12.1 while CHG-006 requires a
+compatible `>=1.12.2 <1.13.0` package; assignment and publication of that
+companion version remain pending.
+
+The package closure policy therefore remains unsatisfied. The bug stays
+`active` in `delivering`, `versions.fixed_in` remains null, and no `DONE.md`
+lock may be created.
 
 ## Agent Notes
 
@@ -141,7 +236,44 @@ later adaptation.
 The earlier Gate 2 source proposal and its isolated validation are superseded:
 they duplicated native library loading inside `git2dart`, violating the
 confirmed package boundary. No Gate 2 production source remains in this
-workspace. The next action is a new Reversa feature in `git2dart_binaries` to
-own native loading, the process-level init/shutdown refcount, isolate behavior,
-and the public lifecycle contract. After that feature passes its own gates,
-`git2dart` should consume the API and add compatible regression coverage.
+workspace. The companion feature is now available at commit `ea87cf2` and its
+own Gate 2 is GREEN on Windows. The original blocker is cleared, but the
+companion evidence explicitly leaves the `git2dart` consumer gate closed. The
+next mandatory checkpoint is approval of the refreshed consumer-only plan,
+followed by a newly adapted Gate 1 test diff.
+
+The refreshed consumer-only plan was approved on 2026-08-23 with the exact
+phrase `APPROVE PLAN ZC7X CONSUMER`. CHG-002 is now prepared as the complete,
+formatted, apply-clean proposal in `fix/CHG-002.proposed.diff`; it adds
+`test/libgit2_lifecycle_source_test.dart` and
+`test/libgit2_lifecycle_test.dart`. Neither test file has been applied. The
+workflow is paused at the distinct Gate 1 human approval.
+
+Gate 1 CHG-002 was approved and applied on 2026-08-23. The scoped run produced
+the required RED result recorded in `evidence/gate-1-chg-002-red.md`.
+Production/dependency diffs CHG-003 through CHG-006 were then constructed and
+validated only in a disposable ordinary clone. They remain unapplied. The
+bounded proposal is paused at Gate 2; its proof boundary, including the local
+checkout's missing Windows DLL payload and the still-unassigned companion
+1.12.2 package contract, is recorded in
+`evidence/gate-2-proposal-validation.md`.
+
+Gate 2 was approved on 2026-08-23 with the exact phrase
+`APPROVE GATE 2 ZC7X`, authorizing only the previously presented CHG-003
+through CHG-006 proposals. All four diffs were applied in order and saved as
+byte-identical `fix/CHG-003.diff` through `fix/CHG-006.diff`. Formatting changed
+none of the 62 touched Dart files. `flutter analyze lib test`, all 8 scoped
+lifecycle tests, and all 111 bounded Repository/Commit/Libgit2 tests passed.
+The Windows run used the direct companion checkout for Dart API/lifecycle code
+and hosted 1.12.1 only for its missing DLL payload. The wider owner inventory,
+cross-platform/full-suite validation, compatible 1.12.2 publication, merge,
+and release remain outside the proof. The workflow is paused for the mandatory
+human specification verdict; no specification has been changed.
+
+The user selected `spec-correta` on 2026-08-23. The verdict is recorded in
+`evidence/spec-verdict.md`; no specification or addendum was changed. With the
+confirmed root cause, applied regression coverage, GREEN proof, and approved
+verdict, `resolution_kind` is now `fixed`. Package delivery remains open:
+there is no consumer commit/merge/publication and no published compatible
+companion 1.12.2 package, so closure remains unsatisfied and the phase is
+`delivering`.

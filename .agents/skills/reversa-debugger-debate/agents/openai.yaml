@@ -1,5 +1,5 @@
 interface:
   display_name: "Reversa Debugger Debate"
-  short_description: "Bugs team multi-agent debate: N solvers in R rounds with…"
+  short_description: "Debate multiagente do time Bugs: N solvers em R rodadas com…"
 policy:
   allow_implicit_invocation: false

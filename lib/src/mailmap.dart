@@ -27,8 +27,6 @@ class Mailmap {
   /// );
   /// ```
   Mailmap.empty() {
-    libgit2.git_libgit2_init();
-
     _mailmapPointer = bindings.init();
     _finalizer.attach(this, _mailmapPointer, detach: this);
   }
@@ -50,8 +48,6 @@ class Mailmap {
   /// ''');
   /// ```
   Mailmap.fromBuffer(String buffer) {
-    libgit2.git_libgit2_init();
-
     _mailmapPointer = bindings.fromBuffer(buffer);
     _finalizer.attach(this, _mailmapPointer, detach: this);
   }

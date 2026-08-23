@@ -4,6 +4,6 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 @pragma("vm:prefer-inline")
 void checkErrorAndThrow(int error) {
   if (error < 0) {
-    throw LibGit2Error(libgit2.git_error_last());
+    throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
   }
 }

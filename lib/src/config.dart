@@ -29,8 +29,6 @@ class Config with IterableMixin<ConfigEntry> {
 
   /// Creates a new empty configuration object.
   Config.empty() {
-    libgit2.git_libgit2_init();
-
     _configPointer = bindings.init();
     _finalizer.attach(this, _configPointer, detach: this);
   }
@@ -45,8 +43,6 @@ class Config with IterableMixin<ConfigEntry> {
   ///
   /// Throws an [Exception] if file not found at provided path.
   Config.open([String? path]) {
-    libgit2.git_libgit2_init();
-
     if (path == null) {
       _configPointer = bindings.openDefault();
     } else {
@@ -64,8 +60,6 @@ class Config with IterableMixin<ConfigEntry> {
   ///
   /// Throws a [LibGit2Error] if error occurred.
   Config.system() {
-    libgit2.git_libgit2_init();
-
     _configPointer = bindings.open(bindings.findSystem());
     _finalizer.attach(this, _configPointer, detach: this);
   }
@@ -74,8 +68,6 @@ class Config with IterableMixin<ConfigEntry> {
   ///
   /// Throws a [LibGit2Error] if error occurred.
   Config.global() {
-    libgit2.git_libgit2_init();
-
     _configPointer = bindings.open(bindings.findGlobal());
     _finalizer.attach(this, _configPointer, detach: this);
   }
@@ -84,8 +76,6 @@ class Config with IterableMixin<ConfigEntry> {
   ///
   /// Throws a [LibGit2Error] if error occurred.
   Config.xdg() {
-    libgit2.git_libgit2_init();
-
     _configPointer = bindings.open(bindings.findXdg());
     _finalizer.attach(this, _configPointer, detach: this);
   }
@@ -94,8 +84,6 @@ class Config with IterableMixin<ConfigEntry> {
   ///
   /// Throws a [LibGit2Error] if error occurred.
   Config.programData() {
-    libgit2.git_libgit2_init();
-
     _configPointer = bindings.open(bindings.findProgramData());
     _finalizer.attach(this, _configPointer, detach: this);
   }
@@ -331,7 +319,7 @@ class _ConfigIterator implements Iterator<ConfigEntry> {
     if (error < 0) {
       return false;
     } else {
-      error = libgit2.git_config_next(entry, _iteratorPointer);
+      error = libgit2Runtime.bindings.git_config_next(entry, _iteratorPointer);
       if (error != -31) {
         final name = entry.value.ref.name.toDartString();
         final value = entry.value.ref.value.toDartString();

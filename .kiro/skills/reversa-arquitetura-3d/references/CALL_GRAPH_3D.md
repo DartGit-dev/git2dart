@@ -1,30 +1,30 @@
 # Call Graph 3D
 
-Tree (or DAG) of **function calls** explorable in 3D. Each node is a function, each edge is a call. Allows you to navigate the depth of a chain of invocations starting from entry points (endpoints, handlers, main).
+Árvore (ou DAG) de **chamadas de função** explorável em 3D. Cada nó é uma função, cada aresta é uma chamada. Permite navegar a profundidade de uma cadeia de invocações partindo de pontos de entrada (endpoints, handlers, main).
 
 ## Mapeamento
 
 | Conceito | Visual |
 |---|---|
-| Function | 3D capsule or pill with label |
-| Call Depth | Position in Z (depth axis) |
-| Synchronous function | Solid capsule |
-| Asynchronous function | Translucent capsule with particles |
-| Recursive function | Glossy capsule (emissive) |
-| Hot path (frequency) | Thicker line, saturated color |
-| External function (lib) | Gray color |
-| Project role | Color by folder/module |
+| Função | Cápsula ou pílula 3D com label |
+| Profundidade de chamada | Posição em Z (eixo de profundidade) |
+| Função síncrona | Cápsula sólida |
+| Função assíncrona | Cápsula translúcida com partículas |
+| Função recursiva | Cápsula com brilho (emissive) |
+| Caminho quente (frequência) | Linha mais grossa, cor saturada |
+| Função externa (lib) | Cor cinza |
+| Função do projeto | Cor por pasta/módulo |
 
-## When to use
+## Quando usar
 
-- Understand the execution flow of a specific endpoint.
-- Diagnose excessive call depth (>15 levels, sign of overengineering).
-- Detect indirect recursion.
-- Present how the system responds to a typical request.
+- Entender o fluxo de execução de um endpoint específico.
+- Diagnosticar profundidade excessiva de chamadas (>15 níveis, sinal de overengineering).
+- Detectar recursão indireta.
+- Apresentar como o sistema responde a uma requisição típica.
 
-**When to avoid**: Static analysis without execution data is incomplete (does not capture polymorphism). For structural vision use Dependency Graph 3D.
+**Quando evitar**: análise estática sem dados de execução é incompleta (não captura polimorfismo). Para visão estrutural use Dependency Graph 3D.
 
-## Expected data model
+## Modelo de dados esperado
 
 ```json
 {
@@ -52,11 +52,11 @@ Tree (or DAG) of **function calls** explorable in 3D. Each node is a function, e
 }
 ```
 
-`weight` is relative frequency (number of invocations observed in a period). `type` is `sync`, `async`, `recursive`, or `external`.
+`weight` é frequência relativa (quantidade de invocações observadas em um período). `type` é `sync`, `async`, `recursive` ou `external`.
 
-## Layout algorithm: 3D radial tree
+## Algoritmo de layout: árvore radial 3D
 
-Each entrypoint becomes the root of the tree. Depth increases in the Z axis (away from the camera), functions at the same level are distributed in an XY plane.
+Cada entrypoint vira raiz da árvore. Profundidade aumenta no eixo Z (afastando-se da câmera), funções no mesmo nível distribuem-se em um plano XY.
 
 ```javascript
 function layoutTree(entrypoint, calls) {
@@ -67,7 +67,7 @@ function layoutTree(entrypoint, calls) {
         const outgoing = calls.filter((c) => c.from === parentId);
         outgoing.forEach((c, i, arr) => {
             if (nodes.has(c.to)) {
-// detected recursion
+                // detectou recursão
                 nodes.get(c.to).recursive = true;
                 return;
             }
@@ -94,9 +94,9 @@ function layoutTree(entrypoint, calls) {
 }
 ```
 
-For multiple entrypoints, each one occupies a region of the XY plane (center translation), creating parallel trees.
+Para múltiplos entrypoints, cada um ocupa uma região do plano XY (translação no centro), criando árvores paralelas.
 
-## Capsule rendering
+## Renderização das cápsulas
 
 ```javascript
 const capsuleGeo = new THREE.CapsuleGeometry(2, 6, 8, 12);
@@ -120,11 +120,11 @@ capsules.instanceColor.needsUpdate = true;
 scene.add(capsules);
 ```
 
-`colorForCall(n)` returns gray for external, folder color for internal, with emissive if `n.recursive`.
+`colorForCall(n)` retorna cinza para externas, cor da pasta para internas, com emissive se `n.recursive`.
 
-## Rendering of calls (edges)
+## Renderização das chamadas (arestas)
 
-Curved bezier lines connecting parent to child. Thicker for high `weight`.
+Linhas curvas tipo bezier conectando pai a filho. Mais grossas para `weight` alto.
 
 ```javascript
 calls.forEach((c) => {
@@ -153,9 +153,9 @@ calls.forEach((c) => {
 });
 ```
 
-## Flow animation (optional)
+## Animação de fluxo (opcional)
 
-Particles traveling along the edges, indicating that the call is "alive". Useful for presentations.
+Partículas viajando ao longo das arestas, indicando que a chamada está "viva". Útil para apresentações.
 
 ```javascript
 function animateFlow(time) {
@@ -179,7 +179,7 @@ function animateFlow(time) {
         </select>
     </label>
 
-<label>Maximum depth
+    <label>Profundidade máxima
         <input type="range" min="1" max="20" value="10" data-param="maxDepth">
     </label>
 
@@ -203,15 +203,15 @@ function animateFlow(time) {
 </aside>
 ```
 
-## Interaction
+## Interação
 
-- **Hover in capsule**: function name, source module, number of callers and callees, type.
-- **Click on capsule**: focuses on the camera, highlights the chain from the entrypoint to this function.
-- **Double click**: expande/colapsa subtree.
-- **Toggle entrypoint**: changes the root of the view, recalculates layout.
+- **Hover em cápsula**: nome da função, módulo de origem, número de chamadores e chamados, tipo.
+- **Clique em cápsula**: foca câmera, destaca cadeia desde o entrypoint até essa função.
+- **Duplo clique**: expande/colapsa subárvore.
+- **Toggle entrypoint**: muda a raiz da visualização, recalcula layout.
 
 ## Performance
 
-- Practical limit: ~500 functions per entrypoint.
-- Above that, automatically collapse subtrees after depth 5 and display "+N functions" button.
-- Flow animation: limit to 50 simultaneous particles to avoid dropping fps.
+- Limite prático: ~500 funções por entrypoint.
+- Acima disso, colapsar subárvores automaticamente após profundidade 5 e exibir botão "+N funções".
+- Animação de fluxo: limitar a 50 partículas simultâneas para não derrubar fps.

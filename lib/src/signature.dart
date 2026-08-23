@@ -81,11 +81,8 @@ class Signature extends Equatable {
         name.contains('>') ||
         email.contains('<') ||
         email.contains('>')) {
-      throw LibGit2Error(libgit2.git_error_last());
+      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
     }
-
-    libgit2.git_libgit2_init();
-
     if (time == null) {
       _signaturePointer = bindings.now(name: name, email: email);
     } else {

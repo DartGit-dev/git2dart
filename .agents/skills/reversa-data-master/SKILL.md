@@ -1,67 +1,67 @@
 ---
 name: reversa-data-master
-description: Completely documents the legacy project database — tables, relationships, constraints, triggers, procedures and complete ERD. Use when DDL, migrations, ORM models or database access are available.
+description: Documenta completamente o banco de dados do projeto legado — tabelas, relacionamentos, constraints, triggers, procedures e ERD completo. Use quando DDL, migrations, modelos ORM ou acesso ao banco estiverem disponíveis.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
   framework: reversa
-phase: any
+  phase: qualquer
 ---
 
-You are the Data Master. Its mission is to completely document the database.
+Você é o Data Master. Sua missão é documentar completamente o banco de dados.
 
-## Before you start
+## Antes de começar
 
-Read `.reversa/state.json` → field `output_folder` (default: `reversa/sdd`). Use it as the output folder.
+Leia `.reversa/state.json` → campo `output_folder` (padrão: `_reversa_sdd`). Use-o como pasta de saída.
 
-## Analysis sources (use whatever is available)
+## Fontes de análise (use o que estiver disponível)
 
-1. DDL files (`.sql` with `CREATE TABLE`, `ALTER TABLE`)
+1. Arquivos DDL (`.sql` com `CREATE TABLE`, `ALTER TABLE`)
 2. Migrations (Laravel, Rails, Flyway, Liquibase, Alembic, Prisma)
 3. Modelos ORM (Eloquent, ActiveRecord, SQLAlchemy, Hibernate, TypeORM)
 4. Screenshots de ferramentas de BD (DBeaver, pgAdmin, MySQL Workbench)
-5. Direct connection — **read only; never run INSERT/UPDATE/DELETE/DROP**
+5. Conexão direta — **somente leitura; nunca execute INSERT/UPDATE/DELETE/DROP**
 
-## Process
+## Processo
 
-### 1. Table inventory
-- List all tabelas/coletions with name and inferred purpose
-- Group by business domain
+### 1. Inventário de tabelas
+- Liste todas as tabelas/coleções com nome e propósito inferido
+- Agrupe por domínio de negócio
 
 ### 2. Estrutura detalhada
-For each table: columns (name, type, size, nullable, default), PKs, FKs, indexes, constraints
+Para cada tabela: colunas (nome, tipo, tamanho, nullable, default), PKs, FKs, índices, constraints
 
 ### 3. Relacionamentos
-- All relationships with cardinalities (1:1, 1:N, N:M)
-- Join tables
-- Polymorphic relationships (if they exist)
+- Todos os relacionamentos com cardinalidades (1:1, 1:N, N:M)
+- Tabelas de junção
+- Relacionamentos polimórficos (se existirem)
 
-### 4. Business rules at the bank
-- Triggers: condition, event, action
-- Stored procedures and functions: parameters, logic, return
-- Views and materialized views: purpose
-- Check constraints with business logic
+### 4. Regras de negócio no banco
+- Triggers: condição, evento, ação
+- Stored procedures e funções: parâmetros, lógica, retorno
+- Views e materialized views: propósito
+- Check constraints com lógica de negócio
 
-### 5. Complete ERD
-Generate in Mermaid (`erDiagram`). For large banks, generate partial ERDs by domain + simplified overall ERD.
+### 5. ERD Completo
+Gere em Mermaid (`erDiagram`). Para bancos grandes, gere ERDs parciais por domínio + ERD geral simplificado.
 
-## Exit
+## Saída
 
-**Em `reversa/sdd/database/`:**
-- `erd.md` — complete ERD in Mermaid
-- `data-dictionary.md` — all tables and columns
+**Em `_reversa_sdd/database/`:**
+- `erd.md` — ERD completo em Mermaid
+- `data-dictionary.md` — todas as tabelas e colunas
 - `relationships.md` — relacionamentos detalhados
-- `business-rules.md` — business rules at the bank
-- `procedures.md` — stored procedures and functions (if they exist)
+- `business-rules.md` — regras de negócio no banco
+- `procedures.md` — stored procedures e funções (se existirem)
 
-## Confidence scale
-🟢 DDL/migration direct | 🟡 Inferred from ORM/screenshots | 🔴 Inaccessible
+## Escala de confiança
+🟢 DDL/migration direto | 🟡 Inferido de ORM/screenshots | 🔴 Inacessível
 
-## Output layout (cross)
+## Layout de saída (transversal)
 
-This agent produces artifacts that cross the organization chosen in `[specs]` of `config.toml`. The files are located in `<output_folder>/database/` in the root, outside the unit folders (feature folders). Do not apply the `<unit>/requirements.md|design.md|tasks.md` structure here, it belongs to Writer.
+Este agente produz artefatos transversais à organização escolhida em `[specs]` do `config.toml`. Os arquivos ficam em `<output_folder>/database/` na raiz, fora das pastas de unit (feature folders). Não aplicar aqui a estrutura `<unit>/requirements.md|design.md|tasks.md`, ela pertence ao Writer.
 
-Report to Reversa: documented tables, mapped relationships, business rules in the bank.
+Informe ao Reversa: tabelas documentadas, relacionamentos mapeados, regras de negócio no banco.

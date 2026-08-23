@@ -1,31 +1,31 @@
 # Layer Stack 3D
 
-Visualization of **architectural layers** stacked vertically, each layer as a plane with its modules, connected by vertical arrows that show the flow of dependencies between layers.
+Visualização de **camadas arquiteturais** empilhadas verticalmente, cada camada como um plano com seus módulos, conectadas por setas verticais que mostram o fluxo de dependências entre camadas.
 
 ## Mapeamento
 
 | Conceito arquitetural | Visual |
 |---|---|
 | Camada (UI, Domain, Infra, etc) | Plano horizontal em altura distinta |
-| Module inside layer | Caixa/disco positioned on the layer plane |
-| Inter-layer dependency | Oriented vertical line connecting modules |
-| Flow direction | Arrow at the end of the line |
-| Layer violation (bottom layer importing from above) | Pulsating red line |
+| Módulo dentro da camada | Caixa/disco posicionado no plano da camada |
+| Dependência inter-camada | Linha vertical orientada conectando módulos |
+| Direção do fluxo | Seta na ponta da linha |
+| Violação de camada (camada de baixo importando de cima) | Linha vermelha pulsante |
 
-## When to use
+## Quando usar
 
-- Validate that the architecture follows Clean Architecture, Hexagonal, or Onion.
-- Detect **layer violations** (UI importing directly from Infra, for example).
-- Present the system to stakeholders who think in layers.
-- Compare with the expected architectural diagram side by side.
+- Validar que a arquitetura segue Clean Architecture, Hexagonal, ou Onion.
+- Detectar **violações de camada** (UI importando direto de Infra, por exemplo).
+- Apresentar o sistema para stakeholders que pensam em camadas.
+- Comparar com o diagrama arquitetural esperado lado a lado.
 
-**When to avoid**: systems without clear layer separation (flat monoliths). Use Code City.
+**Quando evitar**: sistemas sem separação clara de camadas (monolitos planos). Use Code City.
 
-## Layer detection
+## Detecção de camadas
 
-The skill accepts layer mapping from the user (via JSON) or tries to infer from folder patterns.
+A skill aceita o mapeamento de camadas vindo do usuário (via JSON) ou tenta inferir de padrões de pasta.
 
-**Explicit mapping**:
+**Mapeamento explícito**:
 
 ```json
 {
@@ -38,7 +38,7 @@ The skill accepts layer mapping from the user (via JSON) or tries to infer from 
 }
 ```
 
-**Heuristic inference** (when not provided): regex over folder names.
+**Inferência heurística** (quando não fornecido): regex sobre nomes de pasta.
 
 ```javascript
 const LAYER_PATTERNS = [
@@ -71,7 +71,7 @@ const layerPlanes = layers.map((layer, i) => ({
 }));
 ```
 
-### 2. Position modules within the layer
+### 2. Posicionar módulos dentro da camada
 
 Empacotamento simples em grid 2D no plano da camada.
 
@@ -113,7 +113,7 @@ layerPlanes.forEach((layer, i) => {
 const LAYER_COLORS = [0x4a9eff, 0x6cc46c, 0xffc857, 0xb39ddb, 0xff9aa2];
 ```
 
-### 4. Render modules as disks
+### 4. Renderizar módulos como discos
 
 ```javascript
 const moduleGeo = new THREE.CylinderGeometry(1, 1, 0.5, 16);
@@ -132,7 +132,7 @@ modulesMesh.instanceMatrix.needsUpdate = true;
 scene.add(modulesMesh);
 ```
 
-### 5. Render dependencies as vertical lines
+### 5. Renderizar dependências como linhas verticais
 
 ```javascript
 edges.forEach((e) => {
@@ -159,9 +159,9 @@ edges.forEach((e) => {
 });
 ```
 
-### 6. Layer Violation Detection
+### 6. Detecção de violação de camada
 
-The default rule (Clean Architecture): layers only depend on layers with larger `order` (more towards "inside").
+A regra padrão (Clean Architecture): camadas só dependem de camadas com `order` maior (mais para "dentro").
 
 ```javascript
 function isLayerViolation(src, dst) {
@@ -169,11 +169,11 @@ function isLayerViolation(src, dst) {
 }
 ```
 
-There may be configurable exceptions (e.g. ports/adapters in hexagonal).
+Pode haver exceções configuráveis (ex: ports/adapters em hexagonal).
 
-## Violation animation
+## Animação de violações
 
-Red lines pulse (oscillating opacity) to attract attention.
+Linhas vermelhas pulsam (opacity oscilando) para chamar atenção.
 
 ```javascript
 function pulseViolations(time) {
@@ -191,21 +191,21 @@ function pulseViolations(time) {
 <aside id="sidebar">
     <h3>Layer Stack</h3>
 
-<label>Space between layers
+    <label>Espaçamento entre camadas
         <input type="range" min="40" max="200" value="80" data-param="layerGap">
     </label>
 
     <label>
-<input type="checkbox" data-param="showViolations" checked> Highlight violations
+        <input type="checkbox" data-param="showViolations" checked> Destacar violações
     </label>
 
     <label>
-<input type="checkbox" data-param="showLabels" checked> Module labels
+        <input type="checkbox" data-param="showLabels" checked> Labels de módulo
     </label>
 
-<label>Show only
+    <label>Mostrar apenas
         <select data-param="layerFilter">
-<option value="all">All layers</option>
+            <option value="all">Todas as camadas</option>
             <!-- POPULATED -->
         </select>
     </label>
@@ -217,14 +217,14 @@ function pulseViolations(time) {
 </aside>
 ```
 
-The `#violations-count` counter shows "X violations detected" in real time.
+O contador `#violations-count` mostra em tempo real "X violações detectadas".
 
-## Interaction
+## Interação
 
-- **Hover in module**: tooltip with name, layer, dependencies.
-- **Click on violation**: focuses the camera on the two modules involved and shows details of the relationship on the panel.
-- **Layer filter**: hides unselected layers.
+- **Hover em módulo**: tooltip com nome, camada, dependências.
+- **Clique em violação**: foca câmera nos dois módulos envolvidos e mostra detalhes da relação no painel.
+- **Filtro de camada**: oculta camadas não selecionadas.
 
 ## Performance
 
-Layers typically have dozens to a few hundred modules each. Total limit of ~2,000 modules. Above that, group by folder within each layer.
+Camadas tipicamente têm dezenas a poucas centenas de módulos cada. Limite total de ~2.000 módulos. Acima disso, agrupar por pasta dentro de cada camada.

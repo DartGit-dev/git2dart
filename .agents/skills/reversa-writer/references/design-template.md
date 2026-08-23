@@ -1,49 +1,49 @@
-# [Unit Name], Technical Design
+# [Nome da Unit], Design Técnico
 
-> Template file `design.md`. Focuses on HOW the unit is built, based on the legacy code read.
+> Template do arquivo `design.md`. Foca no COMO a unit é construída, com base no código legado lido.
 
 ## Interface
-[Inputs, outputs, parameters, data types]
+[Entradas, saídas, parâmetros, tipos de dados]
 
-For HTTP endpoints:
+Para endpoints HTTP:
 
-| Method | Path | Entrance | Output | Status codes |
+| Método | Caminho | Entrada | Saída | Status codes |
 |--------|---------|---------|-------|--------------|
 | GET | `/recurso/:id` | `id: string` | `Recurso` | 200, 404 |
 | POST | `/recurso` | `RecursoCreate` | `Recurso` | 201, 400, 409 |
 
-For classes/functions:
+Para classes/funções:
 
-| Symbol | Subscription | Return | Note |
+| Símbolo | Assinatura | Retorno | Observação |
 |---------|-----------|---------|------------|
 | `NomeDaClasse.metodo` | `(arg1: T, arg2: U)` | `V` | [Detalhe relevante] |
 
-## Main Stream
-1. [Step 1, with reference to the legacy file when applicable]
+## Fluxo Principal
+1. [Passo 1, com referência ao arquivo legado quando aplicável]
 2. [Passo 2]
 3. [Passo N]
 
 ## Fluxos Alternativos
-- **[Special condition]:** [behavior]
-- **[Error case]:** [behavior]
+- **[Condição especial]:** [comportamento]
+- **[Caso de erro]:** [comportamento]
 
-## Dependencies
-- [Component X], [reason, how to use]
-- [Service Y], [reason, how to use]
+## Dependências
+- [Componente X], [motivo, como usa]
+- [Serviço Y], [motivo, como usa]
 
-## Design Decisions Identified
+## Decisões de Design Identificadas
 
-| Decision | Evidence in the code | Trust |
+| Decisão | Evidência no código | Confiança |
 |---------|---------------------|-----------|
-| [ex: persistence via Prisma with soft-delete] | `prisma/schema.prisma:42` | 🟢 |
-| [ex: in-memory cache with TTL of 5min] | `cache/store.ts:18` | 🟡 |
+| [ex: persistência via Prisma com soft-delete] | `prisma/schema.prisma:42` | 🟢 |
+| [ex: cache em memória com TTL de 5min] | `cache/store.ts:18` | 🟡 |
 
 ## Estado Interno
-[If the unit maintains state, describe which fields, where they are stored, how they evolve]
+[Se a unit mantém estado, descrever quais campos, onde são armazenados, como evoluem]
 
 ## Observabilidade
-[Logs, metrics, traces issued by the unit, with reference to the code]
+[Logs, métricas, traces emitidos pela unit, com referência ao código]
 
 ## Riscos e Lacunas
-- 🔴 [Behavior that could not be inferred from the code, requires human validation]
-- 🟡 [Assumption that may be wrong]
+- 🔴 [Comportamento que não foi possível inferir do código, requer validação humana]
+- 🟡 [Suposição que pode estar errada]

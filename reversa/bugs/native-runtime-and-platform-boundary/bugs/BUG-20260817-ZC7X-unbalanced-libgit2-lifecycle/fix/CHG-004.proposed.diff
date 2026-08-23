@@ -1,0 +1,266 @@
+diff --git a/lib/src/commit.dart b/lib/src/commit.dart
+index d056ada..5172b39 100644
+--- a/lib/src/commit.dart
++++ b/lib/src/commit.dart
+@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
+ import 'package:git2dart/git2dart.dart';
+ import 'package:git2dart/src/bindings/commit.dart' as bindings;
+ import 'package:git2dart/src/bindings/graph.dart' as graph_bindings;
++import 'package:git2dart/src/helpers/native_owner.dart';
+ import 'package:git2dart_binaries/git2dart_binaries.dart';
+ import 'package:meta/meta.dart';
+ 
+@@ -23,7 +24,11 @@ class Commit extends Equatable {
+   /// [commitPointer] is a pointer to the underlying libgit2 commit object.
+   @internal
+   Commit(this._commitPointer) {
+-    _finalizer.attach(this, _commitPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'commit',
++      destroy: () => bindings.free(_commitPointer),
++    );
+   }
+ 
+   /// Creates a new commit instance by looking up a commit object in the repository.
+@@ -37,9 +42,14 @@ class Commit extends Equatable {
+       repoPointer: repo.pointer,
+       oidPointer: oid.pointer,
+     );
+-    _finalizer.attach(this, _commitPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'commit',
++      destroy: () => bindings.free(_commitPointer),
++    );
+   }
+ 
++  late final ManagedNativeOwner _nativeOwner;
+   late final Pointer<git_commit> _commitPointer;
+ 
+   /// Gets the pointer to the underlying libgit2 commit object.
+@@ -395,8 +405,7 @@ class Commit extends Equatable {
+   ///
+   /// This should be called when the commit object is no longer needed.
+   void free() {
+-    bindings.free(_commitPointer);
+-    _finalizer.detach(this);
++    _nativeOwner.release(this);
+   }
+ 
+   @override
+@@ -411,7 +420,3 @@ class Commit extends Equatable {
+ }
+ 
+ // coverage:ignore-start
+-final _finalizer = Finalizer<Pointer<git_commit>>(
+-  (pointer) => bindings.free(pointer),
+-);
+-// coverage:ignore-end
+diff --git a/lib/src/helpers/native_owner.dart b/lib/src/helpers/native_owner.dart
+new file mode 100644
+index 0000000..3545133
+--- /dev/null
++++ b/lib/src/helpers/native_owner.dart
+@@ -0,0 +1,37 @@
++import 'package:git2dart_binaries/git2dart_binaries.dart';
++
++/// Couples a Dart wrapper's lifetime to the companion runtime owner lease.
++final class ManagedNativeOwner {
++  ManagedNativeOwner._(this._lease);
++
++  /// Acquires and attaches an exact-once native owner lease to [owner].
++  factory ManagedNativeOwner.attach(
++    Object owner, {
++    required String debugLabel,
++    required void Function() destroy,
++  }) {
++    final lease = libgit2Runtime.acquireOwner(debugLabel: debugLabel)
++      ..bindDestructor(destroy);
++    final token = ManagedNativeOwner._(lease);
++    _finalizer.attach(owner, token, detach: owner);
++    return token;
++  }
++
++  final Libgit2OwnerLease _lease;
++
++  /// Destroys the native owner and completes its runtime lease once.
++  void release(Object owner) {
++    _lease.release();
++    if (_lease.isCompleted) _finalizer.detach(owner);
++  }
++
++  /// Completes the lease after native ownership has been transferred.
++  void transfer(Object owner) {
++    _lease.transfer();
++    if (_lease.isCompleted) _finalizer.detach(owner);
++  }
++
++  static final Finalizer<ManagedNativeOwner> _finalizer = Finalizer(
++    (owner) => owner._lease.releaseFromFinalizer(),
++  );
++}
+diff --git a/lib/src/repository.dart b/lib/src/repository.dart
+index 5c6a280..3d3ec23 100644
+--- a/lib/src/repository.dart
++++ b/lib/src/repository.dart
+@@ -13,6 +13,7 @@ import 'package:git2dart/src/bindings/object.dart' as object_bindings;
+ import 'package:git2dart/src/bindings/repository.dart' as bindings;
+ import 'package:git2dart/src/bindings/reset.dart' as reset_bindings;
+ import 'package:git2dart/src/bindings/status.dart' as status_bindings;
++import 'package:git2dart/src/helpers/native_owner.dart';
+ import 'package:git2dart_binaries/git2dart_binaries.dart';
+ import 'package:meta/meta.dart';
+ 
+@@ -28,7 +29,11 @@ class Repository extends Equatable {
+   @internal
+   Repository(Pointer<git_repository> pointer) {
+     _repoPointer = pointer;
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Creates new git repository at the provided [path].
+@@ -73,8 +78,6 @@ class Repository extends Equatable {
+     String? initialHead,
+     String? originUrl,
+   }) {
+-    libgit2.git_libgit2_init();
+-
+     var flagsInt = flags.fold(0, (int acc, e) => acc | e.value);
+ 
+     if (bare) {
+@@ -92,7 +95,11 @@ class Repository extends Equatable {
+       originUrl: originUrl,
+     );
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Creates a new git repository using the basic libgit2 initializer.
+@@ -100,11 +107,13 @@ class Repository extends Equatable {
+   /// This is equivalent to `git init` for non-bare repositories and
+   /// `git init --bare` when [bare] is true.
+   Repository.initBasic({required String path, bool bare = false}) {
+-    libgit2.git_libgit2_init();
+-
+     _repoPointer = bindings.initBasic(path: path, bare: bare);
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Opens repository at provided [path].
+@@ -115,11 +124,13 @@ class Repository extends Equatable {
+   ///
+   /// Throws a [LibGit2Error] if error occured.
+   Repository.open(String path) {
+-    libgit2.git_libgit2_init();
+-
+     _repoPointer = bindings.open(path);
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Opens a repository with extended search [flags].
+@@ -131,26 +142,30 @@ class Repository extends Equatable {
+     Set<GitRepositoryOpen> flags = const {},
+     String? ceilingDirs,
+   }) {
+-    libgit2.git_libgit2_init();
+-
+     _repoPointer = bindings.openExt(
+       path: path,
+       flags: flags.fold(0, (int acc, e) => acc | e.value),
+       ceilingDirs: ceilingDirs,
+     );
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Opens a bare repository at provided [path].
+   ///
+   /// Throws a [LibGit2Error] if error occured.
+   Repository.openBare(String path) {
+-    libgit2.git_libgit2_init();
+-
+     _repoPointer = bindings.openBare(path);
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
+   /// Clones a remote repository at provided [url] into [localPath].
+@@ -187,8 +202,6 @@ class Repository extends Equatable {
+     String? checkoutBranch,
+     Callbacks callbacks = const Callbacks(),
+   }) {
+-    libgit2.git_libgit2_init();
+-
+     _repoPointer = bindings.clone(
+       url: url,
+       localPath: localPath,
+@@ -199,9 +212,14 @@ class Repository extends Equatable {
+       callbacks: callbacks,
+     );
+ 
+-    _finalizer.attach(this, _repoPointer, detach: this);
++    _nativeOwner = ManagedNativeOwner.attach(
++      this,
++      debugLabel: 'repository',
++      destroy: () => bindings.free(_repoPointer),
++    );
+   }
+ 
++  late final ManagedNativeOwner _nativeOwner;
+   late final Pointer<git_repository> _repoPointer;
+ 
+   /// Pointer to memory address for allocated repository object.
+@@ -436,8 +454,7 @@ class Repository extends Equatable {
+ 
+   /// Releases memory allocated for repository object.
+   void free() {
+-    bindings.free(_repoPointer);
+-    _finalizer.detach(this);
++    _nativeOwner.release(this);
+   }
+ 
+   @override
+@@ -942,10 +959,6 @@ class Repository extends Equatable {
+ }
+ 
+ // coverage:ignore-start
+-final _finalizer = Finalizer<Pointer<git_repository>>(
+-  (pointer) => bindings.free(pointer),
+-);
+-// coverage:ignore-end
+ 
+ class RepositoryCallback {
+   /// Values used to override the repository creation and customization process

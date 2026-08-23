@@ -11,7 +11,10 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// Allocate and initialize a [git_remote_callbacks] structure.
 Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
   final callbacks = arena<git_remote_callbacks>();
-  libgit2.git_remote_init_callbacks(callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+  libgit2Runtime.bindings.git_remote_init_callbacks(
+    callbacks,
+    GIT_REMOTE_CALLBACKS_VERSION,
+  );
   return callbacks;
 }
 
@@ -190,12 +193,12 @@ class RemoteCallbacks {
   ) {
     if (payload.cast<Char>().value == 2) {
       using((arena) {
-        libgit2.git_error_set_str(
+        libgit2Runtime.bindings.git_error_set_str(
           git_error_t.GIT_ERROR_INVALID.value,
           'Incorrect credentials.'.toChar(arena),
         );
       });
-      throw LibGit2Error(libgit2.git_error_last());
+      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
     }
 
     final credentialType = credentials!.credentialType;
@@ -203,12 +206,12 @@ class RemoteCallbacks {
 
     if (!allowedTypesSet.contains(credentialType)) {
       using((arena) {
-        libgit2.git_error_set_str(
+        libgit2Runtime.bindings.git_error_set_str(
           git_error_t.GIT_ERROR_INVALID.value,
           'Invalid credential type $credentialType'.toChar(arena),
         );
       });
-      throw LibGit2Error(libgit2.git_error_last());
+      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
     }
 
     if (credentials is UserPass) {

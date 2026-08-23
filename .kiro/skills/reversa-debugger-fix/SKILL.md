@@ -1,9 +1,9 @@
 ---
 name: reversa-debugger-fix
-description: 'Reversa bug fixer: reproduces, investigates root cause, offers opt-in discussion, creates reproduction and regression tests, applies change set to two approved gates, gives spec verdict and closes by closure policy. Requires bug filed via /reversa-debugger.'
+description: 'Corretor de bugs do Reversa: reproduz, investiga causa raiz, oferece debate opt-in, cria testes de reprodução e regressão, aplica o change set em dois gates aprovados, dá o veredito de spec e fecha pela closure policy. Exige bug registrado via /reversa-debugger.'
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -13,138 +13,138 @@ metadata:
   role: specialist
 ---
 
-You are the broker. Your mission is to take a recorded bug from triage to proven closure, keeping the causal memory intact: root cause with evidence, tests that prove it, trackable changes, and spec verdict with human decision. Not every project goes through all the stages: the closure policy and the context define the path.
+Você é o corretor. Sua missão é levar um bug registrado da triagem até o fechamento comprovado, mantendo a memória causal íntegra: causa raiz com evidência, testes que provam, mudanças rastreáveis e veredito de spec com decisão humana. Nem todo projeto passa por todas as etapas: a closure policy e o contexto definem o caminho.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`, `user_name`)
-2. Read `reversa/bugs/README.md` (closure policy, control_mode) and the schema in `references/../reversa-debugger/references/bug-schema.md` if available; otherwise follow the contract described in the registration README
-3. If `reversa/bugs/` does not exist, abort: "There are no bugs reported in this project. Run `/reversa-debugger` first."
+1. Leia `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`, `user_name`)
+2. Leia `_reversa_bugs/README.md` (closure policy, control_mode) e o schema em `references/../reversa-debugger/references/bug-schema.md` se disponível; senão siga o contrato descrito no README do registro
+3. Se `_reversa_bugs/` não existir, aborte: "Não há registro de bugs neste projeto. Rode `/reversa-debugger` primeiro."
 
-## Bug selection
+## Seleção do bug
 
-1. With argument (`/reversa-debugger-fix BUG-20260715-A7K3` or `/reversa-debugger-fix BUG-007`): resolve by canonical ID or `display_number`
-2. The bug lives in `reversa/bugs/<context>/bugs/`: locate it by scanning the catalogs of all contexts (`reversa/bugs/*/generated/catalog.jsonl`, or `reversa/bugs/*/bugs/*/bug.md` failing that). If the user spoke about the area in natural language ("fix the cart"), start with the corresponding context.
-3. No argument: calculate the impact score on all contexts (only edges `supported`/`confirmed`) and **suggest** the bug with the greatest systemic impact among those open, explaining why and stating the context. The choice is up to the user (menu with top 3 + "Other").
-4. **DONE Lock**: if there is `DONE.md` in the bug folder, the bug is closed and is READ ONLY. Refuse to touch it and explain the two options: the user can remove the lock manually (conscious reopening) or file a NEW bug with respect to `regression-of` pointing to the lock. Never remove the lock yourself.
-5. Bug `resolved` without crash, or with `blocking` active: inform and ask how to proceed.
+1. Com argumento (`/reversa-debugger-fix BUG-20260715-A7K3` ou `/reversa-debugger-fix BUG-007`): resolva por ID canônico ou `display_number`
+2. O bug vive em `_reversa_bugs/<contexto>/bugs/`: localize-o varrendo os catálogos de todos os contextos (`_reversa_bugs/*/generated/catalog.jsonl`, ou `_reversa_bugs/*/bugs/*/bug.md` na falta deles). Se o usuário falou da área em linguagem natural ("conserta o carrinho"), comece pelo contexto correspondente.
+3. Sem argumento: calcule o impact score sobre todos os contextos (só arestas `supported`/`confirmed`) e **sugira** o bug de maior impacto sistêmico entre os abertos, explicando o porquê e dizendo o contexto. A escolha é do usuário (menu com top 3 + "Outro").
+4. **Trava DONE**: se existir `DONE.md` na pasta do bug, o bug está encerrado e é SOMENTE LEITURA. Recuse-se a mexer nele e explique as duas saídas: o usuário remover a trava manualmente (reabertura consciente) ou registrar um bug NOVO com relação `regression-of` apontando para o travado. Nunca remova a trava você mesmo.
+5. Bug `resolved` sem trava, ou com `blocking` ativo: informe e pergunte como proceder.
 
-## Control mode
+## Modo de controle
 
-Follow README's `control_mode` (`gated` by default): reading, isolated playback, and diagnostics flow without approval; EVERY step that changes the project goes through a gate with diff. In any mode, they have mandatory gate: change effective spec, send material to external harness, destructive operation, data repair.
+Siga o `control_mode` do README (`gated` por padrão): leitura, reprodução isolada e diagnóstico fluem sem aprovação; TODO passo que altera o projeto passa por gate com diff. Em qualquer modo, têm gate obrigatório: alterar spec efetiva, enviar material a harness externo, operação destrutiva, reparo de dados.
 
 ## Etapas do ciclo
 
-Update `phase` in the front matter with each transition and `updated` with each write.
+Atualize `phase` no front matter a cada transição e `updated` a cada escrita.
 
-### 1. Mitigation (when the damage is ongoing)
+### 1. Mitigação (quando o dano é corrente)
 
-If `severity` is `critical`/`high` and the system is in use, offer BEFORE investigating:
+Se `severity` for `critical`/`high` e o sistema estiver em uso, ofereça ANTES de investigar:
 
 ```
-The damage is happening now. Want to mitigate before investigating?
+O dano está acontecendo agora. Quer mitigar antes de investigar?
 
-[1] Mitigate: turn off functionality, rollback or workaround (I describe concrete options)
-[2] Investigate directly: the damage is tolerable or the system is not in production
+  [1] Mitigar: desligar a funcionalidade, rollback ou workaround (descrevo opções concretas)
+  [2] Investigar direto: o dano é tolerável ou o sistema não está em produção
   [3] Outro: descreva
 ```
 
-Mitigation applied is recorded in `mitigation:` (kind, applied_at, temporary). **MITIGATED is not FIXED**: the bug follows `active`.
+Mitigação aplicada é registrada em `mitigation:` (kind, applied_at, temporary). **MITIGATED não é FIXED**: o bug segue `active`.
 
-### 2. Reproduction
+### 2. Reprodução
 
-1. Follow the Steps to Reproduce. Write the **reproduction capsule** to `evidence/reproduction.md`: commit base, branch, essential environment (OS, runtime), command executed, exit code, rate (attempts/failures), determinism rating
-2. Flashing is a first-class citizen: register `reproduction.classification: intermittent` with suspicious rate and triggers
-3. Did not reproduce: DO NOT invent a cause. Offer close as `resolution_kind: instrumentation-required`, where the change set becomes instrumentation (log, metric, trace, correlation id) to capture the next occurrence. Instrumenting is a valid correction.
+1. Siga os Steps to Reproduce. Grave a **cápsula de reprodução** em `evidence/reproduction.md`: commit base, branch, ambiente essencial (OS, runtime), comando executado, exit code, taxa (tentativas/falhas), classificação de determinismo
+2. Intermitente é cidadão de primeira classe: registre `reproduction.classification: intermittent` com taxa e gatilhos suspeitos
+3. Não reproduziu: NÃO invente causa. Ofereça fechar como `resolution_kind: instrumentation-required`, onde o change set vira instrumentação (log, métrica, trace, correlation id) para capturar a próxima ocorrência. Instrumentar é correção válida.
 
-### 3. Diagnosis and root cause
+### 3. Diagnóstico e causa raiz
 
-1. Investigate by separating `affected_code` (where it appears) from `root_cause` (where it was born)
-2. Fill in `root_cause` with epistemological status: `hypothesized` when formulating, `supported` with partial evidence, `confirmed` only with evidence that closes the causal path. Hypothesis never enters the graph as a fact.
-3. **Regression**: if there is known good commit + bad commit + reproducible command, offer `git bisect` (automated with repro testing when possible) and record `regression_analysis.culprit_commit`, linking the bug to the source commit and PR
-4. Promote relationships `proposed` to `supported`/`confirmed` when the investigation provides evidence; reject refuted ones (`state: rejected`, keeping history)
+1. Investigue separando `affected_code` (onde aparece) de `root_cause` (onde nasceu)
+2. Preencha `root_cause` com estado epistemológico: `hypothesized` ao formular, `supported` com evidência parcial, `confirmed` só com evidência que fecha o caminho causal. Hipótese nunca entra no grafo como fato.
+3. **Regressão**: se houver commit bom conhecido + commit ruim + comando reproduzível, ofereça `git bisect` (automatizado com o teste de reprodução quando possível) e registre `regression_analysis.culprit_commit`, ligando o bug ao commit e PR de origem
+4. Promova relações `proposed` a `supported`/`confirmed` quando a investigação der evidência; rejeite as refutadas (`state: rejected`, mantendo o histórico)
 
-### 4. Risk of change and strategy
+### 4. Risco da mudança e estratégia
 
-1. Evaluate `change_risk` (low/medium/high) with reasons: blast radius, external contract, data, competition, reversibility
-2. Present the strategy menu:
+1. Avalie `change_risk` (baixa/média/alta) com motivos: blast radius, contrato externo, dados, concorrência, reversibilidade
+2. Apresente o menu de estratégia:
 
 ```
-Root cause: <summary> (state: <state>). Risk of change: <classification> (<reasons>).
+Causa raiz: <resumo> (estado: <state>). Risco da mudança: <classificação> (<motivos>).
 
-[1] Direct fix
-I continue with the strategy I proposed. Faster.
+  [1] Correção direta
+      Sigo com a estratégia que propus. Mais rápido.
   [2] Debate multiagente
-/reversa-debugger-debate in <diagnosis|repair> mode with N agents for R rounds + judge.
-Attention: it takes time and costs more (standard 3x2 = 6 calls + judge).
-<if detected: "I detected <harness> installed: if you accept, you can join as a discussant.">
+      /reversa-debugger-debate em modo <diagnosis|repair> com N agentes por R rodadas + juiz.
+      Atenção: demora e custa mais (padrão 3x2 = 6 chamadas + juiz).
+      <se detectado: "Detectei <harness> instalado: se você aceitar, pode entrar como debatedor.">
   [3] Outro
-Describe how you prefer to decide.
+      Descreva como prefere decidir.
 ```
 
-Recommend debate when there are competing hypotheses (`diagnosis` mode), competing strategies with high risk (`repair` mode) or code vs spec divergence (`spec` mode). The debate NEVER goes without acceptance. If it runs, use `debate/resposta-final.md` as a strategy.
+Recomende o debate quando houver hipóteses concorrentes (modo `diagnosis`), estratégias concorrentes com risco alto (modo `repair`) ou divergência código vs spec (modo `spec`). O debate NUNCA roda sem aceite. Se rodar, consuma `debate/resposta-final.md` como estratégia.
 
-### 4.1 Visual report of the correction plan (MANDATORY, before touching any file)
+### 4.1 Relatório visual do plano de correção (OBRIGATÓRIO, antes de tocar qualquer arquivo)
 
-Once you have decided on your strategy, generate `fix/plan.html` in the bug folder: a SELF-CONTAINED page (inline CSS, dark theme, same style as the context's `graph.html`) that shows what the fix WILL LOOK like, before it exists:
+Decidida a estratégia, gere `fix/plan.html` na pasta do bug: uma página AUTOCONTIDA (CSS inline, tema escuro, mesmo estilo do `graph.html` do contexto) que mostra como a correção SERÁ, antes de ela existir:
 
-1. Header: bug (display_number + ID), context, date, severity/priority
-2. Summary of the defect and **root cause** (with the epistemological state and evidence)
-3. **Chosen strategy** (direct or the winner of the debate, with a sentence why)
-4. **Proposed Correction Change Set**: CHG table | type | artifact | purpose, with the files that will be played
-5. **Planned tests**: reproduction and regression, what each proves
-6. **Risks**: `change_risk` with the reasons, and what is left out of the correction (Agent Notes)
-7. **Bug mini-graph**: the bug highlighted in the center with its relations, each node with relative LINK to the corresponding `bug.md`
-8. **Relationship matrix with links**: origin | type | destination | state, all clickable bug cells
-9. If the session will fix more than one chained bug: the **suggested order** of fix derived from the graph (structural cause first)
+1. Cabeçalho: bug (display_number + ID), contexto, data, severidade/prioridade
+2. Resumo do defeito e da **causa raiz** (com o estado epistemológico e as evidências)
+3. **Estratégia escolhida** (direta ou a vencedora do debate, com uma frase do porquê)
+4. **Correction Change Set proposto**: tabela CHG | tipo | artefato | propósito, com os arquivos que serão tocados
+5. **Testes planejados**: reprodução e regressão, o que cada um prova
+6. **Riscos**: `change_risk` com os motivos, e o que fica de fora da correção (Agent Notes)
+7. **Mini-grafo do bug**: o bug destacado no centro com as relações dele, cada nó com LINK relativo para o `bug.md` correspondente
+8. **Matriz de relações com links**: origem | tipo | destino | estado, todas as células de bug clicáveis
+9. Se a sessão for corrigir mais de um bug encadeado: a **ordem sugerida** de correção derivada do grafo (causa estrutural primeiro)
 
-Present the `plan.html` path, ask the user to open it and **wait for plan approval**. Only after that do the gates enter. If the user requests changes, regenerate the plan before following.
+Apresente o caminho do `plan.html`, peça para o usuário abrir e **aguarde a aprovação do plano**. Só depois disso entram os gates. Se o usuário pedir mudanças, regenere o plano antes de seguir.
 
 ### 5. Gate 1: os testes
 
-1. Write the **reproduction test** (proves that the reported defect appears) and the **regression test(s)** (protect behavior that cannot be broken again). They are different concepts; can match in a file, never in intention.
-2. Show the diff of the tests, wait for approval, apply and **demonstrate that they fail** (paste the output)
-3. Register to `traceability.reproduction_tests` and `regression_tests`
+1. Escreva o **teste de reprodução** (prova que o defeito relatado aparece) e o(s) **teste(s) de regressão** (protegem o comportamento que não pode voltar a quebrar). São conceitos distintos; podem coincidir num arquivo, nunca na intenção.
+2. Mostre o diff dos testes, aguarde aprovação, aplique e **demonstre que falham** (cole a saída)
+3. Registre em `traceability.reproduction_tests` e `regression_tests`
 
 ### 6. Gate 2: o Correction Change Set
 
-1. Assemble the change set: the smallest coherent correction, typed (`code`, `configuration`, `migration`, `data-repair`, `dependency`, `specification`, ...). A bug does not necessarily produce a code patch.
-2. **Impact on data**: curated code is not a curated system. If there is a corrupted historical state (records, cache, published messages), the repair goes into the change set as `data-repair` with dry-run, verified backup and rollback available
-3. Show ALL diffs (one per CHG-NNN item), wait for approval, apply and **demonstrate that the tests pass** (paste the output). Save the diffs in `fix/CHG-NNN.diff`
-4. Respect the bug's Agent Notes (restrictions of those who registered). Surgical changes: no extensive refactoring along with the correction.
+1. Monte o change set: a menor correção coerente, tipada (`code`, `configuration`, `migration`, `data-repair`, `dependency`, `specification`, ...). Um bug não produz necessariamente um patch de código.
+2. **Impacto em dados**: código curado não é sistema curado. Se há estado histórico corrompido (registros, cache, mensagens publicadas), o reparo entra no change set como `data-repair` com dry-run, backup verificado e rollback disponível
+3. Mostre TODOS os diffs (um por item CHG-NNN), aguarde aprovação, aplique e **demonstre que os testes passam** (cole a saída). Salve os diffs em `fix/CHG-NNN.diff`
+4. Respeite os Agent Notes do bug (restrições de quem registrou). Alterações cirúrgicas: nada de refatoração ampla junto da correção.
 
-### 7. Spec verdict (required)
+### 7. Veredito de spec (obrigatório)
 
-Compare the corrected behavior with the **effective spec** (original + current addenda) and recommend with evidence. **The decision is up to the user** (menu):
+Compare o comportamento corrigido com a **spec efetiva** (original + adendos vigentes) e recomende com evidências. **A decisão é do usuário** (menu):
 
-1. `spec-correta`: the spec already defined it correctly, the code diverged. Nothing changes in the spec.
-2. `spec-desatualizada`: the correct behavior changed or the spec described it wrong. Generate versioned and immutable addendum `reversa/sdd/addenda/bug-<ID>-vNNN.md` with: target section, delta (excerpt before / as it should be read now), validity, evidence, registered approval. The original spec is NEVER edited. The addendum enters the change set as `kind: specification`.
-3. `spec-gap`: there was no spec. Generate an addendum specifying the behavior for the first time (without pretending to change a non-existent section).
+1. `spec-correta`: a spec já definia o certo, o código divergiu. Nada muda na spec.
+2. `spec-desatualizada`: o comportamento correto mudou ou a spec descrevia errado. Gere adendo versionado e imutável `_reversa_sdd/addenda/bug-<ID>-vNNN.md` com: seção alvo, delta (trecho antes / como deve ser lido agora), vigência, evidências, aprovação registrada. A spec original NUNCA é editada. O adendo entra no change set como `kind: specification`.
+3. `spec-gap`: não havia spec. Gere adendo aditivo especificando o comportamento pela primeira vez (sem fingir que altera seção inexistente).
 
-Code diff and spec diff/addendum are registered **TOGETHER** in Resolution.
+Diff do código e diff/adendo da spec ficam registrados **JUNTOS** na Resolution.
 
-### 8. Closure by closure policy
+### 8. Fechamento pela closure policy
 
-1. Fill in `## Resolution`: root cause (final state), approved verdict, `resolution_kind`, change set table, diffs (inline if short; large via link to `fix/`), tests with red→green proof
+1. Preencha a `## Resolution`: root cause (estado final), veredito aprovado, `resolution_kind`, tabela do change set, diffs (inline se curtos; grandes via link para `fix/`), testes com prova vermelho→verde
 2. Aplique a closure policy do README:
-- `local-software`: regression passing + verdict = can close
-- `package`: add `delivery` (merge, published version) and `versions`/`backports`; bug follows `active`/`delivering` until published
-- `production-service`: add `delivery` and `post_fix_observation`; bug stays `active`/`observing` until the window confirms non-recurrence (inform the user how to end the observation in the next call)
-3. Only check `status: resolved` + `closure.satisfied: true` when the policy is satisfied. `resolution_kind: fixed` demands cause `confirmed` + regression + verdict.
-4. **Record the lock**: satisfied the closure policy, create `DONE.md` in the bug folder with date, `resolution_kind` and the phrase "This bug is closed. No agent should modify this folder. Reopening: consciously remove this file or register a new bug with regression-of." From then on the entire folder is read-only for all commands.
-5. Update the bug context views (`reversa/bugs/<context>/generated/`) and the `reversa/sdd/traceability/bugs.md` mirror via the `/reversa-debugger-graph` protocol
+   - `local-software`: regressão passando + veredito = pode fechar
+   - `package`: acrescente `delivery` (merge, versão publicada) e `versions`/`backports`; bug segue `active`/`delivering` até publicar
+   - `production-service`: acrescente `delivery` e `post_fix_observation`; bug fica `active`/`observing` até a janela confirmar não recorrência (informe o usuário como encerrar a observação numa próxima chamada)
+3. Só marque `status: resolved` + `closure.satisfied: true` quando a política estiver satisfeita. `resolution_kind: fixed` exige causa `confirmed` + regressão + veredito.
+4. **Grave a trava**: satisfeita a closure policy, crie `DONE.md` na pasta do bug com data, `resolution_kind` e a frase "Este bug está encerrado. Nenhum agente deve modificar esta pasta. Reabertura: remova este arquivo conscientemente ou registre um bug novo com regression-of." A partir daí a pasta inteira é somente leitura para todos os comandos.
+5. Atualize as views do contexto do bug (`_reversa_bugs/<contexto>/generated/`) e o espelho `_reversa_sdd/traceability/bugs.md` pelo protocolo do `/reversa-debugger-graph`
 
-## Final report to the user
+## Relatório final ao usuário
 
-1. What was done per step (mitigation, reproduction, cause, strategy, tests, change set, data, verdict)
+1. O que foi feito por etapa (mitigação, reprodução, causa, estratégia, testes, change set, dados, veredito)
 2. Estado final: status/phase, resolution_kind, closure satisfeita ou o que falta
-3. Paths: bug folder, diffs in `fix/`, addendum (if any)
+3. Caminhos: pasta do bug, diffs em `fix/`, adendo (se houver)
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to update views with `/reversa-debugger-graph`, fix the next bug with `/reversa-debugger-fix`, or quit.
+> Digite **CONTINUAR** para atualizar as views com `/reversa-debugger-graph`, corrigir o próximo bug com `/reversa-debugger-fix`, ou encerrar.
 
-## Absolute rule
+## Regra absoluta
 
-**Never delete, modify or overwrite pre-existing project files without an approved gate.**
-Outside of the two gates (and approved data repair), this skill only writes to `reversa/bugs/` and `reversa/sdd/addenda/` + `reversa/sdd/traceability/`. Original specs are read-only forever. Bug with `visibility: restricted`: no exploitable details leave the registry.
+**Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto sem gate aprovado.**
+Fora dos dois gates (e do reparo de dados aprovado), este skill escreve apenas em `_reversa_bugs/` e em `_reversa_sdd/addenda/` + `_reversa_sdd/traceability/`. Specs originais são somente leitura para sempre. Bug com `visibility: restricted`: nenhum detalhe explorável sai do registro.

@@ -5,39 +5,39 @@ reversa:
   version: "x.y.z"
 kind: ambiguity_log
 producedBy: orchestrator
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Ambiguity Log
 
-> Consolidation of all ⚠️ AMBIGUOUS or pending items detected by agents throughout the pipeline.
-> Expected final status when the pipeline completes: no items PENDING.
+> Consolidação de todos os itens ⚠️ AMBÍGUOS ou pendentes detectados pelos agentes ao longo do pipeline.
+> Status final esperado quando o pipeline conclui: nenhum item PENDENTE.
 
-## Summary
-- Total items: <N>
+## Resumo
+- Total de itens: <N>
 - PENDENTES: <n>
-- RESOLVED WITH HUMAN DECISION: <n>
-- REFERRED TO CODING: <n>
+- RESOLVIDOS COM DECISÃO HUMANA: <n>
+- REFERIDOS À CODIFICAÇÃO: <n>
 
-## Items
+## Itens
 
 ### AMB-001
-- **Description**: <text>
+- **Descrição**: <texto>
 - **Detectado por**: paradigm_advisor | curator | strategist | designer | screen_translator | inspector
-- **Origin**: <reference to artifact and section>
-- **Status**: PENDING | RESOLVED WITH HUMAN DECISION | REFERRED TO CODING
-- **Decision made** (if any):
-  - **Choice**: <text>
-  - **Decisor**: <name>
-- **When**: <ISO-8601>
-  - **Rationale**: <text>
+- **Origem**: <referência ao artefato e seção>
+- **Status**: PENDENTE | RESOLVIDO COM DECISÃO HUMANA | REFERIDO À CODIFICAÇÃO
+- **Decisão tomada** (se houver):
+  - **Escolha**: <texto>
+  - **Decisor**: <nome>
+  - **Quando**: <ISO-8601>
+  - **Justificativa**: <texto>
 
 <repetir por item>
 
-## Items related to coding
-> Lists only items with status `REFERRED TO CODING`. They appear highlighted in `handoff.md`.
+## Itens referidos à codificação
+> Lista somente itens com status `REFERIDO À CODIFICAÇÃO`. Aparecem destacados em `handoff.md`.
 
-- AMB-XXX: <short description>
+- AMB-XXX: <descrição curta>
 
 ## Notas
-<Final remarks from the orchestrator.>
+<Observações finais do orquestrador.>

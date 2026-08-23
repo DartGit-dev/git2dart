@@ -1,9 +1,9 @@
 ---
 name: reversa-clarify
-description: Generates up to five questions aimed at resolving ambiguous points in the requirements and integrates the answers into the document. Optional step of the forward cycle, between `/reversa-requirements` and `/reversa-plan`.
+description: Gera até cinco perguntas dirigidas para resolver pontos ambíguos do requirements e integra as respostas no documento. Etapa opcional do ciclo forward, entre `/reversa-requirements` e `/reversa-plan`.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,92 +12,92 @@ metadata:
   stage: clarify
 ---
 
-You are the enlightener. Your mission is to discover what remains to be known before the plan and return the answers to `requirements.md` of the active feature.
+Você é o esclarecedor. Sua missão é descobrir o que falta saber antes do plano e devolver as respostas ao `requirements.md` da feature ativa.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to resolve `output_folder` (reversa extraction) and `forward_folder` (features forward)
-2. When the text of this skill mentions `reversa/sdd/` or `reversa/forward/`, use the actual values ​​from state.json
+1. Leia `.reversa/state.json` para resolver `output_folder` (extração reversa) e `forward_folder` (features forward)
+2. Quando o texto deste skill mencionar `_reversa_sdd/` ou `_reversa_forward/`, use os valores reais do state.json
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If the file does not exist, abort with a clear message pointing the user to `/reversa-requirements`
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se o arquivo não existir, aborte com mensagem clara apontando o usuário para `/reversa-requirements`
 2. Carregue o `requirements.md` da `feature-dir` indicada
-3. Apply the default hook rule `before-clarify` read from `.reversa/hooks.yml` (same logic as skill `reversa-requirements`)
+3. Aplique a regra padrão de ganchos `before-clarify` lida de `.reversa/hooks.yml` (mesma lógica do skill `reversa-requirements`)
 
-## Generation of questions
+## Geração das perguntas
 
 1. Examine o `requirements.md` em busca de:
-1.1. Explicit `[DOUBT]` markers
-1.2. Vague phrases ("probably", "maybe", "if possible", "some")
-1.3. Open terms without definition (numeric limits, user profiles, expected formats)
-1.4. Obvious coverage gaps (missing negative scenario, implicit edge case)
-2. Cross-reference the internal taxonomy below to choose candidates
-3. Select a maximum of five questions, ranked by impact on the plan
-4. Each question must be either multiple choice or short answer, never open without options
+   1.1. Marcadores `[DÚVIDA]` explícitos
+   1.2. Frases vagas ("provavelmente", "talvez", "se possível", "alguns")
+   1.3. Termos abertos sem definição (limites numéricos, perfis de usuário, formatos esperados)
+   1.4. Lacunas de cobertura óbvias (cenário negativo ausente, edge case implícito)
+2. Cruze com a taxonomia interna abaixo para escolher candidatos
+3. Selecione no máximo cinco perguntas, ranqueadas pelo impacto no plano
+4. Cada pergunta deve ser ou múltipla escolha ou resposta curta, jamais aberta sem opções
 
-### Taxonomy to prioritize
+### Taxonomia para priorizar
 
-1. Functional scope and behavior
-2. Domain and data model
-3. Interaction and experience flow
-4. Non-functional attributes (performance, security, observability)
-5. Integrations and external dependencies
-6. Permissions and authentication
-7. Data persistence and migration
+1. Escopo funcional e comportamento
+2. Modelo de domínio e dados
+3. Fluxo de interação e experiência
+4. Atributos não funcionais (desempenho, segurança, observabilidade)
+5. Integrações e dependências externas
+6. Permissões e autenticação
+7. Persistência e migração de dados
 8. Auditoria, log e telemetria
-9. Internationalization and localization
-10. Failures and recovery
-11. Compatibility with legacy mapped in `reversa/sdd/`
+9. Internacionalização e localização
+10. Falhas e recuperação
+11. Compatibilidade com o legado mapeado em `_reversa_sdd/`
 
-## User presentation
+## Apresentação ao usuário
 
-Present questions in the format:
+Apresente as perguntas no formato:
 
 ```
-1. <question>
-a) <option>
-b) <option>
-c) <option>
-d) <option>
-e) Free response
+1. <pergunta>
+   a) <opção>
+   b) <opção>
+   c) <opção>
+   d) <opção>
+   e) Resposta livre
 
 2. ...
 ```
 
-If a question expects a short answer, omit the option block and use `Expected answer: <value-type hint>`.
+Se uma pergunta for de resposta curta, omita o bloco de opções e use formato `Resposta esperada: <hint do tipo de valor>`.
 
-Wait for the user to respond. If he only answers a few, continue with just those answered.
+Aguarde o usuário responder. Se ele responder apenas algumas, prossiga apenas com as respondidas.
 
-## Integration in requirements.md
+## Integração no requirements.md
 
-1. Find or create the `## Esclarecimentos` section
-2. Inside it, create or update `### Session YYYY-MM-DD` (also recognize legacy `Sessão` headings when reading)
-3. For each answered question:
-3.1. Add an item in the format `- **Q:** <question>` plus `**A:** <answer>`
-3.2. Locate the part of the requirements where the question lived
-3.3. Rewrite the in-place snippet, removing the corresponding `[DOUBT]`
-4. Update the `## Lacunas` section by removing resolved entries and keeping unresolved ones
+1. Localize ou crie a seção `## Esclarecimentos`
+2. Dentro dela, crie ou atualize `### Sessão YYYY-MM-DD`
+3. Para cada pergunta respondida:
+   3.1. Adicione um item em formato `- **Q:** <pergunta>` mais `**R:** <resposta>`
+   3.2. Localize o trecho do requirements onde a dúvida vivia
+   3.3. Reescreva o trecho in-place, removendo o `[DÚVIDA]` correspondente
+4. Atualize a seção `## Lacunas` removendo entradas resolvidas e mantendo as não resolvidas
 
-## Persistence
+## Persistência
 
-- Write the modified `requirements.md` atomically
-- The `## Esclarecimentos` section must be right before `## Lacunas`
+- Grave o `requirements.md` modificado de forma atômica
+- A seção `## Esclarecimentos` deve ficar logo antes de `## Lacunas`
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply the default rule for `after-clarify` (same logic as skill `reversa-requirements`).
+Aplique a regra padrão para `after-clarify` (mesma lógica do skill `reversa-requirements`).
 
-## Final report
+## Relatório final
 
-1. `requirements.md` absolute path
-2. Number of doubts resolved in this session
-3. Number of remaining `[DOUBT]` markers
-4. Suggested next step:
-4.1. If there is still `[DOUBT]`, suggest re-executing `/reversa-clarify`
+1. Caminho absoluto do `requirements.md`
+2. Quantidade de dúvidas resolvidas nessa sessão
+3. Quantidade de marcadores `[DÚVIDA]` restantes
+4. Sugestão de próximo passo:
+   4.1. Se ainda houver `[DÚVIDA]`, sugerir nova execução de `/reversa-clarify`
    4.2. Se zerou, sugerir `/reversa-plan`
 
-End with:
+Termine com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestão acima.

@@ -2,13 +2,13 @@
 Template de corpo do actions.md
 Carregado por /reversa-to-do e atualizado por /reversa-coding.
 
-COMPLETION RULES:
-- Stable IDs: T001, T002, ..., zero-padded three digits. Never recycle.
-- Parallelism marker is [//] at the beginning of the ID line. Tasks [//] do not share target file.
-- "Dependencies" column lists IDs separated by comma. Non-dependency actions use "-".
-- Initial status is [ ]. /reversa-coding changes to [X] upon completion.
-- /reversa-add adds a "## Amendments" section at the end, with the same table format, IDs E001, E002, ... and status already [X].
-- Every action needs to be ATOMIC: it fits into the agent's turn, without needing human feedback in between.
+REGRAS DE PREENCHIMENTO:
+- IDs estáveis: T001, T002, ..., zero-padded três dígitos. Nunca recicle.
+- Marcador de paralelismo é [//] no início da linha de ID. Tarefas [//] não compartilham arquivo alvo.
+- Coluna "Dependências" lista IDs separados por vírgula. Ações sem dependência usam "-".
+- Status inicial é [ ]. /reversa-coding muda para [X] ao concluir.
+- /reversa-add acrescenta uma seção "## Emendas" ao final, com o mesmo formato de tabela, IDs E001, E002, ... e status já [X].
+- Toda ação precisa ser ATÔMICA: cabe num turno do agente, sem precisar de feedback humano no meio.
 -->
 
 # Actions: <NOME DA FEATURE>
@@ -17,67 +17,67 @@ COMPLETION RULES:
 > Data: `YYYY-MM-DD`
 > Roadmap: `<feature-dir>/roadmap.md`
 
-## Summary
+## Resumo
 
-| Metric | Value |
+| Métrica | Valor |
 |---------|-------|
-| Total shares | <NN> |
-| Parallelizable (`[//]`) | <NN> |
-| Longest chain of dependency | <NN> |
+| Total de ações | <NN> |
+| Paralelizáveis (`[//]`) | <NN> |
+| Maior cadeia de dependência | <NN> |
 
-## Phase 1, Preparation
+## Fase 1, Preparação
 
-<!-- Setup, scaffolding, initial migrations, local infrastructure configuration. -->
+<!-- Setup, scaffolding, migrações iniciais, configuração de infraestrutura local. -->
 
-| ID | Description | Dependencies | Parallelism | Target file | Confidence | Status |
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T001 | <atomic action> | - | `[//]` | `<path>` | 🟢 | `[ ]` |
-| T002 | <atomic action> | - | `[//]` | `<path>` | 🟢 | `[ ]` |
-| T003 | <atomic action> | T001 | - | `<path>` | 🟡 | `[ ]` |
+| T001 | <ação atômica> | - | `[//]` | `<caminho>` | 🟢 | `[ ]` |
+| T002 | <ação atômica> | - | `[//]` | `<caminho>` | 🟢 | `[ ]` |
+| T003 | <ação atômica> | T001 | - | `<caminho>` | 🟡 | `[ ]` |
 
-## Phase 2, Testing
+## Fase 2, Testes
 
-<!-- Tests that need to exist before or just after the core. Omit if the team does not practice TDD. -->
+<!-- Testes que precisam existir antes ou logo após o núcleo. Omitir se a equipe não pratica TDD. -->
 
-| ID | Description | Dependencies | Parallelism | Target file | Confidence | Status |
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T004 | <atomic action> | T001 | `[//]` | `<path>` | 🟢 | `[ ]` |
+| T004 | <ação atômica> | T001 | `[//]` | `<caminho>` | 🟢 | `[ ]` |
 
-## Phase 3, Core
+## Fase 3, Núcleo
 
-<!-- Core logic of the feature. -->
+<!-- Lógica central da feature. -->
 
-| ID | Description | Dependencies | Parallelism | Target file | Confidence | Status |
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T005 | <atomic action> | T003 | - | `<path>` | 🟢 | `[ ]` |
-| T006 | <atomic action> | T005 | - | `<path>` | 🟢 | `[ ]` |
+| T005 | <ação atômica> | T003 | - | `<caminho>` | 🟢 | `[ ]` |
+| T006 | <ação atômica> | T005 | - | `<caminho>` | 🟢 | `[ ]` |
 
-## Phase 4, Integration
+## Fase 4, Integração
 
-<!-- Glues with other parts of the system, external contracts, hooks. -->
+<!-- Cola com outras partes do sistema, contratos externos, ganchos. -->
 
-| ID | Description | Dependencies | Parallelism | Target file | Confidence | Status |
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T007 | <atomic action> | T006 | - | `<path>` | 🟡 | `[ ]` |
+| T007 | <ação atômica> | T006 | - | `<caminho>` | 🟡 | `[ ]` |
 
-## Phase 5, Polishing
+## Fase 5, Polimento
 
-<!-- Logs, telemetry, error messages, short documentation. -->
+<!-- Logs, telemetria, mensagens de erro, documentação curta. -->
 
-| ID | Description | Dependencies | Parallelism | Target file | Confidence | Status |
+| ID | Descrição | Dependências | Paralelismo | Arquivo alvo | Confidência | Status |
 |----|-----------|--------------|-------------|--------------|-------------|--------|
-| T008 | <atomic action> | T007 | `[//]` | `<path>` | 🟢 | `[ ]` |
-| T009 | <atomic action> | - | `[//]` | `<path>` | 🟢 | `[ ]` |
+| T008 | <ação atômica> | T007 | `[//]` | `<caminho>` | 🟢 | `[ ]` |
+| T009 | <ação atômica> | - | `[//]` | `<caminho>` | 🟢 | `[ ]` |
 
-## Execution notes
+## Notas de execução
 
 <!--
-Reserved for /reversa-coding to record warnings or observations that arose during execution.
-Don't use this to correct actions, manual edits are outside this file, they go directly to the code.
+Reservado para /reversa-coding registrar avisos ou observações que surgiram durante a execução.
+Não use isso para corrigir ações, edits manuais ficam fora desse arquivo, vão direto no código.
 -->
 
-## Change history
+## Histórico de alterações
 
-| Date | Amendment | Author |
+| Data | Alteração | Autor |
 |------|-----------|-------|
-| YYYY-MM-DD | Initial version generated by `/reversa-to-do` | reversa |
+| YYYY-MM-DD | Versão inicial gerada por `/reversa-to-do` | reversa |

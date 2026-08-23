@@ -5,33 +5,33 @@ reversa:
   version: "x.y.z"
 kind: discard_log
 producedBy: curator
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Discard Log
 
-> Complete record of what was discarded from the migration and why. Each item has traceability to its origin in the legacy.
+> Registro completo do que foi descartado da migração e por quê. Cada item tem rastreabilidade para a origem no legado.
 
-## Discarded items
+## Itens descartados
 
 ### BR-DESCARTAR-001
-- **Source**: `reversa/sdd/<unit>/{requirements,design}.md` § <section>
-- **Description**: <rule or behavior discarded>
-- **Rationale**: <text>
-- **Linked to paradigm**: yes | no
-- If yes: <which paradigm and how the target paradigm absorbs the case>
-- **Replacement in the new system**: <none | replaced by X>
-- **Risk of discarding**: low | medium | high, with explanatory note
+- **Origem**: `_reversa_sdd/<unit>/{requirements,design}.md` § <seção>
+- **Descrição**: <regra ou comportamento descartado>
+- **Justificativa**: <texto>
+- **Vinculado a paradigma**: sim | não
+  - Se sim: <qual paradigma e como o paradigma alvo absorve o caso>
+- **Reposição no sistema novo**: <none | substituído por X>
+- **Risco de descartar**: baixo | médio | alto, com nota explicativa
 
 <repetir por item>
 
-## Items discarded due to paradigm shift (dedicated subsection)
+## Itens descartados por mudança de paradigma (subseção dedicada)
 
-> List only items whose `Vinculado a paradigma = sim`. Explicit auditing for the encoding agent.
+> Lista apenas dos itens cujo `Vinculado a paradigma = sim`. Auditoria explícita para o agente de codificação.
 
-| ID | Origin | Legacy paradigm | Substitute in the target paradigm |
+| ID | Origem | Paradigma legado | Substituto no paradigma alvo |
 |---|---|---|---|
-| BR-DESCARTAR-XXX | <ref> | <ex: synchronous pessimistic lock> | <ex: idempotence via event ID> |
+| BR-DESCARTAR-XXX | <ref> | <ex: lock pessimista síncrono> | <ex: idempotência via event ID> |
 
 ## Notas
-<Curator's final remarks on the discarded set.>
+<Observações finais do Curator sobre o conjunto descartado.>

@@ -1,9 +1,9 @@
 ---
 name: reversa-resume
-description: Resumes a paused feature (listed in paused-features of active-requirements.json) and makes it active. It DOES NOT create new features, it just swaps the active one for the chosen one and (when it makes sense) moves the current active one to paused-features.
+description: Retoma uma feature pausada (listada em paused-features de active-requirements.json) e a torna ativa. NÃO cria features novas, apenas troca a ativa pela escolhida e (quando faz sentido) move a ativa atual para paused-features.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -12,93 +12,93 @@ metadata:
   stage: resume
 ---
 
-You are the taker. Your mission is to exchange the active feature for one of those in `paused-features`, without losing the work of either one.
+Você é o retomador. Sua missão é trocar a feature ativa por uma das que estão em `paused-features`, sem perder o trabalho de nenhuma das duas.
 
-## Before you start
+## Antes de começar
 
-1. Read `.reversa/state.json` to solve `output_folder` and `forward_folder`
-2. Use actual values ​​where the text mentions `reversa/sdd/` or `reversa/forward/`
+1. Leia `.reversa/state.json` para resolver `output_folder` e `forward_folder`
+2. Use os valores reais nos lugares onde o texto mencionar `_reversa_sdd/` ou `_reversa_forward/`
 
-## Initial Checks
+## Verificações Iniciais
 
-1. Read `.reversa/active-requirements.json`
-1.1. If absent, abort with message:
+1. Leia `.reversa/active-requirements.json`
+   1.1. Se ausente, aborte com mensagem:
 
-> 🛑 `/reversa-resume` requires an active feature to make the switch. `active-requirements.json` does not exist.
+       > 🛑 `/reversa-resume` exige uma feature ativa para fazer a troca. `active-requirements.json` não existe.
        >
-> Use `/reversa-requirements` to create the first feature of the project.
+       > Use `/reversa-requirements` para criar a primeira feature do projeto.
 
-2. Check the `paused-features` field
-2.1. If missing or empty array, abort with message:
+2. Verifique o campo `paused-features`
+   2.1. Se ausente ou array vazio, aborte com mensagem:
 
-> 🛑 There are no paused features to resume. The `paused-features` array is empty.
+       > 🛑 Não há features pausadas para retomar. O array `paused-features` está vazio.
        >
-> Features are paused when you run `/reversa-requirements` on an active feature in progress and choose option 2 (create parallel).
+       > Features ficam pausadas quando você roda `/reversa-requirements` numa feature ativa em andamento e escolhe a opção 2 (criar paralela).
 
-3. Apply `before-resume` hooks in the standard way (reads `.reversa/hooks.yml`, filters `enabled: false`, same logic as other skills in the forward cycle)
+3. Aplique ganchos `before-resume` da forma padrão (lê `.reversa/hooks.yml`, filtra `enabled: false`, mesma lógica de outros skills do ciclo forward)
 
-## List of pauses
+## Listagem das pausadas
 
-For each entry in `paused-features`:
+Para cada entrada em `paused-features`:
 
-1. Check if `feature-dir` still exists on disk
-1.1. If it does NOT exist, mark it as `ausente` (the folder was manually deleted, the entry became trash)
-2. If it exists, detect the **current physical stage** with the same logic as `/reversa-requirements`:
+1. Verifique se o `feature-dir` ainda existe em disco
+   1.1. Se NÃO existir, marque como `ausente` (a pasta foi apagada manualmente, a entry virou lixo)
+2. Se existir, detecte o **estágio físico atual** com a mesma lógica do `/reversa-requirements`:
 
-| Condition observed in `feature-dir` | Physical internship |
+   | Condição observada em `feature-dir` | Estágio físico |
    |--------------------------------------|----------------|
-| `requirements.md` missing | `vazio` |
-| `requirements.md` present, `roadmap.md` absent | `requirements` |
-| `roadmap.md` present, `actions.md` absent | `plan` |
-| `actions.md` present with at least one line `\| ... \| \[ \] \|` | `coding-em-progresso` |
-| `actions.md` present, all shares as `\| ... \| \[X\] \|` | `done` |
+   | `requirements.md` ausente | `vazio` |
+   | `requirements.md` presente, `roadmap.md` ausente | `requirements` |
+   | `roadmap.md` presente, `actions.md` ausente | `plan` |
+   | `actions.md` presente com pelo menos uma linha `\| ... \| \[ \] \|` | `coding-em-progresso` |
+   | `actions.md` presente, todas as ações como `\| ... \| \[X\] \|` | `done` |
 
-3. For `coding-em-progresso`, count shares `[X]` versus `[ ]`
+3. Para `coding-em-progresso`, conte ações `[X]` versus `[ ]`
 
-Present a numbered list to the user:
+Apresente lista numerada ao usuário:
 
 ```
 Features pausadas:
 
-1. <NNN-short-name> · stage: <physical> · paused at <YYYY-MM-DD> [· N of M actions]
-2. <NNN-short-name> · stage: <physical> · paused at <YYYY-MM-DD>
-3. <NNN-short-name> · stage: missing · paused at <YYYY-MM-DD> (folder deleted, entry orphaned)
+1. <NNN-short-name>  ·  estágio: <físico>  ·  pausada em <YYYY-MM-DD>  [· N de M ações]
+2. <NNN-short-name>  ·  estágio: <físico>  ·  pausada em <YYYY-MM-DD>
+3. <NNN-short-name>  ·  estágio: ausente   ·  pausada em <YYYY-MM-DD>  (pasta apagada, entry orfã)
 ```
 
-For entries `ausente`, visually mark that they are orphaned.
+Para entries `ausente`, marque visualmente que estão órfãs.
 
-## User choice
+## Escolha do usuário
 
-Ask:
+Pergunte:
 
-> Which feature do you want to return to? Enter the list number, or `0` to cancel.
+> Qual feature você quer retomar? Digite o número da lista, ou `0` para cancelar.
 
-Wait for the response. DO NOT choose on your own.
+Aguarde a resposta. NÃO escolha por conta própria.
 
-## Orphan entry handling
+## Tratamento de entry órfã
 
-If the user chose an entry with stage `ausente`:
+Se o usuário escolheu uma entry com estágio `ausente`:
 
-1. DO NOT swap
-2. Ask: "The folder for this feature has been deleted. Do you want to remove this entry from `paused-features`? (yes / no)"
-3. If yes, remove just this entry from the array, write updated `active-requirements.json` (atomically), close the skill.
-4. If not, close without changing anything.
+1. NÃO faça swap
+2. Pergunte: "A pasta dessa feature foi apagada. Quer remover essa entry de `paused-features`? (sim / não)"
+3. Se sim, remova só essa entry do array, escreva `active-requirements.json` atualizado (atomicamente), encerre o skill.
+4. Se não, encerre sem mudar nada.
 
-## Detection of the state of the currently active feature
+## Detecção do estado da feature atualmente ativa
 
-For the feature in `active-requirements.json#feature-dir`, detect the physical stage using the same table above. This value decides whether it will be paused or discarded in the exchange.
+Para a feature em `active-requirements.json#feature-dir`, detecte o estágio físico usando a mesma tabela acima. Esse valor decide se ela vai ser pausada ou descartada na troca.
 
 ## Swap
 
-1. Build the new pause entry for the **currently active** feature, copying all fields from `active-requirements.json` except `paused-features`, and adding:
+1. Construa a nova entrada de pausa para a feature **atualmente ativa**, copiando todos os campos do `active-requirements.json` exceto `paused-features`, e adicionando:
    - `paused-at`: ISO 8601 da hora atual
-- `paused-from-stage`: physical stage detected of the current active
-2. Decide the destination of the currently active feature:
-- 2.1. If physical stage is `requirements`, `plan` or `coding-em-progresso`: **pause**, i.e. push the constructed entry into the `paused-features` array
-- 2.2. If physical stage is `done`: **active discard**, DO NOT push (the feature is completed, it is not worth taking up space in paused-features). Her folder remains untouched at `reversa/forward/`
-- 2.3. If physical stage is `vazio`: **active discard**, DO NOT push (corruption, folder without `requirements.md`)
-3. Remove the chosen feature from the `paused-features` array
-4. Build the new `active-requirements.json`:
+   - `paused-from-stage`: estágio físico detectado da ativa atual
+2. Decida o destino da feature ativa atual:
+   - 2.1. Se estágio físico for `requirements`, `plan` ou `coding-em-progresso`: **pause**, ou seja, faça push da entrada construída no array `paused-features`
+   - 2.2. Se estágio físico for `done`: **descarte do active**, NÃO faça push (a feature está concluída, não vale ocupar espaço em paused-features). A pasta dela continua intocada em `_reversa_forward/`
+   - 2.3. Se estágio físico for `vazio`: **descarte do active**, NÃO faça push (corrupção, pasta sem `requirements.md`)
+3. Remova a feature escolhida do array `paused-features`
+4. Construa o novo `active-requirements.json`:
 
 ```json
 {
@@ -107,35 +107,35 @@ For the feature in `active-requirements.json#feature-dir`, detect the physical s
   "feature-id": "<feature-id da escolhida>",
   "short-name": "<short-name da escolhida>",
   "started-at": "<started-at original da escolhida>",
-  "current-stage": "<original current-stage of the chosen one, or detected physical stage>",
-  "stages-completed": [<copied from the chosen one, or [] if absent>],
+  "current-stage": "<current-stage original da escolhida, ou estágio físico detectado>",
+  "stages-completed": [<copiado da escolhida, ou [] se ausente>],
   "paused-features": [<array atualizado>]
 }
 ```
 
-4.1. If the chosen one did not have `started-at`/`current-stage`/`stages-completed` (old version entry, before the rich schema), use the physical stage detected for `current-stage` and the current time as `started-at` (record this fallback in a message to the user)
+   4.1. Se a escolhida não tinha `started-at`/`current-stage`/`stages-completed` (entry de versão antiga, antes do schema rico), use o estágio físico detectado para `current-stage` e a hora atual como `started-at` (registre essa fallback em mensagem ao usuário)
 
-5. Write JSON atomically (tempfile plus rename)
+5. Escreva o JSON atomicamente (tempfile mais rename)
 
-## Post-Execution Hooks
+## Ganchos Pós-execução
 
-Apply `after-resume` in the standard way.
+Aplique `after-resume` da forma padrão.
 
-## Final report to the user
+## Relatório final ao usuário
 
 1. Feature retomada: identificador `<NNN-short-name>`
-2. Detected physical stage of this feature: value between `requirements` / `plan` / `coding-em-progresso`
-3. For `coding-em-progresso`, show `N of M actions completed`
-4. Destination of the previously active feature:
+2. Estágio físico detectado dessa feature: valor entre `requirements` / `plan` / `coding-em-progresso`
+3. Para `coding-em-progresso`, mostrar `N de M ações concluídas`
+4. Destino da feature anteriormente ativa:
    4.1. "pausada" (se foi push pra paused-features)
    4.2. "descartada do ativo (estado: done)" ou "descartada do ativo (estado: vazio)"
-5. Suggestion for the next skill according to the stage of the resumed feature:
-5.1. `requirements` → suggest `/reversa-clarify` (if there is `[DOUBT]`) or `/reversa-plan`
+5. Sugestão de próximo skill conforme o estágio da feature retomada:
+   5.1. `requirements` → sugerir `/reversa-clarify` (se houver `[DÚVIDA]`) ou `/reversa-plan`
    5.2. `plan` → sugerir `/reversa-to-do`
-5.3. `coding-em-progresso` → suggest `/reversa-coding` (with optional argument to restrict scope)
+   5.3. `coding-em-progresso` → sugerir `/reversa-coding` (com argumento opcional pra restringir escopo)
 
-Always end with:
+Termine sempre com:
 
-> Type **CONTINUE** to continue as suggested above.
+> Digite **CONTINUAR** para prosseguir conforme a sugestão acima.
 
-DO NOT execute the next skill automatically, leave the decision up to the user.
+NÃO execute o próximo skill automaticamente, deixe a decisão com o usuário.

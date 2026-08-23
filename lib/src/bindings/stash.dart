@@ -33,7 +33,7 @@ Pointer<git_oid> save({
     final out = calloc<git_oid>();
     final messageC = message?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_stash_save(
+    final error = libgit2Runtime.bindings.git_stash_save(
       out,
       repoPointer,
       stasherPointer,
@@ -49,7 +49,10 @@ Pointer<git_oid> save({
 /// Initialize [git_stash_save_options] structure with default values.
 Pointer<git_stash_save_options> saveOptionsInit(Arena arena) {
   final opts = arena<git_stash_save_options>();
-  libgit2.git_stash_save_options_init(opts, GIT_STASH_SAVE_OPTIONS_VERSION);
+  libgit2Runtime.bindings.git_stash_save_options_init(
+    opts,
+    GIT_STASH_SAVE_OPTIONS_VERSION,
+  );
   return opts;
 }
 
@@ -60,7 +63,7 @@ Pointer<git_oid> saveWithOpts({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final error = libgit2.git_stash_save_with_opts(
+    final error = libgit2Runtime.bindings.git_stash_save_with_opts(
       out,
       repoPointer,
       optionsPointer,
@@ -94,7 +97,7 @@ void apply({
 }) {
   using((arena) {
     final options = arena<git_stash_apply_options>();
-    libgit2.git_stash_apply_options_init(
+    libgit2Runtime.bindings.git_stash_apply_options_init(
       options,
       GIT_STASH_APPLY_OPTIONS_VERSION,
     );
@@ -109,7 +112,11 @@ void apply({
     options.ref.flags = flags;
     options.ref.checkout_options = optsC.ref;
 
-    final error = libgit2.git_stash_apply(repoPointer, index, options);
+    final error = libgit2Runtime.bindings.git_stash_apply(
+      repoPointer,
+      index,
+      options,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -124,7 +131,7 @@ void apply({
 ///
 /// Throws a [LibGit2Error] if an error occurs during the drop operation.
 void drop({required Pointer<git_repository> repoPointer, required int index}) {
-  final error = libgit2.git_stash_drop(repoPointer, index);
+  final error = libgit2Runtime.bindings.git_stash_drop(repoPointer, index);
   checkErrorAndThrow(error);
 }
 
@@ -153,7 +160,7 @@ void pop({
 }) {
   using((arena) {
     final options = arena<git_stash_apply_options>();
-    libgit2.git_stash_apply_options_init(
+    libgit2Runtime.bindings.git_stash_apply_options_init(
       options,
       GIT_STASH_APPLY_OPTIONS_VERSION,
     );
@@ -168,7 +175,11 @@ void pop({
     options.ref.flags = flags;
     options.ref.checkout_options = optsC.ref;
 
-    final error = libgit2.git_stash_pop(repoPointer, index, options);
+    final error = libgit2Runtime.bindings.git_stash_pop(
+      repoPointer,
+      index,
+      options,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -222,7 +233,11 @@ List<Stash> list(Pointer<git_repository> repo) {
   final git_stash_cb callBack = Pointer.fromFunction(_stashCb, except);
 
   try {
-    final error = libgit2.git_stash_foreach(repo, callBack, nullptr);
+    final error = libgit2Runtime.bindings.git_stash_foreach(
+      repo,
+      callBack,
+      nullptr,
+    );
     checkErrorAndThrow(error);
     return _stashList.toList(growable: false);
   } finally {

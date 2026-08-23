@@ -1,10 +1,10 @@
-# Highcharts.js defaults
+# Padrões Highcharts.js
 
-Reference of tested code patterns to generate professional Highcharts charts.
+Referência de padrões de código testados para gerar gráficos Highcharts profissionais.
 
 ---
 
-## Full HTML Template
+## Template HTML Completo
 
 ```html
 <!DOCTYPE html>
@@ -12,15 +12,15 @@ Reference of tested code patterns to generate professional Highcharts charts.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>[Graph Title]</title>
-
-<!-- Highcharts Core (required) -->
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<!-- Extra modules as needed (see table in SKILL.md) -->
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/modules/export-data.js"></script>
-<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-
+    <title>[Título do Gráfico]</title>
+    
+    <!-- Highcharts Core (obrigatório) -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <!-- Módulos extras conforme necessidade (ver tabela no SKILL.md) -->
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -36,7 +36,7 @@ Reference of tested code patterns to generate professional Highcharts charts.
             box-shadow: 0 2px 20px rgba(0,0,0,0.08);
             padding: 10px;
         }
-/* For multiple graphics (dashboard) */
+        /* Para múltiplos gráficos (dashboard) */
         .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -56,40 +56,40 @@ Reference of tested code patterns to generate professional Highcharts charts.
     <div id="container"></div>
     <script>
         Highcharts.chart('container', {
-// Chart options here
+            // Opções do gráfico aqui
         });
     </script>
 </body>
 </html>
 ```
 
-## Recommended Global Options
+## Opções Globais Recomendadas
 
-Apply before creating any chart:
+Aplicar antes de criar qualquer gráfico:
 
 ```javascript
 Highcharts.setOptions({
     lang: {
-        months: ['January','February','March','April','May','June',
+        months: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
         shortMonths: ['Jan','Fev','Mar','Abr','Mai','Jun',
                       'Jul','Ago','Set','Out','Nov','Dez'],
-        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        weekdays: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
         decimalPoint: ',',
         thousandsSep: '.',
         loading: 'Carregando...',
-        noData: 'No data to display',
-        downloadPNG: 'Download as PNG',
-        downloadJPEG: 'Download as JPEG',
-        downloadPDF: 'Download as PDF',
-        downloadSVG: 'Download as SVG',
-        downloadCSV: 'Download as CSV',
-        downloadXLS: 'Download as XLS',
-        viewData: 'View data table',
-        printChart: 'Print chart',
-        viewFullscreen: 'Full screen',
-        exitFullscreen: 'Exit full screen',
-        contextButtonTitle: 'Chart menu'
+        noData: 'Sem dados para exibir',
+        downloadPNG: 'Baixar como PNG',
+        downloadJPEG: 'Baixar como JPEG',
+        downloadPDF: 'Baixar como PDF',
+        downloadSVG: 'Baixar como SVG',
+        downloadCSV: 'Baixar como CSV',
+        downloadXLS: 'Baixar como XLS',
+        viewData: 'Ver tabela de dados',
+        printChart: 'Imprimir gráfico',
+        viewFullscreen: 'Tela cheia',
+        exitFullscreen: 'Sair da tela cheia',
+        contextButtonTitle: 'Menu do gráfico'
     }
 });
 ```
@@ -97,27 +97,27 @@ Highcharts.setOptions({
 ## Paletas de Cores Profissionais
 
 ```javascript
-// Highcharts default palette (good for most cases)
-// It's the default, no need to define it
+// Paleta padrão Highcharts (boa para maioria dos casos)
+// É a padrão, não precisa definir
 
-// Corporate Blue palette
+// Paleta Corporate Blue
 colors: ['#2f7ed8','#0d233a','#8bbc21','#910000','#1aadce',
          '#492970','#f28f43','#77a1e5','#c42525','#a6c96a']
 
-// Modern Vibrant palette
+// Paleta Vibrante Moderna
 colors: ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316',
          '#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7']
 
-// Dark Mode palette
+// Paleta Dark Mode
 colors: ['#7cb5ec','#90ed7d','#f7a35c','#8085e9','#f15c80',
          '#e4d354','#2b908f','#f45b5b','#91e8e1','#b2e87e']
 
-// Earth Tones palette
+// Paleta Earth Tones
 colors: ['#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf',
          '#d62728','#1f77b4','#ff7f0e','#2ca02c','#9467bd']
 ```
 
-## Complete Dark Mode Theme
+## Tema Dark Mode Completo
 
 ```javascript
 const darkTheme = {
@@ -160,22 +160,22 @@ const darkTheme = {
 Highcharts.setOptions(darkTheme);
 ```
 
-## Formatted Tooltip (Useful Standards)
+## Tooltip Formatado (Padrões Úteis)
 
 ```javascript
-// Tooltip with Brazilian currency
+// Tooltip com moeda brasileira
 tooltip: {
     pointFormat: '{series.name}: <b>R$ {point.y:,.2f}</b><br/>',
     shared: true,
     useHTML: true
 }
 
-// Tooltip with percentage
+// Tooltip com percentual
 tooltip: {
     pointFormat: '{series.name}: <b>{point.y:.1f}%</b><br/>'
 }
 
-// Custom tooltip with HTML
+// Tooltip customizado com HTML
 tooltip: {
     useHTML: true,
     formatter: function() {
@@ -187,7 +187,7 @@ tooltip: {
     }
 }
 
-// Shared tooltip (multiple series)
+// Tooltip compartilhado (múltiplas séries)
 tooltip: {
     shared: true,
     crosshairs: true,
@@ -196,10 +196,10 @@ tooltip: {
 }
 ```
 
-## Axis Formatting
+## Formatação de Eixos
 
 ```javascript
-// Y axis with currency
+// Eixo Y com moeda
 yAxis: {
     title: { text: 'Receita' },
     labels: {
@@ -218,17 +218,17 @@ xAxis: {
     }
 }
 
-// Axis with rotated categories
+// Eixo com categorias rotacionadas
 xAxis: {
     categories: [...],
     labels: { rotation: -45, style: { fontSize: '11px' } }
 }
 ```
 
-## Animations
+## Animações
 
 ```javascript
-// Entrance animation
+// Animação de entrada
 plotOptions: {
     series: {
         animation: {
@@ -238,11 +238,11 @@ plotOptions: {
     }
 }
 
-// Staggered animation (each series with delay)
+// Animação staggered (cada série com delay)
 plotOptions: {
     series: {
         animation: { duration: 1000 },
-// each point appears with delay
+        // cada ponto aparece com delay
         dataSorting: { enabled: true }
     }
 }
@@ -263,7 +263,7 @@ responsive: {
 }
 ```
 
-## Dashboard with Multiple Charts
+## Dashboard com Múltiplos Gráficos
 
 ```html
 <div class="chart-grid">
@@ -273,39 +273,39 @@ responsive: {
     <div class="chart-card" id="chart4"></div>
 </div>
 <script>
-// KPI cards + grid graphics
-Highcharts.chart('chart1', { /* options */ });
-Highcharts.chart('chart2', { /* options */ });
-Highcharts.chart('chart3', { /* options */ });
-Highcharts.chart('chart4', { /* options */ });
+    // KPI cards + gráficos em grid
+    Highcharts.chart('chart1', { /* opções */ });
+    Highcharts.chart('chart2', { /* opções */ });
+    Highcharts.chart('chart3', { /* opções */ });
+    Highcharts.chart('chart4', { /* opções */ });
 </script>
 ```
 
-## Big Data (Boost Module)
+## Dados Grandes (Boost Module)
 
 ```javascript
-// For series with >10,000 points
-// Include: <script src="https://code.highcharts.com/modules/boost.js"></script>
+// Para séries com >10.000 pontos
+// Incluir: <script src="https://code.highcharts.com/modules/boost.js"></script>
 {
     boost: { useGPUTranslations: true },
     series: [{
-        boostThreshold: 5000, // activate boost above 5k points
+        boostThreshold: 5000, // ativar boost acima de 5k pontos
         data: massiveDataArray
     }]
 }
 ```
 
-## Useful Events
+## Eventos Úteis
 
 ```javascript
 chart: {
     events: {
         load: function() {
-// Execute after graph render
-console.log('Chart loaded');
+            // Executar após gráfico renderizar
+            console.log('Gráfico carregado');
         },
         redraw: function() {
-// After resize or update
+            // Após resize ou update
         }
     }
 },
@@ -327,10 +327,10 @@ plotOptions: {
 }
 ```
 
-## Notes
+## Anotações
 
 ```javascript
-// Requires: modules/annotations.js
+// Requer: modules/annotations.js
 annotations: [{
     labels: [{
         point: { x: 3, y: 150, xAxis: 0, yAxis: 0 },

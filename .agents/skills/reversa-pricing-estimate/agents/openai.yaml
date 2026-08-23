@@ -1,5 +1,5 @@
 interface:
   display_name: "Reversa Pricing Estimate"
-  short_description: "Combines billing profile and active feature size to..."
+  short_description: "Combina profile de cobranca e size da feature ativa para…"
 policy:
   allow_implicit_invocation: false

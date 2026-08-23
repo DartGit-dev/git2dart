@@ -5,40 +5,40 @@ reversa:
   version: "x.y.z"
 kind: risk_register
 producedBy: strategist
-hash: "sha256:<body hash below front-matter>"
+hash: "sha256:<hash do corpo abaixo do front-matter>"
 ---
 
 # Risk Register
 
-> Registration of migration risks with probability, impact, mitigation and responsible.
+> Registro de riscos da migração com probabilidade, impacto, mitigação e responsável.
 
 ## Riscos
 
 ### RISK-001
-- **Description**: <text>
-- **Category**: technician | operational | organizational | regulatory | financial
-- **Probability**: low | average | high
-- **Impact**: low | medium | high | critical
-- **Combined Severity**: <calculated from the two above>
-- **Trigger / warning signal**: <which would indicate that the risk is materializing>
-- **Mitigation**: <concrete actions>
-- **Contingency plan**: <if mitigation fails>
-- **Owner**: <name / role>
+- **Descrição**: <texto>
+- **Categoria**: técnico | operacional | organizacional | regulatório | financeiro
+- **Probabilidade**: baixa | média | alta
+- **Impacto**: baixo | médio | alto | crítico
+- **Severidade combinada**: <calculada a partir dos dois acima>
+- **Trigger / sinal de alerta**: <o que indicaria que o risco está se materializando>
+- **Mitigação**: <ações concretas>
+- **Plano de contingência**: <se mitigação falhar>
+- **Owner**: <nome / papel>
 - **Status**: aberto | mitigando | aceito | encerrado
 
-<repeat per risk>
+<repetir por risco>
 
-## Summary by severity
+## Resumo por severidade
 
 | Severidade | Quantidade | IDs |
 |---|---|---|
-| Review | | |
+| Crítica | | |
 | Alta | | |
-| Average | | |
+| Média | | |
 | Baixa | | |
 
-## Risks related to the target paradigm
+## Riscos relacionados ao paradigma alvo
 
-> Dedicated subsection when there is a paradigm shift. Only list risks whose direct origin is the gap recorded in `paradigm_decision.md`.
+> Subseção dedicada quando há mudança de paradigma. Listar apenas riscos cuja origem direta é o gap registrado em `paradigm_decision.md`.
 
-- <RISK-XXX: description>
+- <RISK-XXX: descrição>

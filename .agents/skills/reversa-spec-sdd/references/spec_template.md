@@ -1,38 +1,38 @@
-# Spec Template — Pragmatic RFC
+# Spec Template — RFC Pragmático
 
-> Instructions for use: replace all text between `[colchetes]` with the actual content.
-> Remove instructions in italics when finished.
-> Mark open items with `⚠️ ABERTO:` so you don't forget to resolve them.
+> Instruções de uso: substitua todo texto entre `[colchetes]` pelo conteúdo real.
+> Remova as instruções em itálico ao finalizar.
+> Marque itens em aberto com `⚠️ ABERTO:` para não esquecer de resolver.
 
 ---
 
 # Spec: [Nome da Feature]
 
-**Version:** 1.0
-**Status:** Draft | Under Review | Approved | Implemented
+**Versão:** 1.0
+**Status:** Rascunho | Em Revisão | Aprovada | Implementada
 **Autor:** [Nome]
 **Data:** [YYYY-MM-DD]
 **Reviewers:** [Nomes ou "N/A"]
 
 ---
 
-## 1. Summary
+## 1. Resumo
 
-> *1–3 sentences. What is this feature and why does it exist? Read this and you already understand the objective.*
+> *1–3 frases. O que é essa feature e por que ela existe? Leia isso e já entenda o objetivo.*
 
-[Concise description of the feature and its purpose.]
+[Descrição concisa da feature e seu propósito.]
 
 ---
 
-## 2. Context and Motivation
+## 2. Contexto e Motivação
 
-> *Why are we building this now? What problem or opportunity motivated the decision?*
+> *Por que estamos construindo isso agora? Qual problema ou oportunidade motivou a decisão?*
 
 **Problema:**
-[Describe the problem that exists today. Be specific — include real examples if possible.]
+[Descreva o problema que existe hoje. Seja específico — inclua exemplos reais se possível.]
 
-**Evidence:**
-[Data, feedback, metrics or observations that justify the priority.]
+**Evidências:**
+[Dados, feedbacks, métricas ou observações que justificam a prioridade.]
 
 **Por que agora:**
 [O que mudou que torna isso urgente ou oportuno.]
@@ -41,191 +41,191 @@
 
 ## 3. Goals (Objetivos)
 
-> *What does this feature need to deliver to be considered a success?*
-> *Each goal must be verifiable — if you can't measure it, reformulate it.*
+> *O que essa feature precisa entregar para ser considerada um sucesso?*
+> *Cada goal deve ser verificável — se você não consegue medir, reformule.*
 
-- [ ] G-01: [Objective 1]
-- [ ] G-02: [Objective 2]
-- [ ] G-03: [Objective 3]
+- [ ] G-01: [Objetivo 1]
+- [ ] G-02: [Objetivo 2]
+- [ ] G-03: [Objetivo 3]
 
-**Success metrics:**
-| Metric | Current baseline | Target | Deadline |
+**Métricas de sucesso:**
+| Métrica | Baseline atual | Target | Prazo |
 |---------|---------------|--------|-------|
-| [Ex: Conversion rate] | [X%] | [Y%] | [date] |
+| [Ex: Taxa de conversão] | [X%] | [Y%] | [data] |
 
 ---
 
 ## 4. Non-Goals (Fora do Escopo)
 
-> *Explicit is better than implicit. Tell us what will NOT be done in this version.*
+> *Explícito é melhor que implícito. Diga o que NÃO vai ser feito nessa versão.*
 > *Isso previne scope creep e alinha expectativas.*
 
-- NG-01: [What will not be done]
-- NG-02: [What will not be done]
-- NG-03: [Future versions may include X, but not now]
+- NG-01: [O que não será feito]
+- NG-02: [O que não será feito]
+- NG-03: [Versões futuras podem incluir X, mas não agora]
 
 ---
 
-## 5. Users and Personas
+## 5. Usuários e Personas
 
-> *Who will use this? What is their context?*
+> *Quem vai usar isso? Qual o contexto deles?*
 
-**Primary user:** [Description — e.g. "User logged in with Pro plan, familiar with the platform"]
-**Secondary user:** [If any — e.g. "Admin who sets permissions"]
+**Usuário primário:** [Descrição — ex: "Usuário logado com plano Pro, familiarizado com a plataforma"]
+**Usuário secundário:** [Se houver — ex: "Admin que configura as permissões"]
 
-**Current journey (without the feature):**
-[Describe in 2–4 steps what the user does today to solve the same problem, or why they can't.]
+**Jornada atual (sem a feature):**
+[Descreva em 2–4 passos o que o usuário faz hoje para resolver o mesmo problema, ou por que não consegue.]
 
-**Future journey (with the feature):**
-[Describe in 2–4 steps what the user will do with the finished feature.]
+**Jornada futura (com a feature):**
+[Descreva em 2–4 passos o que o usuário fará com a feature pronta.]
 
 ---
 
-## 6. Functional Requirements
+## 6. Requisitos Funcionais
 
-> *The heart of the spec. Each requirement must be: atomic, testable and unambiguous.*
-> *Format: RF-XX — [The system / user] must [concrete verb] [complement].*
+> *O coração da spec. Cada requisito deve ser: atômico, testável e sem ambiguidade.*
+> *Formato: RF-XX — [O sistema / usuário] deve [verbo concreto] [complemento].*
 
 ### 6.1 Requisitos Principais
 
-| ID | Requirement | Priority | Acceptance Criteria |
+| ID | Requisito | Prioridade | Critério de Aceite |
 |----|-----------|-----------|-------------------|
-| RF-01 | [The system must...] | Must | [How to test that this is working] |
-| RF-02 | [User must be able to...] | Must | [Verifiable condition] |
-| RF-03 | [The system must...] | Should | [Verifiable condition] |
-| RF-04 | [The system must...] | Could | [Verifiable condition] |
+| RF-01 | [O sistema deve...] | Must | [Como testar que isso está funcionando] |
+| RF-02 | [O usuário deve poder...] | Must | [Condição verificável] |
+| RF-03 | [O sistema deve...] | Should | [Condição verificável] |
+| RF-04 | [O sistema deve...] | Could | [Condição verificável] |
 
-> Priorities: **Must** (required in MVP) / **Should** (important, but negotiable) / **Could** (nice-to-have)
+> Prioridades: **Must** (obrigatório no MVP) / **Should** (importante, mas negociável) / **Could** (nice-to-have)
 
-### 6.2 Main Flow (Happy Path)
+### 6.2 Fluxo Principal (Happy Path)
 
 > *Descreva o fluxo mais comum, passo a passo.*
 
-1. The user [action 1]
-2. The system [answer 1]
-3. The user [action 2]
-4. The system [answer 2]
-5. Result: [end state]
+1. O usuário [ação 1]
+2. O sistema [resposta 1]
+3. O usuário [ação 2]
+4. O sistema [resposta 2]
+5. Resultado: [estado final]
 
 ### 6.3 Fluxos Alternativos
 
-> *Variations of the main flow that should also work.*
+> *Variações do fluxo principal que também devem funcionar.*
 
 **Fluxo Alternativo A — [Nome]:**
-1. [Divergent step from the main flow]
-2. [Specific behavior]
+1. [Passo divergente do fluxo principal]
+2. [Comportamento específico]
 
 ---
 
-## 7. Non-Functional Requirements
+## 7. Requisitos Não-Funcionais
 
-| ID | Requirement | Target value | Note |
+| ID | Requisito | Valor alvo | Observação |
 |----|-----------|-----------|------------|
-| RNF-01 | Performance | [ex: P95 < 300ms] | [context] |
-| RNF-02 | Availability | [ex: 99.9% uptime] | [context] |
-| RNF-03 | Security | [ex: mandatory authentication] | [context] |
-| RNF-04 | Accessibility | [ex: WCAG 2.1 AA] | [context] |
+| RNF-01 | Performance | [ex: P95 < 300ms] | [contexto] |
+| RNF-02 | Disponibilidade | [ex: 99,9% uptime] | [contexto] |
+| RNF-03 | Segurança | [ex: autenticação obrigatória] | [contexto] |
+| RNF-04 | Acessibilidade | [ex: WCAG 2.1 AA] | [contexto] |
 
 ---
 
 ## 8. Design e Interface
 
-> *Describe the behavior of the UI/UX, not the look. Wireframes can be referenced.*
+> *Descreva o comportamento da UI/UX, não o visual. Wireframes podem ser referenciados.*
 
-**Affected components:** [List of screens, components or endpoints touched]
+**Componentes afetados:** [Lista de telas, componentes ou endpoints tocados]
 
 **Comportamento esperado:**
-[Describe what the user sees and how elements respond to actions.]
+[Descreva o que o usuário vê e como os elementos respondem às ações.]
 
 **Estados da UI:**
-- Empty state: [what to show when there is no data]
+- Estado vazio: [o que mostrar quando não há dados]
 - Estado de carregamento: [o que mostrar enquanto processa]
-- Error state: [what to show in case of failure]
-- Success status: [what to show after completing]
+- Estado de erro: [o que mostrar em caso de falha]
+- Estado de sucesso: [o que mostrar após completar]
 
 ---
 
-## 9. Data Model
+## 9. Modelo de Dados
 
-> *Only if the feature creates or modifies persisted data.*
+> *Apenas se a feature cria ou modifica dados persistidos.*
 
 **Entidades novas ou modificadas:**
 
 ```
 [NomeEntidade] {
-  campo_1: tipo        // description
-  campo_2: tipo        // description
+  campo_1: tipo        // descrição
+  campo_2: tipo        // descrição
 }
 ```
 
-**Required migrations:** [Yes / No — if yes, describe the impact]
+**Migrações necessárias:** [Sim / Não — se sim, descreva o impacto]
 
 ---
 
-## 10. Integrations and Dependencies
+## 10. Integrações e Dependências
 
-| Dependency | Type | Impact if unavailable |
+| Dependência | Tipo | Impacto se indisponível |
 |-------------|------|------------------------|
-| [External API / Service / Library] | [Mandatory / Optional] | [Fallback behavior] |
+| [API externa / Serviço / Biblioteca] | [Obrigatória / Opcional] | [Comportamento de fallback] |
 
 ---
 
 ## 11. Edge Cases e Tratamento de Erros
 
-> *This section is where specs usually fail. Think about the hard cases.*
+> *Esta seção é onde specs costumam falhar. Pense nos casos difíceis.*
 
-| Scenario | Trigger | Expected behavior |
+| Cenário | Trigger | Comportamento esperado |
 |---------|---------|----------------------|
-| EC-01: [edge case name] | [What causes this scenario] | [What the system should do] |
-| EC-02: [Invalid input] | [Condition] | [Error/fallback message] |
-| EC-03: [Timeout / external fault] | [Condition] | [Retry/degradation/clear error] |
-| EC-04: [Rate/quota limit reached] | [Condition] | [Behavior] |
+| EC-01: [Nome do edge case] | [O que causa esse cenário] | [O que o sistema deve fazer] |
+| EC-02: [Input inválido] | [Condição] | [Mensagem de erro / fallback] |
+| EC-03: [Timeout / falha externa] | [Condição] | [Retry / degradação / erro claro] |
+| EC-04: [Limite de rate/quota atingido] | [Condição] | [Comportamento] |
 
 ---
 
-## 12. Security and Privacy
+## 12. Segurança e Privacidade
 
-- **Authentication:** [Who can access this feature?]
-- **Authorization:** [What permissions are required?]
-- **Sensitive data:** [Does the feature process PII, financial or confidential data? How are they protected?]
-- **Audit:** [Is audit log necessary? What should be logged in?]
+- **Autenticação:** [Quem pode acessar essa feature?]
+- **Autorização:** [Quais permissões são necessárias?]
+- **Dados sensíveis:** [A feature processa PII, dados financeiros ou confidenciais? Como são protegidos?]
+- **Auditoria:** [É necessário log de auditoria? O quê deve ser logado?]
 
 ---
 
 ## 13. Plano de Rollout
 
-- **Strategy:** [Big bang / Feature flag / Gradual rollout / Canary]
-- **How ​​to rollback:** [Steps to undo if something goes wrong]
-- **Post-deploy monitoring:** [What to watch for in the first 24–48h]
+- **Estratégia:** [Big bang / Feature flag / Rollout gradual / Canário]
+- **Como reverter (rollback):** [Passos para desfazer se algo der errado]
+- **Monitoramento pós-deploy:** [O que observar nas primeiras 24–48h]
 
 ---
 
 ## 14. Open Questions
 
-> *Questions not yet resolved that may impact the design. Each item must have an owner and deadline.*
+> *Dúvidas ainda não resolvidas que podem impactar o design. Cada item deve ter um dono e prazo.*
 
-| # | Question | Impact | Owner | Deadline |
+| # | Pergunta | Impacto | Dono | Prazo |
 |---|---------|---------|------|-------|
-| OQ-01 | [Open question] | [High/Medium/Low] | [Name] | [date] |
+| OQ-01 | [Pergunta em aberto] | [Alto/Médio/Baixo] | [Nome] | [data] |
 
 ---
 
-## 15. Decisions Made (Decision Log)
+## 15. Decisões Tomadas (Decision Log)
 
-> *Record important decisions and rationale — useful for future reviews.*
+> *Registre decisões importantes e o racional — útil para futuras revisões.*
 
-| Decision | Alternatives considered | Rational |
+| Decisão | Alternativas consideradas | Racional |
 |---------|--------------------------|---------|
-| [What was decided] | [What was discarded] | [Why this option] |
+| [O que foi decidido] | [O que foi descartado] | [Por que essa opção] |
 
 ---
 
-## Appendix
+## Apêndice
 
-### References
-- [Links to docs, tickets, designs, related searches]
+### Referências
+- [Links para docs, tickets, designs, pesquisas relacionadas]
 
-### Revision History
-| Version | Date | Author | Changes |
+### Histórico de Revisões
+| Versão | Data | Autor | Mudanças |
 |--------|------|-------|---------|
-| 1.0 | [date] | [author] | Initial creation |
+| 1.0 | [data] | [autor] | Criação inicial |
