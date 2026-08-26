@@ -1,30 +1,33 @@
-# Legacy Impact: Companion Binaries 1.13 Migration
+# Legacy impact: 003-binaries-1-13-migration
 
-> Feature: `003-binaries-1-13-migration`
-> Date: 2026-08-26
-> Context anchor: `reversa/sdd/architecture.md` and `reversa/sdd/domain.md`
+Date: 2026-08-26
 
 | Affected file | Component | Type | Severity | Rationale |
 |---|---|---|---|---|
-| `pubspec.yaml`, `pubspec.lock`, `tool/api_diff/git2dart_binaries.baseline` | Companion native package | `delta-de-contrato-externo` | HIGH | The already-adopted hosted 1.13.0 contract replaces the legacy 1.12.x constraint without regenerating declarations or changing binaries. |
-| `lib/src/libgit2.dart` | Native runtime and platform boundary | `regra-alterada` | HIGH | Four `size_t` outputs use `Size`; cached-memory outputs use `IntPtr`, while public `int` APIs and scoped allocation remain intact. |
-| `lib/src/helpers/error_helper.dart`, `lib/src/bindings/commit.dart`, `lib/src/bindings/diff.dart`, `lib/src/bindings/remote_callbacks.dart` | Native runtime and platform boundary | `regra-alterada` | HIGH | Error translation now uses the delivered last-error value, with a deterministic `StateError` when the native library provides no detail. |
-| `test/libgit2_test.dart`, `test/libgit2_option_error_test.dart`, `test/platform_specific_test.dart` | Quality and delivery architecture | `regra-nova` | MEDIUM | Tests now explicitly protect ABI-width allocation, the two error branches, and Android/iOS startup paths on safe host execution. |
+| `lib/src/libgit2.dart` | Native runtime and platform boundary | regra-alterada | HIGH | Global-option outputs now use the delivered 1.13 runtime surfaces with arena-managed `Size` and `IntPtr` pointers. |
+| `test/libgit2_test.dart` | Native runtime and platform boundary | regra-nova | MEDIUM | Covers native-width option groups, restoration of process-global values, and the 64-bit round-trip. |
 
-## Conceptual delta by component
+## Conceptual diff by component
 
-The companion package remains the owner of generated declarations and platform binaries. This feature consumes its hosted 1.13.0 runtime boundary only. The hand-written adapters preserve the public Dart API while converting native-width option values through the correct pointer types and preserving scoped allocation cleanup.
-
-Native failure handling no longer attempts to reconstruct the removed companion-package error constructor. It propagates the delivered native error when available and otherwise fails deterministically with `StateError`. Android certificate initialization and iOS eager symbol loading remain available through the existing public initialization methods.
+The native runtime boundary remains a hand-written adapter over declarations
+delivered by `git2dart_binaries`. Temporary global-option output pointers now
+have arena lifetime on both success and error paths. The public `int` API is
+unchanged. The four size-valued option getters retain `Size`; cached-memory
+outputs retain `IntPtr`.
 
 ## Preserved
 
-- 🟢 `domain.md` rule 20: short-lived native inputs/outputs use an arena; persistent wrappers retain explicit release and finalizer protection.
-- 🟢 `domain.md` rule 17: Android certificate initialization and iOS platform initialization remain required for their consumers.
-- 🟢 `architecture.md`: raw pointers and generated declarations remain below the public facade; native failures are translated at the binding boundary.
+- 🟢 The public façade keeps raw pointers below `lib/src/bindings/`.
+- 🟢 Negative native result codes continue through the centralized error
+  translation boundary.
+- 🟢 Android certificate setup and iOS eager native-symbol loading remain
+  explicit platform initialization responsibilities.
+- 🟢 Process-global libgit2 options have no overlapping-operation safety
+  contract.
 
 ## Modified
 
-- 🟢 `architecture.md`: the legacy constrained `1.12.x` companion-package line is superseded by the already-adopted hosted `1.13.0` resolution.
-- 🟢 `architecture.md`: native-width output allocation now follows the delivered 1.13 signatures for the affected global options.
-- 🟢 `architecture.md`: error translation changes from constructing the former companion error type to delivered-error propagation plus the authorized `StateError` fallback.
+- 🟢 Temporary option-output allocation now guarantees release through an
+  arena on failing native calls as well as successful calls.
+- 🟢 The adopted hosted 1.13 runtime boundary is exercised through its
+  `bindings` and `options` surfaces without changing the public Dart API.

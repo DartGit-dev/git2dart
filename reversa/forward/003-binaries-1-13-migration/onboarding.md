@@ -8,9 +8,10 @@
 
 ## First verification
 
-1. Inspect `lib/src/libgit2.dart`: mmap size/mapped/file and pack objects use
-   `Size`; both cached-memory outputs use `IntPtr`; temporary allocations are
-   released for success and error paths.
+1. Inspect the affected adapters: removed package-level `bindings` and `options`
+   access has been replaced by the delivered runtime object's members; mmap
+   size/mapped/file and pack objects use `Size`, both cached-memory outputs use
+   `IntPtr`, and temporary allocations are released for success and error paths.
 2. Inspect `error_helper.dart`, `bindings/commit.dart`, `bindings/diff.dart`,
    and both affected `bindings/remote_callbacks.dart` paths: no obsolete direct
    native-error construction remains.
@@ -20,11 +21,12 @@
    flutter test -j 1 test/libgit2_test.dart test/libgit2_option_error_test.dart test/platform_specific_test.dart
    ```
 
-4. Confirm tests reset any modified process-global option.
+4. Confirm tests reset any modified process-global option. Where a native option
+   accepts it on a 64-bit target, confirm `4_294_967_296` round-trips unchanged.
+   Do not infer concurrent process-global option safety from this validation.
 5. Run a scoped documentation search over public Dart comments, `doc/types/`,
    `README.md`, and the API reference. Update only matches promising the
-   obsolete constructor, then run `dart doc` or the repository-equivalent
-   documentation check.
+   obsolete constructor, then run `dart doc`.
 
 ## Completion verification
 

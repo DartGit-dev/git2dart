@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
@@ -77,24 +78,29 @@ void main() {
     });
 
     test('preserves native-width global option values', () {
-      final options = <({int Function() read, void Function(int) write})>[
-        (
-          read: () => Libgit2.mmapWindowSize,
-          write: (value) => Libgit2.mmapWindowSize = value,
-        ),
-        (
-          read: () => Libgit2.mmapWindowMappedLimit,
-          write: (value) => Libgit2.mmapWindowMappedLimit = value,
-        ),
-        (
-          read: () => Libgit2.mmapWindowFileLimit,
-          write: (value) => Libgit2.mmapWindowFileLimit = value,
-        ),
-        (
-          read: () => Libgit2.packMaxObjects,
-          write: (value) => Libgit2.packMaxObjects = value,
-        ),
-      ];
+      final options =
+          <({String name, int Function() read, void Function(int) write})>[
+            (
+              name: 'mmap window size',
+              read: () => Libgit2.mmapWindowSize,
+              write: (value) => Libgit2.mmapWindowSize = value,
+            ),
+            (
+              name: 'mmap mapped limit',
+              read: () => Libgit2.mmapWindowMappedLimit,
+              write: (value) => Libgit2.mmapWindowMappedLimit = value,
+            ),
+            (
+              name: 'mmap file limit',
+              read: () => Libgit2.mmapWindowFileLimit,
+              write: (value) => Libgit2.mmapWindowFileLimit = value,
+            ),
+            (
+              name: 'pack maximum objects',
+              read: () => Libgit2.packMaxObjects,
+              write: (value) => Libgit2.packMaxObjects = value,
+            ),
+          ];
       final originalValues = options.map((option) => option.read()).toList();
       addTearDown(() {
         for (var index = 0; index < options.length; index++) {
@@ -105,13 +111,22 @@ void main() {
       for (var index = 0; index < options.length; index++) {
         final value = 64 * 1024 * (index + 1);
         options[index].write(value);
-        expect(options[index].read(), value);
+        expect(options[index].read(), value, reason: options[index].name);
+      }
+
+      if (sizeOf<Size>() == 8) {
+        const value = 4_294_967_296;
+        options.first.write(value);
+        expect(options.first.read(), value);
       }
 
       final source = File('lib/src/libgit2.dart').readAsStringSync();
-      expect(RegExp(r'arena<Size>\(\)').allMatches(source), hasLength(4));
-      expect(RegExp(r'calloc<Size>\(\)').allMatches(source), hasLength(1));
-      expect(RegExp(r'calloc<IntPtr>\(\)').allMatches(source), hasLength(2));
+      expect(RegExp(r'arena<Size>\(\)').allMatches(source), hasLength(5));
+      expect(RegExp(r'calloc<Size>\(\)').allMatches(source), isEmpty);
+      expect(RegExp(r'arena<IntPtr>\(\)').allMatches(source), hasLength(2));
+      expect(RegExp(r'calloc<IntPtr>\(\)').allMatches(source), isEmpty);
+      expect(Libgit2.cachedMemory.current, greaterThanOrEqualTo(0));
+      expect(Libgit2.cachedMemory.allowed, greaterThanOrEqualTo(0));
     });
 
     test('sets and returns the maximum memory that will be mapped in total by '
@@ -190,10 +205,7 @@ void main() {
     });
 
     test('sets location for ssl certificates', () {
-      final expectation = anyOf(
-        returnsNormally,
-        throwsA(isA<LibGit2Error>()),
-      );
+      final expectation = anyOf(returnsNormally, throwsA(isA<LibGit2Error>()));
 
       expect(
         () => Libgit2.setSSLCertLocations(file: 'etc/ssl/cert.pem'),

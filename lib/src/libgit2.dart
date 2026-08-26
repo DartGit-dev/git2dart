@@ -224,22 +224,17 @@ class Libgit2 {
   /// Returns a [CachedMemory] object containing the current bytes in cache
   /// and the maximum allowed.
   static CachedMemory get cachedMemory {
-    final current = calloc<IntPtr>();
-    final allowed = calloc<IntPtr>();
-    final error = libgit2Runtime.options.git_libgit2_opts_get_cached_memory(
-      current,
-      allowed,
-    );
-    checkErrorAndThrow(error);
+    return using((arena) {
+      final current = arena<IntPtr>();
+      final allowed = arena<IntPtr>();
+      final error = libgit2Runtime.options.git_libgit2_opts_get_cached_memory(
+        current,
+        allowed,
+      );
+      checkErrorAndThrow(error);
 
-    final result = CachedMemory._(
-      current: current.value,
-      allowed: allowed.value,
-    );
-
-    calloc.free(current);
-    calloc.free(allowed);
-    return result;
+      return CachedMemory._(current: current.value, allowed: allowed.value);
+    });
   }
 
   /// Enable object caching.
@@ -477,15 +472,13 @@ class Libgit2 {
   ///
   /// This limits memory usage when fetching from untrusted remotes.
   static int get packMaxObjects {
-    final out = calloc<Size>();
-    final error = libgit2Runtime.options.git_libgit2_opts_get_pack_max_objects(
-      out,
-    );
-    checkErrorAndThrow(error);
-    final result = out.value;
-    calloc.free(out);
-
-    return result;
+    return using((arena) {
+      final out = arena<Size>();
+      final error = libgit2Runtime.options
+          .git_libgit2_opts_get_pack_max_objects(out);
+      checkErrorAndThrow(error);
+      return out.value;
+    });
   }
 
   static set packMaxObjects(int value) {
