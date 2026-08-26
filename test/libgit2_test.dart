@@ -76,6 +76,44 @@ void main() {
       Libgit2.mmapWindowSize = oldValue;
     });
 
+    test('preserves native-width global option values', () {
+      final options = <({int Function() read, void Function(int) write})>[
+        (
+          read: () => Libgit2.mmapWindowSize,
+          write: (value) => Libgit2.mmapWindowSize = value,
+        ),
+        (
+          read: () => Libgit2.mmapWindowMappedLimit,
+          write: (value) => Libgit2.mmapWindowMappedLimit = value,
+        ),
+        (
+          read: () => Libgit2.mmapWindowFileLimit,
+          write: (value) => Libgit2.mmapWindowFileLimit = value,
+        ),
+        (
+          read: () => Libgit2.packMaxObjects,
+          write: (value) => Libgit2.packMaxObjects = value,
+        ),
+      ];
+      final originalValues = options.map((option) => option.read()).toList();
+      addTearDown(() {
+        for (var index = 0; index < options.length; index++) {
+          options[index].write(originalValues[index]);
+        }
+      });
+
+      for (var index = 0; index < options.length; index++) {
+        final value = 64 * 1024 * (index + 1);
+        options[index].write(value);
+        expect(options[index].read(), value);
+      }
+
+      final source = File('lib/src/libgit2.dart').readAsStringSync();
+      expect(RegExp(r'arena<Size>\(\)').allMatches(source), hasLength(4));
+      expect(RegExp(r'calloc<Size>\(\)').allMatches(source), hasLength(1));
+      expect(RegExp(r'calloc<IntPtr>\(\)').allMatches(source), hasLength(2));
+    });
+
     test('sets and returns the maximum memory that will be mapped in total by '
         'the library', () {
       final oldValue = Libgit2.mmapWindowMappedLimit;

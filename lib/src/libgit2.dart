@@ -80,7 +80,7 @@ class Libgit2 {
         git_path_fs.fromValue(filesystem.value),
       );
       if (result < 0) {
-        throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+        throwLastError();
       }
       return result > 0;
     });
@@ -92,7 +92,7 @@ class Libgit2 {
   /// will use. Larger values may improve performance but use more memory.
   static int get mmapWindowSize {
     return using((arena) {
-      final out = arena<Int>();
+      final out = arena<Size>();
       final error = libgit2Runtime.options.git_libgit2_opts_get_mwindow_size(
         out,
       );
@@ -114,7 +114,7 @@ class Libgit2 {
   /// temporarily exceeded.
   static int get mmapWindowMappedLimit {
     return using((arena) {
-      final out = arena<Int>();
+      final out = arena<Size>();
       final error = libgit2Runtime.options
           .git_libgit2_opts_get_mwindow_mapped_limit(out);
       checkErrorAndThrow(error);
@@ -134,7 +134,7 @@ class Libgit2 {
   /// working with many repositories.
   static int get mmapWindowFileLimit {
     return using((arena) {
-      final out = arena<Int>();
+      final out = arena<Size>();
       final error = libgit2Runtime.options
           .git_libgit2_opts_get_mwindow_file_limit(out);
       checkErrorAndThrow(error);
@@ -224,8 +224,8 @@ class Libgit2 {
   /// Returns a [CachedMemory] object containing the current bytes in cache
   /// and the maximum allowed.
   static CachedMemory get cachedMemory {
-    final current = calloc<Int>();
-    final allowed = calloc<Int>();
+    final current = calloc<IntPtr>();
+    final allowed = calloc<IntPtr>();
     final error = libgit2Runtime.options.git_libgit2_opts_get_cached_memory(
       current,
       allowed,
@@ -477,7 +477,7 @@ class Libgit2 {
   ///
   /// This limits memory usage when fetching from untrusted remotes.
   static int get packMaxObjects {
-    final out = calloc<Int>();
+    final out = calloc<Size>();
     final error = libgit2Runtime.options.git_libgit2_opts_get_pack_max_objects(
       out,
     );

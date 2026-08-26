@@ -33,7 +33,8 @@ class Reference extends Equatable {
   /// must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
   /// - Names prefixed with "refs/" can be almost anything. You must avoid the characters
   /// '~', '^', ':', '\', '?', '[', and '*', and the sequences ".." and "@{" which have
-  /// special meaning to revparse.
+  /// special meaning to revparse. Invalid names throw [ArgumentError] before a
+  /// native operation is invoked.
   ///
   /// Throws a [LibGit2Error] if a reference already exists with the given
   /// [name] unless [force] is true, in which case it will be overwritten.
@@ -51,6 +52,10 @@ class Reference extends Equatable {
     bool force = false,
     String? logMessage,
   }) {
+    _checkReferenceName(name);
+    if (target is String) {
+      _checkReferenceName(target);
+    }
     if (target is Oid) {
       _refPointer = bindings.createDirect(
         repoPointer: repo.pointer,
@@ -80,6 +85,10 @@ class Reference extends Equatable {
   /// [currentTarget] must match the value currently stored in the reference,
   /// otherwise libgit2 reports a modification error.
   ///
+  /// Invalid reference [name]s, symbolic [target]s, and symbolic
+  /// [currentTarget]s throw [ArgumentError] before a native operation is
+  /// invoked.
+  ///
   /// Throws a [LibGit2Error] if error occured or [ArgumentError] if [target]
   /// and [currentTarget] are not matching direct or symbolic reference values.
   Reference.createMatching({
@@ -90,6 +99,13 @@ class Reference extends Equatable {
     bool force = false,
     String? logMessage,
   }) {
+    _checkReferenceName(name);
+    if (target is String) {
+      _checkReferenceName(target);
+    }
+    if (currentTarget is String) {
+      _checkReferenceName(currentTarget);
+    }
     if (target is Oid && currentTarget is Oid) {
       _refPointer = bindings.createDirectMatching(
         repoPointer: repo.pointer,
@@ -118,10 +134,11 @@ class Reference extends Equatable {
 
   /// Lookups reference [name] in a [repo]sitory.
   ///
-  /// The [name] will be checked for validity.
+  /// Invalid [name]s throw [ArgumentError] before a native operation is invoked.
   ///
   /// Throws a [LibGit2Error] if error occured.
   Reference.lookup({required Repository repo, required String name}) {
+    _checkReferenceName(name);
     _refPointer = bindings.lookup(repoPointer: repo.pointer, name: name);
     _finalizer.attach(this, _refPointer, detach: this);
   }
@@ -137,13 +154,17 @@ class Reference extends Equatable {
   /// Deletes an existing reference with provided [name].
   ///
   /// This method works for both direct and symbolic references.
+  /// Invalid [name]s throw [ArgumentError] before a native operation is invoked.
   static void delete({required Repository repo, required String name}) {
+    _checkReferenceName(name);
     final ref = Reference.lookup(repo: repo, name: name);
     bindings.delete(ref.pointer);
   }
 
   /// Deletes an existing reference by [name] without checking its old value.
+  /// Invalid [name]s throw [ArgumentError] before a native operation is invoked.
   static void remove({required Repository repo, required String name}) {
+    _checkReferenceName(name);
     bindings.remove(repoPointer: repo.pointer, name: name);
   }
 
@@ -151,7 +172,8 @@ class Reference extends Equatable {
   ///
   /// This method works for both direct and symbolic references.
   ///
-  /// The [newName] will be checked for validity.
+  /// Invalid [oldName] and [newName] values throw [ArgumentError] before a
+  /// native operation is invoked.
   ///
   /// If the [force] flag is set to false, and there's already a reference with
   /// the given name, the renaming will fail.
@@ -168,6 +190,8 @@ class Reference extends Equatable {
     bool force = false,
     String? logMessage,
   }) {
+    _checkReferenceName(oldName);
+    _checkReferenceName(newName);
     final ref = Reference.lookup(repo: repo, name: oldName);
     bindings.rename(
       refPointer: ref.pointer,
@@ -182,6 +206,9 @@ class Reference extends Equatable {
   /// [target] being either Oid for direct reference or string reference name
   /// for symbolic reference.
   ///
+  /// Invalid [name]s and symbolic [target]s throw [ArgumentError] before a
+  /// native operation is invoked.
+  ///
   /// Throws a [LibGit2Error] if error occured or [ArgumentError] if [target]
   /// is not [Oid] or string.
   static void setTarget({
@@ -190,6 +217,10 @@ class Reference extends Equatable {
     required Object target,
     String? logMessage,
   }) {
+    _checkReferenceName(name);
+    if (target is String) {
+      _checkReferenceName(target);
+    }
     final ref = Reference.lookup(repo: repo, name: name);
     if (target is Oid) {
       bindings.setTarget(
@@ -279,8 +310,12 @@ class Reference extends Equatable {
   /// Makes sure that successive updates to the reference will append to its
   /// log.
   ///
+  /// Invalid [refName]s throw [ArgumentError] before a native operation is
+  /// invoked.
+  ///
   /// Throws a [LibGit2Error] if error occured.
   static void ensureLog({required Repository repo, required String refName}) {
+    _checkReferenceName(refName);
     bindings.ensureLog(repoPointer: repo.pointer, refName: refName);
   }
 
@@ -290,11 +325,12 @@ class Reference extends Equatable {
   /// through to the object id that it refers to.  This avoids having to
   /// allocate or free any `git_reference` objects for simple situations.
   ///
-  /// The name will be checked for validity.
-  /// See [createSymbolic] for rules about valid names.
+  /// Invalid [refName]s throw [ArgumentError] before a native operation is
+  /// invoked.
   ///
   /// Throws a [LibGit2Error] if error occured.
   static Oid nameToId({required Repository repo, required String refName}) {
+    _checkReferenceName(refName);
     final res = bindings.nameToId(repoPointer: repo.pointer, refName: refName);
     return Oid(res);
   }
@@ -420,6 +456,39 @@ class Reference extends Equatable {
 
   @override
   List<Object?> get props => [target];
+}
+
+void _checkReferenceName(String name) {
+  const forbiddenCharacters = ['~', '^', ':', '?', '[', '*'];
+  final components = name.split('/');
+  final isTopLevelName = RegExp(r'^[A-Z](?:[A-Z_]*[A-Z])?$').hasMatch(name);
+  final isNamespacedName = name.startsWith('refs/') && components.length > 1;
+  final hasInvalidComponent = components.any(
+    (component) =>
+        component.isEmpty ||
+        component.startsWith('.') ||
+        component.endsWith('.lock'),
+  );
+
+  if (name.isEmpty ||
+      name.codeUnits.any(
+        (codeUnit) => codeUnit <= 0x20 || codeUnit == 0x5c || codeUnit == 0x7f,
+      ) ||
+      forbiddenCharacters.any(name.contains) ||
+      name.contains('..') ||
+      name.contains('@{') ||
+      name.startsWith('/') ||
+      name.endsWith('/') ||
+      name.endsWith('.') ||
+      name.contains('//') ||
+      hasInvalidComponent ||
+      (!isTopLevelName && !isNamespacedName)) {
+    throw ArgumentError.value(
+      name,
+      'name',
+      'is not a valid Git reference name',
+    );
+  }
 }
 
 // coverage:ignore-start

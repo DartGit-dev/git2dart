@@ -15,6 +15,33 @@ void main() {
       );
     });
 
+    test('uses the delivered error and StateError fallback contract', () {
+      final helper =
+          File('lib/src/helpers/error_helper.dart').readAsStringSync();
+      expect(helper, contains('bindings.getLastError()'));
+      expect(
+        helper,
+        contains("StateError('libgit2 failed without providing an error.')"),
+      );
+
+      for (final path in [
+        'lib/src/helpers/error_helper.dart',
+        'lib/src/bindings/commit.dart',
+        'lib/src/bindings/diff.dart',
+        'lib/src/bindings/remote_callbacks.dart',
+      ]) {
+        final source = File(path).readAsStringSync();
+        expect(source, isNot(contains('LibGit2Error(')), reason: path);
+      }
+
+      final remoteCallbacks =
+          File('lib/src/bindings/remote_callbacks.dart').readAsStringSync();
+      expect(
+        RegExp(r'throwLastError\(\)').allMatches(remoteCallbacks),
+        hasLength(2),
+      );
+    });
+
     test('regression: every global option call checks its status', () {
       final source = File('lib/src/libgit2.dart').readAsStringSync();
       final calls =

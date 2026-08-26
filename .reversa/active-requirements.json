@@ -1,0 +1,21 @@
+{
+  "schema-version": 1,
+  "feature-dir": "reversa/forward/003-binaries-1-13-migration",
+  "feature-id": "003",
+  "short-name": "binaries-1-13-migration",
+  "started-at": "2026-08-26T14:00:42.8548518+07:00",
+  "current-stage": "requirements",
+  "stages-completed": [],
+  "paused-features": [
+    {
+      "feature-dir": "reversa/forward/001-strict-git-validation",
+      "feature-id": "001",
+      "short-name": "strict-git-validation",
+      "started-at": "2026-08-24T11:12:49.2379027+07:00",
+      "current-stage": "requirements",
+      "stages-completed": [],
+      "paused-at": "2026-08-26T14:00:42.8548518+07:00",
+      "paused-from-stage": "plan"
+    }
+  ]
+}

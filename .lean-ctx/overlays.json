@@ -38,6 +38,34 @@
       "author": "user",
       "created_at": "2026-08-22T15:39:31.791842400Z",
       "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/bug.md_1787548194786",
+      "target": "file:F:/git2dart/reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/bug.md",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-24T05:09:54.786632600Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/lib/src_1787728283830",
+      "target": "file:F:/git2dart/lib/src",
+      "operation": {
+        "type": "set_view",
+        "map": null
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": {
+        "agent": "mcp"
+      },
+      "created_at": "2026-08-26T07:11:23.830170600Z",
+      "stale": false
     }
   ]
 }

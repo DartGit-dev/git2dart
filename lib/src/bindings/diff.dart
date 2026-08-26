@@ -805,9 +805,7 @@ bool apply({
       return true;
     }
 
-    return check
-        ? false
-        : throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+    return check ? false : throwLastError();
   });
 }
 

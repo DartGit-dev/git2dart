@@ -1,6 +1,7 @@
 ---
 name: reversa-debugger-review
 description: Independently review an approved Reversa bug-fix change set after Gate 2. Read-only; returns approve or reject and never applies a fix.
+disable-model-invocation: true
 license: MIT
 metadata:
   framework: reversa

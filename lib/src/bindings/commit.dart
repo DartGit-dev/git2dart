@@ -344,7 +344,7 @@ String summary(Pointer<git_commit> commit) {
   final result = libgit2Runtime.bindings.git_commit_summary(commit);
 
   if (result == nullptr) {
-    throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+    throwLastError();
   } else {
     return result.toDartString();
   }

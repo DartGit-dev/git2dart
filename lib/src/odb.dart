@@ -80,8 +80,9 @@ class Odb extends Equatable {
 
   /// Writes raw [data] into the object database.
   ///
-  /// [type] should be one of [GitObject.blob], [GitObject.commit],
-  /// [GitObject.tag] or [GitObject.tree].
+  /// [type] must be one of [GitObject.blob], [GitObject.commit],
+  /// [GitObject.tag], or [GitObject.tree]. Invalid types throw [ArgumentError]
+  /// before a native operation is invoked.
   ///
   /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
@@ -101,6 +102,10 @@ class Odb extends Equatable {
   /// This is intended for compatibility with custom backends that do not
   /// support streaming writes. Prefer [write] for normal object writes.
   ///
+  /// [type] must be one of [GitObject.blob], [GitObject.commit],
+  /// [GitObject.tag], or [GitObject.tree]. Invalid types throw [ArgumentError]
+  /// before a native operation is invoked.
+  ///
   /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
   Oid writeDirect({required GitObject type, required String data}) {
@@ -116,7 +121,9 @@ class Odb extends Equatable {
 
   /// Generates an object ID for [data] as a Git object of [type].
   ///
-  /// Throws [ArgumentError] if provided type is invalid.
+  /// [type] must be one of [GitObject.blob], [GitObject.commit],
+  /// [GitObject.tag], or [GitObject.tree]. Invalid types throw [ArgumentError]
+  /// before a native operation is invoked.
   static Oid hash({required GitObject type, required String data}) {
     _checkWritableObjectType(type);
     return Oid(
@@ -125,6 +132,10 @@ class Odb extends Equatable {
   }
 
   /// Determines the object ID of a file on disk as a Git object of [type].
+  ///
+  /// [type] must be one of [GitObject.blob], [GitObject.commit],
+  /// [GitObject.tag], or [GitObject.tree]. Invalid types throw [ArgumentError]
+  /// before a native operation is invoked.
   ///
   /// Throws a [LibGit2Error] if error occurred or [ArgumentError] if provided
   /// type is invalid.
@@ -136,11 +147,15 @@ class Odb extends Equatable {
   }
 
   static void _checkWritableObjectType(GitObject type) {
-    if (type == GitObject.any ||
-        type == GitObject.invalid ||
-        type == GitObject.offsetDelta ||
-        type == GitObject.refDelta) {
-      throw ArgumentError.value('$type is invalid type');
+    if (type != GitObject.commit &&
+        type != GitObject.tree &&
+        type != GitObject.blob &&
+        type != GitObject.tag) {
+      throw ArgumentError.value(
+        type,
+        'type',
+        'must be commit, tree, blob, or tag',
+      );
     }
   }
 

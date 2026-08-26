@@ -1,3 +1,0 @@
-dependency_overrides:
-  git2dart_binaries:
-    path: ../git2dart_binaries

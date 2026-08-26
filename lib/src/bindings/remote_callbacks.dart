@@ -6,6 +6,7 @@ import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Allocate and initialize a [git_remote_callbacks] structure.
@@ -198,7 +199,7 @@ class RemoteCallbacks {
           'Incorrect credentials.'.toChar(arena),
         );
       });
-      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+      throwLastError();
     }
 
     final credentialType = credentials!.credentialType;
@@ -211,7 +212,7 @@ class RemoteCallbacks {
           'Invalid credential type $credentialType'.toChar(arena),
         );
       });
-      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+      throwLastError();
     }
 
     if (credentials is UserPass) {

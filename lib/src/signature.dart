@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/signature.dart' as bindings;
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
@@ -81,7 +82,7 @@ class Signature extends Equatable {
         name.contains('>') ||
         email.contains('<') ||
         email.contains('>')) {
-      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
+      throwLastError();
     }
     if (time == null) {
       _signaturePointer = bindings.now(name: name, email: email);

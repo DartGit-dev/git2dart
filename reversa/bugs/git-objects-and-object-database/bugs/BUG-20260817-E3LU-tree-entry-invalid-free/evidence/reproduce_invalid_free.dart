@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
 
-import '../../../../../test/helpers/util.dart';
+import '../../../../../../test/helpers/util.dart';
 
 void main() {
   final temporaryRepository = setupRepo(

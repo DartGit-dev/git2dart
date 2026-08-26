@@ -5,8 +5,8 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:test/test.dart';
 
 int probeInitializationCount() {
-  final count = libgit2.git_libgit2_init();
-  final restored = libgit2.git_libgit2_shutdown();
+  final count = libgit2Runtime.bindings.git_libgit2_init();
+  final restored = libgit2Runtime.bindings.git_libgit2_shutdown();
   if (restored != count - 1) {
     throw StateError('Probe did not restore the initialization count.');
   }
@@ -21,8 +21,8 @@ void main() {
     final secondVersion = git2dart.Libgit2.version;
     final afterSecondCall = probeInitializationCount();
 
-    libgit2.git_libgit2_shutdown();
-    libgit2.git_libgit2_shutdown();
+    libgit2Runtime.bindings.git_libgit2_shutdown();
+    libgit2Runtime.bindings.git_libgit2_shutdown();
 
     print('version1=$firstVersion');
     print('version2=$secondVersion');
