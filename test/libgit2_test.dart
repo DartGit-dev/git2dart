@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart' show LibGit2Error;
 import 'package:test/test.dart';
