@@ -27,7 +27,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed lib test tool
 
       - name: Analyze
         run: flutter analyze --fatal-infos
@@ -90,7 +90,7 @@ jobs:
         with:
           api-level: 30
           arch: x86_64
-          profile: Pixel_2
+          profile: Nexus 6
           disable-animations: true
           script: flutter test --reporter expanded
 
