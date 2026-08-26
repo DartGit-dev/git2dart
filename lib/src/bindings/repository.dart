@@ -683,20 +683,21 @@ void setIdentity({
 List<String> identity(Pointer<git_repository> repo) {
   final name = calloc<Pointer<Char>>();
   final email = calloc<Pointer<Char>>();
-  libgit2Runtime.bindings.git_repository_ident(name, email, repo);
-
-  final result = <String>[];
-  if (name.value != nullptr) {
-    result.add(name.value.toDartString());
+  try {
+    final error = libgit2Runtime.bindings.git_repository_ident(
+      name,
+      email,
+      repo,
+    );
+    checkErrorAndThrow(error);
+    final result = <String>[];
+    if (name.value != nullptr) result.add(name.value.toDartString());
+    if (email.value != nullptr) result.add(email.value.toDartString());
+    return result;
+  } finally {
+    calloc.free(name);
+    calloc.free(email);
   }
-  if (email.value != nullptr) {
-    result.add(email.value.toDartString());
-  }
-
-  calloc.free(name);
-  calloc.free(email);
-
-  return result;
 }
 
 /// Check if the repository was a shallow clone.

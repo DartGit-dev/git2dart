@@ -1,0 +1,54 @@
+diff --git a/lib/src/bindings/index.dart b/lib/src/bindings/index.dart
+--- a/lib/src/bindings/index.dart
++++ b/lib/src/bindings/index.dart
+@@
++import 'dart:convert';
+ import 'dart:ffi';
+@@
++Pointer<git_index_entry> copyEntry(
++  Pointer<git_index_entry> source, {
++  String? path,
++}) {
++  final sourceEntry = source.ref;
++  final pathBytes = utf8.encode(path ?? sourceEntry.path.toDartString());
++  final allocation = calloc<Uint8>(
++    sizeOf<git_index_entry>() + pathBytes.length + 1,
++  );
++  try {
++    final target = allocation.cast<git_index_entry>();
++    final targetEntry = target.ref;
++    final pathPointer = (allocation + sizeOf<git_index_entry>()).cast<Char>();
++    final pathBuffer = pathPointer.cast<Uint8>().asTypedList(pathBytes.length + 1);
++    pathBuffer..setAll(0, pathBytes)..[pathBytes.length] = 0;
++    targetEntry.ctime
++      ..seconds = sourceEntry.ctime.seconds
++      ..nanoseconds = sourceEntry.ctime.nanoseconds;
++    targetEntry.mtime
++      ..seconds = sourceEntry.mtime.seconds
++      ..nanoseconds = sourceEntry.mtime.nanoseconds;
++    targetEntry
++      ..dev = sourceEntry.dev
++      ..ino = sourceEntry.ino
++      ..mode = sourceEntry.mode
++      ..uid = sourceEntry.uid
++      ..gid = sourceEntry.gid
++      ..file_size = sourceEntry.file_size
++      ..id = sourceEntry.id
++      ..flags = sourceEntry.flags
++      ..flags_extended = sourceEntry.flags_extended
++      ..path = pathPointer;
++    if (path != null) {
++      const nameMask = 0x0fff;
++      final encodedLength = pathBytes.length.clamp(0, nameMask);
++      targetEntry.flags = (targetEntry.flags & ~nameMask) | encodedLength;
++    }
++    return target;
++  } catch (_) {
++    calloc.free(allocation);
++    rethrow;
++  }
++}
++
++void freeEntry(Pointer<git_index_entry> entry) {
++  if (entry != nullptr) calloc.free(entry.cast<Uint8>());
++}

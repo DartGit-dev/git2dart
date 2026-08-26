@@ -8,10 +8,10 @@ index 69a67ef..37ec9ce 100644
 +import 'package:git2dart_binaries/git2dart_binaries.dart' show LibGit2Error;
  import 'package:git2dart/git2dart.dart';
  import 'package:test/test.dart';
- 
+
 @@ -149,12 +152,15 @@ void main() {
      });
- 
+
      test('sets location for ssl certificates', () {
 +      final expectation =
 +          Platform.isWindows ? throwsA(isA<LibGit2Error>()) : returnsNormally;

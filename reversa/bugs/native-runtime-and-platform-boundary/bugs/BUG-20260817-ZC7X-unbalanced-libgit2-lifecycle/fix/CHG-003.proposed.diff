@@ -6,7 +6,7 @@ index 0927677..4602536 100644
 -/// Dart bindings to libgit2.
 +/// Dart bindings to libgit2Runtime.bindings.
  library;
- 
+
  export 'src/annotated.dart';
 diff --git a/lib/src/bindings/annotated.dart b/lib/src/bindings/annotated.dart
 index bc2327e..0e07e8c 100644
@@ -54,7 +54,7 @@ index bc2327e..0e07e8c 100644
  Pointer<git_oid> oid(Pointer<git_annotated_commit> commit) =>
 -    libgit2.git_annotated_commit_id(commit);
 +    libgit2Runtime.bindings.git_annotated_commit_id(commit);
- 
+
  /// Gets the reference name that the given annotated commit refers to.
  ///
  /// Returns an empty string if no reference name is associated with the commit.
@@ -63,7 +63,7 @@ index bc2327e..0e07e8c 100644
 +  final result = libgit2Runtime.bindings.git_annotated_commit_ref(commit);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -147,5 +147,5 @@ String refName(Pointer<git_annotated_commit> commit) {
  ///
  /// This should be called when the annotated commit is no longer needed.
@@ -78,7 +78,7 @@ index 71830d2..2e4ffca 100644
 @@ -21,11 +21,17 @@ Object? getAttribute({
      final pathC = path.toChar(arena);
      final nameC = name.toChar(arena);
- 
+
 -    final error = libgit2.git_attr_get(out, repoPointer, flags, pathC, nameC);
 +    final error = libgit2Runtime.bindings.git_attr_get(
 +      out,
@@ -88,17 +88,17 @@ index 71830d2..2e4ffca 100644
 +      nameC,
 +    );
      checkErrorAndThrow(error);
- 
+
      final result = out.value;
 -    final attributeValue = libgit2.git_attr_value(result);
 +    final attributeValue = libgit2Runtime.bindings.git_attr_value(result);
- 
+
      if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
        return null;
 @@ -58,7 +64,7 @@ Object? getAttributeExt({
      final pathC = path.toChar(arena);
      final nameC = name.toChar(arena);
- 
+
 -    final error = libgit2.git_attr_get_ext(
 +    final error = libgit2Runtime.bindings.git_attr_get_ext(
        out,
@@ -106,17 +106,17 @@ index 71830d2..2e4ffca 100644
        optionsPointer,
 @@ -68,7 +74,7 @@ Object? getAttributeExt({
      checkErrorAndThrow(error);
- 
+
      final result = out.value;
 -    final attributeValue = libgit2.git_attr_value(result);
 +    final attributeValue = libgit2Runtime.bindings.git_attr_value(result);
- 
+
      if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_UNSPECIFIED) {
        return null;
 @@ -104,7 +110,7 @@ List<Object?> getAttributesMany({
        namesC[i] = names[i].toChar(arena);
      }
- 
+
 -    final error = libgit2.git_attr_get_many(
 +    final error = libgit2Runtime.bindings.git_attr_get_many(
        out,
@@ -134,7 +134,7 @@ index 71830d2..2e4ffca 100644
 @@ -149,7 +155,7 @@ List<Object?> getAttributesManyExt({
        namesC[i] = names[i].toChar(arena);
      }
- 
+
 -    final error = libgit2.git_attr_get_many_ext(
 +    final error = libgit2Runtime.bindings.git_attr_get_many_ext(
        out,
@@ -150,7 +150,7 @@ index 71830d2..2e4ffca 100644
          results.add(null);
        } else if (attributeValue == git_attr_value_t.GIT_ATTR_VALUE_TRUE) {
 @@ -201,7 +207,7 @@ List<MapEntry<String, String?>> foreachAttributes({
- 
+
    using((arena) {
      final pathC = path.toChar(arena);
 -    final error = libgit2.git_attr_foreach(
@@ -159,7 +159,7 @@ index 71830d2..2e4ffca 100644
        flags,
        pathC,
 @@ -229,7 +235,7 @@ List<MapEntry<String, String?>> foreachAttributesExt({
- 
+
    using((arena) {
      final pathC = path.toChar(arena);
 -    final error = libgit2.git_attr_foreach_ext(
@@ -168,14 +168,14 @@ index 71830d2..2e4ffca 100644
        optionsPointer,
        pathC,
 @@ -246,7 +252,7 @@ List<MapEntry<String, String?>> foreachAttributesExt({
- 
+
  /// Flush the gitattributes cache.
  void cacheFlush(Pointer<git_repository> repo) {
 -  final error = libgit2.git_attr_cache_flush(repo);
 +  final error = libgit2Runtime.bindings.git_attr_cache_flush(repo);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -259,7 +265,11 @@ void addMacro({
    using((arena) {
      final nameC = name.toChar(arena);
@@ -202,13 +202,13 @@ index c2a61c3..1f3fad7 100644
 +      options,
 +      GIT_BLAME_OPTIONS_VERSION,
 +    );
- 
+
      options.ref.flags = flags;
- 
+
 @@ -49,7 +52,12 @@ Pointer<git_blame> file({
        options.ref.max_line = maxLine;
      }
- 
+
 -    final error = libgit2.git_blame_file(out, repoPointer, pathC, options);
 +    final error = libgit2Runtime.bindings.git_blame_file(
 +      out,
@@ -216,13 +216,13 @@ index c2a61c3..1f3fad7 100644
 +      pathC,
 +      options,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -71,7 +79,7 @@ Pointer<git_blame> buffer({
      final out = arena<Pointer<git_blame>>();
      final bufferC = buffer.toChar(arena);
- 
+
 -    final error = libgit2.git_blame_buffer(
 +    final error = libgit2Runtime.bindings.git_blame_buffer(
        out,
@@ -237,32 +237,32 @@ index c2a61c3..1f3fad7 100644
 +      options,
 +      GIT_BLAME_OPTIONS_VERSION,
 +    );
- 
+
      options.ref.flags = flags;
- 
+
 @@ -129,7 +140,7 @@ Pointer<git_blame> fileFromBuffer({
        options.ref.max_line = maxLine;
      }
- 
+
 -    final error = libgit2.git_blame_file_from_buffer(
 +    final error = libgit2Runtime.bindings.git_blame_file_from_buffer(
        out,
        repoPointer,
        pathC,
 @@ -145,12 +156,12 @@ Pointer<git_blame> fileFromBuffer({
- 
+
  /// Gets the number of hunks that exist in the blame structure.
  int hunkCount(Pointer<git_blame> blame) {
 -  return libgit2.git_blame_get_hunk_count(blame);
 +  return libgit2Runtime.bindings.git_blame_get_hunk_count(blame);
  }
- 
+
  /// Gets the number of hunks using libgit2's legacy blame API name.
  int hunkCountLegacy(Pointer<git_blame> blame) {
 -  return libgit2.git_blame_hunkcount(blame);
 +  return libgit2Runtime.bindings.git_blame_hunkcount(blame);
  }
- 
+
  /// Get the hunk that contains the given line number.
 @@ -162,7 +173,10 @@ Pointer<git_blame_hunk> getHunkByline({
    required Pointer<git_blame> blamePointer,
@@ -273,7 +273,7 @@ index c2a61c3..1f3fad7 100644
 +    blamePointer,
 +    lineno,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Line number out of bounds');
 @@ -177,7 +191,10 @@ Pointer<git_blame_hunk> getHunkBylineLegacy({
@@ -285,7 +285,7 @@ index c2a61c3..1f3fad7 100644
 +    blamePointer,
 +    lineno,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Line number out of bounds');
 @@ -195,7 +212,10 @@ Pointer<git_blame_hunk> getHunkByIndex({
@@ -297,7 +297,7 @@ index c2a61c3..1f3fad7 100644
 +    blamePointer,
 +    index,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Index out of bounds');
 @@ -209,7 +229,10 @@ Pointer<git_blame_hunk> getHunkByIndexLegacy({
@@ -309,17 +309,17 @@ index c2a61c3..1f3fad7 100644
 +    blamePointer,
 +    index,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Index out of bounds');
 @@ -220,7 +243,7 @@ Pointer<git_blame_hunk> getHunkByIndexLegacy({
- 
+
  /// Gets the number of lines that exist in the blame structure.
  int lineCount(Pointer<git_blame> blame) {
 -  return libgit2.git_blame_linecount(blame);
 +  return libgit2Runtime.bindings.git_blame_linecount(blame);
  }
- 
+
  /// Get the information about the line at the given index.
 @@ -230,7 +253,10 @@ Pointer<git_blame_line> lineByIndex({
    required Pointer<git_blame> blamePointer,
@@ -330,12 +330,12 @@ index c2a61c3..1f3fad7 100644
 +    blamePointer,
 +    index,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Index out of bounds');
 @@ -240,4 +266,5 @@ Pointer<git_blame_line> lineByIndex({
  }
- 
+
  /// Free memory allocated for blame object.
 -void free(Pointer<git_blame> blame) => libgit2.git_blame_free(blame);
 +void free(Pointer<git_blame> blame) =>
@@ -354,7 +354,7 @@ index af829eb..ab7bdd6 100644
 +      repoPointer,
 +      oidPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -35,7 +39,7 @@ Pointer<git_blob> lookupPrefix({
@@ -368,17 +368,17 @@ index af829eb..ab7bdd6 100644
        oidPointer,
 @@ -48,11 +52,12 @@ Pointer<git_blob> lookupPrefix({
  }
- 
+
  /// Get the [Oid] of a blob.
 -Pointer<git_oid> id(Pointer<git_blob> blob) => libgit2.git_blob_id(blob);
 +Pointer<git_oid> id(Pointer<git_blob> blob) =>
 +    libgit2Runtime.bindings.git_blob_id(blob);
- 
+
  /// Get the repository that contains the blob.
  Pointer<git_repository> owner(Pointer<git_blob> blob) =>
 -    libgit2.git_blob_owner(blob);
 +    libgit2Runtime.bindings.git_blob_owner(blob);
- 
+
  /// Determine if the blob content is most certainly binary or not.
  ///
 @@ -60,21 +65,24 @@ Pointer<git_repository> owner(Pointer<git_blob> blob) =>
@@ -388,7 +388,7 @@ index af829eb..ab7bdd6 100644
 -  return libgit2.git_blob_is_binary(blob) == 1 || false;
 +  return libgit2Runtime.bindings.git_blob_is_binary(blob) == 1 || false;
  }
- 
+
  /// Get a read-only buffer with the raw content of a blob.
  ///
  /// Returns the raw content as a UTF-8 string.
@@ -399,7 +399,7 @@ index af829eb..ab7bdd6 100644
 +      .cast<Utf8>()
 +      .toDartString();
  }
- 
+
  /// Get a read-only buffer with the raw content of a blob as bytes.
  Uint8List contentBytes(Pointer<git_blob> blob) {
 -  final size = libgit2.git_blob_rawsize(blob);
@@ -412,12 +412,12 @@ index af829eb..ab7bdd6 100644
        .asTypedList(size);
 @@ -82,7 +90,8 @@ Uint8List contentBytes(Pointer<git_blob> blob) {
  }
- 
+
  /// Get the size in bytes of the contents of a blob.
 -int size(Pointer<git_blob> blob) => libgit2.git_blob_rawsize(blob);
 +int size(Pointer<git_blob> blob) =>
 +    libgit2Runtime.bindings.git_blob_rawsize(blob);
- 
+
  /// Write content of a string buffer to the ODB as a blob.
  ///
 @@ -98,7 +107,7 @@ Pointer<git_oid> create({
@@ -448,7 +448,7 @@ index af829eb..ab7bdd6 100644
 +      repoPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out;
 @@ -161,7 +174,7 @@ Pointer<git_oid> createFromDisk({
@@ -478,13 +478,13 @@ index af829eb..ab7bdd6 100644
 +      out,
 +      stream,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out;
 @@ -209,7 +225,11 @@ bool dataIsBinary({required Uint8List data, required int len}) {
      final buffer = arena<Uint8>(data.length);
      buffer.asTypedList(data.length).setAll(0, data);
- 
+
 -    return libgit2.git_blob_data_is_binary(buffer.cast<Char>(), len) == 1;
 +    return libgit2Runtime.bindings.git_blob_data_is_binary(
 +          buffer.cast<Char>(),
@@ -493,7 +493,7 @@ index af829eb..ab7bdd6 100644
 +        1;
    });
  }
- 
+
 @@ -236,13 +256,21 @@ String filterContent({
      final out = arena<git_buf>();
      final asPathC = asPath.toChar(arena);
@@ -507,7 +507,7 @@ index af829eb..ab7bdd6 100644
      if (attributesCommit != null) {
        opts.ref.attr_commit_id = attributesCommit;
      }
- 
+
 -    final error = libgit2.git_blob_filter(out, blobPointer, asPathC, opts);
 +    final error = libgit2Runtime.bindings.git_blob_filter(
 +      out,
@@ -515,9 +515,9 @@ index af829eb..ab7bdd6 100644
 +      asPathC,
 +      opts,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -256,4 +284,5 @@ String filterContent({
  /// Free the memory allocated for a blob object.
  ///
@@ -554,7 +554,7 @@ index 94fb860..124f4c6 100644
 @@ -38,7 +42,7 @@ List<Pointer<git_reference>> list({
        }
      }
- 
+
 -    libgit2.git_branch_iterator_free(iterator.value);
 +    libgit2Runtime.bindings.git_branch_iterator_free(iterator.value);
      return result;
@@ -595,7 +595,7 @@ index 94fb860..124f4c6 100644
 +  final error = libgit2Runtime.bindings.git_branch_delete(branch);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -157,7 +161,7 @@ void rename({
      final out = arena<Pointer<git_reference>>();
      final newBranchNameC = newBranchName.toChar(arena);
@@ -629,7 +629,7 @@ index 94fb860..124f4c6 100644
      final out = arena<Pointer<Char>>();
 -    final error = libgit2.git_branch_name(out, ref);
 +    final error = libgit2Runtime.bindings.git_branch_name(out, ref);
- 
+
      checkErrorAndThrow(error);
      return out.value.cast<Utf8>().toDartString();
 @@ -216,7 +220,10 @@ bool nameIsValid(String name) {
@@ -654,7 +654,7 @@ index 94fb860..124f4c6 100644
 +      repoPointer,
 +      branchNameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.ref.ptr.toDartString(length: out.ref.size);
 @@ -254,7 +265,7 @@ String remoteName({
@@ -663,7 +663,7 @@ index 94fb860..124f4c6 100644
      final out = arena<Pointer<git_reference>>();
 -    final error = libgit2.git_branch_upstream(out, branch);
 +    final error = libgit2Runtime.bindings.git_branch_upstream(out, branch);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -270,7 +281,10 @@ void setUpstream({
@@ -718,13 +718,13 @@ index a557cd7..39cffeb 100644
 +      optsC,
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
- 
+
      optsC.ref.checkout_strategy = strategy;
- 
+
 @@ -64,7 +67,7 @@ void head({
        optsC.ref.paths.count = paths.length;
      }
- 
+
 -    final error = libgit2.git_checkout_head(repoPointer, optsC);
 +    final error = libgit2Runtime.bindings.git_checkout_head(repoPointer, optsC);
      checkErrorAndThrow(error);
@@ -740,12 +740,12 @@ index a557cd7..39cffeb 100644
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
      optsC.ref.checkout_strategy = strategy;
- 
+
      if (progress != null) {
 @@ -92,7 +98,7 @@ void headWithCallbacks({
            Pointer.fromFunction<git_checkout_perfdata_cbFunction>(_perfdataCb);
      }
- 
+
 -    final error = libgit2.git_checkout_head(repoPointer, optsC);
 +    final error = libgit2Runtime.bindings.git_checkout_head(repoPointer, optsC);
      _progress = null;
@@ -760,13 +760,13 @@ index a557cd7..39cffeb 100644
 +      optsC,
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
- 
+
      optsC.ref.checkout_strategy = strategy;
- 
+
 @@ -128,7 +137,11 @@ void index({
        optsC.ref.paths.count = paths.length;
      }
- 
+
 -    final error = libgit2.git_checkout_index(repoPointer, nullptr, optsC);
 +    final error = libgit2Runtime.bindings.git_checkout_index(
 +      repoPointer,
@@ -785,13 +785,13 @@ index a557cd7..39cffeb 100644
 +      optsC,
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
- 
+
      optsC.ref.checkout_strategy = strategy;
- 
+
 @@ -164,7 +180,11 @@ void tree({
        optsC.ref.paths.count = paths.length;
      }
- 
+
 -    final error = libgit2.git_checkout_tree(repoPointer, treeishPointer, optsC);
 +    final error = libgit2Runtime.bindings.git_checkout_tree(
 +      repoPointer,
@@ -810,9 +810,9 @@ index a557cd7..39cffeb 100644
 +    optsC,
 +    GIT_CHECKOUT_OPTIONS_VERSION,
 +  );
- 
+
    optsC.ref.checkout_strategy = strategy;
- 
+
 diff --git a/lib/src/bindings/commit.dart b/lib/src/bindings/commit.dart
 index c4fa940..8ad22c1 100644
 --- a/lib/src/bindings/commit.dart
@@ -820,7 +820,7 @@ index c4fa940..8ad22c1 100644
 @@ -16,7 +16,11 @@ Pointer<git_commit> lookup({
    return using((arena) {
      final out = arena<Pointer<git_commit>>();
- 
+
 -    final error = libgit2.git_commit_lookup(out, repoPointer, oidPointer);
 +    final error = libgit2Runtime.bindings.git_commit_lookup(
 +      out,
@@ -828,7 +828,7 @@ index c4fa940..8ad22c1 100644
 +      oidPointer,
 +    );
      checkErrorAndThrow(error);
- 
+
      return out.value;
 @@ -34,7 +38,7 @@ Pointer<git_commit> lookupPrefix({
  }) {
@@ -842,7 +842,7 @@ index c4fa940..8ad22c1 100644
 @@ -77,7 +81,7 @@ Pointer<git_oid> create({
        }
      }
- 
+
 -    final error = libgit2.git_commit_create(
 +    final error = libgit2Runtime.bindings.git_commit_create(
        out,
@@ -851,7 +851,7 @@ index c4fa940..8ad22c1 100644
 @@ -125,7 +129,7 @@ String createBuffer({
        }
      }
- 
+
 -    final error = libgit2.git_commit_create_buffer(
 +    final error = libgit2Runtime.bindings.git_commit_create_buffer(
        out,
@@ -860,7 +860,7 @@ index c4fa940..8ad22c1 100644
 @@ -172,7 +176,7 @@ Pointer<git_oid> createFromIds({
        }
      }
- 
+
 -    final error = libgit2.git_commit_create_from_ids(
 +    final error = libgit2Runtime.bindings.git_commit_create_from_ids(
        out,
@@ -869,7 +869,7 @@ index c4fa940..8ad22c1 100644
 @@ -205,7 +209,7 @@ Pointer<git_oid> createWithSignature({
      final signatureC = signature?.toChar(arena) ?? nullptr;
      final fieldC = signatureField?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_commit_create_with_signature(
 +    final error = libgit2Runtime.bindings.git_commit_create_with_signature(
        out,
@@ -878,7 +878,7 @@ index c4fa940..8ad22c1 100644
 @@ -231,7 +235,7 @@ MapEntry<String, String> extractSignature({
      final signedDataOut = arena<git_buf>();
      final fieldC = field?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_commit_extract_signature(
 +    final error = libgit2Runtime.bindings.git_commit_extract_signature(
        signatureOut,
@@ -887,7 +887,7 @@ index c4fa940..8ad22c1 100644
 @@ -280,7 +284,7 @@ Pointer<git_oid> amend({
      final messageEncodingC = messageEncoding?.toChar(arena) ?? nullptr;
      final messageC = message?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_commit_amend(
 +    final error = libgit2Runtime.bindings.git_commit_amend(
        out,
@@ -896,10 +896,10 @@ index c4fa940..8ad22c1 100644
 @@ -302,7 +306,7 @@ Pointer<git_commit> duplicate(Pointer<git_commit> source) {
    return using((arena) {
      final out = arena<Pointer<git_commit>>();
- 
+
 -    libgit2.git_commit_dup(out, source);
 +    libgit2Runtime.bindings.git_commit_dup(out, source);
- 
+
      return out.value;
    });
 @@ -313,7 +317,7 @@ Pointer<git_commit> duplicate(Pointer<git_commit> source) {
@@ -910,7 +910,7 @@ index c4fa940..8ad22c1 100644
 +  final result = libgit2Runtime.bindings.git_commit_message_encoding(commit);
    return result == nullptr ? 'utf-8' : result.toDartString();
  }
- 
+
 @@ -322,12 +326,12 @@ String messageEncoding(Pointer<git_commit> commit) {
  /// The returned message will be slightly prettified by removing any potential
  /// leading newlines.
@@ -918,13 +918,13 @@ index c4fa940..8ad22c1 100644
 -  return libgit2.git_commit_message(commit).toDartString();
 +  return libgit2Runtime.bindings.git_commit_message(commit).toDartString();
  }
- 
+
  /// Get the full raw message of a commit.
  String messageRaw(Pointer<git_commit> commit) {
 -  return libgit2.git_commit_message_raw(commit).toDartString();
 +  return libgit2Runtime.bindings.git_commit_message_raw(commit).toDartString();
  }
- 
+
  /// Get the short "summary" of the git commit message.
 @@ -337,10 +341,10 @@ String messageRaw(Pointer<git_commit> commit) {
  ///
@@ -932,7 +932,7 @@ index c4fa940..8ad22c1 100644
  String summary(Pointer<git_commit> commit) {
 -  final result = libgit2.git_commit_summary(commit);
 +  final result = libgit2Runtime.bindings.git_commit_summary(commit);
- 
+
    if (result == nullptr) {
 -    throw LibGit2Error(libgit2.git_error_last());
 +    throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
@@ -947,11 +947,11 @@ index c4fa940..8ad22c1 100644
 +  final result = libgit2Runtime.bindings.git_commit_body(commit);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -367,7 +371,11 @@ String headerField({
      final out = arena<git_buf>();
      final fieldC = field.toChar(arena);
- 
+
 -    final error = libgit2.git_commit_header_field(out, commitPointer, fieldC);
 +    final error = libgit2Runtime.bindings.git_commit_header_field(
 +      out,
@@ -959,26 +959,26 @@ index c4fa940..8ad22c1 100644
 +      fieldC,
 +    );
      checkErrorAndThrow(error);
- 
+
      return out.ref.ptr.toDartString(length: out.ref.size);
 @@ -376,23 +384,23 @@ String headerField({
- 
+
  /// Get the full raw header of a commit.
  String rawHeader(Pointer<git_commit> commit) {
 -  return libgit2.git_commit_raw_header(commit).toDartString();
 +  return libgit2Runtime.bindings.git_commit_raw_header(commit).toDartString();
  }
- 
+
  /// Get the id of a commit.
  Pointer<git_oid> id(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_id(commit);
 +    libgit2Runtime.bindings.git_commit_id(commit);
- 
+
  /// Get the number of parents of this commit.
  int parentCount(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_parentcount(commit);
 +    libgit2Runtime.bindings.git_commit_parentcount(commit);
- 
+
  /// Get the oid of a specified parent for a commit.
  Pointer<git_oid> parentId({
    required Pointer<git_commit> commitPointer,
@@ -987,7 +987,7 @@ index c4fa940..8ad22c1 100644
 -  return libgit2.git_commit_parent_id(commitPointer, position);
 +  return libgit2Runtime.bindings.git_commit_parent_id(commitPointer, position);
  }
- 
+
  /// Get the specified parent of the commit (0-based).
 @@ -404,7 +412,11 @@ Pointer<git_commit> parent({
  }) {
@@ -1012,28 +1012,28 @@ index c4fa940..8ad22c1 100644
 +      commitPointer,
 +      n,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -433,16 +449,17 @@ Pointer<git_commit> nthGenAncestor({
  }
- 
+
  /// Get the commit time (i.e. committer time) of a commit.
 -int time(Pointer<git_commit> commit) => libgit2.git_commit_time(commit);
 +int time(Pointer<git_commit> commit) =>
 +    libgit2Runtime.bindings.git_commit_time(commit);
- 
+
  /// Get the commit timezone offset in minutes (i.e. committer's preferred
  /// timezone) of a commit.
  int timeOffset(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_time_offset(commit);
 +    libgit2Runtime.bindings.git_commit_time_offset(commit);
- 
+
  /// Get the committer of a commit.
  Pointer<git_signature> committer(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_committer(commit);
 +    libgit2Runtime.bindings.git_commit_committer(commit);
- 
+
  /// Get the committer of a commit, using a mailmap to resolve names and emails.
  ///
 @@ -453,7 +470,7 @@ Pointer<git_signature> committerWithMailmap({
@@ -1051,7 +1051,7 @@ index c4fa940..8ad22c1 100644
  Pointer<git_signature> author(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_author(commit);
 +    libgit2Runtime.bindings.git_commit_author(commit);
- 
+
  /// Get the author of a commit, using a mailmap to resolve names and emails.
  ///
 @@ -479,7 +496,7 @@ Pointer<git_signature> authorWithMailmap({
@@ -1064,12 +1064,12 @@ index c4fa940..8ad22c1 100644
        commitPointer,
        mailmapPointer,
 @@ -492,7 +509,7 @@ Pointer<git_signature> authorWithMailmap({
- 
+
  /// Get the id of the tree pointed to by a commit.
  Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_tree_id(commit);
 +    libgit2Runtime.bindings.git_commit_tree_id(commit);
- 
+
  /// Get the tree pointed to by a commit.
  ///
 @@ -500,7 +517,7 @@ Pointer<git_oid> treeOid(Pointer<git_commit> commit) =>
@@ -1090,20 +1090,20 @@ index c4fa940..8ad22c1 100644
 +      opts,
 +      GIT_REVERT_OPTIONS_VERSION,
 +    );
- 
+
      opts.ref.mainline = mainline;
- 
+
 @@ -548,7 +568,11 @@ void revert({
        opts.ref.checkout_opts.paths.count = checkoutPaths.length;
      }
- 
+
 -    final error = libgit2.git_revert(repoPointer, commitPointer, opts);
 +    final error = libgit2Runtime.bindings.git_revert(
 +      repoPointer,
 +      commitPointer,
 +      opts,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -572,13 +596,16 @@ Pointer<git_index> revertCommit({
@@ -1115,23 +1115,23 @@ index c4fa940..8ad22c1 100644
 +      opts,
 +      GIT_MERGE_OPTIONS_VERSION,
 +    );
- 
+
      if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;
      if (mergeFlags != null) opts.ref.flags = mergeFlags;
      if (mergeFileFlags != null) opts.ref.file_flags = mergeFileFlags;
- 
+
 -    final error = libgit2.git_revert_commit(
 +    final error = libgit2Runtime.bindings.git_revert_commit(
        out,
        repoPointer,
        revertCommitPointer,
 @@ -593,7 +620,8 @@ Pointer<git_index> revertCommit({
- 
+
  /// Get the repository that contains the commit.
  Pointer<git_repository> owner(Pointer<git_commit> commit) =>
 -    libgit2.git_commit_owner(commit);
 +    libgit2Runtime.bindings.git_commit_owner(commit);
- 
+
  /// Close an open commit to release memory.
 -void free(Pointer<git_commit> commit) => libgit2.git_commit_free(commit);
 +void free(Pointer<git_commit> commit) =>
@@ -1143,20 +1143,20 @@ index 5482690..6e415d5 100644
 @@ -13,7 +13,11 @@ Pointer<git_commit_graph> open(String objectsDir) {
      final options = arena<git_commit_graph_open_options>();
      options.ref.version = GIT_COMMIT_GRAPH_OPEN_OPTIONS_VERSION;
- 
+
 -    final error = libgit2.git_commit_graph_open(out, objectsDirC, options);
 +    final error = libgit2Runtime.bindings.git_commit_graph_open(
 +      out,
 +      objectsDirC,
 +      options,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -28,7 +32,7 @@ Pointer<git_commit_graph_writer> writerNew(String objectsInfoDir) {
      final options = arena<git_commit_graph_writer_options>();
      options.ref.version = GIT_COMMIT_GRAPH_WRITER_OPTIONS_VERSION;
- 
+
 -    final error = libgit2.git_commit_graph_writer_new(
 +    final error = libgit2Runtime.bindings.git_commit_graph_writer_new(
        out,
@@ -1186,18 +1186,18 @@ index 5482690..6e415d5 100644
 +          repoPointer,
 +          indexPathC,
 +        );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -72,7 +77,9 @@ void writerAddIndexFile({
- 
+
  /// Write the commit graph to disk.
  void writerCommit(Pointer<git_commit_graph_writer> writerPointer) {
 -  final error = libgit2.git_commit_graph_writer_commit(writerPointer);
 +  final error = libgit2Runtime.bindings.git_commit_graph_writer_commit(
 +    writerPointer,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 @@ -81,22 +88,25 @@ void writerCommit(Pointer<git_commit_graph_writer> writerPointer) {
@@ -1209,22 +1209,22 @@ index 5482690..6e415d5 100644
 +      out,
 +      writerPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.cast<Uint8>().asTypedList(out.ref.size).toList();
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
      return result;
    });
  }
- 
+
  /// Free a commit graph.
  void free(Pointer<git_commit_graph> commitGraph) {
 -  libgit2.git_commit_graph_free(commitGraph);
 +  libgit2Runtime.bindings.git_commit_graph_free(commitGraph);
  }
- 
+
  /// Free a commit graph writer.
  void writerFree(Pointer<git_commit_graph_writer> writer) {
 -  libgit2.git_commit_graph_writer_free(writer);
@@ -1240,27 +1240,27 @@ index 904b7ac..9cd84e2 100644
      final out = arena<Pointer<git_config>>();
 -    final error = libgit2.git_config_new(out);
 +    final error = libgit2Runtime.bindings.git_config_new(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -24,7 +24,7 @@ Pointer<git_config> open(String path) {
    return using((arena) {
      final out = arena<Pointer<git_config>>();
      final pathC = path.toChar(arena);
 -    final error = libgit2.git_config_open_ondisk(out, pathC);
 +    final error = libgit2Runtime.bindings.git_config_open_ondisk(out, pathC);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -44,7 +44,7 @@ Pointer<git_config> open(String path) {
  Pointer<git_config> openDefault() {
    return using((arena) {
      final out = arena<Pointer<git_config>>();
 -    final error = libgit2.git_config_open_default(out);
 +    final error = libgit2Runtime.bindings.git_config_open_default(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -58,7 +58,10 @@ Pointer<git_config> openDefault() {
  Pointer<git_config> openGlobal(Pointer<git_config> configPointer) {
    return using((arena) {
@@ -1270,7 +1270,7 @@ index 904b7ac..9cd84e2 100644
 +      out,
 +      configPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -75,7 +78,7 @@ Pointer<git_config> openLevel({
@@ -1310,9 +1310,9 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -1325,36 +1325,36 @@ index 904b7ac..9cd84e2 100644
      final out = arena<git_buf>();
 -    final error = libgit2.git_config_find_global(out);
 +    final error = libgit2Runtime.bindings.git_config_find_global(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -183,7 +190,7 @@ String findGlobal() {
  String findSystem() {
    return using((arena) {
      final out = arena<git_buf>();
 -    final error = libgit2.git_config_find_system(out);
 +    final error = libgit2Runtime.bindings.git_config_find_system(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -204,7 +211,7 @@ String findSystem() {
  String findXdg() {
    return using((arena) {
      final out = arena<git_buf>();
 -    final error = libgit2.git_config_find_xdg(out);
 +    final error = libgit2Runtime.bindings.git_config_find_xdg(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -218,12 +225,12 @@ String findXdg() {
  String findProgramData() {
    return using((arena) {
      final out = arena<git_buf>();
 -    final error = libgit2.git_config_find_programdata(out);
 +    final error = libgit2Runtime.bindings.git_config_find_programdata(out);
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -1367,9 +1367,9 @@ index 904b7ac..9cd84e2 100644
      final out = arena<Pointer<git_config>>();
 -    final error = libgit2.git_config_snapshot(out, config);
 +    final error = libgit2Runtime.bindings.git_config_snapshot(out, config);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -256,7 +263,11 @@ Pointer<git_config_entry> getEntry({
    return using((arena) {
      final out = arena<Pointer<git_config_entry>>();
@@ -1380,9 +1380,9 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -272,7 +283,11 @@ bool getBool({
    return using((arena) {
      final out = arena<Int>();
@@ -1393,7 +1393,7 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value != 0;
 @@ -287,7 +302,11 @@ int getInt32({
@@ -1406,7 +1406,7 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -302,7 +321,11 @@ int getInt64({
@@ -1419,7 +1419,7 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -328,7 +351,11 @@ String getStringPointer({
@@ -1432,7 +1432,7 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value.toDartString();
 @@ -345,7 +372,11 @@ void setBool({
@@ -1445,7 +1445,7 @@ index 904b7ac..9cd84e2 100644
 +      nameC,
 +      valueC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -360,7 +391,11 @@ void setInt({
@@ -1458,7 +1458,7 @@ index 904b7ac..9cd84e2 100644
 +      nameC,
 +      value,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -375,7 +410,11 @@ void setInt32({
@@ -1471,7 +1471,7 @@ index 904b7ac..9cd84e2 100644
 +      nameC,
 +      value,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -391,7 +430,11 @@ void setString({
@@ -1484,7 +1484,7 @@ index 904b7ac..9cd84e2 100644
 +      nameC,
 +      valueC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -402,7 +445,7 @@ void setString({
@@ -1493,9 +1493,9 @@ index 904b7ac..9cd84e2 100644
      final out = arena<Pointer<git_config_iterator>>();
 -    final error = libgit2.git_config_iterator_new(out, cfg);
 +    final error = libgit2Runtime.bindings.git_config_iterator_new(out, cfg);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -420,7 +463,7 @@ Pointer<git_config_iterator> globIterator({
    return using((arena) {
      final out = arena<Pointer<git_config_iterator>>();
@@ -1507,7 +1507,7 @@ index 904b7ac..9cd84e2 100644
        regexpC,
 @@ -449,7 +492,7 @@ List<Map<String, Object?>> _entriesFromIterator(
      final result = <Map<String, Object?>>[];
- 
+
      while (true) {
 -      final error = libgit2.git_config_next(entry, iterator);
 +      final error = libgit2Runtime.bindings.git_config_next(entry, iterator);
@@ -1516,7 +1516,7 @@ index 904b7ac..9cd84e2 100644
        }
 @@ -489,7 +532,11 @@ List<Map<String, Object?>> foreachEntries(Pointer<git_config> configPointer) {
    >(_foreachCb, 0);
- 
+
    _foreachEntries.clear();
 -  final error = libgit2.git_config_foreach(configPointer, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_config_foreach(
@@ -1529,7 +1529,7 @@ index 904b7ac..9cd84e2 100644
    _foreachEntries.clear();
 @@ -508,7 +555,7 @@ List<Map<String, Object?>> foreachMatchEntries({
      final regexpC = regexp.toChar(arena);
- 
+
      _foreachEntries.clear();
 -    final error = libgit2.git_config_foreach_match(
 +    final error = libgit2Runtime.bindings.git_config_foreach_match(
@@ -1545,20 +1545,20 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -556,7 +606,7 @@ List<String> multivarValues({
      final iterator = arena<Pointer<git_config_iterator>>();
      final entry = arena<Pointer<git_config_entry>>();
- 
+
 -    final error = libgit2.git_config_multivar_iterator_new(
 +    final error = libgit2Runtime.bindings.git_config_multivar_iterator_new(
        iterator,
        configPointer,
        nameC,
 @@ -570,7 +620,10 @@ List<String> multivarValues({
- 
+
      try {
        while (nextError == 0) {
 -        nextError = libgit2.git_config_next(entry, iterator.value);
@@ -1571,7 +1571,7 @@ index 904b7ac..9cd84e2 100644
          }
 @@ -600,7 +653,7 @@ List<String> multivarValuesForeach({
      >(_foreachCb, 0);
- 
+
      _foreachEntries.clear();
 -    final error = libgit2.git_config_get_multivar_foreach(
 +    final error = libgit2Runtime.bindings.git_config_get_multivar_foreach(
@@ -1602,28 +1602,28 @@ index 904b7ac..9cd84e2 100644
      final out = arena<Pointer<git_transaction>>();
 -    final error = libgit2.git_config_lock(out, configPointer);
 +    final error = libgit2Runtime.bindings.git_config_lock(out, configPointer);
- 
+
      checkErrorAndThrow(error);
 -    libgit2.git_transaction_free(out.value);
 +    libgit2Runtime.bindings.git_transaction_free(out.value);
    });
  }
- 
+
  /// Free the configuration and its associated memory and files.
 -void free(Pointer<git_config> cfg) => libgit2.git_config_free(cfg);
 +void free(Pointer<git_config> cfg) =>
 +    libgit2Runtime.bindings.git_config_free(cfg);
- 
+
  /// Free a config entry.
  void freeEntry(Pointer<git_config_entry> entry) =>
 -    libgit2.git_config_entry_free(entry);
 +    libgit2Runtime.bindings.git_config_entry_free(entry);
- 
+
  /// Free a config iterator.
  void freeIterator(Pointer<git_config_iterator> iter) =>
 -    libgit2.git_config_iterator_free(iter);
 +    libgit2Runtime.bindings.git_config_iterator_free(iter);
- 
+
  /// Get a string value from a config.
  ///
 @@ -721,12 +775,16 @@ String getStringBuf({
@@ -1636,9 +1636,9 @@ index 904b7ac..9cd84e2 100644
 +      configPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -1651,7 +1651,7 @@ index 904b7ac..9cd84e2 100644
      final valueC = value.toChar(arena);
 -    final error = libgit2.git_config_parse_bool(out, valueC);
 +    final error = libgit2Runtime.bindings.git_config_parse_bool(out, valueC);
- 
+
      checkErrorAndThrow(error);
      return out.value != 0;
 @@ -748,7 +806,7 @@ int parseInt32(String value) {
@@ -1660,7 +1660,7 @@ index 904b7ac..9cd84e2 100644
      final valueC = value.toChar(arena);
 -    final error = libgit2.git_config_parse_int32(out, valueC);
 +    final error = libgit2Runtime.bindings.git_config_parse_int32(out, valueC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -760,7 +818,7 @@ int parseInt64(String value) {
@@ -1669,7 +1669,7 @@ index 904b7ac..9cd84e2 100644
      final valueC = value.toChar(arena);
 -    final error = libgit2.git_config_parse_int64(out, valueC);
 +    final error = libgit2Runtime.bindings.git_config_parse_int64(out, valueC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -772,12 +830,12 @@ String parsePath(String value) {
@@ -1678,9 +1678,9 @@ index 904b7ac..9cd84e2 100644
      final valueC = value.toChar(arena);
 -    final error = libgit2.git_config_parse_path(out, valueC);
 +    final error = libgit2Runtime.bindings.git_config_parse_path(out, valueC);
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -1712,7 +1712,7 @@ index d1ef8c3..520f716 100644
 @@ -24,7 +24,7 @@ Pointer<git_credential> userPass({
      final usernameC = username.toChar(arena);
      final passwordC = password.toChar(arena);
- 
+
 -    final error = libgit2.git_credential_userpass_plaintext_new(
 +    final error = libgit2Runtime.bindings.git_credential_userpass_plaintext_new(
        out,
@@ -1721,7 +1721,7 @@ index d1ef8c3..520f716 100644
 @@ -59,7 +59,7 @@ Pointer<git_credential> sshKey({
      final privateKeyC = privateKey.toChar(arena);
      final passPhraseC = passPhrase.toChar(arena);
- 
+
 -    final error = libgit2.git_credential_ssh_key_new(
 +    final error = libgit2Runtime.bindings.git_credential_ssh_key_new(
        out,
@@ -1730,19 +1730,19 @@ index d1ef8c3..520f716 100644
 @@ -85,7 +85,10 @@ Pointer<git_credential> sshKeyFromAgent(String username) {
      final out = arena<Pointer<git_credential>>();
      final usernameC = username.toChar(arena);
- 
+
 -    final error = libgit2.git_credential_ssh_key_from_agent(out, usernameC);
 +    final error = libgit2Runtime.bindings.git_credential_ssh_key_from_agent(
 +      out,
 +      usernameC,
 +    );
      checkErrorAndThrow(error);
- 
+
      return out.value;
 @@ -116,7 +119,7 @@ Pointer<git_credential> sshKeyFromMemory({
      final privateKeyC = privateKey.toChar(arena);
      final passPhraseC = passPhrase.toChar(arena);
- 
+
 -    final error = libgit2.git_credential_ssh_key_memory_new(
 +    final error = libgit2Runtime.bindings.git_credential_ssh_key_memory_new(
        out,
@@ -1770,19 +1770,19 @@ index d1ef8c3..520f716 100644
      return out.value;
    });
 @@ -153,13 +159,14 @@ Pointer<git_credential> username(String username) {
- 
+
  /// Check whether a credential object contains username information.
  bool hasUsername(Pointer<git_credential> cred) =>
 -    libgit2.git_credential_has_username(cred) == 1;
 +    libgit2Runtime.bindings.git_credential_has_username(cred) == 1;
- 
+
  /// Return the username associated with a credential object, if any.
  String? getUsername(Pointer<git_credential> cred) {
 -  final result = libgit2.git_credential_get_username(cred);
 +  final result = libgit2Runtime.bindings.git_credential_get_username(cred);
    return result == nullptr ? null : result.toDartString();
  }
- 
+
  /// Free a previously allocated credential.
 -void free(Pointer<git_credential> cred) => libgit2.git_credential_free(cred);
 +void free(Pointer<git_credential> cred) =>
@@ -1794,25 +1794,25 @@ index 6b13673..f329eea 100644
 @@ -29,7 +29,11 @@ Pointer<git_describe_result> commit({
        showCommitOidAsFallback: showCommitOidAsFallback,
      );
- 
+
 -    final error = libgit2.git_describe_commit(out, commitPointer.cast(), opts);
 +    final error = libgit2Runtime.bindings.git_describe_commit(
 +      out,
 +      commitPointer.cast(),
 +      opts,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -63,7 +67,7 @@ Pointer<git_describe_result> workdir({
        showCommitOidAsFallback: showCommitOidAsFallback,
      );
- 
+
 -    final error = libgit2.git_describe_workdir(out, repo, opts);
 +    final error = libgit2Runtime.bindings.git_describe_workdir(out, repo, opts);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -81,7 +85,7 @@ String format({
    return using((arena) {
      final out = arena<git_buf>();
@@ -1825,7 +1825,7 @@ index 6b13673..f329eea 100644
 @@ -96,11 +100,15 @@ String format({
        opts.ref.dirty_suffix = dirtySuffix.toChar(arena);
      }
- 
+
 -    final error = libgit2.git_describe_format(out, describeResultPointer, opts);
 +    final error = libgit2Runtime.bindings.git_describe_format(
 +      out,
@@ -1833,21 +1833,21 @@ index 6b13673..f329eea 100644
 +      opts,
 +    );
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 @@ -108,7 +116,7 @@ String format({
- 
+
  /// Free the describe result.
  void free(Pointer<git_describe_result> result) {
 -  libgit2.git_describe_result_free(result);
 +  libgit2Runtime.bindings.git_describe_result_free(result);
  }
- 
+
  /// Initialize git_describe_options structure.
 @@ -121,7 +129,10 @@ Pointer<git_describe_options> _initOpts({
    bool? showCommitOidAsFallback,
@@ -1858,7 +1858,7 @@ index 6b13673..f329eea 100644
 +    opts,
 +    GIT_DESCRIBE_OPTIONS_VERSION,
 +  );
- 
+
    if (maxCandidatesTags != null) {
      opts.ref.max_candidates_tags = maxCandidatesTags;
 @@ -172,7 +183,7 @@ Pointer<git_describe_format_options> initFormatOptions({
@@ -1881,11 +1881,11 @@ index 6b13673..f329eea 100644
 +      options,
 +    );
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 diff --git a/lib/src/bindings/diff.dart b/lib/src/bindings/diff.dart
@@ -1895,7 +1895,7 @@ index c3f043b..f593829 100644
 @@ -26,7 +26,7 @@ Pointer<git_diff> indexToIndex({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_index_to_index(
 +    final error = libgit2Runtime.bindings.git_diff_index_to_index(
        out,
@@ -1904,7 +1904,7 @@ index c3f043b..f593829 100644
 @@ -57,7 +57,7 @@ Pointer<git_diff> indexToWorkdir({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_index_to_workdir(
 +    final error = libgit2Runtime.bindings.git_diff_index_to_workdir(
        out,
@@ -1913,7 +1913,7 @@ index c3f043b..f593829 100644
 @@ -88,7 +88,7 @@ Pointer<git_diff> treeToIndex({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_tree_to_index(
 +    final error = libgit2Runtime.bindings.git_diff_tree_to_index(
        out,
@@ -1922,7 +1922,7 @@ index c3f043b..f593829 100644
 @@ -121,7 +121,7 @@ Pointer<git_diff> treeToWorkdir({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_tree_to_workdir(
 +    final error = libgit2Runtime.bindings.git_diff_tree_to_workdir(
        out,
@@ -1931,7 +1931,7 @@ index c3f043b..f593829 100644
 @@ -158,7 +158,7 @@ Pointer<git_diff> treeToWorkdirWithIndex({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_tree_to_workdir_with_index(
 +    final error = libgit2Runtime.bindings.git_diff_tree_to_workdir_with_index(
        out,
@@ -1940,7 +1940,7 @@ index c3f043b..f593829 100644
 @@ -191,7 +191,7 @@ Pointer<git_diff> treeToTree({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_diff_tree_to_tree(
 +    final error = libgit2Runtime.bindings.git_diff_tree_to_tree(
        out,
@@ -1948,12 +1948,12 @@ index c3f043b..f593829 100644
        oldTreePointer ?? nullptr,
 @@ -205,19 +205,20 @@ Pointer<git_diff> treeToTree({
  }
- 
+
  /// Query how many diff records are there in a diff.
 -int length(Pointer<git_diff> diff) => libgit2.git_diff_num_deltas(diff);
 +int length(Pointer<git_diff> diff) =>
 +    libgit2Runtime.bindings.git_diff_num_deltas(diff);
- 
+
  /// Query how many diff records have [type].
  int lengthOfType({
    required Pointer<git_diff> diffPointer,
@@ -1962,13 +1962,13 @@ index c3f043b..f593829 100644
 -  return libgit2.git_diff_num_deltas_of_type(diffPointer, type);
 +  return libgit2Runtime.bindings.git_diff_num_deltas_of_type(diffPointer, type);
  }
- 
+
  /// Return whether deltas are sorted case-insensitively.
  bool isSortedICase(Pointer<git_diff> diff) {
 -  return libgit2.git_diff_is_sorted_icase(diff) == 1;
 +  return libgit2Runtime.bindings.git_diff_is_sorted_icase(diff) == 1;
  }
- 
+
  /// Merge one diff into another.
 @@ -229,7 +230,10 @@ void merge({
    required Pointer<git_diff> diffPointer,
@@ -1981,11 +1981,11 @@ index c3f043b..f593829 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -257,7 +261,7 @@ Pointer<git_diff> parse(
      opts.ref.version = GIT_DIFF_PARSE_OPTIONS_VERSION;
      opts.ref.oid_typeAsInt = oidType.value;
- 
+
 -    final error = libgit2.git_diff_from_buffer(
 +    final error = libgit2Runtime.bindings.git_diff_from_buffer(
        out,
@@ -2002,7 +2002,7 @@ index c3f043b..f593829 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -302,7 +309,11 @@ Pointer<git_oid> patchOid(
    Pointer<git_diff_patchid_options>? options,
  }) {
@@ -2013,9 +2013,9 @@ index c3f043b..f593829 100644
 +    diff,
 +    options ?? nullptr,
 +  );
- 
+
    checkErrorAndThrow(error);
- 
+
 @@ -312,7 +323,10 @@ Pointer<git_oid> patchOid(
  /// Allocate and initialize `git_diff_patchid_options` structure.
  Pointer<git_diff_patchid_options> initPatchIdOptions() {
@@ -2027,7 +2027,7 @@ index c3f043b..f593829 100644
 +  );
    return opts;
  }
- 
+
 @@ -321,7 +335,7 @@ Pointer<git_diff_delta> getDeltaByIndex({
    required Pointer<git_diff> diffPointer,
    required int index,
@@ -2035,7 +2035,7 @@ index c3f043b..f593829 100644
 -  return libgit2.git_diff_get_delta(diffPointer, index);
 +  return libgit2Runtime.bindings.git_diff_get_delta(diffPointer, index);
  }
- 
+
  /// Look up the single character abbreviation for a delta status code.
 @@ -331,7 +345,9 @@ Pointer<git_diff_delta> getDeltaByIndex({
  /// function converts a [GitDelta] value into these letters for your own
@@ -2046,7 +2046,7 @@ index c3f043b..f593829 100644
 +    libgit2Runtime.bindings.git_diff_status_char(status),
 +  );
  }
- 
+
  /// Accumulate diff statistics for all patches. The returned diff stats must be
 @@ -341,7 +357,7 @@ String statusChar(git_delta_t status) {
  Pointer<git_diff_stats> stats(Pointer<git_diff> diff) {
@@ -2054,35 +2054,35 @@ index c3f043b..f593829 100644
      final out = arena<Pointer<git_diff_stats>>();
 -    final error = libgit2.git_diff_get_stats(out, diff);
 +    final error = libgit2Runtime.bindings.git_diff_get_stats(out, diff);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -354,7 +370,7 @@ DiffPerfData perfData(Pointer<git_diff> diff) {
    return using((arena) {
      final out = arena<git_diff_perfdata>();
      out.ref.version = GIT_DIFF_PERFDATA_VERSION;
 -    final error = libgit2.git_diff_get_perfdata(out, diff);
 +    final error = libgit2Runtime.bindings.git_diff_get_perfdata(out, diff);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -367,15 +383,15 @@ DiffPerfData perfData(Pointer<git_diff> diff) {
- 
+
  /// Get the total number of insertions in a diff.
  int statsInsertions(Pointer<git_diff_stats> stats) =>
 -    libgit2.git_diff_stats_insertions(stats);
 +    libgit2Runtime.bindings.git_diff_stats_insertions(stats);
- 
+
  /// Get the total number of deletions in a diff.
  int statsDeletions(Pointer<git_diff_stats> stats) =>
 -    libgit2.git_diff_stats_deletions(stats);
 +    libgit2Runtime.bindings.git_diff_stats_deletions(stats);
- 
+
  /// Get the total number of files changed in a diff.
  int statsFilesChanged(Pointer<git_diff_stats> stats) =>
 -    libgit2.git_diff_stats_files_changed(stats);
 +    libgit2Runtime.bindings.git_diff_stats_files_changed(stats);
- 
+
  /// Print diff statistics.
  ///
 @@ -387,7 +403,7 @@ String statsPrint({
@@ -2096,11 +2096,11 @@ index c3f043b..f593829 100644
        format,
 @@ -396,7 +412,7 @@ String statsPrint({
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 @@ -406,7 +422,7 @@ String statsPrint({
@@ -2115,7 +2115,7 @@ index c3f043b..f593829 100644
 @@ -418,7 +434,7 @@ String addToBuf(Pointer<git_diff> diff) {
              ? ''
              : out.ref.ptr.toDartString(length: out.ref.size);
- 
+
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
      return result;
@@ -2123,7 +2123,7 @@ index c3f043b..f593829 100644
  }
 @@ -503,7 +519,7 @@ String print(Pointer<git_diff> diff) {
    final cb = _lineCallback();
- 
+
    _printedDiffLines.clear();
 -  final error = libgit2.git_diff_print(
 +  final error = libgit2Runtime.bindings.git_diff_print(
@@ -2133,14 +2133,14 @@ index c3f043b..f593829 100644
 @@ -537,7 +553,7 @@ Map<String, Object> foreach(Pointer<git_diff> diff) {
    _foreachLineOrigins.clear();
    _printedDiffLines.clear();
- 
+
 -  final error = libgit2.git_diff_foreach(
 +  final error = libgit2Runtime.bindings.git_diff_foreach(
      diff,
      fileCb,
      nullptr,
 @@ -603,7 +619,7 @@ String _runDirectDiff({
- 
+
    int error;
    if (oldBuffer != null || oldBlobPointer == null) {
 -    error = libgit2.git_diff_buffers(
@@ -2178,7 +2178,7 @@ index c3f043b..f593829 100644
 @@ -778,7 +794,7 @@ bool apply({
        opts.ref.hunk_cb = callback;
      }
- 
+
 -    final errorApply = libgit2.git_apply(
 +    final errorApply = libgit2Runtime.bindings.git_apply(
        repoPointer,
@@ -2187,14 +2187,14 @@ index c3f043b..f593829 100644
 @@ -789,7 +805,9 @@ bool apply({
        return true;
      }
- 
+
 -    return check ? false : throw LibGit2Error(libgit2.git_error_last());
 +    return check
 +        ? false
 +        : throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
    });
  }
- 
+
 @@ -806,7 +824,10 @@ Pointer<git_index> applyToTree({
    return using((arena) {
      final out = arena<Pointer<git_index>>();
@@ -2204,30 +2204,30 @@ index c3f043b..f593829 100644
 +      opts,
 +      GIT_APPLY_OPTIONS_VERSION,
 +    );
- 
+
      Pointer<Int32> payload = nullptr;
      if (hunkIndex != null) {
 @@ -819,7 +840,7 @@ Pointer<git_index> applyToTree({
        opts.ref.hunk_cb = callback;
      }
- 
+
 -    final error = libgit2.git_apply_to_tree(
 +    final error = libgit2Runtime.bindings.git_apply_to_tree(
        out,
        repoPointer,
        treePointer,
 @@ -835,10 +856,11 @@ Pointer<git_index> applyToTree({
- 
+
  /// Free a previously allocated diff stats.
  void freeStats(Pointer<git_diff_stats> stats) =>
 -    libgit2.git_diff_stats_free(stats);
 +    libgit2Runtime.bindings.git_diff_stats_free(stats);
- 
+
  /// Free a previously allocated diff.
 -void free(Pointer<git_diff> diff) => libgit2.git_diff_free(diff);
 +void free(Pointer<git_diff> diff) =>
 +    libgit2Runtime.bindings.git_diff_free(diff);
- 
+
  /// Diff performance counters.
  class DiffPerfData {
 @@ -859,7 +881,7 @@ Pointer<git_diff_options> _diffOptionsInit({
@@ -2236,7 +2236,7 @@ index c3f043b..f593829 100644
    final opts = arena<git_diff_options>();
 -  libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
 +  libgit2Runtime.bindings.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
- 
+
    opts.ref.flags = flags;
    opts.ref.context_lines = contextLines;
 @@ -878,13 +900,13 @@ Pointer<git_diff_options> _diffOptionsInit({
@@ -2245,14 +2245,14 @@ index c3f043b..f593829 100644
  //     final out = arena<git_buf>();
 -//     final error = libgit2.git_email_create_from_diff(out, diff, patch_idx, patch_count, commit_id, summary, body, author, opts)
 +//     final error = libgit2Runtime.bindings.git_email_create_from_diff(out, diff, patch_idx, patch_count, commit_id, summary, body, author, opts)
- 
+
  //     git_diff_format_email(out, diffPointer, options);
  //     checkErrorAndThrow(error);
- 
+
  //     final result = out.ref.ptr.toDartString(length: out.ref.size);
 -//     libgit2.git_buf_dispose(out);
 +//     libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
  //     return result;
  //   });
 diff --git a/lib/src/bindings/filter.dart b/lib/src/bindings/filter.dart
@@ -2270,11 +2270,11 @@ index a29f931..820888f 100644
        bufferC,
 @@ -27,7 +27,7 @@ String applyToData({
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 @@ -46,7 +46,7 @@ String applyToFile({
@@ -2288,11 +2288,11 @@ index a29f931..820888f 100644
        repoPointer,
 @@ -56,7 +56,7 @@ String applyToFile({
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 @@ -73,7 +73,7 @@ String applyToBlob({
@@ -2306,11 +2306,11 @@ index a29f931..820888f 100644
        blobPointer,
 @@ -82,7 +82,7 @@ String applyToBlob({
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
- 
+
      return result;
    });
 @@ -99,7 +99,7 @@ Pointer<git_filter_list> load({
@@ -2343,7 +2343,7 @@ index a29f931..820888f 100644
      return result == 1;
    });
  }
- 
+
  /// Free a filter list.
  void free(Pointer<git_filter_list> filterList) =>
 -    libgit2.git_filter_list_free(filterList);
@@ -2364,7 +2364,7 @@ index 399ca49..0848681 100644
 @@ -37,7 +37,7 @@ List<int> aheadBehind({
      final ahead = arena<Size>();
      final behind = arena<Size>();
- 
+
 -    final error = libgit2.git_graph_ahead_behind(
 +    final error = libgit2Runtime.bindings.git_graph_ahead_behind(
        ahead,
@@ -2373,7 +2373,7 @@ index 399ca49..0848681 100644
 @@ -63,7 +63,7 @@ bool reachableFromAny({
        arr[i] = descendants[i].ref;
      }
- 
+
 -    final result = libgit2.git_graph_reachable_from_any(
 +    final result = libgit2Runtime.bindings.git_graph_reachable_from_any(
        repoPointer,
@@ -2392,18 +2392,18 @@ index 7c4328c..653bc2a 100644
 +      repoPointer,
 +      rulesC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -20,7 +23,9 @@ void addRule({
- 
+
  /// Clear in-memory ignore rules for [repoPointer].
  void clearInternalRules(Pointer<git_repository> repoPointer) {
 -  final error = libgit2.git_ignore_clear_internal_rules(repoPointer);
 +  final error = libgit2Runtime.bindings.git_ignore_clear_internal_rules(
 +    repoPointer,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 @@ -33,7 +38,7 @@ bool pathIsIgnored({
@@ -2422,12 +2422,12 @@ index fbe329c..b125f2f 100644
 @@ -18,7 +18,7 @@ Pointer<git_index> newInMemory({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
      opts.ref.version = GIT_INDEX_OPTIONS_VERSION;
      opts.ref.oid_typeAsInt = oidType.value;
- 
+
 -    final error = libgit2.git_index_new(out, opts);
 +    final error = libgit2Runtime.bindings.git_index_new(out, opts);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -38,7 +38,11 @@ Pointer<git_index> open(
    return using((arena) {
      final out = arena<Pointer<git_index>>();
@@ -2438,17 +2438,17 @@ index fbe329c..b125f2f 100644
 +      pathC,
 +      optionsPointer ?? nullptr,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -47,7 +51,8 @@ Pointer<git_index> open(
  }
- 
+
  /// Read index capabilities flags.
 -int capabilities(Pointer<git_index> index) => libgit2.git_index_caps(index);
 +int capabilities(Pointer<git_index> index) =>
 +    libgit2Runtime.bindings.git_index_caps(index);
- 
+
  /// Set index capabilities flags.
  ///
 @@ -60,7 +65,7 @@ void setCapabilities({
@@ -2457,7 +2457,7 @@ index fbe329c..b125f2f 100644
  }) {
 -  final error = libgit2.git_index_set_caps(indexPointer, caps);
 +  final error = libgit2Runtime.bindings.git_index_set_caps(indexPointer, caps);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -69,7 +74,7 @@ void setCapabilities({
@@ -2468,16 +2468,16 @@ index fbe329c..b125f2f 100644
 +  final path = libgit2Runtime.bindings.git_index_path(index);
    return path == nullptr ? null : path.toDartString();
  }
- 
+
 @@ -84,7 +89,7 @@ int findIndex({
    return using((arena) {
      final pathC = path.toChar(arena);
- 
+
 -    return libgit2.git_index_find(nullptr, indexPointer, pathC);
 +    return libgit2Runtime.bindings.git_index_find(nullptr, indexPointer, pathC);
    });
  }
- 
+
 @@ -101,7 +106,7 @@ int findIndex({
  /// disk, unwritten in-memory changes are discarded.
  void read({required Pointer<git_index> indexPointer, required bool force}) {
@@ -2485,7 +2485,7 @@ index fbe329c..b125f2f 100644
 -  libgit2.git_index_read(indexPointer, forceC);
 +  libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
  }
- 
+
  /// Read a tree into the index file with stats.
 @@ -110,7 +115,7 @@ void read({required Pointer<git_index> indexPointer, required bool force}) {
  void readTree({
@@ -2493,7 +2493,7 @@ index fbe329c..b125f2f 100644
    required Pointer<git_tree> treePointer,
 -}) => libgit2.git_index_read_tree(indexPointer, treePointer);
 +}) => libgit2Runtime.bindings.git_index_read_tree(indexPointer, treePointer);
- 
+
  /// Write the index as a tree.
  ///
 @@ -127,7 +132,7 @@ void readTree({
@@ -2502,9 +2502,9 @@ index fbe329c..b125f2f 100644
    final out = calloc<git_oid>();
 -  final error = libgit2.git_index_write_tree(out, index);
 +  final error = libgit2Runtime.bindings.git_index_write_tree(out, index);
- 
+
    checkErrorAndThrow(error);
- 
+
 @@ -147,7 +152,11 @@ Pointer<git_oid> writeTreeTo({
    required Pointer<git_repository> repoPointer,
  }) {
@@ -2515,17 +2515,17 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    repoPointer,
 +  );
- 
+
    checkErrorAndThrow(error);
- 
+
 @@ -155,7 +164,8 @@ Pointer<git_oid> writeTreeTo({
  }
- 
+
  /// Get the count of entries currently in the index.
 -int entryCount(Pointer<git_index> index) => libgit2.git_index_entrycount(index);
 +int entryCount(Pointer<git_index> index) =>
 +    libgit2Runtime.bindings.git_index_entrycount(index);
- 
+
  /// Get a pointer to one of the entries in the index based on position.
  ///
 @@ -166,7 +176,10 @@ Pointer<git_index_entry> getByIndex({
@@ -2537,7 +2537,7 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    position,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Out of bounds');
 @@ -187,7 +200,11 @@ Pointer<git_index_entry> getByPath({
@@ -2550,16 +2550,16 @@ index fbe329c..b125f2f 100644
 +      pathC,
 +      stage,
 +    );
- 
+
      if (result == nullptr) {
        throw ArgumentError.value('$path was not found');
 @@ -199,7 +216,7 @@ Pointer<git_index_entry> getByPath({
- 
+
  /// Return the stage number from a git index entry.
  int entryStage(Pointer<git_index_entry> entry) =>
 -    libgit2.git_index_entry_stage(entry);
 +    libgit2Runtime.bindings.git_index_entry_stage(entry);
- 
+
  /// Clear the contents (all the entries) of an index object.
  ///
 @@ -208,7 +225,7 @@ int entryStage(Pointer<git_index_entry> entry) =>
@@ -2568,7 +2568,7 @@ index fbe329c..b125f2f 100644
  void clear(Pointer<git_index> index) {
 -  final error = libgit2.git_index_clear(index);
 +  final error = libgit2Runtime.bindings.git_index_clear(index);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -224,7 +241,10 @@ void add({
@@ -2580,7 +2580,7 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    sourceEntryPointer,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 @@ -250,7 +270,10 @@ void addByPath({
@@ -2592,7 +2592,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -280,7 +303,7 @@ void addFromBuffer({
@@ -2623,13 +2623,13 @@ index fbe329c..b125f2f 100644
      pathspec,
      callback,
 @@ -344,7 +367,8 @@ void updateAll({
- 
+
  /// Write an existing index object from memory back to disk using an atomic
  /// file lock.
 -void write(Pointer<git_index> index) => libgit2.git_index_write(index);
 +void write(Pointer<git_index> index) =>
 +    libgit2Runtime.bindings.git_index_write(index);
- 
+
  /// Remove an entry from the index.
  ///
 @@ -356,7 +380,11 @@ void remove({
@@ -2642,7 +2642,7 @@ index fbe329c..b125f2f 100644
 +      pathC,
 +      stage,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -379,7 +407,10 @@ void removeByPath({
@@ -2654,7 +2654,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -399,7 +430,11 @@ void removeDirectory({
@@ -2667,7 +2667,7 @@ index fbe329c..b125f2f 100644
 +      dirC,
 +      stage,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -416,7 +451,7 @@ void removeAll({
@@ -2688,7 +2688,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -457,7 +495,7 @@ void updateByPath({
@@ -2701,12 +2701,12 @@ index fbe329c..b125f2f 100644
  //     entry,
  //     buffer,
 @@ -469,7 +507,7 @@ void updateByPath({
- 
+
  /// Determine if the index contains entries representing file conflicts.
  bool hasConflicts(Pointer<git_index> index) =>
 -    libgit2.git_index_has_conflicts(index) == 1 || false;
 +    libgit2Runtime.bindings.git_index_has_conflicts(index) == 1 || false;
- 
+
  /// Return list of conflicts in the index.
  ///
 @@ -479,7 +517,10 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
@@ -2719,7 +2719,7 @@ index fbe329c..b125f2f 100644
 +      index,
 +    );
      checkErrorAndThrow(error);
- 
+
      final result = <Map<String, Pointer<git_index_entry>>>[];
 @@ -489,7 +530,7 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
        final ancestorOut = arena<Pointer<git_index_entry>>();
@@ -2733,7 +2733,7 @@ index fbe329c..b125f2f 100644
 @@ -506,7 +547,7 @@ List<Map<String, Pointer<git_index_entry>>> conflictList(
        }
      }
- 
+
 -    libgit2.git_index_conflict_iterator_free(iterator.value);
 +    libgit2Runtime.bindings.git_index_conflict_iterator_free(iterator.value);
      return result;
@@ -2742,7 +2742,7 @@ index fbe329c..b125f2f 100644
 @@ -524,7 +565,7 @@ Map<String, Pointer<git_index_entry>> conflictGet({
      final theirOut = arena<Pointer<git_index_entry>>();
      final pathC = path.toChar(arena);
- 
+
 -    final error = libgit2.git_index_conflict_get(
 +    final error = libgit2Runtime.bindings.git_index_conflict_get(
        ancestorOut,
@@ -2754,12 +2754,12 @@ index fbe329c..b125f2f 100644
  bool entryIsConflict(Pointer<git_index_entry> entry) =>
 -    libgit2.git_index_entry_is_conflict(entry) == 1 || false;
 +    libgit2Runtime.bindings.git_index_entry_is_conflict(entry) == 1 || false;
- 
+
  /// Get the count of filename conflict entries currently in the index.
  int nameEntryCount(Pointer<git_index> index) =>
 -    libgit2.git_index_name_entrycount(index);
 +    libgit2Runtime.bindings.git_index_name_entrycount(index);
- 
+
  /// Get a filename conflict entry from the index by position.
  ///
 @@ -558,7 +599,10 @@ Pointer<git_index_name_entry> nameGetByIndex({
@@ -2771,7 +2771,7 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    position,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Out of bounds');
 @@ -578,7 +622,7 @@ void nameAdd({
@@ -2784,20 +2784,20 @@ index fbe329c..b125f2f 100644
        ancestorC,
        oursC,
 @@ -591,21 +635,25 @@ void nameAdd({
- 
+
  /// Remove all filename conflict entries.
  void nameClear(Pointer<git_index> index) {
 -  final error = libgit2.git_index_name_clear(index);
 +  final error = libgit2Runtime.bindings.git_index_name_clear(index);
- 
+
    checkErrorAndThrow(error);
  }
- 
+
  /// Get the count of resolve undo entries currently in the index.
  int reucEntryCount(Pointer<git_index> index) =>
 -    libgit2.git_index_reuc_entrycount(index);
 +    libgit2Runtime.bindings.git_index_reuc_entrycount(index);
- 
+
  /// Find the position of a resolve undo entry by path.
  int reucFind({required Pointer<git_index> indexPointer, required String path}) {
    return using((arena) {
@@ -2809,7 +2809,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -621,7 +669,10 @@ Pointer<git_index_reuc_entry> reucGetByPath({
@@ -2821,7 +2821,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      if (result == nullptr) {
        throw ArgumentError.value('$path was not found');
 @@ -638,7 +689,10 @@ Pointer<git_index_reuc_entry> reucGetByIndex({
@@ -2833,7 +2833,7 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    position,
 +  );
- 
+
    if (result == nullptr) {
      throw Git2DartError('Out of bounds');
 @@ -660,7 +714,7 @@ void reucAdd({
@@ -2854,15 +2854,15 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    position,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
- 
+
  /// Remove all resolve undo entries.
  void reucClear(Pointer<git_index> index) {
 -  final error = libgit2.git_index_reuc_clear(index);
 +  final error = libgit2Runtime.bindings.git_index_reuc_clear(index);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -707,7 +764,7 @@ void conflictAdd({
@@ -2883,7 +2883,7 @@ index fbe329c..b125f2f 100644
 +      indexPointer,
 +      pathC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -736,7 +796,7 @@ void conflictRemove({
@@ -2892,7 +2892,7 @@ index fbe329c..b125f2f 100644
  void conflictCleanup(Pointer<git_index> index) {
 -  final error = libgit2.git_index_conflict_cleanup(index);
 +  final error = libgit2Runtime.bindings.git_index_conflict_cleanup(index);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -749,7 +809,7 @@ void conflictCleanup(Pointer<git_index> index) {
@@ -2901,9 +2901,9 @@ index fbe329c..b125f2f 100644
      final out = arena<Pointer<git_index_iterator>>();
 -    final error = libgit2.git_index_iterator_new(out, index);
 +    final error = libgit2Runtime.bindings.git_index_iterator_new(out, index);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -761,7 +821,10 @@ Pointer<git_index_iterator> iteratorNew(Pointer<git_index> index) {
  Pointer<git_index_entry>? iteratorNext(Pointer<git_index_iterator> iterator) {
    return using((arena) {
@@ -2913,26 +2913,26 @@ index fbe329c..b125f2f 100644
 +      out,
 +      iterator,
 +    );
- 
+
      if (error == git_error_code.GIT_ITEROVER.value) {
        return null;
 @@ -774,7 +837,7 @@ Pointer<git_index_entry>? iteratorNext(Pointer<git_index_iterator> iterator) {
- 
+
  /// Free an index iterator.
  void iteratorFree(Pointer<git_index_iterator> iterator) {
 -  libgit2.git_index_iterator_free(iterator);
 +  libgit2Runtime.bindings.git_index_iterator_free(iterator);
  }
- 
+
  /// Return an ordered snapshot of index entry paths using the native iterator.
 @@ -796,7 +859,8 @@ List<String> iteratorPaths(Pointer<git_index> index) {
  }
- 
+
  /// Free an existing index object.
 -void free(Pointer<git_index> index) => libgit2.git_index_free(index);
 +void free(Pointer<git_index> index) =>
 +    libgit2Runtime.bindings.git_index_free(index);
- 
+
  /// Find the first position of any entries which point to given path in the index.
  ///
 @@ -808,7 +872,11 @@ int findPrefix({
@@ -2947,28 +2947,28 @@ index fbe329c..b125f2f 100644
 +    );
    });
  }
- 
+
 @@ -817,18 +885,19 @@ int findPrefix({
  /// Returns the repository that owns this index, or null if the index is not
  /// associated with a repository.
  Pointer<git_repository>? getOwner(Pointer<git_index> index) =>
 -    libgit2.git_index_owner(index);
 +    libgit2Runtime.bindings.git_index_owner(index);
- 
+
  /// Get the checksum of the index file.
  ///
  /// Returns the checksum of the index file, or null if the index is in-memory.
  Pointer<git_oid>? getChecksum(Pointer<git_index> index) =>
 -    libgit2.git_index_checksum(index);
 +    libgit2Runtime.bindings.git_index_checksum(index);
- 
+
  /// Get the version of the index file.
  ///
  /// Returns the version of the index file.
 -int getVersion(Pointer<git_index> index) => libgit2.git_index_version(index);
 +int getVersion(Pointer<git_index> index) =>
 +    libgit2Runtime.bindings.git_index_version(index);
- 
+
  /// Set the version of the index file.
  ///
 @@ -839,7 +908,10 @@ void setVersion({
@@ -2980,7 +2980,7 @@ index fbe329c..b125f2f 100644
 +    indexPointer,
 +    version,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 diff --git a/lib/src/bindings/mailmap.dart b/lib/src/bindings/mailmap.dart
@@ -2993,9 +2993,9 @@ index f7d5a1d..a09d899 100644
      final out = arena<Pointer<git_mailmap>>();
 -    final error = libgit2.git_mailmap_new(out);
 +    final error = libgit2Runtime.bindings.git_mailmap_new(out);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -27,7 +27,11 @@ Pointer<git_mailmap> fromBuffer(String buffer) {
    return using((arena) {
      final out = arena<Pointer<git_mailmap>>();
@@ -3006,9 +3006,9 @@ index f7d5a1d..a09d899 100644
 +      bufferC,
 +      buffer.length,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -50,7 +54,10 @@ Pointer<git_mailmap> fromBuffer(String buffer) {
  Pointer<git_mailmap> fromRepository(Pointer<git_repository> repo) {
    return using((arena) {
@@ -3018,13 +3018,13 @@ index f7d5a1d..a09d899 100644
 +      out,
 +      repo,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -70,7 +77,7 @@ List<String> resolve({
      final nameC = name.toChar(arena);
      final emailC = email.toChar(arena);
- 
+
 -    libgit2.git_mailmap_resolve(
 +    libgit2Runtime.bindings.git_mailmap_resolve(
        outRealName,
@@ -3042,7 +3042,7 @@ index f7d5a1d..a09d899 100644
 @@ -122,7 +129,7 @@ void addEntry({
      final replaceNameC = replaceName?.toChar(arena) ?? nullptr;
      final replaceEmailC = replaceEmail.toChar(arena);
- 
+
 -    final error = libgit2.git_mailmap_add_entry(
 +    final error = libgit2Runtime.bindings.git_mailmap_add_entry(
        mailmapPointer,
@@ -3050,7 +3050,7 @@ index f7d5a1d..a09d899 100644
        realEmailC,
 @@ -135,4 +142,5 @@ void addEntry({
  }
- 
+
  /// Free the mailmap and its associated memory.
 -void free(Pointer<git_mailmap> mm) => libgit2.git_mailmap_free(mm);
 +void free(Pointer<git_mailmap> mm) =>
@@ -3070,13 +3070,13 @@ index 2067b91..cb08f19 100644
 +      aPointer,
 +      bPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -44,7 +49,7 @@ Pointer<git_oidarray> mergeBasesMany({
        commitsC[i] = commits[i].ref;
      }
- 
+
 -    final error = libgit2.git_merge_bases_many(
 +    final error = libgit2Runtime.bindings.git_merge_bases_many(
        out,
@@ -3093,31 +3093,31 @@ index 2067b91..cb08f19 100644
 +      aPointer,
 +      bPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -85,7 +95,7 @@ Pointer<git_oid> mergeBaseMany({
        commitsC[i] = commits[i].ref;
      }
- 
+
 -    final error = libgit2.git_merge_base_many(
 +    final error = libgit2Runtime.bindings.git_merge_base_many(
        out,
        repoPointer,
        commits.length,
 @@ -100,7 +110,7 @@ Pointer<git_oid> mergeBaseMany({
- 
+
  /// Dispose a libgit2-owned oid array and free its wrapper allocation.
  void oidArrayDispose(Pointer<git_oidarray> array) {
 -  libgit2.git_oidarray_dispose(array);
 +  libgit2Runtime.bindings.git_oidarray_dispose(array);
    calloc.free(array);
  }
- 
+
 @@ -122,7 +132,7 @@ Pointer<git_oid> mergeBaseOctopus({
        commitsC[i] = commits[i].ref;
      }
- 
+
 -    final error = libgit2.git_merge_base_octopus(
 +    final error = libgit2Runtime.bindings.git_merge_base_octopus(
        out,
@@ -3126,7 +3126,7 @@ index 2067b91..cb08f19 100644
 @@ -155,7 +165,7 @@ List<int> analysis({
      final theirHead = arena<Pointer<git_annotated_commit>>();
      theirHead[0] = theirHeadPointer;
- 
+
 -    final error = libgit2.git_merge_analysis_for_ref(
 +    final error = libgit2Runtime.bindings.git_merge_analysis_for_ref(
        analysisOut,
@@ -3134,7 +3134,7 @@ index 2067b91..cb08f19 100644
        repoPointer,
 @@ -202,7 +212,7 @@ void merge({
      );
- 
+
      final checkoutOpts = arena<git_checkout_options>();
 -    libgit2.git_checkout_options_init(
 +    libgit2Runtime.bindings.git_checkout_options_init(
@@ -3144,7 +3144,7 @@ index 2067b91..cb08f19 100644
 @@ -211,7 +221,7 @@ void merge({
          git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
          git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
- 
+
 -    final error = libgit2.git_merge(
 +    final error = libgit2Runtime.bindings.git_merge(
        repoPointer,
@@ -3174,7 +3174,7 @@ index 2067b91..cb08f19 100644
      Pointer<Char> ancestorLabelC = nullptr;
 @@ -260,7 +279,10 @@ String mergeFile({
      Pointer<Char> theirsLabelC = nullptr;
- 
+
      final opts = arena<git_merge_file_options>();
 -    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_merge_file_options_init(
@@ -3187,7 +3187,7 @@ index 2067b91..cb08f19 100644
 @@ -276,11 +298,17 @@ String mergeFile({
        opts.ref.their_label = theirsLabelC;
      }
- 
+
 -    final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
 +    final error = libgit2Runtime.bindings.git_merge_file(
 +      out,
@@ -3197,7 +3197,7 @@ index 2067b91..cb08f19 100644
 +      opts,
 +    );
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.len);
 -    libgit2.git_merge_file_result_free(out);
 +    libgit2Runtime.bindings.git_merge_file_result_free(out);
@@ -3207,7 +3207,7 @@ index 2067b91..cb08f19 100644
 @@ -309,7 +337,10 @@ String mergeFileFromIndex({
      Pointer<Char> oursLabelC = nullptr;
      Pointer<Char> theirsLabelC = nullptr;
- 
+
 -    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_merge_file_options_init(
 +      opts,
@@ -3219,7 +3219,7 @@ index 2067b91..cb08f19 100644
 @@ -325,7 +356,7 @@ String mergeFileFromIndex({
        opts.ref.their_label = theirsLabelC;
      }
- 
+
 -    final error = libgit2.git_merge_file_from_index(
 +    final error = libgit2Runtime.bindings.git_merge_file_from_index(
        out,
@@ -3237,7 +3237,7 @@ index 2067b91..cb08f19 100644
 @@ -371,7 +402,7 @@ Pointer<git_index> mergeCommits({
        fileFlags: fileFlags,
      );
- 
+
 -    final error = libgit2.git_merge_commits(
 +    final error = libgit2Runtime.bindings.git_merge_commits(
        out,
@@ -3246,7 +3246,7 @@ index 2067b91..cb08f19 100644
 @@ -411,7 +442,7 @@ Pointer<git_index> mergeTrees({
        fileFlags: fileFlags,
      );
- 
+
 -    final error = libgit2.git_merge_trees(
 +    final error = libgit2Runtime.bindings.git_merge_trees(
        out,
@@ -3261,17 +3261,17 @@ index 2067b91..cb08f19 100644
 +      opts,
 +      GIT_CHERRYPICK_OPTIONS_VERSION,
 +    );
- 
+
      opts.ref.checkout_opts.checkout_strategy =
          git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value;
- 
+
 -    final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
 +    final error = libgit2Runtime.bindings.git_cherrypick(
 +      repoPointer,
 +      commitPointer,
 +      opts,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -460,7 +498,7 @@ Pointer<git_index> cherryPickCommit({
@@ -3292,7 +3292,7 @@ index 2067b91..cb08f19 100644
 +    opts,
 +    GIT_MERGE_OPTIONS_VERSION,
 +  );
- 
+
    opts.ref.file_favorAsInt = favor;
    opts.ref.flags = mergeFlags;
 diff --git a/lib/src/bindings/message.dart b/lib/src/bindings/message.dart
@@ -3310,7 +3310,7 @@ index eb99048..617e80b 100644
        stripComments ? 1 : 0,
 @@ -24,7 +24,7 @@ String prettify({
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -3323,13 +3323,13 @@ index eb99048..617e80b 100644
      final messageC = message.toChar(arena);
 -    final error = libgit2.git_message_trailers(out, messageC);
 +    final error = libgit2Runtime.bindings.git_message_trailers(out, messageC);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -44,7 +44,7 @@ Map<String, String> trailers(String message) {
        result[trailer.key.toDartString()] = trailer.value.toDartString();
      }
- 
+
 -    libgit2.git_message_trailer_array_free(out);
 +    libgit2Runtime.bindings.git_message_trailer_array_free(out);
      return result;
@@ -3368,7 +3368,7 @@ index f411814..51da721 100644
 @@ -46,7 +50,7 @@ List<Map<String, Pointer>> list({
        }
      }
- 
+
 -    libgit2.git_note_iterator_free(iterator.value);
 +    libgit2Runtime.bindings.git_note_iterator_free(iterator.value);
      return result;
@@ -3403,33 +3403,33 @@ index f411814..51da721 100644
        authorPointer,
 @@ -129,23 +133,25 @@ void delete({
  }
- 
+
  /// Get the note object's id.
 -Pointer<git_oid> id(Pointer<git_note> note) => libgit2.git_note_id(note);
 +Pointer<git_oid> id(Pointer<git_note> note) =>
 +    libgit2Runtime.bindings.git_note_id(note);
- 
+
  /// Get the note message.
  String message(Pointer<git_note> note) {
 -  return libgit2.git_note_message(note).toDartString();
 +  return libgit2Runtime.bindings.git_note_message(note).toDartString();
  }
- 
+
  /// Get the note author.
  Pointer<git_signature> author(Pointer<git_note> note) =>
 -    libgit2.git_note_author(note);
 +    libgit2Runtime.bindings.git_note_author(note);
- 
+
  /// Get the note committer.
  Pointer<git_signature> committer(Pointer<git_note> note) =>
 -    libgit2.git_note_committer(note);
 +    libgit2Runtime.bindings.git_note_committer(note);
- 
+
  /// Free memory allocated for note object.
 -void free(Pointer<git_note> note) => libgit2.git_note_free(note);
 +void free(Pointer<git_note> note) =>
 +    libgit2Runtime.bindings.git_note_free(note);
- 
+
  /// Create an iterator over notes from a specific commit.
  ///
 @@ -155,7 +161,10 @@ void free(Pointer<git_note> note) => libgit2.git_note_free(note);
@@ -3441,9 +3441,9 @@ index f411814..51da721 100644
 +      out,
 +      notesCommit,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -174,7 +183,7 @@ Pointer<git_note> commitRead({
  }) {
    return using((arena) {
@@ -3495,17 +3495,17 @@ index 6a480c4..40f76e9 100644
 +++ b/lib/src/bindings/object.dart
 @@ -6,11 +6,12 @@ import 'package:git2dart/src/helpers/error_helper.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
- 
+
  /// Get the object type of an object.
 -git_object_t type(Pointer<git_object> obj) => libgit2.git_object_type(obj);
 +git_object_t type(Pointer<git_object> obj) =>
 +    libgit2Runtime.bindings.git_object_type(obj);
- 
+
  /// Determine if [type] is a valid loose object type.
  bool typeIsLoose(git_object_t type) =>
 -    libgit2.git_object_typeisloose(type) == 1;
 +    libgit2Runtime.bindings.git_object_typeisloose(type) == 1;
- 
+
  /// Lookup a reference to one of the objects in a repository. The returned
  /// reference must be freed with [free].
 @@ -27,7 +28,12 @@ Pointer<git_object> lookup({
@@ -3529,7 +3529,7 @@ index 6a480c4..40f76e9 100644
 -void free(Pointer<git_object> object) => libgit2.git_object_free(object);
 +void free(Pointer<git_object> object) =>
 +    libgit2Runtime.bindings.git_object_free(object);
- 
+
  /// Recursively peel an object until an object of the specified type is met.
  ///
 @@ -52,7 +59,11 @@ Pointer<git_object> peel({
@@ -3565,14 +3565,14 @@ index 6a480c4..40f76e9 100644
 +    return libgit2Runtime.bindings.git_object_string2type(typeC);
    });
  }
- 
+
  /// Convert an object type to its corresponding string representation.
  String type2string(git_object_t type) {
 -  final result = libgit2.git_object_type2string(type);
 +  final result = libgit2Runtime.bindings.git_object_type2string(type);
    return result.toDartString();
  }
- 
+
 @@ -101,7 +115,7 @@ Pointer<git_object> lookupPrefix({
  }) {
    return using((arena) {
@@ -3592,17 +3592,17 @@ index 6a480c4..40f76e9 100644
        treeishPointer,
        pathC,
 @@ -139,11 +153,11 @@ Pointer<git_object> lookupByPath({
- 
+
  /// Get the id of a repository object.
  Pointer<git_oid> id(Pointer<git_object> object) =>
 -    libgit2.git_object_id(object).cast();
 +    libgit2Runtime.bindings.git_object_id(object).cast();
- 
+
  /// Get the repository that owns this object.
  Pointer<git_repository> owner(Pointer<git_object> object) =>
 -    libgit2.git_object_owner(object);
 +    libgit2Runtime.bindings.git_object_owner(object);
- 
+
  /// Create an in-memory copy of a Git object.
  ///
 @@ -153,7 +167,7 @@ Pointer<git_repository> owner(Pointer<git_object> object) =>
@@ -3630,7 +3630,7 @@ index e2bf4e6..edc1c1d 100644
 @@ -21,7 +21,7 @@ Pointer<git_odb> create({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
      opts.ref.version = GIT_ODB_OPTIONS_VERSION;
      opts.ref.oid_typeAsInt = oidType.value;
- 
+
 -    final error = libgit2.git_odb_new(out, opts);
 +    final error = libgit2Runtime.bindings.git_odb_new(out, opts);
      checkErrorAndThrow(error);
@@ -3639,7 +3639,7 @@ index e2bf4e6..edc1c1d 100644
 @@ -41,7 +41,7 @@ Pointer<git_odb> open({
      opts.ref.version = GIT_ODB_OPTIONS_VERSION;
      opts.ref.oid_typeAsInt = oidType.value;
- 
+
 -    final error = libgit2.git_odb_open(out, pathC, opts);
 +    final error = libgit2Runtime.bindings.git_odb_open(out, pathC, opts);
      checkErrorAndThrow(error);
@@ -3653,13 +3653,13 @@ index e2bf4e6..edc1c1d 100644
 +    libgit2Runtime.bindings.git_odb_add_disk_alternate(odbPointer, pathC);
    });
  }
- 
+
  /// Return the number of ODB backends.
  int backendCount(Pointer<git_odb> odbPointer) {
 -  return libgit2.git_odb_num_backends(odbPointer);
 +  return libgit2Runtime.bindings.git_odb_num_backends(odbPointer);
  }
- 
+
  /// Get an ODB backend by position.
 @@ -78,7 +78,11 @@ Pointer<git_odb_backend> getBackend({
  }) {
@@ -3691,7 +3691,7 @@ index e2bf4e6..edc1c1d 100644
 +  return libgit2Runtime.bindings.git_odb_exists(odbPointer, oidPointer) == 1 ||
 +      false;
  }
- 
+
  /// Determine if the given object can be found in the object database using
 @@ -119,7 +124,12 @@ bool existsExt({
    required Pointer<git_oid> oidPointer,
@@ -3706,7 +3706,7 @@ index e2bf4e6..edc1c1d 100644
 +          1 ||
        false;
  }
- 
+
 @@ -144,7 +154,7 @@ List<Oid> objects(Pointer<git_odb> odb) {
          _forEachCb,
          except,
@@ -3714,7 +3714,7 @@ index e2bf4e6..edc1c1d 100644
 -  final error = libgit2.git_odb_foreach(odb, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_odb_foreach(odb, cb, nullptr);
    checkErrorAndThrow(error);
- 
+
    final result = _objects.toList(growable: false);
 @@ -160,13 +170,17 @@ void expandIds({
    required Pointer<git_odb_expand_id> idsPointer,
@@ -3728,14 +3728,14 @@ index e2bf4e6..edc1c1d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
  /// Refresh the object database to load newly added files.
  void refresh(Pointer<git_odb> odbPointer) {
 -  final error = libgit2.git_odb_refresh(odbPointer);
 +  final error = libgit2Runtime.bindings.git_odb_refresh(odbPointer);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -182,7 +196,11 @@ Pointer<git_odb_object> read({
  }) {
    return using((arena) {
@@ -3746,9 +3746,9 @@ index e2bf4e6..edc1c1d 100644
 +      odbPointer,
 +      oidPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -200,7 +218,7 @@ Pointer<git_odb_object> readPrefix({
  }) {
    return using((arena) {
@@ -3765,13 +3765,13 @@ index e2bf4e6..edc1c1d 100644
 -  return libgit2.git_odb_object_id(object);
 +  return libgit2Runtime.bindings.git_odb_object_id(object);
  }
- 
+
  /// Return the type of an ODB object.
  git_object_t objectType(Pointer<git_odb_object> object) {
 -  return libgit2.git_odb_object_type(object);
 +  return libgit2Runtime.bindings.git_odb_object_type(object);
  }
- 
+
  /// Return the data of an ODB object.
 @@ -228,14 +246,17 @@ git_object_t objectType(Pointer<git_odb_object> object) {
  /// This is the uncompressed, raw data as read from the ODB, without the
@@ -3783,7 +3783,7 @@ index e2bf4e6..edc1c1d 100644
 +      .cast<Utf8>()
 +      .toDartString();
  }
- 
+
  /// Return the data of an ODB object as bytes.
  Uint8List objectDataBytes(Pointer<git_odb_object> object) {
 -  final size = libgit2.git_odb_object_size(object);
@@ -3801,7 +3801,7 @@ index e2bf4e6..edc1c1d 100644
 -  return libgit2.git_odb_object_size(object);
 +  return libgit2Runtime.bindings.git_odb_object_size(object);
  }
- 
+
  /// Read the header of an object from the database without reading its data.
 @@ -261,7 +282,7 @@ Map<String, Object> readHeader({
    return using((arena) {
@@ -3823,7 +3823,7 @@ index e2bf4e6..edc1c1d 100644
        data.length,
 @@ -294,13 +315,20 @@ Pointer<git_oid> write({
      checkErrorAndThrow(streamError);
- 
+
      final bufferC = data.toChar(arena);
 -    libgit2.git_odb_stream_write(stream.value, bufferC, data.length);
 +    libgit2Runtime.bindings.git_odb_stream_write(
@@ -3831,7 +3831,7 @@ index e2bf4e6..edc1c1d 100644
 +      bufferC,
 +      data.length,
 +    );
- 
+
      final out = calloc<git_oid>();
 -    final error = libgit2.git_odb_stream_finalize_write(out, stream.value);
 +    final error = libgit2Runtime.bindings.git_odb_stream_finalize_write(
@@ -3839,7 +3839,7 @@ index e2bf4e6..edc1c1d 100644
 +      stream.value,
 +    );
      checkErrorAndThrow(error);
- 
+
 -    libgit2.git_odb_stream_free(stream.value);
 +    libgit2Runtime.bindings.git_odb_stream_free(stream.value);
      return out;
@@ -3887,11 +3887,11 @@ index e2bf4e6..edc1c1d 100644
      return out.value;
    });
  }
- 
+
  /// Close an open object database.
 -void free(Pointer<git_odb> db) => libgit2.git_odb_free(db);
 +void free(Pointer<git_odb> db) => libgit2Runtime.bindings.git_odb_free(db);
- 
+
  /// Close an ODB object.
  ///
  /// This method must always be called once a odb object is no longer needed,
@@ -3907,7 +3907,7 @@ index 7413252..b3a593f 100644
 @@ -25,7 +25,12 @@ Pointer<git_oid> fromStrN(
      final out = calloc<git_oid>();
      final hexC = hex.toChar(arena);
- 
+
 -    final error = libgit2.git_oid_fromstrn(out, hexC, hex.length, type);
 +    final error = libgit2Runtime.bindings.git_oid_fromstrn(
 +      out,
@@ -3916,30 +3916,30 @@ index 7413252..b3a593f 100644
 +      type,
 +    );
      checkErrorAndThrow(error);
- 
+
      return out;
 @@ -54,7 +59,7 @@ Pointer<git_oid> fromSHA(
      final out = calloc<git_oid>();
      final hexC = hex.toChar(arena);
- 
+
 -    final error = libgit2.git_oid_fromstr(out, hexC, type);
 +    final error = libgit2Runtime.bindings.git_oid_fromstr(out, hexC, type);
      checkErrorAndThrow(error);
- 
+
      return out;
 @@ -70,7 +75,7 @@ Pointer<git_oid> fromStrP(
      final out = calloc<git_oid>();
      final hexC = hex.toChar(arena);
- 
+
 -    final error = libgit2.git_oid_fromstrp(out, hexC, type);
 +    final error = libgit2Runtime.bindings.git_oid_fromstrp(out, hexC, type);
      checkErrorAndThrow(error);
- 
+
      return out;
 @@ -105,7 +110,7 @@ Pointer<git_oid> fromRaw(
        rawC[i] = raw[i];
      }
- 
+
 -    libgit2.git_oid_fromraw(out, rawC, type);
 +    libgit2Runtime.bindings.git_oid_fromraw(out, rawC, type);
      return out;
@@ -3960,7 +3960,7 @@ index 7413252..b3a593f 100644
      final out = arena<Char>(length);
 -    final error = libgit2.git_oid_nfmt(out, length, id);
 +    final error = libgit2Runtime.bindings.git_oid_nfmt(out, length, id);
- 
+
      checkErrorAndThrow(error);
      return out.toDartString(length: length);
 @@ -148,14 +153,14 @@ String toStrN({required Pointer<git_oid> id, required int length}) {
@@ -3972,14 +3972,14 @@ index 7413252..b3a593f 100644
      return out.toDartString();
    });
  }
- 
+
  /// Format [id] with libgit2's thread-local storage.
  String toStrS(Pointer<git_oid> id) {
 -  final result = libgit2.git_oid_tostr_s(id);
 +  final result = libgit2Runtime.bindings.git_oid_tostr_s(id);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -180,7 +185,7 @@ int compare({
    required Pointer<git_oid> aPointer,
    required Pointer<git_oid> bPointer,
@@ -3987,7 +3987,7 @@ index 7413252..b3a593f 100644
 -  return libgit2.git_oid_cmp(aPointer, bPointer);
 +  return libgit2Runtime.bindings.git_oid_cmp(aPointer, bPointer);
  }
- 
+
  /// Create a copy of an oid structure.
 @@ -197,7 +202,7 @@ int compare({
  /// ```
@@ -3995,9 +3995,9 @@ index 7413252..b3a593f 100644
    final out = calloc<git_oid>();
 -  final error = libgit2.git_oid_cpy(out, src);
 +  final error = libgit2Runtime.bindings.git_oid_cpy(out, src);
- 
+
    checkErrorAndThrow(error);
- 
+
 @@ -212,7 +217,7 @@ bool equal({
    required Pointer<git_oid> aPointer,
    required Pointer<git_oid> bPointer,
@@ -4005,7 +4005,7 @@ index 7413252..b3a593f 100644
 -  return libgit2.git_oid_equal(aPointer, bPointer) == 1;
 +  return libgit2Runtime.bindings.git_oid_equal(aPointer, bPointer) == 1;
  }
- 
+
  /// Compare the first [length] hexadecimal characters of two oid structures.
 @@ -221,14 +226,14 @@ int ncmp({
    required Pointer<git_oid> bPointer,
@@ -4014,7 +4014,7 @@ index 7413252..b3a593f 100644
 -  return libgit2.git_oid_ncmp(aPointer, bPointer, length);
 +  return libgit2Runtime.bindings.git_oid_ncmp(aPointer, bPointer, length);
  }
- 
+
  /// Compare [id] to a hexadecimal object id string.
  int strcmp({required Pointer<git_oid> id, required String hex}) {
    return using((arena) {
@@ -4023,7 +4023,7 @@ index 7413252..b3a593f 100644
 +    return libgit2Runtime.bindings.git_oid_strcmp(id, hexC);
    });
  }
- 
+
 @@ -236,12 +241,13 @@ int strcmp({required Pointer<git_oid> id, required String hex}) {
  bool streq({required Pointer<git_oid> id, required String hex}) {
    return using((arena) {
@@ -4032,12 +4032,12 @@ index 7413252..b3a593f 100644
 +    return libgit2Runtime.bindings.git_oid_streq(id, hexC) == 0;
    });
  }
- 
+
  /// Check if an oid is all zeros.
 -bool isZero(Pointer<git_oid> id) => libgit2.git_oid_is_zero(id) == 1;
 +bool isZero(Pointer<git_oid> id) =>
 +    libgit2Runtime.bindings.git_oid_is_zero(id) == 1;
- 
+
  /// Convert an oid into its loose-object path string (e.g. `aa/bb...`).
  String pathFormat(Pointer<git_oid> id) {
 @@ -251,7 +257,7 @@ String pathFormat(Pointer<git_oid> id) {
@@ -4071,7 +4071,7 @@ index 7413252..b3a593f 100644
      return result;
    });
 @@ -281,5 +290,5 @@ int shortenAdd({
- 
+
  /// Free an OID shortener.
  void shortenFree(Pointer<git_oid_shorten> shortener) {
 -  libgit2.git_oid_shorten_free(shortener);
@@ -4087,9 +4087,9 @@ index 10fc3f5..b7dfa7c 100644
        final out = arena<Pointer<git_packbuilder>>();
 -      final error = libgit2.git_packbuilder_new(out, repo);
 +      final error = libgit2Runtime.bindings.git_packbuilder_new(out, repo);
- 
+
        checkErrorAndThrow(error);
- 
+
 @@ -59,7 +59,7 @@ class Packbuilder {
      required Pointer<git_packbuilder> packbuilderPointer,
      required Pointer<git_oid> oidPointer,
@@ -4185,14 +4185,14 @@ index 10fc3f5..b7dfa7c 100644
    static int length(Pointer<git_packbuilder> pb) =>
 -      libgit2.git_packbuilder_object_count(pb);
 +      libgit2Runtime.bindings.git_packbuilder_object_count(pb);
- 
+
    /// Get the number of objects the packbuilder has already written out.
    ///
    /// [pb] is the packbuilder to get the count from.
    static int writtenCount(Pointer<git_packbuilder> pb) =>
 -      libgit2.git_packbuilder_written(pb);
 +      libgit2Runtime.bindings.git_packbuilder_written(pb);
- 
+
    /// Get the unique name for the resulting packfile.
    ///
 @@ -247,13 +250,13 @@ class Packbuilder {
@@ -4203,12 +4203,12 @@ index 10fc3f5..b7dfa7c 100644
 +    final result = libgit2Runtime.bindings.git_packbuilder_name(pb);
      return result == nullptr ? '' : result.toDartString();
    }
- 
+
    /// Get the packfile hash.
    static Pointer<git_oid> hash(Pointer<git_packbuilder> pb) =>
 -      libgit2.git_packbuilder_hash(pb);
 +      libgit2Runtime.bindings.git_packbuilder_hash(pb);
- 
+
    /// Set the number of threads to use for pack creation.
    ///
 @@ -268,12 +271,15 @@ class Packbuilder {
@@ -4221,7 +4221,7 @@ index 10fc3f5..b7dfa7c 100644
 +      number,
 +    );
    }
- 
+
    /// Free the packbuilder and all associated data.
    ///
    /// [pb] is the packbuilder to free.
@@ -4236,7 +4236,7 @@ index df7b320..402e386 100644
 @@ -32,7 +32,7 @@ Pointer<git_patch> fromBuffers({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_patch_from_buffers(
 +    final error = libgit2Runtime.bindings.git_patch_from_buffers(
        out,
@@ -4245,7 +4245,7 @@ index df7b320..402e386 100644
 @@ -75,7 +75,7 @@ Pointer<git_patch> fromBlobs({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_patch_from_blobs(
 +    final error = libgit2Runtime.bindings.git_patch_from_blobs(
        out,
@@ -4254,7 +4254,7 @@ index df7b320..402e386 100644
 @@ -113,7 +113,7 @@ Pointer<git_patch> fromBlobAndBuffer({
        interhunkLines: interhunkLines,
      );
- 
+
 -    final error = libgit2.git_patch_from_blob_and_buffer(
 +    final error = libgit2Runtime.bindings.git_patch_from_blob_and_buffer(
        out,
@@ -4270,32 +4270,32 @@ index df7b320..402e386 100644
 +      diffPointer,
 +      index,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -152,14 +156,15 @@ Pointer<git_patch> fromDiff({
- 
+
  /// Get the delta associated with a patch.
  Pointer<git_diff_delta> delta(Pointer<git_patch> patch) =>
 -    libgit2.git_patch_get_delta(patch);
 +    libgit2Runtime.bindings.git_patch_get_delta(patch);
- 
+
  /// Get the repository that owns this patch.
  Pointer<git_repository> owner(Pointer<git_patch> patch) =>
 -    libgit2.git_patch_owner(patch);
 +    libgit2Runtime.bindings.git_patch_owner(patch);
- 
+
  /// Get the number of hunks in a patch.
 -int numHunks(Pointer<git_patch> patch) => libgit2.git_patch_num_hunks(patch);
 +int numHunks(Pointer<git_patch> patch) =>
 +    libgit2Runtime.bindings.git_patch_num_hunks(patch);
- 
+
  /// Get the information about a hunk in a patch.
  ///
 @@ -173,7 +178,7 @@ Map<String, Object> hunk({
      final out = arena<Pointer<git_diff_hunk>>();
      final linesInHunk = arena<Size>();
- 
+
 -    final error = libgit2.git_patch_get_hunk(
 +    final error = libgit2Runtime.bindings.git_patch_get_hunk(
        out,
@@ -4311,12 +4311,12 @@ index df7b320..402e386 100644
 +    hunkIndex,
 +  );
  }
- 
+
  /// Get line counts of each type in a patch.
 @@ -203,7 +211,7 @@ Map<String, int> lineStats(Pointer<git_patch> patch) {
      final insertions = arena<Size>();
      final deletions = arena<Size>();
- 
+
 -    final error = libgit2.git_patch_line_stats(
 +    final error = libgit2Runtime.bindings.git_patch_line_stats(
        context,
@@ -4338,7 +4338,7 @@ index df7b320..402e386 100644
 -    final error = libgit2.git_patch_to_buf(out, patch);
 +    final error = libgit2Runtime.bindings.git_patch_to_buf(out, patch);
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -4347,11 +4347,11 @@ index df7b320..402e386 100644
  }
 @@ -289,7 +297,7 @@ String print(Pointer<git_patch> patch) {
    >(_patchPrintCb, 0);
- 
+
    _printedPatchLines.clear();
 -  final error = libgit2.git_patch_print(patch, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_patch_print(patch, cb, nullptr);
- 
+
    checkErrorAndThrow(error);
    final result = _printedPatchLines.join();
 @@ -301,12 +309,12 @@ String print(Pointer<git_patch> patch) {
@@ -4361,7 +4361,7 @@ index df7b320..402e386 100644
 -    final error = libgit2.git_patch_to_buf(out, patch);
 +    final error = libgit2Runtime.bindings.git_patch_to_buf(out, patch);
      checkErrorAndThrow(error);
- 
+
      final data = out.ref.ptr.cast<Uint8>().asTypedList(out.ref.size);
      final result = Uint8List.fromList(data);
 -    libgit2.git_buf_dispose(out);
@@ -4372,7 +4372,7 @@ index df7b320..402e386 100644
 @@ -329,7 +337,7 @@ int size({
    final includeHunkHeadersC = includeHunkHeaders ? 1 : 0;
    final includeFileHeadersC = includeFileHeaders ? 1 : 0;
- 
+
 -  return libgit2.git_patch_size(
 +  return libgit2Runtime.bindings.git_patch_size(
      patchPointer,
@@ -4380,12 +4380,12 @@ index df7b320..402e386 100644
      includeHunkHeadersC,
 @@ -338,7 +346,8 @@ int size({
  }
- 
+
  /// Free a previously allocated patch object.
 -void free(Pointer<git_patch> patch) => libgit2.git_patch_free(patch);
 +void free(Pointer<git_patch> patch) =>
 +    libgit2Runtime.bindings.git_patch_free(patch);
- 
+
  Pointer<git_diff_options> _diffOptionsInit({
    required Arena arena,
 @@ -347,7 +356,10 @@ Pointer<git_diff_options> _diffOptionsInit({
@@ -4398,7 +4398,7 @@ index df7b320..402e386 100644
 +    GIT_DIFF_OPTIONS_VERSION,
 +  );
    checkErrorAndThrow(error);
- 
+
    opts.ref.flags = flags;
 diff --git a/lib/src/bindings/pathspec.dart b/lib/src/bindings/pathspec.dart
 index 599cc7e..dae2118 100644
@@ -4410,7 +4410,7 @@ index 599cc7e..dae2118 100644
      final patternsC = _strArray(arena, patterns);
 -    final error = libgit2.git_pathspec_new(out, patternsC);
 +    final error = libgit2Runtime.bindings.git_pathspec_new(out, patternsC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -38,7 +38,11 @@ bool matchesPath({
@@ -4463,7 +4463,7 @@ index 599cc7e..dae2118 100644
        diffPointer,
        flags,
 @@ -125,21 +129,24 @@ Pointer<git_pathspec_match_list> matchDiff({
- 
+
  /// Return matched paths from [matchListPointer].
  List<String> entries(Pointer<git_pathspec_match_list> matchListPointer) {
 -  final count = libgit2.git_pathspec_match_list_entrycount(matchListPointer);
@@ -4478,7 +4478,7 @@ index 599cc7e..dae2118 100644
 +          .toDartString(),
    ];
  }
- 
+
  /// Return unmatched patterns from [matchListPointer].
  List<String> failedEntries(Pointer<git_pathspec_match_list> matchListPointer) {
 -  final count = libgit2.git_pathspec_match_list_failed_entrycount(
@@ -4494,13 +4494,13 @@ index 599cc7e..dae2118 100644
            .toDartString(),
    ];
 @@ -147,10 +154,10 @@ List<String> failedEntries(Pointer<git_pathspec_match_list> matchListPointer) {
- 
+
  /// Free a pathspec match list.
  void freeMatchList(Pointer<git_pathspec_match_list> matchList) {
 -  libgit2.git_pathspec_match_list_free(matchList);
 +  libgit2Runtime.bindings.git_pathspec_match_list_free(matchList);
  }
- 
+
  /// Free a pathspec.
  void free(Pointer<git_pathspec> pathspec) {
 -  libgit2.git_pathspec_free(pathspec);
@@ -4513,14 +4513,14 @@ index b975958..66d10ab 100644
 @@ -30,13 +30,13 @@ Pointer<git_rebase> init({
      final out = arena<Pointer<git_rebase>>();
      final opts = arena<git_rebase_options>();
- 
+
 -    final error = libgit2.git_rebase_options_init(
 +    final error = libgit2Runtime.bindings.git_rebase_options_init(
        opts,
        GIT_REBASE_OPTIONS_VERSION,
      );
      checkErrorAndThrow(error);
- 
+
 -    final initError = libgit2.git_rebase_init(
 +    final initError = libgit2Runtime.bindings.git_rebase_init(
        out,
@@ -4529,26 +4529,26 @@ index b975958..66d10ab 100644
 @@ -60,13 +60,13 @@ Pointer<git_rebase> open(Pointer<git_repository> repo) {
      final out = arena<Pointer<git_rebase>>();
      final opts = arena<git_rebase_options>();
- 
+
 -    final error = libgit2.git_rebase_options_init(
 +    final error = libgit2Runtime.bindings.git_rebase_options_init(
        opts,
        GIT_REBASE_OPTIONS_VERSION,
      );
      checkErrorAndThrow(error);
- 
+
 -    final openError = libgit2.git_rebase_open(out, repo, opts);
 +    final openError = libgit2Runtime.bindings.git_rebase_open(out, repo, opts);
      checkErrorAndThrow(openError);
- 
+
      return out.value;
 @@ -75,21 +75,21 @@ Pointer<git_rebase> open(Pointer<git_repository> repo) {
- 
+
  /// Gets the count of rebase operations that are to be applied.
  int operationsCount(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_operation_entrycount(rebase);
 +    libgit2Runtime.bindings.git_rebase_operation_entrycount(rebase);
- 
+
  /// Gets the rebase operation specified by the given index.
  Pointer<git_rebase_operation> getOperationByIndex({
    required Pointer<git_rebase> rebase,
@@ -4557,14 +4557,14 @@ index b975958..66d10ab 100644
 -  return libgit2.git_rebase_operation_byindex(rebase, index);
 +  return libgit2Runtime.bindings.git_rebase_operation_byindex(rebase, index);
  }
- 
+
  /// Gets the index of the rebase operation that is currently being applied. If
  /// the first operation has not yet been applied (because you have called [init]
  /// but not yet [next]) then this returns `-1`.
  int currentOperation(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_operation_current(rebase);
 +    libgit2Runtime.bindings.git_rebase_operation_current(rebase);
- 
+
  /// Performs the next rebase operation and returns the information about it.
  /// If the operation is one that applies a patch (which is any operation except
 @@ -101,7 +101,7 @@ int currentOperation(Pointer<git_rebase> rebase) =>
@@ -4573,13 +4573,13 @@ index b975958..66d10ab 100644
      final out = arena<Pointer<git_rebase_operation>>();
 -    final error = libgit2.git_rebase_next(out, rebase);
 +    final error = libgit2Runtime.bindings.git_rebase_next(out, rebase);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -123,7 +123,7 @@ void commit({
      final out = arena<git_oid>();
      final messageC = message?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_rebase_commit(
 +    final error = libgit2Runtime.bindings.git_rebase_commit(
        out,
@@ -4603,35 +4603,35 @@ index b975958..66d10ab 100644
  void finish(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_finish(rebase, nullptr);
 +    libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
- 
+
  /// Aborts a rebase that is currently in progress, resetting the repository and
  /// working directory to their state before rebase began.
 -void abort(Pointer<git_rebase> rebase) => libgit2.git_rebase_abort(rebase);
 +void abort(Pointer<git_rebase> rebase) =>
 +    libgit2Runtime.bindings.git_rebase_abort(rebase);
- 
+
  /// Gets the original HEAD id for merge rebases.
  Pointer<git_oid> origHeadOid(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_orig_head_id(rebase);
 +    libgit2Runtime.bindings.git_rebase_orig_head_id(rebase);
- 
+
  /// Gets the original HEAD ref name for merge rebases.
  String origHeadName(Pointer<git_rebase> rebase) {
 -  final result = libgit2.git_rebase_orig_head_name(rebase);
 +  final result = libgit2Runtime.bindings.git_rebase_orig_head_name(rebase);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
  /// Gets the onto id for merge rebases.
  Pointer<git_oid> ontoOid(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_onto_id(rebase);
 +    libgit2Runtime.bindings.git_rebase_onto_id(rebase);
- 
+
  /// Gets the onto ref name for merge rebases.
  String ontoName(Pointer<git_rebase> rebase) =>
 -    libgit2.git_rebase_onto_name(rebase).toDartString();
 +    libgit2Runtime.bindings.git_rebase_onto_name(rebase).toDartString();
- 
+
  /// Free memory allocated for rebase object.
 -void free(Pointer<git_rebase> rebase) => libgit2.git_rebase_free(rebase);
 +void free(Pointer<git_rebase> rebase) =>
@@ -4646,7 +4646,7 @@ index d5ca1f3..1ff6161 100644
      final out = arena<Pointer<git_refdb>>();
 -    final error = libgit2.git_refdb_new(out, repoPointer);
 +    final error = libgit2Runtime.bindings.git_refdb_new(out, repoPointer);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -25,7 +25,7 @@ Pointer<git_refdb> create(Pointer<git_repository> repoPointer) {
@@ -4655,11 +4655,11 @@ index d5ca1f3..1ff6161 100644
      final out = arena<Pointer<git_refdb>>();
 -    final error = libgit2.git_refdb_open(out, repoPointer);
 +    final error = libgit2Runtime.bindings.git_refdb_open(out, repoPointer);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -34,7 +34,10 @@ Pointer<git_refdb> open(Pointer<git_repository> repoPointer) {
- 
+
  /// Initialize a refdb backend structure with default values.
  void initBackend(Pointer<git_refdb_backend> backend) {
 -  libgit2.git_refdb_init_backend(backend, GIT_REFDB_BACKEND_VERSION);
@@ -4668,7 +4668,7 @@ index d5ca1f3..1ff6161 100644
 +    GIT_REFDB_BACKEND_VERSION,
 +  );
  }
- 
+
  /// Create a filesystem-based backend for the repository.
 @@ -43,7 +46,10 @@ void initBackend(Pointer<git_refdb_backend> backend) {
  Pointer<git_refdb_backend> backendFs(Pointer<git_repository> repoPointer) {
@@ -4679,7 +4679,7 @@ index d5ca1f3..1ff6161 100644
 +      out,
 +      repoPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -59,14 +65,19 @@ void setBackend({
@@ -4693,14 +4693,14 @@ index d5ca1f3..1ff6161 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
  /// Suggests that the given refdb compress or optimize its references.
  /// This mechanism is implementation specific. For on-disk reference databases,
  /// for example, this may pack all loose references.
 -void compress(Pointer<git_refdb> refdb) => libgit2.git_refdb_compress(refdb);
 +void compress(Pointer<git_refdb> refdb) =>
 +    libgit2Runtime.bindings.git_refdb_compress(refdb);
- 
+
  /// Close an open reference database to release memory.
 -void free(Pointer<git_refdb> refdb) => libgit2.git_refdb_free(refdb);
 +void free(Pointer<git_refdb> refdb) =>
@@ -4715,7 +4715,7 @@ index 2a3467f..c90961b 100644
  git_reference_t referenceType(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_type(ref);
 +    libgit2Runtime.bindings.git_reference_type(ref);
- 
+
  /// Get the OID pointed to by a direct reference.
  ///
 @@ -21,7 +21,7 @@ git_reference_t referenceType(Pointer<git_reference> ref) =>
@@ -4724,7 +4724,7 @@ index 2a3467f..c90961b 100644
  Pointer<git_oid> target(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_target(ref);
 +    libgit2Runtime.bindings.git_reference_target(ref);
- 
+
  /// Get the target of a symbolic reference.
  ///
 @@ -30,7 +30,7 @@ Pointer<git_oid> target(Pointer<git_reference> ref) =>
@@ -4733,7 +4733,7 @@ index 2a3467f..c90961b 100644
  String symbolicTarget(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_symbolic_target(ref).toDartString();
 +    libgit2Runtime.bindings.git_reference_symbolic_target(ref).toDartString();
- 
+
  /// Resolve a symbolic reference to a direct reference.
  ///
 @@ -48,7 +48,7 @@ String symbolicTarget(Pointer<git_reference> ref) =>
@@ -4742,7 +4742,7 @@ index 2a3467f..c90961b 100644
      final out = arena<Pointer<git_reference>>();
 -    final error = libgit2.git_reference_resolve(out, ref);
 +    final error = libgit2Runtime.bindings.git_reference_resolve(out, ref);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -75,7 +75,11 @@ Pointer<git_reference> lookup({
@@ -4755,7 +4755,7 @@ index 2a3467f..c90961b 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -86,7 +90,7 @@ Pointer<git_reference> lookup({
@@ -4764,7 +4764,7 @@ index 2a3467f..c90961b 100644
  String name(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_name(ref).toDartString();
 +    libgit2Runtime.bindings.git_reference_name(ref).toDartString();
- 
+
  /// Get the reference's short name.
  ///
 @@ -98,7 +102,7 @@ String name(Pointer<git_reference> ref) =>
@@ -4773,7 +4773,7 @@ index 2a3467f..c90961b 100644
  String shorthand(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_shorthand(ref).toDartString();
 +    libgit2Runtime.bindings.git_reference_shorthand(ref).toDartString();
- 
+
  /// Rename an existing reference.
  ///
 @@ -127,7 +131,7 @@ Pointer<git_reference> rename({
@@ -4792,12 +4792,12 @@ index 2a3467f..c90961b 100644
 -    final error = libgit2.git_reference_list(array, repo);
 +    final error = libgit2Runtime.bindings.git_reference_list(array, repo);
      final result = <String>[];
- 
+
      checkErrorAndThrow(error);
 @@ -160,7 +164,7 @@ List<String> list(Pointer<git_repository> repo) {
        result.add(array.ref.strings[i].cast<Char>().toDartString());
      }
- 
+
 -    libgit2.git_strarray_dispose(array);
 +    libgit2Runtime.bindings.git_strarray_dispose(array);
      return result;
@@ -4805,7 +4805,7 @@ index 2a3467f..c90961b 100644
  }
 @@ -185,7 +189,11 @@ List<String> listForeach(Pointer<git_repository> repo) {
        );
- 
+
    _foreachReferences.clear();
 -  final error = libgit2.git_reference_foreach(repo, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_reference_foreach(
@@ -4814,11 +4814,11 @@ index 2a3467f..c90961b 100644
 +    nullptr,
 +  );
    checkErrorAndThrow(error);
- 
+
    final result = _foreachReferences.toList(growable: false);
 @@ -211,7 +219,11 @@ List<String> listForeachName(Pointer<git_repository> repo) {
    );
- 
+
    _foreachNames.clear();
 -  final error = libgit2.git_reference_foreach_name(repo, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_reference_foreach_name(
@@ -4827,11 +4827,11 @@ index 2a3467f..c90961b 100644
 +    nullptr,
 +  );
    checkErrorAndThrow(error);
- 
+
    final result = _foreachNames.toList(growable: false);
 @@ -235,7 +247,7 @@ List<String> listForeachGlob({
      );
- 
+
      _foreachNames.clear();
 -    final error = libgit2.git_reference_foreach_glob(
 +    final error = libgit2Runtime.bindings.git_reference_foreach_glob(
@@ -4847,7 +4847,7 @@ index 2a3467f..c90961b 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      return result == 1;
    });
 @@ -276,7 +291,10 @@ void ensureLog({
@@ -4859,7 +4859,7 @@ index 2a3467f..c90961b 100644
 +      repoPointer,
 +      refNameC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -286,26 +304,26 @@ void ensureLog({
@@ -4868,14 +4868,14 @@ index 2a3467f..c90961b 100644
  bool isBranch(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_is_branch(ref) == 1;
 +    libgit2Runtime.bindings.git_reference_is_branch(ref) == 1;
- 
+
  /// Check if a reference is a note.
  ///
  /// Returns true if the reference is a note (starts with "refs/notes/").
  bool isNote(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_is_note(ref) == 1;
 +    libgit2Runtime.bindings.git_reference_is_note(ref) == 1;
- 
+
  /// Check if a reference is a remote tracking branch.
  ///
  /// Returns true if the reference is a remote tracking branch
@@ -4883,14 +4883,14 @@ index 2a3467f..c90961b 100644
  bool isRemote(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_is_remote(ref) == 1;
 +    libgit2Runtime.bindings.git_reference_is_remote(ref) == 1;
- 
+
  /// Check if a reference is a tag.
  ///
  /// Returns true if the reference is a tag (starts with "refs/tags/").
  bool isTag(Pointer<git_reference> ref) =>
 -    libgit2.git_reference_is_tag(ref) == 1;
 +    libgit2Runtime.bindings.git_reference_is_tag(ref) == 1;
- 
+
  /// Create a new direct reference.
  ///
 @@ -343,7 +361,7 @@ Pointer<git_reference> createDirect({
@@ -4943,7 +4943,7 @@ index 2a3467f..c90961b 100644
 +          currentValueC,
 +          logMessageC,
 +        );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -494,7 +513,7 @@ Pointer<git_reference> updateDirect({
@@ -4970,7 +4970,7 @@ index 2a3467f..c90961b 100644
  void delete(Pointer<git_reference> ref) {
 -  final error = libgit2.git_reference_delete(ref);
 +  final error = libgit2Runtime.bindings.git_reference_delete(ref);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -561,7 +580,10 @@ void remove({
@@ -4992,13 +4992,13 @@ index 2a3467f..c90961b 100644
 -  libgit2.git_reference_free(ref);
 +  libgit2Runtime.bindings.git_reference_free(ref);
  }
- 
+
  /// Get the repository where a reference resides.
  Pointer<git_repository> owner(Pointer<git_reference> ref) {
 -  return libgit2.git_reference_owner(ref);
 +  return libgit2Runtime.bindings.git_reference_owner(ref);
  }
- 
+
  /// Conditionally create a new reference with the same name as the given
 @@ -595,7 +617,7 @@ Pointer<git_reference> setTarget({
    return using((arena) {
@@ -5028,7 +5028,7 @@ index 2a3467f..c90961b 100644
 +      refPointer,
 +      type,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -669,7 +695,7 @@ Pointer<git_object> peel({
@@ -5047,7 +5047,7 @@ index 2a3467f..c90961b 100644
 -  return libgit2.git_reference_cmp(ref1Pointer, ref2Pointer);
 +  return libgit2Runtime.bindings.git_reference_cmp(ref1Pointer, ref2Pointer);
  }
- 
+
  Pointer<git_reference_iterator> iteratorNew(Pointer<git_repository> repo) {
    return using((arena) {
      final out = arena<Pointer<git_reference_iterator>>();
@@ -5072,7 +5072,7 @@ index 2a3467f..c90961b 100644
 -    final error = libgit2.git_reference_next(out, iterator);
 +    final error = libgit2Runtime.bindings.git_reference_next(out, iterator);
      if (error == git_error_code.GIT_ITEROVER.value) return null;
- 
+
      checkErrorAndThrow(error);
 @@ -722,7 +748,10 @@ Pointer<git_reference>? iteratorNext(Pointer<git_reference_iterator> iterator) {
  String? iteratorNextName(Pointer<git_reference_iterator> iterator) {
@@ -5084,16 +5084,16 @@ index 2a3467f..c90961b 100644
 +      iterator,
 +    );
      if (error == git_error_code.GIT_ITEROVER.value) return null;
- 
+
      checkErrorAndThrow(error);
 @@ -731,7 +760,7 @@ String? iteratorNextName(Pointer<git_reference_iterator> iterator) {
  }
- 
+
  void iteratorFree(Pointer<git_reference_iterator> iterator) {
 -  libgit2.git_reference_iterator_free(iterator);
 +  libgit2Runtime.bindings.git_reference_iterator_free(iterator);
  }
- 
+
  /// List all references in a repository using libgit2's iterator API.
 @@ -788,7 +817,10 @@ bool nameIsValid(String name) {
    return using((arena) {
@@ -5104,7 +5104,7 @@ index 2a3467f..c90961b 100644
 +      out,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value == 1;
 @@ -802,7 +834,7 @@ String normalizeName(String name) {
@@ -5126,24 +5126,24 @@ index 2a3467f..c90961b 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -849,7 +885,11 @@ Pointer<git_oid> nameToId({
      final result = calloc<git_oid>();
      final nameC = refName.toChar(arena);
- 
+
 -    final error = libgit2.git_reference_name_to_id(result, repoPointer, nameC);
 +    final error = libgit2Runtime.bindings.git_reference_name_to_id(
 +      result,
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return result;
 @@ -858,6 +898,6 @@ Pointer<git_oid> nameToId({
- 
+
  /// Return the peeled OID target of a direct reference to an annotated tag.
  Pointer<git_oid>? targetPeel(Pointer<git_reference> ref) {
 -  final result = libgit2.git_reference_target_peel(ref);
@@ -5164,16 +5164,16 @@ index 5d44a69..2438e16 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -30,7 +34,7 @@ Pointer<git_reflog> read({
  ///
  /// Throws a [LibGit2Error] if error occured.
  void write(Pointer<git_reflog> reflog) {
 -  final error = libgit2.git_reflog_write(reflog);
 +  final error = libgit2Runtime.bindings.git_reflog_write(reflog);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -42,7 +46,7 @@ void delete({
@@ -5182,7 +5182,7 @@ index 5d44a69..2438e16 100644
      final nameC = name.toChar(arena);
 -    final error = libgit2.git_reflog_delete(repoPointer, nameC);
 +    final error = libgit2Runtime.bindings.git_reflog_delete(repoPointer, nameC);
- 
+
      checkErrorAndThrow(error);
    });
 @@ -63,7 +67,11 @@ void rename({
@@ -5195,7 +5195,7 @@ index 5d44a69..2438e16 100644
 +      oldNameC,
 +      newNameC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -80,7 +88,7 @@ void add({
@@ -5217,7 +5217,7 @@ index 5d44a69..2438e16 100644
 +    index,
 +    1,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 @@ -112,7 +124,7 @@ void drop({
@@ -5230,12 +5230,12 @@ index 5d44a69..2438e16 100644
      index,
      rewritePrevious ? 1 : 0,
 @@ -123,7 +135,7 @@ void drop({
- 
+
  /// Get the number of log entries in a reflog.
  int entryCount(Pointer<git_reflog> reflog) =>
 -    libgit2.git_reflog_entrycount(reflog);
 +    libgit2Runtime.bindings.git_reflog_entrycount(reflog);
- 
+
  /// Lookup an entry by its index.
  ///
 @@ -132,25 +144,26 @@ int entryCount(Pointer<git_reflog> reflog) =>
@@ -5244,29 +5244,29 @@ index 5d44a69..2438e16 100644
    required int index,
 -}) => libgit2.git_reflog_entry_byindex(reflogPointer, index);
 +}) => libgit2Runtime.bindings.git_reflog_entry_byindex(reflogPointer, index);
- 
+
  /// Get the log message.
  String entryMessage(Pointer<git_reflog_entry> entry) {
 -  final result = libgit2.git_reflog_entry_message(entry);
 +  final result = libgit2Runtime.bindings.git_reflog_entry_message(entry);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
  /// Get the committer of this entry. The returned signature must be freed.
  Pointer<git_signature> entryCommiter(Pointer<git_reflog_entry> entry) =>
 -    libgit2.git_reflog_entry_committer(entry);
 +    libgit2Runtime.bindings.git_reflog_entry_committer(entry);
- 
+
  /// Get the new oid.
  Pointer<git_oid> entryOidNew(Pointer<git_reflog_entry> entry) =>
 -    libgit2.git_reflog_entry_id_new(entry);
 +    libgit2Runtime.bindings.git_reflog_entry_id_new(entry);
- 
+
  /// Get the old oid.
  Pointer<git_oid> entryOidOld(Pointer<git_reflog_entry> entry) =>
 -    libgit2.git_reflog_entry_id_old(entry);
 +    libgit2Runtime.bindings.git_reflog_entry_id_old(entry);
- 
+
  /// Free the reflog.
 -void free(Pointer<git_reflog> reflog) => libgit2.git_reflog_free(reflog);
 +void free(Pointer<git_reflog> reflog) =>
@@ -5276,32 +5276,32 @@ index f9ef63d..4462f36 100644
 --- a/lib/src/bindings/refspec.dart
 +++ b/lib/src/bindings/refspec.dart
 @@ -7,23 +7,23 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
- 
+
  /// Get the source specifier.
  String source(Pointer<git_refspec> refspec) =>
 -    libgit2.git_refspec_src(refspec).toDartString();
 +    libgit2Runtime.bindings.git_refspec_src(refspec).toDartString();
- 
+
  /// Get the destination specifier.
  String destination(Pointer<git_refspec> refspec) =>
 -    libgit2.git_refspec_dst(refspec).toDartString();
 +    libgit2Runtime.bindings.git_refspec_dst(refspec).toDartString();
- 
+
  /// Get the force update setting.
  bool force(Pointer<git_refspec> refspec) =>
 -    libgit2.git_refspec_force(refspec) == 1;
 +    libgit2Runtime.bindings.git_refspec_force(refspec) == 1;
- 
+
  /// Get the refspec's string.
  String string(Pointer<git_refspec> refspec) =>
 -    libgit2.git_refspec_string(refspec).toDartString();
 +    libgit2Runtime.bindings.git_refspec_string(refspec).toDartString();
- 
+
  /// Get the refspec's direction.
  git_direction direction(Pointer<git_refspec> refspec) =>
 -    libgit2.git_refspec_direction(refspec);
 +    libgit2Runtime.bindings.git_refspec_direction(refspec);
- 
+
  /// Parse a refspec string into a [git_refspec] instance. The returned refspec
  /// must be freed with [free].
 @@ -33,7 +33,7 @@ Pointer<git_refspec> parse(String spec) {
@@ -5310,17 +5310,17 @@ index f9ef63d..4462f36 100644
      final specC = spec.toChar(arena);
 -    final error = libgit2.git_refspec_parse(out, specC, 0);
 +    final error = libgit2Runtime.bindings.git_refspec_parse(out, specC, 0);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -41,7 +41,8 @@ Pointer<git_refspec> parse(String spec) {
  }
- 
+
  /// Free a refspec created by [parse].
 -void free(Pointer<git_refspec> refspec) => libgit2.git_refspec_free(refspec);
 +void free(Pointer<git_refspec> refspec) =>
 +    libgit2Runtime.bindings.git_refspec_free(refspec);
- 
+
  /// Check if a refspec's source descriptor matches a reference negatively.
  bool matchesSourceNegative({
 @@ -50,7 +51,10 @@ bool matchesSourceNegative({
@@ -5347,7 +5347,7 @@ index f9ef63d..4462f36 100644
 +        1;
    });
  }
- 
+
 @@ -73,7 +81,11 @@ bool matchesDestination({
  }) {
    return using((arena) {
@@ -5360,7 +5360,7 @@ index f9ef63d..4462f36 100644
 +        1;
    });
  }
- 
+
 @@ -87,12 +99,16 @@ String transform({
    return using((arena) {
      final out = arena<git_buf>();
@@ -5371,9 +5371,9 @@ index f9ef63d..4462f36 100644
 +      refspecPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -5390,9 +5390,9 @@ index f9ef63d..4462f36 100644
 +      refspecPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -5409,9 +5409,9 @@ index 7a13524..d2b7bdf 100644
      final out = arena<git_strarray>();
 -    final error = libgit2.git_remote_list(out, repo);
 +    final error = libgit2Runtime.bindings.git_remote_list(out, repo);
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = <String>[
        for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
      ];
@@ -5430,7 +5430,7 @@ index 7a13524..d2b7bdf 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -55,7 +59,7 @@ Pointer<git_remote> lookup({
@@ -5439,7 +5439,7 @@ index 7a13524..d2b7bdf 100644
      final out = arena<Pointer<git_remote>>();
 -    final error = libgit2.git_remote_dup(out, remote);
 +    final error = libgit2Runtime.bindings.git_remote_dup(out, remote);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -66,7 +70,7 @@ Pointer<git_remote> dup(Pointer<git_remote> remote) {
@@ -5448,7 +5448,7 @@ index 7a13524..d2b7bdf 100644
  Pointer<git_repository> owner(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_owner(remote);
 +    libgit2Runtime.bindings.git_remote_owner(remote);
- 
+
  /// Add a remote with the default fetch refspec to the repository's
  /// configuration. The returned remote must be freed with [free].
 @@ -81,7 +85,12 @@ Pointer<git_remote> create({
@@ -5462,7 +5462,7 @@ index 7a13524..d2b7bdf 100644
 +      nameC,
 +      urlC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -100,7 +109,11 @@ Pointer<git_remote> createAnonymous({
@@ -5475,7 +5475,7 @@ index 7a13524..d2b7bdf 100644
 +      repoPointer,
 +      urlC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -116,7 +129,7 @@ Pointer<git_remote> createDetached({required String url}) {
@@ -5484,7 +5484,7 @@ index 7a13524..d2b7bdf 100644
      final urlC = url.toChar(arena);
 -    final error = libgit2.git_remote_create_detached(out, urlC);
 +    final error = libgit2Runtime.bindings.git_remote_create_detached(out, urlC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -135,7 +148,7 @@ void delete({
@@ -5507,9 +5507,9 @@ index 7a13524..d2b7bdf 100644
 +      nameC,
 +      newNameC,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = <String>[
        for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
      ];
@@ -5589,14 +5589,14 @@ index 7a13524..d2b7bdf 100644
 +  final result = libgit2Runtime.bindings.git_remote_name(remote);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -261,13 +297,13 @@ String name(Pointer<git_remote> remote) {
  ///
  /// Returns the URL of the remote repository.
  String url(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_url(remote).toDartString();
 +    libgit2Runtime.bindings.git_remote_url(remote).toDartString();
- 
+
  /// Get the remote's url for pushing.
  ///
  /// Returns empty string if no special url for pushing is set.
@@ -5605,7 +5605,7 @@ index 7a13524..d2b7bdf 100644
 +  final result = libgit2Runtime.bindings.git_remote_pushurl(remote);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -275,7 +311,7 @@ String pushUrl(Pointer<git_remote> remote) {
  git_oid_t oidType(Pointer<git_remote> remote) {
    return using((arena) {
@@ -5616,25 +5616,25 @@ index 7a13524..d2b7bdf 100644
      return git_oid_t.fromValue(out.value);
    });
 @@ -283,31 +319,34 @@ git_oid_t oidType(Pointer<git_remote> remote) {
- 
+
  /// Get the remote's automatic tag following option.
  git_remote_autotag_option_t autotag(Pointer<git_remote> remote) {
 -  return libgit2.git_remote_autotag(remote);
 +  return libgit2Runtime.bindings.git_remote_autotag(remote);
  }
- 
+
  /// Get the number of refspecs for a remote.
  int refspecCount(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_refspec_count(remote);
 +    libgit2Runtime.bindings.git_remote_refspec_count(remote);
- 
+
  /// Get a refspec from the remote at provided position.
  Pointer<git_refspec> getRefspec({
    required Pointer<git_remote> remotePointer,
    required int position,
 -}) => libgit2.git_remote_get_refspec(remotePointer, position);
 +}) => libgit2Runtime.bindings.git_remote_get_refspec(remotePointer, position);
- 
+
  /// Get the remote's list of fetch refspecs.
  List<String> fetchRefspecs(Pointer<git_remote> remote) {
    return using((arena) {
@@ -5644,9 +5644,9 @@ index 7a13524..d2b7bdf 100644
 +      out,
 +      remote,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = <String>[
        for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
      ];
@@ -5664,9 +5664,9 @@ index 7a13524..d2b7bdf 100644
 +      out,
 +      remote,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
      final result = <String>[
        for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
      ];
@@ -5725,19 +5725,19 @@ index 7a13524..d2b7bdf 100644
      final size = arena<Size>();
 -    final error = libgit2.git_remote_ls(out, size, remote);
 +    final error = libgit2Runtime.bindings.git_remote_ls(out, size, remote);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -494,7 +544,10 @@ void fetch({
      final proxyOptions = _proxyOptionsInit(proxyOption, arena);
- 
+
      final opts = arena<git_fetch_options>();
 -    libgit2.git_fetch_options_init(opts, GIT_FETCH_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_fetch_options_init(
 +      opts,
 +      GIT_FETCH_OPTIONS_VERSION,
 +    );
- 
+
      opts.ref.pruneAsInt = prune;
      opts.ref.proxy_opts = proxyOptions.ref;
 @@ -503,7 +556,7 @@ void fetch({
@@ -5751,16 +5751,16 @@ index 7a13524..d2b7bdf 100644
            opts,
 @@ -547,7 +600,10 @@ void push({
      final proxyOptions = _proxyOptionsInit(proxyOption, arena);
- 
+
      final opts = arena<git_push_options>();
 -    libgit2.git_push_options_init(opts, GIT_PUSH_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_push_options_init(
 +      opts,
 +      GIT_PUSH_OPTIONS_VERSION,
 +    );
- 
+
      opts.ref.proxy_opts = proxyOptions.ref;
- 
+
 @@ -555,7 +611,11 @@ void push({
        callbacksOptions: opts.ref.callbacks,
        callbacks: callbacks,
@@ -5771,21 +5771,21 @@ index 7a13524..d2b7bdf 100644
 +          refspecsC,
 +          opts,
 +        );
- 
+
          checkErrorAndThrow(error);
        },
 @@ -565,11 +625,11 @@ void push({
- 
+
  /// Get the statistics structure that is filled in by the fetch operation.
  Pointer<git_indexer_progress> stats(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_stats(remote);
 +    libgit2Runtime.bindings.git_remote_stats(remote);
- 
+
  /// Close the connection to the remote.
  void disconnect(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_disconnect(remote);
 +    libgit2Runtime.bindings.git_remote_disconnect(remote);
- 
+
  /// Prune tracking refs that are no longer present on remote.
  ///
 @@ -578,7 +638,7 @@ void prune({
@@ -5796,7 +5796,7 @@ index 7a13524..d2b7bdf 100644
 +  final error = libgit2Runtime.bindings.git_remote_prune(remotePointer, flags);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -586,19 +646,19 @@ void prune({
  ///
  /// Throws a [LibGit2Error] if error occurred.
@@ -5805,12 +5805,12 @@ index 7a13524..d2b7bdf 100644
 +  final error = libgit2Runtime.bindings.git_remote_prune_refs(remotePointer);
    checkErrorAndThrow(error);
  }
- 
+
  /// Check if the remote is connected.
  bool connected(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_connected(remote) == 1;
 +    libgit2Runtime.bindings.git_remote_connected(remote) == 1;
- 
+
  /// Stop the remote's current operation.
  ///
  /// Throws a [LibGit2Error] if error occurred.
@@ -5819,7 +5819,7 @@ index 7a13524..d2b7bdf 100644
 +  final error = libgit2Runtime.bindings.git_remote_stop(remote);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -606,14 +666,15 @@ void stop(Pointer<git_remote> remote) {
  ///
  /// This also disconnects from the remote, if the connection has not been closed
@@ -5827,7 +5827,7 @@ index 7a13524..d2b7bdf 100644
 -void free(Pointer<git_remote> remote) => libgit2.git_remote_free(remote);
 +void free(Pointer<git_remote> remote) =>
 +    libgit2Runtime.bindings.git_remote_free(remote);
- 
+
  /// Validate that the provided remote name is well formed.
  bool nameIsValid(String name) {
    return using((arena) {
@@ -5835,13 +5835,13 @@ index 7a13524..d2b7bdf 100644
      final nameC = name.toChar(arena);
 -    final error = libgit2.git_remote_name_is_valid(out, nameC);
 +    final error = libgit2Runtime.bindings.git_remote_name_is_valid(out, nameC);
- 
+
      checkErrorAndThrow(error);
      return out.value == 1;
 @@ -638,7 +699,7 @@ void download({
      refspecsC.ref.count = refspecs.length;
      refspecsC.ref.strings = arr;
- 
+
 -    final error = libgit2.git_remote_download(
 +    final error = libgit2Runtime.bindings.git_remote_download(
        remotePointer,
@@ -5865,7 +5865,7 @@ index 7a13524..d2b7bdf 100644
 +      out,
 +      remotePointer,
 +    );
- 
+
      checkErrorAndThrow(error);
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
@@ -5900,7 +5900,7 @@ index 7a13524..d2b7bdf 100644
 +    proxyOptions,
 +    GIT_PROXY_OPTIONS_VERSION,
 +  );
- 
+
    if (proxyOption == null) {
      proxyOptions.ref.typeAsInt = git_proxy_t.GIT_PROXY_NONE.value;
 @@ -751,7 +818,7 @@ Pointer<git_remote> createWithFetchSpec({
@@ -5927,7 +5927,7 @@ index 7aa1f3e..6ab7e40 100644
 +  );
    return callbacks;
  }
- 
+
 @@ -190,12 +193,12 @@ class RemoteCallbacks {
    ) {
      if (payload.cast<Char>().value == 2) {
@@ -5941,10 +5941,10 @@ index 7aa1f3e..6ab7e40 100644
 -      throw LibGit2Error(libgit2.git_error_last());
 +      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
      }
- 
+
      final credentialType = credentials!.credentialType;
 @@ -203,12 +206,12 @@ class RemoteCallbacks {
- 
+
      if (!allowedTypesSet.contains(credentialType)) {
        using((arena) {
 -        libgit2.git_error_set_str(
@@ -5956,7 +5956,7 @@ index 7aa1f3e..6ab7e40 100644
 -      throw LibGit2Error(libgit2.git_error_last());
 +      throw LibGit2Error(libgit2Runtime.bindings.git_error_last());
      }
- 
+
      if (credentials is UserPass) {
 diff --git a/lib/src/bindings/repository.dart b/lib/src/bindings/repository.dart
 index 124d665..046a43d 100644
@@ -5968,7 +5968,7 @@ index 124d665..046a43d 100644
      final pathC = path.toChar(arena);
 -    final error = libgit2.git_repository_open(out, pathC);
 +    final error = libgit2Runtime.bindings.git_repository_open(out, pathC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -39,7 +39,7 @@ Pointer<git_repository> openExt({
@@ -5986,7 +5986,7 @@ index 124d665..046a43d 100644
      final pathC = path.toChar(arena);
 -    final error = libgit2.git_repository_open_bare(out, pathC);
 +    final error = libgit2Runtime.bindings.git_repository_open_bare(out, pathC);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -68,7 +68,11 @@ Pointer<git_repository> initBasic({required String path, required bool bare}) {
@@ -5999,13 +5999,13 @@ index 124d665..046a43d 100644
 +      pathC,
 +      bare ? 1 : 0,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -91,7 +95,7 @@ String discover({required String startPath, String? ceilingDirs}) {
      final startPathC = startPath.toChar(arena);
      final ceilingDirsC = ceilingDirs?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_repository_discover(
 +    final error = libgit2Runtime.bindings.git_repository_discover(
        out,
@@ -6013,7 +6013,7 @@ index 124d665..046a43d 100644
        0,
 @@ -101,7 +105,7 @@ String discover({required String startPath, String? ceilingDirs}) {
      checkErrorAndThrow(error);
- 
+
      final result = out.ref.ptr.toDartString(length: out.ref.size);
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
@@ -6023,7 +6023,7 @@ index 124d665..046a43d 100644
 @@ -140,7 +144,7 @@ Pointer<git_repository> init({
      final originUrlC = originUrl?.toChar(arena) ?? nullptr;
      final opts = arena<git_repository_init_options>();
- 
+
 -    libgit2.git_repository_init_options_init(
 +    libgit2Runtime.bindings.git_repository_init_options_init(
        opts,
@@ -6032,39 +6032,39 @@ index 124d665..046a43d 100644
 @@ -153,7 +157,11 @@ Pointer<git_repository> init({
      opts.ref.initial_head = initialHeadC;
      opts.ref.origin_url = originUrlC;
- 
+
 -    final error = libgit2.git_repository_init_ext(out, pathC, opts);
 +    final error = libgit2Runtime.bindings.git_repository_init_ext(
 +      out,
 +      pathC,
 +      opts,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -188,10 +196,16 @@ Pointer<git_repository> clone({
      final checkoutBranchC = checkoutBranch?.toChar(arena) ?? nullptr;
- 
+
      final cloneOptions = arena<git_clone_options>();
 -    libgit2.git_clone_options_init(cloneOptions, GIT_CLONE_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_clone_options_init(
 +      cloneOptions,
 +      GIT_CLONE_OPTIONS_VERSION,
 +    );
- 
+
      final fetchOptions = arena<git_fetch_options>();
 -    libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_fetch_options_init(
 +      fetchOptions,
 +      GIT_FETCH_OPTIONS_VERSION,
 +    );
- 
+
      return RemoteCallbacks.withCallbackState<Pointer<git_repository>>(
        callbacksOptions: fetchOptions.ref.callbacks,
 @@ -220,7 +234,12 @@ Pointer<git_repository> clone({
          cloneOptions.ref.repository_cb = repositoryCb;
          cloneOptions.ref.fetch_opts = fetchOptions.ref;
- 
+
 -        final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
 +        final error = libgit2Runtime.bindings.git_clone(
 +          out,
@@ -6072,7 +6072,7 @@ index 124d665..046a43d 100644
 +          localPathC,
 +          cloneOptions,
 +        );
- 
+
          checkErrorAndThrow(error);
          return out.value;
 @@ -234,7 +253,7 @@ Pointer<git_repository> clone({
@@ -6082,7 +6082,7 @@ index 124d665..046a43d 100644
 -  return libgit2.git_repository_path(repo).toDartString();
 +  return libgit2Runtime.bindings.git_repository_path(repo).toDartString();
  }
- 
+
  /// Get the path to the repository's common directory.
 @@ -244,14 +263,14 @@ String path(Pointer<git_repository> repo) {
  /// - For bare repositories: the repository root
@@ -6090,7 +6090,7 @@ index 124d665..046a43d 100644
  String commonDir(Pointer<git_repository> repo) =>
 -    libgit2.git_repository_commondir(repo).toDartString();
 +    libgit2Runtime.bindings.git_repository_commondir(repo).toDartString();
- 
+
  /// Get the repository's current namespace.
  ///
  /// The namespace affects all reference operations. If no namespace is set or
@@ -6100,7 +6100,7 @@ index 124d665..046a43d 100644
 +  final result = libgit2Runtime.bindings.git_repository_get_namespace(repo);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -268,7 +287,10 @@ void setNamespace({
  }) {
    using((arena) {
@@ -6112,14 +6112,14 @@ index 124d665..046a43d 100644
 +    );
    });
  }
- 
+
 @@ -277,7 +299,7 @@ void setNamespace({
  /// A bare repository has no working directory and is typically used as a
  /// central repository for collaboration.
  bool isBare(Pointer<git_repository> repo) =>
 -    libgit2.git_repository_is_bare(repo) == 1;
 +    libgit2Runtime.bindings.git_repository_is_bare(repo) == 1;
- 
+
  /// Check if the repository is empty.
  ///
 @@ -286,7 +308,7 @@ bool isBare(Pointer<git_repository> repo) =>
@@ -6168,7 +6168,7 @@ index 124d665..046a43d 100644
 -    );
 +    final error = libgit2Runtime.bindings
 +        .git_repository_head_detached_for_worktree(repoPointer, nameC);
- 
+
      checkErrorAndThrow(error);
      return error == 1;
 @@ -356,7 +376,7 @@ bool isHeadDetachedForWorktree({
@@ -6179,7 +6179,7 @@ index 124d665..046a43d 100644
 +  final result = libgit2Runtime.bindings.git_repository_workdir(repo);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -377,7 +397,7 @@ void setWorkdir({
  }) {
    using((arena) {
@@ -6227,7 +6227,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -446,7 +469,10 @@ void setOdb({
    required Pointer<git_repository> repoPointer,
    required Pointer<git_odb> odbPointer,
@@ -6239,7 +6239,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -455,7 +481,10 @@ void setIndex({
    required Pointer<git_repository> repoPointer,
    required Pointer<git_index> indexPointer,
@@ -6251,7 +6251,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -468,7 +497,7 @@ void setIndex({
  Pointer<git_refdb> refdb(Pointer<git_repository> repo) {
    return using((arena) {
@@ -6272,7 +6272,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -487,7 +519,10 @@ void setRefdb({
  Pointer<git_repository> wrapOdb(Pointer<git_odb> odbPointer) {
    return using((arena) {
@@ -6302,7 +6302,7 @@ index 124d665..046a43d 100644
      return result;
    });
  }
- 
+
  /// Cache all submodule information for the repository.
  void submoduleCacheAll(Pointer<git_repository> repo) {
 -  final error = libgit2.git_repository_submodule_cache_all(repo);
@@ -6311,7 +6311,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
  /// Clear the repository's submodule cache.
  void submoduleCacheClear(Pointer<git_repository> repo) {
 -  final error = libgit2.git_repository_submodule_cache_clear(repo);
@@ -6320,7 +6320,7 @@ index 124d665..046a43d 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -525,7 +568,7 @@ void reinitFilesystem({
    required Pointer<git_repository> repoPointer,
    required bool recurseSubmodules,
@@ -6331,14 +6331,14 @@ index 124d665..046a43d 100644
      recurseSubmodules ? 1 : 0,
    );
 @@ -534,7 +577,7 @@ void reinitFilesystem({
- 
+
  /// Toggle the repository's bare status.
  void setBare({required Pointer<git_repository> repoPointer}) {
 -  final error = libgit2.git_repository_set_bare(repoPointer);
 +  final error = libgit2Runtime.bindings.git_repository_set_bare(repoPointer);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -543,7 +586,7 @@ void setBare({required Pointer<git_repository> repoPointer}) {
  /// This will free the repository and all associated resources. The repository
  /// must not be used after this call.
@@ -6346,7 +6346,7 @@ index 124d665..046a43d 100644
 -  libgit2.git_repository_free(repo);
 +  libgit2Runtime.bindings.git_repository_free(repo);
  }
- 
+
  /// Set the repository's HEAD to point to a reference.
 @@ -557,7 +600,10 @@ void setHead({
  }) {
@@ -6384,14 +6384,14 @@ index 124d665..046a43d 100644
 +      );
    checkErrorAndThrow(error);
  }
- 
+
  /// Detach HEAD from its current branch.
  void detachHead(Pointer<git_repository> repo) {
 -  final error = libgit2.git_repository_detach_head(repo);
 +  final error = libgit2Runtime.bindings.git_repository_detach_head(repo);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -602,7 +649,7 @@ void detachHead(Pointer<git_repository> repo) {
  ///
  /// Throws a [LibGit2Error] if error occurred.
@@ -6420,23 +6420,23 @@ index 124d665..046a43d 100644
    final email = calloc<Pointer<Char>>();
 -  libgit2.git_repository_ident(name, email, repo);
 +  libgit2Runtime.bindings.git_repository_ident(name, email, repo);
- 
+
    final result = <String>[];
    if (name.value != nullptr) {
 @@ -650,12 +701,12 @@ List<String> identity(Pointer<git_repository> repo) {
- 
+
  /// Check if the repository was a shallow clone.
  bool isShallow(Pointer<git_repository> repo) {
 -  return libgit2.git_repository_is_shallow(repo) == 1;
 +  return libgit2Runtime.bindings.git_repository_is_shallow(repo) == 1;
  }
- 
+
  /// Object ID type used by this repository.
  git_oid_t oidType(Pointer<git_repository> repo) {
 -  return libgit2.git_repository_oid_type(repo);
 +  return libgit2Runtime.bindings.git_repository_oid_type(repo);
  }
- 
+
  /// Calculate the object id for a repository file.
 @@ -669,7 +720,7 @@ Pointer<git_oid> hashFile({
      final out = calloc<git_oid>();
@@ -6448,13 +6448,13 @@ index 124d665..046a43d 100644
        repoPointer,
        pathC,
 @@ -684,7 +735,7 @@ Pointer<git_oid> hashFile({
- 
+
  /// Check if the repository is a linked work tree.
  bool isWorktree(Pointer<git_repository> repo) {
 -  return libgit2.git_repository_is_worktree(repo) == 1;
 +  return libgit2Runtime.bindings.git_repository_is_worktree(repo) == 1;
  }
- 
+
  /// Get Git's prepared message.
 @@ -696,10 +747,10 @@ bool isWorktree(Pointer<git_repository> repo) {
  String message(Pointer<git_repository> repo) {
@@ -6477,7 +6477,7 @@ index 124d665..046a43d 100644
 +  final error = libgit2Runtime.bindings.git_repository_message_remove(repo);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -718,7 +769,7 @@ void removeMessage(Pointer<git_repository> repo) {
  ///
  /// Returns the current state of the repository (e.g., merge, revert, etc.).
@@ -6485,7 +6485,7 @@ index 124d665..046a43d 100644
 -  return libgit2.git_repository_state(repo);
 +  return libgit2Runtime.bindings.git_repository_state(repo);
  }
- 
+
  /// Clean up the repository's state.
 @@ -728,7 +779,7 @@ int state(Pointer<git_repository> repo) {
  ///
@@ -6495,10 +6495,10 @@ index 124d665..046a43d 100644
 +  final error = libgit2Runtime.bindings.git_repository_state_cleanup(repo);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -769,7 +820,11 @@ List<Map<String, Object>> fetchHeadEntries(Pointer<git_repository> repo) {
    >(_fetchHeadCb, 0);
- 
+
    _fetchHeadEntries.clear();
 -  final error = libgit2.git_repository_fetchhead_foreach(repo, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_repository_fetchhead_foreach(
@@ -6511,7 +6511,7 @@ index 124d665..046a43d 100644
    }
 @@ -789,7 +844,11 @@ List<String> mergeHeadOids(Pointer<git_repository> repo) {
        );
- 
+
    _mergeHeadOids.clear();
 -  final error = libgit2.git_repository_mergehead_foreach(repo, cb, nullptr);
 +  final error = libgit2Runtime.bindings.git_repository_mergehead_foreach(
@@ -6542,7 +6542,7 @@ index 124d665..046a43d 100644
 +  final error = libgit2Runtime.bindings.git_remote_prune(remotePointer, flags);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -830,7 +892,7 @@ void prune({
  ///
  /// Throws a [LibGit2Error] if error occurred.
@@ -6551,7 +6551,7 @@ index 124d665..046a43d 100644
 +  final error = libgit2Runtime.bindings.git_remote_prune_refs(remotePointer);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -838,7 +900,7 @@ void pruneRefs({required Pointer<git_remote> remotePointer}) {
  ///
  /// Throws a [LibGit2Error] if error occurred.
@@ -6560,7 +6560,7 @@ index 124d665..046a43d 100644
 +  final error = libgit2Runtime.bindings.git_remote_stop(remote);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -846,7 +908,7 @@ void stop(Pointer<git_remote> remote) {
  ///
  /// Returns the name of the remote or an empty string if the remote is anonymous.
@@ -6569,14 +6569,14 @@ index 124d665..046a43d 100644
 +  final result = libgit2Runtime.bindings.git_remote_name(remote);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -854,26 +916,26 @@ String name(Pointer<git_remote> remote) {
  ///
  /// Returns the URL of the remote repository.
  String url(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_url(remote).toDartString();
 +    libgit2Runtime.bindings.git_remote_url(remote).toDartString();
- 
+
  /// Get the remote's url for pushing.
  ///
  /// Returns empty string if no special url for pushing is set.
@@ -6585,19 +6585,19 @@ index 124d665..046a43d 100644
 +  final result = libgit2Runtime.bindings.git_remote_pushurl(remote);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
  /// Get the number of refspecs for a remote.
  int refspecCount(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_refspec_count(remote);
 +    libgit2Runtime.bindings.git_remote_refspec_count(remote);
- 
+
  /// Get a refspec from the remote at provided position.
  Pointer<git_refspec> getRefspec({
    required Pointer<git_remote> remotePointer,
    required int position,
 -}) => libgit2.git_remote_get_refspec(remotePointer, position);
 +}) => libgit2Runtime.bindings.git_remote_get_refspec(remotePointer, position);
- 
+
  /// Get the statistics structure that is filled in by the fetch operation.
  Pointer<git_indexer_progress> stats(Pointer<git_remote> remote) =>
 -    libgit2.git_remote_stats(remote);
@@ -6615,13 +6615,13 @@ index 5ba6284..b109b35 100644
 +      opts,
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
- 
+
      if (strategy != null) {
        opts.ref.checkout_strategy = strategy;
 @@ -51,7 +54,7 @@ void reset({
        opts.ref.paths.count = pathspec.length;
      }
- 
+
 -    final error = libgit2.git_reset(
 +    final error = libgit2Runtime.bindings.git_reset(
        repoPointer,
@@ -6636,13 +6636,13 @@ index 5ba6284..b109b35 100644
 +      opts,
 +      GIT_CHECKOUT_OPTIONS_VERSION,
 +    );
- 
+
      if (strategy != null) {
        opts.ref.checkout_strategy = strategy;
 @@ -91,7 +97,7 @@ void resetFromAnnotated({
        opts.ref.paths.count = pathspec.length;
      }
- 
+
 -    final error = libgit2.git_reset_from_annotated(
 +    final error = libgit2Runtime.bindings.git_reset_from_annotated(
        repoPointer,
@@ -6651,7 +6651,7 @@ index 5ba6284..b109b35 100644
 @@ -132,7 +138,7 @@ void resetDefault({
      pathspecC.ref.strings = strArray;
      pathspecC.ref.count = pathspec.length;
- 
+
 -    final error = libgit2.git_reset_default(
 +    final error = libgit2Runtime.bindings.git_reset_default(
        repoPointer,
@@ -6664,7 +6664,7 @@ index b4ccd5a..53300d6 100644
 @@ -34,7 +34,7 @@ Pointer<git_revspec> revParse({
      final out = calloc<git_revspec>();
      final specC = spec.toChar(arena);
- 
+
 -    final error = libgit2.git_revparse(out, repoPointer, specC);
 +    final error = libgit2Runtime.bindings.git_revparse(out, repoPointer, specC);
      checkErrorAndThrow(error);
@@ -6673,7 +6673,7 @@ index b4ccd5a..53300d6 100644
 @@ -68,7 +68,11 @@ Pointer<git_object> revParseSingle({
      final out = arena<Pointer<git_object>>();
      final specC = spec.toChar(arena);
- 
+
 -    final error = libgit2.git_revparse_single(out, repoPointer, specC);
 +    final error = libgit2Runtime.bindings.git_revparse_single(
 +      out,
@@ -6686,7 +6686,7 @@ index b4ccd5a..53300d6 100644
 @@ -104,7 +108,12 @@ Pointer<git_object> revParseSingle({
      final refOut = arena<Pointer<git_reference>>();
      final specC = spec.toChar(arena);
- 
+
 -    final error = libgit2.git_revparse_ext(objOut, refOut, repoPointer, specC);
 +    final error = libgit2Runtime.bindings.git_revparse_ext(
 +      objOut,
@@ -6695,7 +6695,7 @@ index b4ccd5a..53300d6 100644
 +      specC,
 +    );
      checkErrorAndThrow(error);
- 
+
      final obj = objOut.value;
 diff --git a/lib/src/bindings/revwalk.dart b/lib/src/bindings/revwalk.dart
 index 27ae507..08c5341 100644
@@ -6717,7 +6717,7 @@ index 27ae507..08c5341 100644
 -  libgit2.git_revwalk_sorting(walkerPointer, sortMode);
 +  libgit2Runtime.bindings.git_revwalk_sorting(walkerPointer, sortMode);
  }
- 
+
  /// Adds a new root for the traversal.
 @@ -66,7 +66,10 @@ void push({
    required Pointer<git_revwalk> walkerPointer,
@@ -6730,7 +6730,7 @@ index 27ae507..08c5341 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -86,13 +89,13 @@ void pushGlob({
  }) {
    using((arena) {
@@ -6739,12 +6739,12 @@ index 27ae507..08c5341 100644
 +    libgit2Runtime.bindings.git_revwalk_push_glob(walkerPointer, globC);
    });
  }
- 
+
  /// Pushes the repository's HEAD to the revision walker.
  void pushHead(Pointer<git_revwalk> walker) =>
 -    libgit2.git_revwalk_push_head(walker);
 +    libgit2Runtime.bindings.git_revwalk_push_head(walker);
- 
+
  /// Pushes the OID pointed to by a reference to the revision walker.
  ///
 @@ -105,7 +108,10 @@ void pushRef({
@@ -6791,7 +6791,7 @@ index 27ae507..08c5341 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
 @@ -210,13 +222,13 @@ void hideGlob({
  }) {
    using((arena) {
@@ -6800,12 +6800,12 @@ index 27ae507..08c5341 100644
 +    libgit2Runtime.bindings.git_revwalk_hide_glob(walkerPointer, globC);
    });
  }
- 
+
  /// Hides the repository's HEAD from the revision walk.
  void hideHead(Pointer<git_revwalk> walker) =>
 -    libgit2.git_revwalk_hide_head(walker);
 +    libgit2Runtime.bindings.git_revwalk_hide_head(walker);
- 
+
  /// Hides the OID pointed to by a reference from the revision walk.
  ///
 @@ -229,7 +241,10 @@ void hideRef({
@@ -6836,7 +6836,7 @@ index 27ae507..08c5341 100644
 -void reset(Pointer<git_revwalk> walker) => libgit2.git_revwalk_reset(walker);
 +void reset(Pointer<git_revwalk> walker) =>
 +    libgit2Runtime.bindings.git_revwalk_reset(walker);
- 
+
  /// Simplifies the history by first-parent.
  ///
  /// No parents other than the first for each commit will be enqueued.
@@ -6844,13 +6844,13 @@ index 27ae507..08c5341 100644
 -  libgit2.git_revwalk_simplify_first_parent(walker);
 +  libgit2Runtime.bindings.git_revwalk_simplify_first_parent(walker);
  }
- 
+
  /// Returns the repository on which this walker is operating.
  Pointer<git_repository> repository(Pointer<git_revwalk> walker) {
 -  return libgit2.git_revwalk_repository(walker);
 +  return libgit2Runtime.bindings.git_revwalk_repository(walker);
  }
- 
+
  /// Frees a revision walker previously allocated.
 -void free(Pointer<git_revwalk> walk) => libgit2.git_revwalk_free(walk);
 +void free(Pointer<git_revwalk> walk) =>
@@ -6871,27 +6871,27 @@ index 757a53b..cce06a9 100644
 +      time,
 +      offset,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -39,7 +45,7 @@ Pointer<git_signature> now({required String name, required String email}) {
      final out = arena<Pointer<git_signature>>();
      final nameC = name.toChar(arena);
      final emailC = email.toChar(arena);
 -    final error = libgit2.git_signature_now(out, nameC, emailC);
 +    final error = libgit2Runtime.bindings.git_signature_now(out, nameC, emailC);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -61,7 +67,7 @@ Pointer<git_signature> now({required String name, required String email}) {
  Pointer<git_signature> defaultSignature(Pointer<git_repository> repo) {
    return using((arena) {
      final out = arena<Pointer<git_signature>>();
 -    final error = libgit2.git_signature_default(out, repo);
 +    final error = libgit2Runtime.bindings.git_signature_default(out, repo);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -79,7 +85,7 @@ List<Pointer<git_signature>> defaultSignaturesFromEnv(
    return using((arena) {
      final author = arena<Pointer<git_signature>>();
@@ -6907,9 +6907,9 @@ index 757a53b..cce06a9 100644
      final out = arena<Pointer<git_signature>>();
 -    final error = libgit2.git_signature_dup(out, sig);
 +    final error = libgit2Runtime.bindings.git_signature_dup(out, sig);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -112,11 +118,12 @@ Pointer<git_signature> fromBuffer(String buffer) {
    return using((arena) {
      final out = arena<Pointer<git_signature>>();
@@ -6920,7 +6920,7 @@ index 757a53b..cce06a9 100644
      return out.value;
    });
  }
- 
+
  /// Free an existing signature.
 -void free(Pointer<git_signature> sig) => libgit2.git_signature_free(sig);
 +void free(Pointer<git_signature> sig) =>
@@ -6932,7 +6932,7 @@ index f0c769c..5de97f7 100644
 @@ -33,7 +33,7 @@ Pointer<git_oid> save({
      final out = calloc<git_oid>();
      final messageC = message?.toChar(arena) ?? nullptr;
- 
+
 -    final error = libgit2.git_stash_save(
 +    final error = libgit2Runtime.bindings.git_stash_save(
        out,
@@ -6949,7 +6949,7 @@ index f0c769c..5de97f7 100644
 +  );
    return opts;
  }
- 
+
 @@ -60,7 +63,7 @@ Pointer<git_oid> saveWithOpts({
  }) {
    return using((arena) {
@@ -6971,7 +6971,7 @@ index f0c769c..5de97f7 100644
 @@ -109,7 +112,11 @@ void apply({
      options.ref.flags = flags;
      options.ref.checkout_options = optsC.ref;
- 
+
 -    final error = libgit2.git_stash_apply(repoPointer, index, options);
 +    final error = libgit2Runtime.bindings.git_stash_apply(
 +      repoPointer,
@@ -6989,7 +6989,7 @@ index f0c769c..5de97f7 100644
 +  final error = libgit2Runtime.bindings.git_stash_drop(repoPointer, index);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -153,7 +160,7 @@ void pop({
  }) {
    using((arena) {
@@ -7002,7 +7002,7 @@ index f0c769c..5de97f7 100644
 @@ -168,7 +175,11 @@ void pop({
      options.ref.flags = flags;
      options.ref.checkout_options = optsC.ref;
- 
+
 -    final error = libgit2.git_stash_pop(repoPointer, index, options);
 +    final error = libgit2Runtime.bindings.git_stash_pop(
 +      repoPointer,
@@ -7014,7 +7014,7 @@ index f0c769c..5de97f7 100644
  }
 @@ -222,7 +233,11 @@ List<Stash> list(Pointer<git_repository> repo) {
    final git_stash_cb callBack = Pointer.fromFunction(_stashCb, except);
- 
+
    try {
 -    final error = libgit2.git_stash_foreach(repo, callBack, nullptr);
 +    final error = libgit2Runtime.bindings.git_stash_foreach(
@@ -7031,17 +7031,17 @@ index 2f4dad6..00b1b01 100644
 +++ b/lib/src/bindings/status.dart
 @@ -25,9 +25,12 @@ Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
      // Initialize status options instead of passing nullptr
- 
+
      final opts = arena<git_status_options>();
 -    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
 +    libgit2Runtime.bindings.git_status_options_init(
 +      opts,
 +      GIT_STATUS_OPTIONS_VERSION,
 +    );
- 
+
 -    final error = libgit2.git_status_list_new(out, repo, opts);
 +    final error = libgit2Runtime.bindings.git_status_list_new(out, repo, opts);
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -39,7 +42,7 @@ Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
@@ -7050,7 +7050,7 @@ index 2f4dad6..00b1b01 100644
  int listEntryCount(Pointer<git_status_list> statuslist) =>
 -    libgit2.git_status_list_entrycount(statuslist);
 +    libgit2Runtime.bindings.git_status_list_entrycount(statuslist);
- 
+
  /// Get a pointer to one of the entries in the status list.
  ///
 @@ -48,7 +51,7 @@ int listEntryCount(Pointer<git_status_list> statuslist) =>
@@ -7059,7 +7059,7 @@ index 2f4dad6..00b1b01 100644
    required int index,
 -}) => libgit2.git_status_byindex(statuslistPointer, index);
 +}) => libgit2Runtime.bindings.git_status_byindex(statuslistPointer, index);
- 
+
  /// Get file status for a single file.
  ///
 @@ -72,7 +75,11 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
@@ -7078,14 +7078,14 @@ index 2f4dad6..00b1b01 100644
 @@ -82,7 +89,7 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
  Map<String, int> foreach(Pointer<git_repository> repoPointer) {
    _statusEntries = <String, int>{};
- 
+
 -  final error = libgit2.git_status_foreach(
 +  final error = libgit2Runtime.bindings.git_status_foreach(
      repoPointer,
      Pointer.fromFunction<
        Int Function(Pointer<Char>, UnsignedInt, Pointer<Void>)
 @@ -100,9 +107,12 @@ Map<String, int> foreachExt(Pointer<git_repository> repoPointer) {
- 
+
    return using((arena) {
      final opts = arena<git_status_options>();
 -    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
@@ -7093,7 +7093,7 @@ index 2f4dad6..00b1b01 100644
 +      opts,
 +      GIT_STATUS_OPTIONS_VERSION,
 +    );
- 
+
 -    final error = libgit2.git_status_foreach_ext(
 +    final error = libgit2Runtime.bindings.git_status_foreach_ext(
        repoPointer,
@@ -7130,7 +7130,7 @@ index 2f4dad6..00b1b01 100644
  void listFree(Pointer<git_status_list> statuslist) =>
 -    libgit2.git_status_list_free(statuslist);
 +    libgit2Runtime.bindings.git_status_list_free(statuslist);
- 
+
  /// Status list performance counters.
  class StatusPerfData {
 diff --git a/lib/src/bindings/submodule.dart b/lib/src/bindings/submodule.dart
@@ -7140,7 +7140,7 @@ index d496e65..bc46254 100644
 @@ -34,7 +34,11 @@ List<String> list(Pointer<git_repository> repo) {
      Int Function(Pointer<git_submodule>, Pointer<Char>, Pointer<Void>)
    >(_listCb, except);
- 
+
 -  final error = libgit2.git_submodule_foreach(repo, callback, nullptr);
 +  final error = libgit2Runtime.bindings.git_submodule_foreach(
 +    repo,
@@ -7148,7 +7148,7 @@ index d496e65..bc46254 100644
 +    nullptr,
 +  );
    checkErrorAndThrow(error);
- 
+
    final result = _pathsList.toList(growable: false);
 @@ -61,7 +65,11 @@ Pointer<git_submodule> lookup({
    return using((arena) {
@@ -7160,7 +7160,7 @@ index d496e65..bc46254 100644
 +      repoPointer,
 +      nameC,
 +    );
- 
+
      checkErrorAndThrow(error);
      return out.value;
 @@ -83,7 +91,10 @@ void init({
@@ -7172,7 +7172,7 @@ index d496e65..bc46254 100644
 +    submodulePointer,
 +    overwriteC,
 +  );
- 
+
    checkErrorAndThrow(error);
  }
 @@ -112,7 +123,7 @@ void update({
@@ -7199,9 +7199,9 @@ index d496e65..bc46254 100644
      final out = arena<Pointer<git_repository>>();
 -    final error = libgit2.git_submodule_open(out, submodule);
 +    final error = libgit2Runtime.bindings.git_submodule_open(out, submodule);
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -181,7 +192,7 @@ Pointer<git_submodule> addSetup({
      final urlC = url.toChar(arena);
      final pathC = path.toChar(arena);
@@ -7256,7 +7256,7 @@ index d496e65..bc46254 100644
 +          submodule,
 +          options,
 +        );
- 
+
          checkErrorAndThrow(error);
        },
 @@ -263,7 +282,7 @@ void clone({
@@ -7265,13 +7265,13 @@ index d496e65..bc46254 100644
  void addFinalize(Pointer<git_submodule> submodule) {
 -  final error = libgit2.git_submodule_add_finalize(submodule);
 +  final error = libgit2Runtime.bindings.git_submodule_add_finalize(submodule);
- 
+
    checkErrorAndThrow(error);
  }
 @@ -284,7 +303,12 @@ int status({
      final out = arena<UnsignedInt>();
      final nameC = name.toChar(arena);
- 
+
 -    final error = libgit2.git_submodule_status(out, repoPointer, nameC, ignore);
 +    final error = libgit2Runtime.bindings.git_submodule_status(
 +      out,
@@ -7279,16 +7279,16 @@ index d496e65..bc46254 100644
 +      nameC,
 +      ignore,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -296,7 +320,7 @@ int status({
  ///
  /// Returns the ignore rule that will be used for the submodule.
  git_submodule_ignore_t ignoreRule(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_ignore(submodule);
 +    libgit2Runtime.bindings.git_submodule_ignore(submodule);
- 
+
  /// Set the ignore rule for a submodule.
  ///
 @@ -308,7 +332,11 @@ void setIgnoreRule({
@@ -7301,7 +7301,7 @@ index d496e65..bc46254 100644
 +      nameC,
 +      ignore,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -318,12 +346,12 @@ void setIgnoreRule({
@@ -7310,13 +7310,13 @@ index d496e65..bc46254 100644
  git_submodule_update_t updateRule(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_update_strategy(submodule);
 +    libgit2Runtime.bindings.git_submodule_update_strategy(submodule);
- 
+
  /// Get the fetch recurse submodules rule for a submodule.
  git_submodule_recurse_t fetchRecurseSubmodules(
    Pointer<git_submodule> submodule,
 -) => libgit2.git_submodule_fetch_recurse_submodules(submodule);
 +) => libgit2Runtime.bindings.git_submodule_fetch_recurse_submodules(submodule);
- 
+
  /// Set the fetch recurse submodules rule for a submodule.
  ///
 @@ -335,11 +363,12 @@ void setFetchRecurseSubmodules({
@@ -7334,7 +7334,7 @@ index d496e65..bc46254 100644
 +          nameC,
 +          fetchRecurseSubmodules,
 +        );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -355,7 +384,11 @@ void setUpdateRule({
@@ -7347,26 +7347,26 @@ index d496e65..bc46254 100644
 +      nameC,
 +      update,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -363,15 +396,15 @@ void setUpdateRule({
- 
+
  /// Get the name of a submodule.
  String name(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_name(submodule).toDartString();
 +    libgit2Runtime.bindings.git_submodule_name(submodule).toDartString();
- 
+
  /// Get the path of a submodule.
  String path(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_path(submodule).toDartString();
 +    libgit2Runtime.bindings.git_submodule_path(submodule).toDartString();
- 
+
  /// Get the URL of a submodule.
  String url(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_url(submodule).toDartString();
 +    libgit2Runtime.bindings.git_submodule_url(submodule).toDartString();
- 
+
  /// Set the URL for a submodule.
  ///
 @@ -385,7 +418,11 @@ void setUrl({
@@ -7379,16 +7379,16 @@ index d496e65..bc46254 100644
 +      nameC,
 +      urlC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -393,7 +430,7 @@ void setUrl({
- 
+
  /// Get the branch of a submodule.
  String branch(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_branch(submodule).toDartString();
 +    libgit2Runtime.bindings.git_submodule_branch(submodule).toDartString();
- 
+
  /// Set the branch for a submodule.
  ///
 @@ -407,7 +444,11 @@ void setBranch({
@@ -7401,7 +7401,7 @@ index d496e65..bc46254 100644
 +      nameC,
 +      branchC,
 +    );
- 
+
      checkErrorAndThrow(error);
    });
 @@ -417,29 +458,32 @@ void setBranch({
@@ -7410,26 +7410,26 @@ index d496e65..bc46254 100644
  Pointer<git_oid>? headId(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_head_id(submodule);
 +    libgit2Runtime.bindings.git_submodule_head_id(submodule);
- 
+
  /// Get the OID of the submodule in the index.
  ///
  /// Returns null if the submodule is not in the index.
  Pointer<git_oid>? indexId(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_index_id(submodule);
 +    libgit2Runtime.bindings.git_submodule_index_id(submodule);
- 
+
  /// Get the OID of the submodule in the current working directory.
  ///
  /// Returns null if the submodule is not checked out.
  Pointer<git_oid>? workdirId(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_wd_id(submodule);
 +    libgit2Runtime.bindings.git_submodule_wd_id(submodule);
- 
+
  /// Get the repository that owns this submodule.
  Pointer<git_repository> owner(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_owner(submodule);
 +    libgit2Runtime.bindings.git_submodule_owner(submodule);
- 
+
  /// Get the locations of submodule information.
  int location(Pointer<git_submodule> submodule) {
    return using((arena) {
@@ -7450,7 +7450,7 @@ index d496e65..bc46254 100644
 +  final error = libgit2Runtime.bindings.git_submodule_sync(submodulePointer);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -467,10 +511,13 @@ void reload({
    bool force = false,
  }) {
@@ -7462,7 +7462,7 @@ index d496e65..bc46254 100644
 +  );
    checkErrorAndThrow(error);
  }
- 
+
  /// Free a submodule.
  void free(Pointer<git_submodule> submodule) =>
 -    libgit2.git_submodule_free(submodule);
@@ -7478,7 +7478,7 @@ index de51938..f7db47e 100644
 -    final error = libgit2.git_tag_list(out, repo);
 +    final error = libgit2Runtime.bindings.git_tag_list(out, repo);
      checkErrorAndThrow(error);
- 
+
      final result = <String>[
        for (var i = 0; i < out.ref.count; i++) out.ref.strings[i].toDartString(),
      ];
@@ -7519,39 +7519,39 @@ index de51938..f7db47e 100644
      return out.value;
    });
 @@ -79,25 +83,27 @@ Pointer<git_object> target(Pointer<git_tag> tag) {
- 
+
  /// Get the type of a tag's tagged object.
  git_object_t targetType(Pointer<git_tag> tag) =>
 -    libgit2.git_tag_target_type(tag);
 +    libgit2Runtime.bindings.git_tag_target_type(tag);
- 
+
  /// Get the OID of the tagged object of a tag.
  Pointer<git_oid> targetOid(Pointer<git_tag> tag) =>
 -    libgit2.git_tag_target_id(tag);
 +    libgit2Runtime.bindings.git_tag_target_id(tag);
- 
+
  /// Get the id of a tag.
 -Pointer<git_oid> id(Pointer<git_tag> tag) => libgit2.git_tag_id(tag);
 +Pointer<git_oid> id(Pointer<git_tag> tag) =>
 +    libgit2Runtime.bindings.git_tag_id(tag);
- 
+
  /// Get the repository that owns this tag.
  Pointer<git_repository> owner(Pointer<git_tag> tag) =>
 -    libgit2.git_tag_owner(tag);
 +    libgit2Runtime.bindings.git_tag_owner(tag);
- 
+
  /// Get the name of a tag.
 -String name(Pointer<git_tag> tag) => libgit2.git_tag_name(tag).toDartString();
 +String name(Pointer<git_tag> tag) =>
 +    libgit2Runtime.bindings.git_tag_name(tag).toDartString();
- 
+
  /// Get the message of a tag.
  String message(Pointer<git_tag> tag) {
 -  final result = libgit2.git_tag_message(tag);
 +  final result = libgit2Runtime.bindings.git_tag_message(tag);
    return result == nullptr ? '' : result.toDartString();
  }
- 
+
 @@ -106,7 +112,7 @@ bool nameIsValid(String name) {
    return using((arena) {
      final valid = arena<Int>();
@@ -7562,12 +7562,12 @@ index de51938..f7db47e 100644
      return valid.value == 1;
    });
 @@ -114,7 +120,7 @@ bool nameIsValid(String name) {
- 
+
  /// Get the tagger (author) of a tag. The returned signature must be freed.
  Pointer<git_signature> tagger(Pointer<git_tag> tag) =>
 -    libgit2.git_tag_tagger(tag);
 +    libgit2Runtime.bindings.git_tag_tagger(tag);
- 
+
  /// Recursively peel a tag until an object of the specified type is found.
  ///
 @@ -125,18 +131,23 @@ Pointer<git_object> peel({
@@ -7577,7 +7577,7 @@ index de51938..f7db47e 100644
 -    final error = libgit2.git_tag_peel(out, tagPointer);
 +    final error = libgit2Runtime.bindings.git_tag_peel(out, tagPointer);
      checkErrorAndThrow(error);
- 
+
      final object = out.value;
      if (targetType == git_object_t.GIT_OBJECT_ANY ||
 -        libgit2.git_object_type(object).value == targetType.value) {
@@ -7585,7 +7585,7 @@ index de51938..f7db47e 100644
 +            targetType.value) {
        return object;
      }
- 
+
      final peeled = arena<Pointer<git_object>>();
 -    final peelError = libgit2.git_object_peel(peeled, object, targetType);
 -    libgit2.git_object_free(object);
@@ -7684,7 +7684,7 @@ index de51938..f7db47e 100644
      checkErrorAndThrow(error);
    });
  }
- 
+
  /// Close an open tag to release memory.
 -void free(Pointer<git_tag> tag) => libgit2.git_tag_free(tag);
 +void free(Pointer<git_tag> tag) => libgit2Runtime.bindings.git_tag_free(tag);
@@ -7694,17 +7694,17 @@ index 5c578fb..7addbd6 100644
 +++ b/lib/src/bindings/tree.dart
 @@ -32,11 +32,12 @@ int _walkCb(
  }
- 
+
  /// Get the id of a tree.
 -Pointer<git_oid> id(Pointer<git_tree> tree) => libgit2.git_tree_id(tree);
 +Pointer<git_oid> id(Pointer<git_tree> tree) =>
 +    libgit2Runtime.bindings.git_tree_id(tree);
- 
+
  /// Get the repository that owns this tree.
  Pointer<git_repository> owner(Pointer<git_tree> tree) =>
 -    libgit2.git_tree_owner(tree);
 +    libgit2Runtime.bindings.git_tree_owner(tree);
- 
+
  /// Lookup a tree object from the repository. The returned tree must be freed
  /// with [free].
 @@ -48,7 +49,11 @@ Pointer<git_tree> lookup({
@@ -7717,9 +7717,9 @@ index 5c578fb..7addbd6 100644
 +      repoPointer,
 +      oidPointer,
 +    );
- 
+
      checkErrorAndThrow(error);
- 
+
 @@ -68,7 +73,7 @@ Pointer<git_tree> lookupPrefix({
  }) {
    return using((arena) {
@@ -7779,18 +7779,18 @@ index 5c578fb..7addbd6 100644
      return out.value;
    });
  }
- 
+
  /// Get the number of entries listed in a tree.
 -int entryCount(Pointer<git_tree> tree) => libgit2.git_tree_entrycount(tree);
 +int entryCount(Pointer<git_tree> tree) =>
 +    libgit2Runtime.bindings.git_tree_entrycount(tree);
- 
+
  /// Walk entries in a tree.
  List<String> walk({
 @@ -159,7 +178,7 @@ List<String> walk({
  }) {
    _walkEntries = <String>[];
- 
+
 -  final error = libgit2.git_tree_walk(
 +  final error = libgit2Runtime.bindings.git_tree_walk(
      treePointer,
@@ -7799,19 +7799,19 @@ index 5c578fb..7addbd6 100644
 @@ -201,7 +220,7 @@ Pointer<git_oid> createUpdated({
        }
      }
- 
+
 -    final error = libgit2.git_tree_create_updated(
 +    final error = libgit2Runtime.bindings.git_tree_create_updated(
        out,
        repoPointer,
        baselinePointer,
 @@ -217,13 +236,13 @@ Pointer<git_oid> createUpdated({
- 
+
  /// Get the id of the object pointed by the entry.
  Pointer<git_oid> entryId(Pointer<git_tree_entry> entry) =>
 -    libgit2.git_tree_entry_id(entry);
 +    libgit2Runtime.bindings.git_tree_entry_id(entry);
- 
+
  /// Duplicate a tree entry owned by the user.
  Pointer<git_tree_entry> duplicateEntry(Pointer<git_tree_entry> entry) {
    return using((arena) {
@@ -7831,28 +7831,28 @@ index 5c578fb..7addbd6 100644
      return out.value;
    });
 @@ -241,19 +260,19 @@ Pointer<git_tree> duplicateTree(Pointer<git_tree> tree) {
- 
+
  /// Get the filename of a tree entry.
  String entryName(Pointer<git_tree_entry> entry) =>
 -    libgit2.git_tree_entry_name(entry).toDartString();
 +    libgit2Runtime.bindings.git_tree_entry_name(entry).toDartString();
- 
+
  /// Get the UNIX file attributes of a tree entry.
  git_filemode_t entryFilemode(Pointer<git_tree_entry> entry) =>
 -    libgit2.git_tree_entry_filemode(entry);
 +    libgit2Runtime.bindings.git_tree_entry_filemode(entry);
- 
+
  /// Get the raw UNIX file attributes of a tree entry.
  git_filemode_t entryFilemodeRaw(Pointer<git_tree_entry> entry) =>
 -    libgit2.git_tree_entry_filemode_raw(entry);
 +    libgit2Runtime.bindings.git_tree_entry_filemode_raw(entry);
- 
+
  /// Get the Git object type of a tree entry.
  git_object_t entryType(Pointer<git_tree_entry> entry) {
 -  return libgit2.git_tree_entry_type(entry);
 +  return libgit2Runtime.bindings.git_tree_entry_type(entry);
  }
- 
+
  /// Compare two tree entries.
 @@ -261,7 +280,7 @@ int entryCompare({
    required Pointer<git_tree_entry> aPointer,
@@ -7861,7 +7861,7 @@ index 5c578fb..7addbd6 100644
 -  return libgit2.git_tree_entry_cmp(aPointer, bPointer);
 +  return libgit2Runtime.bindings.git_tree_entry_cmp(aPointer, bPointer);
  }
- 
+
  /// Convert a tree entry to the object it points to.
 @@ -273,7 +292,7 @@ Pointer<git_object> entryToObject({
  }) {
@@ -7878,7 +7878,7 @@ index 5c578fb..7addbd6 100644
  void freeEntry(Pointer<git_tree_entry> entry) =>
 -    libgit2.git_tree_entry_free(entry);
 +    libgit2Runtime.bindings.git_tree_entry_free(entry);
- 
+
  /// Close an open tree to release memory.
 -void free(Pointer<git_tree> tree) => libgit2.git_tree_free(tree);
 +void free(Pointer<git_tree> tree) =>
@@ -7908,21 +7908,21 @@ index a851590..f9dc679 100644
 +  libgit2Runtime.bindings.git_treebuilder_write(out, bld);
    return out;
  }
- 
+
  /// Clear all the entries in the builder.
  ///
  /// This will clear all the entries in the tree builder, making it empty.
 -void clear(Pointer<git_treebuilder> bld) => libgit2.git_treebuilder_clear(bld);
 +void clear(Pointer<git_treebuilder> bld) =>
 +    libgit2Runtime.bindings.git_treebuilder_clear(bld);
- 
+
  /// Get the number of entries listed in a treebuilder.
  ///
  /// Returns the number of entries in the tree builder.
  int entryCount(Pointer<git_treebuilder> bld) =>
 -    libgit2.git_treebuilder_entrycount(bld);
 +    libgit2Runtime.bindings.git_treebuilder_entrycount(bld);
- 
+
  /// Get a tree entry from the builder by its filename.
  ///
 @@ -62,7 +67,10 @@ Pointer<git_tree_entry> getByFilename({
@@ -7934,7 +7934,7 @@ index a851590..f9dc679 100644
 +      builderPointer,
 +      filenameC,
 +    );
- 
+
      if (result == nullptr) {
        throw ArgumentError.value('$filename was not found');
 @@ -90,7 +98,7 @@ void add({
@@ -7984,16 +7984,16 @@ index 381b1bd..6bb8ace 100644
 +++ b/lib/src/bindings/worktree.dart
 @@ -31,14 +31,14 @@ Pointer<git_worktree> create({
      final pathC = path.toChar(arena);
- 
+
      final opts = arena<git_worktree_add_options>();
 -    libgit2.git_worktree_add_options_init(
 +    libgit2Runtime.bindings.git_worktree_add_options_init(
        opts,
        GIT_WORKTREE_ADD_OPTIONS_VERSION,
      );
- 
+
      opts.ref.ref = refPointer ?? nullptr;
- 
+
 -    final error = libgit2.git_worktree_add(
 +    final error = libgit2Runtime.bindings.git_worktree_add(
        out,
@@ -8049,7 +8049,7 @@ index 381b1bd..6bb8ace 100644
 +    return libgit2Runtime.bindings.git_worktree_is_prunable(wt, opts) > 0;
    });
  }
- 
+
 @@ -123,7 +133,7 @@ bool isPrunable(Pointer<git_worktree> wt) {
  void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
    using((arena) {
@@ -8062,7 +8062,7 @@ index 381b1bd..6bb8ace 100644
 @@ -132,7 +142,10 @@ void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
        opts.ref.flags = flags;
      }
- 
+
 -    final error = libgit2.git_worktree_prune(worktreePointer, opts);
 +    final error = libgit2Runtime.bindings.git_worktree_prune(
 +      worktreePointer,
@@ -8078,7 +8078,7 @@ index 381b1bd..6bb8ace 100644
 -    final error = libgit2.git_worktree_list(out, repo);
 +    final error = libgit2Runtime.bindings.git_worktree_list(out, repo);
      checkErrorAndThrow(error);
- 
+
      final result = <Pointer<git_worktree>>[];
 @@ -162,7 +175,7 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
          continue;
@@ -8095,7 +8095,7 @@ index 381b1bd..6bb8ace 100644
  String name(Pointer<git_worktree> wt) =>
 -    libgit2.git_worktree_name(wt).toDartString();
 +    libgit2Runtime.bindings.git_worktree_name(wt).toDartString();
- 
+
  /// Gets the filesystem path of a worktree.
  ///
 @@ -181,7 +194,7 @@ String name(Pointer<git_worktree> wt) =>
@@ -8104,7 +8104,7 @@ index 381b1bd..6bb8ace 100644
  String path(Pointer<git_worktree> wt) =>
 -    libgit2.git_worktree_path(wt).toDartString();
 +    libgit2Runtime.bindings.git_worktree_path(wt).toDartString();
- 
+
  /// Checks if a worktree is locked.
  ///
 @@ -194,7 +207,7 @@ String path(Pointer<git_worktree> wt) =>
@@ -8115,7 +8115,7 @@ index 381b1bd..6bb8ace 100644
 +    return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
    });
  }
- 
+
 @@ -207,7 +220,7 @@ bool isLocked(Pointer<git_worktree> wt) {
  void lock(Pointer<git_worktree> worktree, [String? reason]) {
    using((arena) {
@@ -8133,14 +8133,14 @@ index 381b1bd..6bb8ace 100644
 +  final error = libgit2Runtime.bindings.git_worktree_unlock(worktree);
    checkErrorAndThrow(error);
  }
- 
+
 @@ -231,7 +244,7 @@ void unlock(Pointer<git_worktree> worktree) {
  ///
  /// Returns true if the worktree is valid, false otherwise.
  bool isValid(Pointer<git_worktree> wt) =>
 -    libgit2.git_worktree_validate(wt) == 0;
 +    libgit2Runtime.bindings.git_worktree_validate(wt) == 0;
- 
+
  /// Validates a worktree configuration.
  ///
 @@ -239,11 +252,12 @@ bool isValid(Pointer<git_worktree> wt) =>
@@ -8151,7 +8151,7 @@ index 381b1bd..6bb8ace 100644
 +  final error = libgit2Runtime.bindings.git_worktree_validate(worktree);
    checkErrorAndThrow(error);
  }
- 
+
  /// Frees a previously allocated worktree.
  ///
  /// [wt] is the worktree to free.
@@ -8170,7 +8170,7 @@ index 5fa636c..ebe3f03 100644
 -    reference_bindings.target(_branchPointer),
 -  );
 +  Oid get target => Oid.fromBorrowed(reference_bindings.target(_branchPointer));
- 
+
    /// Whether HEAD points to the given branch.
    ///
 diff --git a/lib/src/config.dart b/lib/src/config.dart
@@ -8178,7 +8178,7 @@ index b19db4a..3708c8c 100644
 --- a/lib/src/config.dart
 +++ b/lib/src/config.dart
 @@ -29,8 +29,6 @@ class Config with IterableMixin<ConfigEntry> {
- 
+
    /// Creates a new empty configuration object.
    Config.empty() {
 -    libgit2.git_libgit2_init();
@@ -8261,7 +8261,7 @@ index e4e4d66..7012fca 100644
 +      options,
 +      GIT_DIFF_FIND_OPTIONS_VERSION,
 +    );
- 
+
      options.ref.flags = flags.fold(0, (acc, e) => acc | e.value);
      options.ref.rename_threshold = renameThreshold;
 diff --git a/lib/src/helpers/error_helper.dart b/lib/src/helpers/error_helper.dart
@@ -8378,7 +8378,7 @@ index 6838aea..418c979 100644
 -        RegExp(r'\blibgit2(?:Opts)?\s*\.'),
 +        RegExp(r'(?<![\\/])\blibgit2(?:Opts)?\s*\.'),
        );
- 
+
        expect(
 @@ -18,8 +18,7 @@ void main() {
          isEmpty,
@@ -8389,7 +8389,7 @@ index 6838aea..418c979 100644
 +            'libgit2/libgit2Opts globals:\n${occurrences.join('\n')}',
        );
      });
- 
+
 @@ -34,8 +33,8 @@ void main() {
          isEmpty,
          reason:
@@ -8429,13 +8429,13 @@ index c1974a9..b508cba 100644
    }
    return count;
 @@ -320,8 +317,9 @@ Future<Map<String, Object?>> _exerciseTwoIsolates() async {
- 
+
      await first.shutdown();
      final afterFirstShutdown = _probeInitializationCount(rawBindings);
 +    final secondVersion = await second.request('version');
      final secondStillUsable =
 -        (await second.request('version')! as String).isNotEmpty;
 +        secondVersion is String && secondVersion.isNotEmpty;
- 
+
      await second.shutdown();
      final afterSecondShutdown = _probeInitializationCount(rawBindings);

@@ -1,0 +1,45 @@
+diff --git a/lib/src/bindings/index.dart b/lib/src/bindings/index.dart
+index b125f2f..e8e59f3 100644
+--- a/lib/src/bindings/index.dart
++++ b/lib/src/bindings/index.dart
+@@ -106,7 +106,9 @@ int findIndex({
+ /// disk, unwritten in-memory changes are discarded.
+ void read({required Pointer<git_index> indexPointer, required bool force}) {
+   final forceC = force == true ? 1 : 0;
+-  libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
++  final error = libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
++
++  checkErrorAndThrow(error);
+ }
+
+ /// Read a tree into the index file with stats.
+@@ -115,7 +117,14 @@ void read({required Pointer<git_index> indexPointer, required bool force}) {
+ void readTree({
+   required Pointer<git_index> indexPointer,
+   required Pointer<git_tree> treePointer,
+-}) => libgit2Runtime.bindings.git_index_read_tree(indexPointer, treePointer);
++}) {
++  final error = libgit2Runtime.bindings.git_index_read_tree(
++    indexPointer,
++    treePointer,
++  );
++
++  checkErrorAndThrow(error);
++}
+
+ /// Write the index as a tree.
+ ///
+@@ -367,8 +376,11 @@ void updateAll({
+
+ /// Write an existing index object from memory back to disk using an atomic
+ /// file lock.
+-void write(Pointer<git_index> index) =>
+-    libgit2Runtime.bindings.git_index_write(index);
++void write(Pointer<git_index> index) {
++  final error = libgit2Runtime.bindings.git_index_write(index);
++
++  checkErrorAndThrow(error);
++}
+
+ /// Remove an entry from the index.
+ ///

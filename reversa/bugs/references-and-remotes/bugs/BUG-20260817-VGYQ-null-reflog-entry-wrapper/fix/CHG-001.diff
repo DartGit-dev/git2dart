@@ -1,0 +1,29 @@
+diff --git a/test/reflog_test.dart b/test/reflog_test.dart
+index 423c2cc..5bef305 100644
+--- a/test/reflog_test.dart
++++ b/test/reflog_test.dart
+@@ -32,6 +32,12 @@ void main() {
+       expect(reflog.length, 4);
+     });
+
++    test('returns an empty reflog when a reference has no log', () {
++      final tag = Reference.lookup(repo: repo, name: 'refs/tags/v0.1');
++
++      expect(RefLog(tag), isEmpty);
++    });
++
+     test('returns the log message', () {
+       expect(reflog[0].message, "commit: add subdirectory file");
+     });
+@@ -47,6 +53,11 @@ void main() {
+       expect(reflog.last.oldOid.sha, '0' * 40);
+     });
+
++    test('throws when looking up an entry at an invalid index', () {
++      expect(() => reflog[-1], throwsA(isA<Git2DartError>()));
++      expect(() => reflog[reflog.length], throwsA(isA<Git2DartError>()));
++    });
++
+     test('deletes the reflog of provided reference', () {
+       expect(repo.head.hasLog, true);
+       RefLog.delete(repo.head);

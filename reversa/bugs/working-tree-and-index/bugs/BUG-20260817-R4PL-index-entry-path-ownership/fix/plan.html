@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BUG-016 / BUG-20260817-R4PL Fix Plan</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#151d31; --line:#34415f; --text:#e8edf7; --muted:#a9b5cb; --accent:#63d6c5; --warn:#f2c46d; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(135deg,#090d19,#111a2d); color:var(--text); font:15px/1.55 system-ui,sans-serif; }
+    main { width:min(1100px,calc(100% - 32px)); margin:32px auto 64px; }
+    h1,h2 { margin:.2em 0 .6em; }
+    h1 { font-size:clamp(26px,4vw,42px); }
+    h2 { color:var(--accent); }
+    .meta,.grid { display:grid; gap:14px; }
+    .meta { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+    .grid { grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+    .card { background:rgba(21,29,49,.94); border:1px solid var(--line); border-radius:14px; padding:18px; margin:16px 0; box-shadow:0 12px 34px #0005; }
+    .label { color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+    .value { font-weight:650; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border-bottom:1px solid var(--line); padding:10px; text-align:left; vertical-align:top; }
+    th { color:var(--muted); }
+    code { color:#9fe7dc; }
+    .graph { display:flex; align-items:center; justify-content:center; min-height:180px; }
+    .node { border:2px solid var(--accent); border-radius:999px; padding:24px; text-align:center; background:#0f2630; }
+    .risk { color:var(--warn); }
+    a { color:var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>IndexEntry ownership repair</h1>
+  <div class="meta">
+    <div class="card"><div class="label">Bug</div><div class="value">BUG-016 · BUG-20260817-R4PL</div></div>
+    <div class="card"><div class="label">Context</div><div class="value">working-tree-and-index</div></div>
+    <div class="card"><div class="label">Date</div><div class="value">2026-08-26</div></div>
+    <div class="card"><div class="label">Severity / priority</div><div class="value">High / P1</div></div>
+  </div>
+
+  <section class="card">
+    <h2>Defect and confirmed root cause</h2>
+    <p>Every <code>IndexEntry</code> creation route wraps a libgit2-owned, non-modifiable <code>git_index_entry*</code>. The <code>path</code>, <code>oid</code>, and <code>mode</code> setters then mutate that borrowed structure; the path setter additionally replaces a libgit2-owned string pointer with an unmanaged Dart allocation.</p>
+    <p><strong>Evidence:</strong> <a href="../evidence/static-analysis.md">static analysis</a> and <a href="../evidence/ownership-trace.md">ownership trace</a>.</p>
+  </section>
+
+  <section class="card">
+    <h2>Chosen strategy</h2>
+    <p>Preserve the existing mutable public API by copying every borrowed entry into one independently owned native allocation. Store the UTF-8 path in the same allocation, replace the whole owned block on path changes, and release the current block exactly once through explicit disposal plus a finalizer safety net. This avoids a breaking removal of setters and keeps <code>Index.add</code>, <code>addFromBuffer</code>, and conflict APIs receiving a complete native entry.</p>
+  </section>
+
+  <section class="card">
+    <h2>Proposed correction change set</h2>
+    <table>
+      <thead><tr><th>CHG</th><th>Kind</th><th>Artifact</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>CHG-001</td><td>test</td><td><code>test/index_test.dart</code></td><td>Prove borrowed entries stay unchanged, mutation remains usable through Index.add, and owned allocation/disposal is balanced.</td></tr>
+        <tr><td>CHG-002</td><td>code</td><td><code>lib/src/bindings/index.dart</code></td><td>Copy all git_index_entry fields into a single owned block and provide matched free plus allocation instrumentation.</td></tr>
+        <tr><td>CHG-003</td><td>code</td><td><code>lib/src/index.dart</code></td><td>Make IndexEntry manage the owned copy, replace paths without leaks, preserve setters, and provide idempotent explicit disposal.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Planned tests</h2>
+      <p><strong>Reproduction:</strong> assert that setters do not alter the libgit2-owned source entry before <code>Index.add</code>.</p>
+      <p><strong>Regression:</strong> repeated path replacement keeps exactly one live owned block; <code>Index.add</code> consumes the mutated copy; disposal is balanced and idempotent.</p>
+    </section>
+    <section class="card">
+      <h2>Risk and exclusions</h2>
+      <p class="risk"><strong>Medium:</strong> all IndexEntry projections change ownership, but the source API and native call shape remain compatible.</p>
+      <p>Excluded: generated declarations, dependencies, binaries, broad refactors, commits, publication, and unrelated bug fixes.</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Bug graph</h2>
+    <div class="graph"><a class="node" href="../bug.md">BUG-20260817-R4PL<br>confirmed ownership defect</a></div>
+    <p>No inter-bug relationships are registered.</p>
+  </section>
+
+  <section class="card">
+    <h2>Relationship matrix</h2>
+    <table><thead><tr><th>Origin</th><th>Type</th><th>Destination</th><th>State</th></tr></thead><tbody><tr><td><a href="../bug.md">BUG-20260817-R4PL</a></td><td colspan="3">No registered relationships</td></tr></tbody></table>
+  </section>
+</main>
+</body>
+</html>

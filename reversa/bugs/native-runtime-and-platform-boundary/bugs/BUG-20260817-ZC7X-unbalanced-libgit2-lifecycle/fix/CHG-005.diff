@@ -5,7 +5,7 @@ index e17c33e..b4dd16c 100644
 @@ -82,6 +82,12 @@ a safety net, but long-running tools and apps should call `free()` when they are
  done with repositories, objects, streams, iterators, and other native-backed
  values.
- 
+
 +Applications that need deterministic process cleanup may call
 +`Libgit2.shutdown()` after explicitly freeing every live `Repository` and
 +independently usable `Commit`. Shutdown is rejected while either owner remains
@@ -13,7 +13,7 @@ index e17c33e..b4dd16c 100644
 +return the original native result.
 +
  ## Mobile Initialization
- 
+
  Flutter apps on Android and iOS should initialize platform support before using
 diff --git a/doc/types/libgit2.md b/doc/types/libgit2.md
 index aa54766..c522d49 100644
@@ -22,7 +22,7 @@ index aa54766..c522d49 100644
 @@ -83,6 +83,19 @@ libgit2 option failures throw `LibGit2Error`.
  These options are process-wide. Change them deliberately and restore previous
  values in tests or shared runtimes.
- 
+
 +For deterministic cleanup, free every live `Repository` and independently
 +usable `Commit`, then release the isolate's managed native lease:
 +
@@ -37,7 +37,7 @@ index aa54766..c522d49 100644
 +calls return the original result.
 +
  ## Important Options
- 
+
  Use the options shown in the example for this API. Related enum and flag details are collected in [Shared Git enums and options](git_types.md).
 diff --git a/lib/src/libgit2.dart b/lib/src/libgit2.dart
 index eac6d9e..7def609 100644
@@ -46,7 +46,7 @@ index eac6d9e..7def609 100644
 @@ -14,16 +14,22 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
  class Libgit2 {
    Libgit2._(); // coverage:ignore-line
- 
+
 +  /// Releases this isolate's managed libgit2 lease.
 +  ///
 +  /// Shutdown is rejected while native calls or independently usable native
@@ -90,7 +90,7 @@ index eac6d9e..7def609 100644
 +    final result = libgit2Runtime.bindings.git_libgit2_prerelease();
      return result == nullptr ? null : result.toDartString();
    }
- 
+
    /// Backend details for a compile-time [feature], or `null` if unsupported.
    static String? featureBackend(GitFeature feature) {
 -    libgit2.git_libgit2_init();
@@ -131,13 +131,13 @@ index eac6d9e..7def609 100644
        return out.value;
      });
    }
- 
+
    static set mmapWindowSize(int value) {
 -    libgit2.git_libgit2_init();
 -    libgit2Opts.git_libgit2_opts_set_mwindow_size(value);
 +    libgit2Runtime.options.git_libgit2_opts_set_mwindow_size(value);
    }
- 
+
    /// Get or set the maximum total memory that will be mapped by the library.
 @@ -107,17 +107,15 @@ class Libgit2 {
    /// The default (0) is unlimited. This is a soft limit that may be
@@ -151,13 +151,13 @@ index eac6d9e..7def609 100644
        return out.value;
      });
    }
- 
+
    static set mmapWindowMappedLimit(int value) {
 -    libgit2.git_libgit2_init();
 -    libgit2Opts.git_libgit2_opts_set_mwindow_mapped_limit(value);
 +    libgit2Runtime.options.git_libgit2_opts_set_mwindow_mapped_limit(value);
    }
- 
+
    /// Get or set the maximum number of files that will be mapped at any time.
 @@ -125,17 +123,15 @@ class Libgit2 {
    /// The default (0) is unlimited. This helps control memory usage when
@@ -171,13 +171,13 @@ index eac6d9e..7def609 100644
        return out.value;
      });
    }
- 
+
    static set mmapWindowFileLimit(int value) {
 -    libgit2.git_libgit2_init();
 -    libgit2Opts.git_libgit2_opts_set_mwindow_file_limit(value);
 +    libgit2Runtime.options.git_libgit2_opts_set_mwindow_file_limit(value);
    }
- 
+
    /// Get the search path for a given config level.
 @@ -148,12 +144,11 @@ class Libgit2 {
    ///
@@ -208,7 +208,7 @@ index eac6d9e..7def609 100644
 +      );
      });
    }
- 
+
 @@ -187,8 +184,10 @@ class Libgit2 {
      required GitObject type,
      required int value,
@@ -220,7 +220,7 @@ index eac6d9e..7def609 100644
 +      value,
 +    );
    }
- 
+
    /// Set the maximum total cache size across all repositories.
 @@ -196,8 +195,7 @@ class Libgit2 {
    /// This is a soft limit - the library may briefly exceed it before
@@ -230,7 +230,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_set_cache_max_size(bytes);
 +    libgit2Runtime.options.git_libgit2_opts_set_cache_max_size(bytes);
    }
- 
+
    /// Get information about the current cache usage.
 @@ -205,11 +203,9 @@ class Libgit2 {
    /// Returns a [CachedMemory] object containing the current bytes in cache
@@ -242,7 +242,7 @@ index eac6d9e..7def609 100644
      final allowed = calloc<Int>();
 -    libgit2Opts.git_libgit2_opts_get_cached_memory(current, allowed);
 +    libgit2Runtime.options.git_libgit2_opts_get_cached_memory(current, allowed);
- 
+
      final result = CachedMemory._(
        current: current.value,
 @@ -225,8 +221,7 @@ class Libgit2 {
@@ -253,7 +253,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_caching(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_caching(1);
    }
- 
+
    /// Disable object caching completely.
 @@ -234,31 +229,27 @@ class Libgit2 {
    /// Caches are repository-specific, so disabling won't immediately clear
@@ -263,7 +263,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_caching(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_caching(0);
    }
- 
+
    /// Get or set the default template path.
    ///
    /// This is the path used for repository templates when creating new repos.
@@ -274,14 +274,14 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_get_template_path(out);
 +    libgit2Runtime.options.git_libgit2_opts_get_template_path(out);
      final result = out.ref.ptr.toDartString(length: out.ref.size);
- 
+
 -    libgit2.git_buf_dispose(out);
 +    libgit2Runtime.bindings.git_buf_dispose(out);
      calloc.free(out);
- 
+
      return result;
    }
- 
+
    static set templatePath(String path) {
 -    libgit2.git_libgit2_init();
      using((arena) {
@@ -290,7 +290,7 @@ index eac6d9e..7def609 100644
 +      libgit2Runtime.options.git_libgit2_opts_set_template_path(pathC);
      });
    }
- 
+
 @@ -274,11 +265,13 @@ class Libgit2 {
      if (file == null && path == null) {
        throw ArgumentError("Both file and path can't be null");
@@ -322,7 +322,7 @@ index eac6d9e..7def609 100644
        return result;
      });
    }
- 
+
    static set userAgent(String userAgent) {
 -    libgit2.git_libgit2_init();
      using((arena) {
@@ -331,7 +331,7 @@ index eac6d9e..7def609 100644
 +      libgit2Runtime.options.git_libgit2_opts_set_user_agent(userAgentC);
      });
    }
- 
+
 @@ -313,8 +304,7 @@ class Libgit2 {
    ///
    /// Enabled by default.
@@ -340,7 +340,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_strict_object_creation(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_strict_object_creation(1);
    }
- 
+
    /// Disable strict input validation for object creation.
 @@ -323,8 +313,7 @@ class Libgit2 {
    ///
@@ -350,7 +350,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_strict_object_creation(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_strict_object_creation(0);
    }
- 
+
    /// Enable validation of symbolic ref targets.
 @@ -334,8 +323,9 @@ class Libgit2 {
    ///
@@ -362,7 +362,7 @@ index eac6d9e..7def609 100644
 +      1,
 +    );
    }
- 
+
    /// Disable validation of symbolic ref targets.
 @@ -344,8 +334,9 @@ class Libgit2 {
    ///
@@ -374,7 +374,7 @@ index eac6d9e..7def609 100644
 +      0,
 +    );
    }
- 
+
    /// Enable use of offset deltas in packfiles.
 @@ -355,8 +346,7 @@ class Libgit2 {
    ///
@@ -384,7 +384,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_offset_delta(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_offset_delta(1);
    }
- 
+
    /// Disable use of offset deltas in packfiles.
 @@ -365,8 +355,7 @@ class Libgit2 {
    ///
@@ -394,7 +394,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_offset_delta(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_offset_delta(0);
    }
- 
+
    /// Enable synchronized writes to gitdir.
 @@ -376,16 +365,14 @@ class Libgit2 {
    ///
@@ -404,7 +404,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_fsync_gitdir(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_fsync_gitdir(1);
    }
- 
+
    /// Disable synchronized writes to gitdir.
    ///
    /// Disabled by default.
@@ -413,7 +413,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_fsync_gitdir(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_fsync_gitdir(0);
    }
- 
+
    /// Enable strict hash verification.
 @@ -395,8 +382,7 @@ class Libgit2 {
    ///
@@ -423,7 +423,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_strict_hash_verification(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_strict_hash_verification(1);
    }
- 
+
    /// Disable strict hash verification.
 @@ -405,8 +391,7 @@ class Libgit2 {
    ///
@@ -433,7 +433,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_strict_hash_verification(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_strict_hash_verification(0);
    }
- 
+
    /// Enable unsaved index safety checks.
 @@ -416,8 +401,7 @@ class Libgit2 {
    ///
@@ -443,7 +443,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_unsaved_index_safety(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_unsaved_index_safety(1);
    }
- 
+
    /// Disable unsaved index safety checks.
 @@ -426,18 +410,15 @@ class Libgit2 {
    ///
@@ -453,7 +453,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_unsaved_index_safety(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_unsaved_index_safety(0);
    }
- 
+
    /// Get or set the maximum number of objects in a pack file.
    ///
    /// This limits memory usage when fetching from untrusted remotes.
@@ -465,16 +465,16 @@ index eac6d9e..7def609 100644
 +    libgit2Runtime.options.git_libgit2_opts_get_pack_max_objects(out);
      final result = out.value;
      calloc.free(out);
- 
+
 @@ -445,8 +426,7 @@ class Libgit2 {
    }
- 
+
    static set packMaxObjects(int value) {
 -    libgit2.git_libgit2_init();
 -    libgit2Opts.git_libgit2_opts_set_pack_max_objects(value);
 +    libgit2Runtime.options.git_libgit2_opts_set_pack_max_objects(value);
    }
- 
+
    /// Get or set the maximum declared object size allowed in a pack file.
 @@ -456,10 +436,10 @@ class Libgit2 {
    ///
@@ -500,7 +500,7 @@ index eac6d9e..7def609 100644
 +        .git_libgit2_opts_set_pack_max_object_size(value);
      checkErrorAndThrow(error);
    }
- 
+
 @@ -479,16 +458,14 @@ class Libgit2 {
    ///
    /// When enabled, checks for .keep files when accessing packfiles.
@@ -509,7 +509,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_disable_pack_keep_file_checks(0);
 +    libgit2Runtime.options.git_libgit2_opts_disable_pack_keep_file_checks(0);
    }
- 
+
    /// Disable .keep file checks for packfiles.
    ///
    /// This can improve performance with remote filesystems.
@@ -518,7 +518,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_disable_pack_keep_file_checks(1);
 +    libgit2Runtime.options.git_libgit2_opts_disable_pack_keep_file_checks(1);
    }
- 
+
    /// Enable HTTP expect/continue for NTLM/Negotiate auth.
 @@ -498,16 +475,14 @@ class Libgit2 {
    ///
@@ -528,7 +528,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_http_expect_continue(1);
 +    libgit2Runtime.options.git_libgit2_opts_enable_http_expect_continue(1);
    }
- 
+
    /// Disable HTTP expect/continue for NTLM/Negotiate auth.
    ///
    /// Not available on Windows.
@@ -537,7 +537,7 @@ index eac6d9e..7def609 100644
 -    libgit2Opts.git_libgit2_opts_enable_http_expect_continue(0);
 +    libgit2Runtime.options.git_libgit2_opts_enable_http_expect_continue(0);
    }
- 
+
    /// Get or set the list of supported git extensions.
 @@ -519,10 +494,8 @@ class Libgit2 {
    ///
@@ -548,12 +548,12 @@ index eac6d9e..7def609 100644
      final array = calloc<git_strarray>();
 -    libgit2Opts.git_libgit2_opts_get_extensions(array);
 +    libgit2Runtime.options.git_libgit2_opts_get_extensions(array);
- 
+
      final result = <String>[
        for (var i = 0; i < array.ref.count; i++)
 @@ -535,13 +508,15 @@ class Libgit2 {
    }
- 
+
    static set extensions(List<String> extensions) {
 -    libgit2.git_libgit2_init();
      using((arena) {
@@ -568,7 +568,7 @@ index eac6d9e..7def609 100644
 +      );
      });
    }
- 
+
 @@ -551,10 +526,8 @@ class Libgit2 {
    ///
    /// Enabled by default.
@@ -580,10 +580,10 @@ index eac6d9e..7def609 100644
 +    libgit2Runtime.options.git_libgit2_opts_get_owner_validation(out);
      final result = out.value;
      calloc.free(out);
- 
+
 @@ -562,10 +535,8 @@ class Libgit2 {
    }
- 
+
    static set ownerValidation(bool value) {
 -    libgit2.git_libgit2_init();
 -
@@ -592,4 +592,4 @@ index eac6d9e..7def609 100644
 +    libgit2Runtime.options.git_libgit2_opts_set_owner_validation(valueC);
    }
  }
- 
+

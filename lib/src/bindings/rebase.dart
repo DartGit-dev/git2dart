@@ -150,13 +150,17 @@ Pointer<git_index> inmemoryIndex(Pointer<git_rebase> rebase) {
 
 /// Finishes a rebase that is currently in progress once all patches have been
 /// applied.
-void finish(Pointer<git_rebase> rebase) =>
-    libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
+void finish(Pointer<git_rebase> rebase) {
+  final error = libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
+  checkErrorAndThrow(error);
+}
 
 /// Aborts a rebase that is currently in progress, resetting the repository and
 /// working directory to their state before rebase began.
-void abort(Pointer<git_rebase> rebase) =>
-    libgit2Runtime.bindings.git_rebase_abort(rebase);
+void abort(Pointer<git_rebase> rebase) {
+  final error = libgit2Runtime.bindings.git_rebase_abort(rebase);
+  checkErrorAndThrow(error);
+}
 
 /// Gets the original HEAD id for merge rebases.
 Pointer<git_oid> origHeadOid(Pointer<git_rebase> rebase) =>

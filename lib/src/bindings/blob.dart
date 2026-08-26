@@ -272,12 +272,13 @@ String filterContent({
       opts,
     );
 
-    checkErrorAndThrow(error);
-
-    if (out.ref.ptr == nullptr) {
-      return '';
+    try {
+      checkErrorAndThrow(error);
+      if (out.ref.ptr == nullptr) return '';
+      return out.ref.ptr.toDartString(length: out.ref.size);
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(out);
     }
-    return out.ref.ptr.toDartString(length: out.ref.size);
   });
 }
 

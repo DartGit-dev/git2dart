@@ -110,21 +110,26 @@ class Checkout {
     List<String>? paths,
   }) {
     final ref = Reference.lookup(repo: repo, name: name);
-    final treeish = object_bindings.lookup(
-      repoPointer: repo.pointer,
-      oidPointer: ref.target.pointer,
-      type: git_object_t.fromValue(GitObject.any.value),
-    );
-
-    bindings.tree(
-      repoPointer: repo.pointer,
-      treeishPointer: treeish,
-      strategy: strategy.fold(0, (int acc, e) => acc | e.value),
-      directory: directory,
-      paths: paths,
-    );
-
-    object_bindings.free(treeish);
+    try {
+      final treeish = object_bindings.lookup(
+        repoPointer: repo.pointer,
+        oidPointer: ref.target.pointer,
+        type: git_object_t.fromValue(GitObject.any.value),
+      );
+      try {
+        bindings.tree(
+          repoPointer: repo.pointer,
+          treeishPointer: treeish,
+          strategy: strategy.fold(0, (int acc, e) => acc | e.value),
+          directory: directory,
+          paths: paths,
+        );
+      } finally {
+        object_bindings.free(treeish);
+      }
+    } finally {
+      ref.free();
+    }
   }
 
   /// Updates files in the working tree to match the content of the tree
@@ -160,14 +165,16 @@ class Checkout {
       type: git_object_t.fromValue(GitObject.any.value),
     );
 
-    bindings.tree(
-      repoPointer: repo.pointer,
-      treeishPointer: treeish,
-      strategy: strategy.fold(0, (int acc, e) => acc | e.value),
-      directory: directory,
-      paths: paths,
-    );
-
-    object_bindings.free(treeish);
+    try {
+      bindings.tree(
+        repoPointer: repo.pointer,
+        treeishPointer: treeish,
+        strategy: strategy.fold(0, (int acc, e) => acc | e.value),
+        directory: directory,
+        paths: paths,
+      );
+    } finally {
+      object_bindings.free(treeish);
+    }
   }
 }

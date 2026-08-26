@@ -172,6 +172,18 @@ void main() {
       expect(blob.content, newBlobContent);
     });
 
+    test('writes UTF-8 text to a blob stream', () {
+      const content = 'ASCII Привет 😀 e\u0301';
+      final stream = Blob.createFromStream(repo: repo);
+
+      stream.writeString(content);
+      final oid = Blob.createFromStreamCommit(stream);
+      final blob = Blob.lookup(repo: repo, oid: oid);
+
+      expect(blob.content, content);
+      expect(blob.contentBytes, utf8.encode(content));
+    });
+
     test('detects binary data', () {
       final binary = Uint8List.fromList([0x00, 0xff]);
       final text = Uint8List.fromList([0x61, 0x62, 0x63]);

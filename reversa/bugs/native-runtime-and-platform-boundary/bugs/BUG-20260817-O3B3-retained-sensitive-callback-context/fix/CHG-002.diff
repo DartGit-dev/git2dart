@@ -5,7 +5,7 @@ index 6495c38..9093841 100644
 +++ b/test/remote_test.dart
 @@ -1,6 +1,7 @@
  import 'dart:io';
- 
+
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/remote_callbacks.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -14,7 +14,7 @@ index 6495c38..9093841 100644
 @@ -404,6 +405,45 @@ void main() {
        expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
      });
- 
+
 +    test('clears callback state after repeated loopback fetch failures', () {
 +      Remote.setUrl(
 +        repo: repo,

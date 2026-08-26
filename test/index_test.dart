@@ -132,6 +132,40 @@ void main() {
       expect(entry.mode, GitFilemode.blobExecutable);
     });
 
+    test('does not mutate borrowed index entries before add', () {
+      final entry = index['file'];
+      final otherEntry = index['feature_file'];
+
+      entry.path = 'owned-entry.txt';
+      entry.oid = otherEntry.oid;
+      entry.mode = GitFilemode.blobExecutable;
+
+      expect(index[3].path, 'file');
+      expect(index[3].oid.sha, fileSha);
+      expect(index[3].mode, GitFilemode.blob);
+
+      index.add(entry);
+
+      expect(index['owned-entry.txt'].oid.sha, featureFileSha);
+      expect(index['owned-entry.txt'].mode, GitFilemode.blobExecutable);
+    });
+
+    test('replaces and disposes owned index entry storage', () {
+      final entry = index['file'];
+
+      for (final path in ['first.txt', 'second.txt', 'third.txt']) {
+        final previousAddress = entry.pointer.address;
+        entry.path = path;
+
+        expect(entry.pointer.address, isNot(previousAddress));
+        expect(entry.path, path);
+      }
+
+      (entry as dynamic).free();
+      expect(entry.pointer, nullptr);
+      expect(() => (entry as dynamic).free(), returnsNormally);
+    });
+
     test('clears the contents', () {
       expect(index.length, 4);
       index.clear();
@@ -264,6 +298,13 @@ void main() {
       index.read();
       expect(index['new_file'].path, 'new_file');
       expect(index.length, 5);
+    });
+
+    test('throws when native index persistence operations fail', () {
+      final inMemory = Index.newInMemory();
+
+      expect(() => inMemory.read(), throwsA(isA<LibGit2Error>()));
+      expect(() => inMemory.write(), throwsA(isA<LibGit2Error>()));
     });
 
     test('removes an entry', () {

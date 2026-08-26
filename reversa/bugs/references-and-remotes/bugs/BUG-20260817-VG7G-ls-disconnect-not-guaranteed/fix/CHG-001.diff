@@ -1,0 +1,16 @@
+diff --git a/test/remote_test.dart b/test/remote_test.dart
+--- a/test/remote_test.dart
++++ b/test/remote_test.dart
+@@ -323,6 +323,14 @@ void main() {
+       expect(refs.first, remote.ls().first);
+     });
+
++    test('lists a local remote without network access', () {
++      final remote = Remote.create(repo: repo, name: 'local', url: tmpDir.path);
++
++      final refs = remote.ls();
++      expect(refs, isNotEmpty);
++      expect(remote.ls(), hasLength(refs.length));
++    });
++
+     test("throws when trying to get remote repo's reference list with "

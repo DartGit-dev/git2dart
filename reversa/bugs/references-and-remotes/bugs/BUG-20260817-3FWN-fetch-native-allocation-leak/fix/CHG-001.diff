@@ -25,7 +25,7 @@ diff --git a/test/remote_test.dart b/test/remote_test.dart
 +      );
 +      expect(fetchSource, isNot(contains('calloc<git_fetch_options>()')));
 +    });
- 
+
      test(
        tags: 'remote_fetch',
 

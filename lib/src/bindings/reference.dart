@@ -885,14 +885,18 @@ Pointer<git_oid> nameToId({
     final result = calloc<git_oid>();
     final nameC = refName.toChar(arena);
 
-    final error = libgit2Runtime.bindings.git_reference_name_to_id(
-      result,
-      repoPointer,
-      nameC,
-    );
-
-    checkErrorAndThrow(error);
-    return result;
+    try {
+      final error = libgit2Runtime.bindings.git_reference_name_to_id(
+        result,
+        repoPointer,
+        nameC,
+      );
+      checkErrorAndThrow(error);
+      return result;
+    } catch (_) {
+      calloc.free(result);
+      rethrow;
+    }
   });
 }
 

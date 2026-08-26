@@ -239,6 +239,16 @@ void main() {
       expect(refspec, equals(remote.getRefspec(0)));
     });
 
+    test('throws when refspec index is out of bounds', () {
+      final remote = Remote.lookup(repo: repo, name: 'origin');
+
+      expect(() => remote.getRefspec(-1), throwsA(isA<Git2DartError>()));
+      expect(
+        () => remote.getRefspec(remote.refspecCount),
+        throwsA(isA<Git2DartError>()),
+      );
+    });
+
     test(
       'throws when trying to transform refspec with invalid reference name',
       () {
@@ -311,6 +321,14 @@ void main() {
       expect(refs.first.oid.sha, '49322bb17d3acc9146f98c97d078513228bbf3c0');
       expect(refs.first.toString(), contains('RemoteReference{'));
       expect(refs.first, remote.ls().first);
+    });
+
+    test('lists a local remote without network access', () {
+      final remote = Remote.create(repo: repo, name: 'local', url: tmpDir.path);
+
+      final refs = remote.ls();
+      expect(refs, isNotEmpty);
+      expect(remote.ls(), hasLength(refs.length));
     });
 
     test("throws when trying to get remote repo's reference list with "

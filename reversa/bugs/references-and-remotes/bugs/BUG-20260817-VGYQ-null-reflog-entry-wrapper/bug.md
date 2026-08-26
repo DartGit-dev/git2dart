@@ -3,12 +3,12 @@ schema_version: 1
 id: BUG-20260817-VGYQ
 display_number: 11
 title: Reflog indexing wraps a null native entry for out-of-range access
-status: open
-phase: triaging
+status: active
+phase: awaiting-human
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-17
+updated: 2026-08-26
 origin: {type: inspection, external_ref: null}
 area: repository-operations
 module: references-and-remotes
@@ -27,13 +27,29 @@ traceability:
     - "reversa/sdd/references-and-remotes/requirements.md#functional-requirements"
     - "reversa/sdd/references-and-remotes/edge-cases.md#references-and-remotes-edge-cases"
   affected_code: ["lib/src/reflog.dart:84", "lib/src/bindings/reflog.dart:132"]
-  root_cause: null
-  reproduction_tests: []
-  regression_tests: []
+  root_cause:
+    state: confirmed
+    hypothesis: "The reflog binding forwards a null result from git_reflog_entry_byindex, allowing the index operator to construct a RefLogEntry whose pointer cannot be dereferenced."
+    causal_path: ["invalid index", "git_reflog_entry_byindex returns nullptr", "bindings.getByIndex returns nullptr", "RefLog operator creates RefLogEntry", "property dereference"]
+    evidence:
+      - {ref: "evidence/static-analysis.md", observation: "The nullable native entry result is forwarded and wrapped without validation."}
+      - {ref: "evidence/reproduction.md", observation: "The focused out-of-range lookup did not complete before the correction; after the boundary guard, both invalid indexes throw Git2DartError."}
+    code_refs:
+      - {file: "lib/src/bindings/reflog.dart", symbol: "getByIndex", commit: null}
+      - {file: "lib/src/reflog.dart", symbol: "RefLog.operator []", commit: null}
+  reproduction_tests: ["test/reflog_test.dart:56-59"]
+  regression_tests: ["test/reflog_test.dart:35-59"]
 spec_verdict: null
-change_set: []
+change_set:
+  - {id: CHG-001, kind: test, artifact: "test/reflog_test.dart", purpose: "Cover empty, valid, and invalid reflog entry lookups.", diff: "fix/CHG-001.diff"}
+  - {id: CHG-002, kind: code, artifact: "lib/src/bindings/reflog.dart", purpose: "Reject null native reflog entries before public wrapping.", diff: "fix/CHG-002.diff"}
 closure: {policy: package, satisfied: false}
 resolution_kind: null
+change_risk:
+  classification: low
+  reasons:
+    - "The patch adds one null guard at the Dart FFI boundary."
+    - "The valid lookup path, borrowed-entry lifetime, public API, and native ABI are unchanged."
 ---
 
 # Reflog indexing wraps a null native entry for out-of-range access
@@ -74,7 +90,35 @@ FR-RR-04, reflog edge cases, and reflog wrappers.
 
 ## Resolution
 
-Pending approved fix workflow.
+### Reproduction and root cause
+
+The focused test did not complete after requesting an invalid reflog entry
+before the correction, showing that the invalid pointer reached the native
+dereference path. The root cause is confirmed: `bindings.getByIndex` forwarded
+`nullptr` from `git_reflog_entry_byindex`, and `RefLog.operator []` created a
+public `RefLogEntry` wrapper around it.
+
+### Applied change set
+
+| ID | Kind | Artifact | Evidence |
+| --- | --- | --- | --- |
+| CHG-001 | test | `test/reflog_test.dart` | `fix/CHG-001.diff` |
+| CHG-002 | code | `lib/src/bindings/reflog.dart` | `fix/CHG-002.diff` |
+
+The test suite now proves empty reflogs, valid first and last entries, and
+immediate `Git2DartError` for both lower and upper out-of-range indexes.
+
+### Validation
+
+- `flutter test -j 1 test/reflog_test.dart` — red/non-completing before CHG-002, green after it.
+- `flutter analyze` — passed with no issues.
+- `git diff --check` — passed.
+
+### Pending human decisions and delivery
+
+Recommended specification verdict: `spec-correta`. FR-RR-04 and the public
+index operator already require explicit out-of-range failure. Package closure
+still requires a human-recorded verdict, merge, and publication.
 
 ## Agent Notes
 

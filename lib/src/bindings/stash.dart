@@ -33,16 +33,21 @@ Pointer<git_oid> save({
     final out = calloc<git_oid>();
     final messageC = message?.toChar(arena) ?? nullptr;
 
-    final error = libgit2Runtime.bindings.git_stash_save(
-      out,
-      repoPointer,
-      stasherPointer,
-      messageC,
-      flags,
-    );
+    try {
+      final error = libgit2Runtime.bindings.git_stash_save(
+        out,
+        repoPointer,
+        stasherPointer,
+        messageC,
+        flags,
+      );
 
-    checkErrorAndThrow(error);
-    return out;
+      checkErrorAndThrow(error);
+      return out;
+    } catch (_) {
+      calloc.free(out);
+      rethrow;
+    }
   });
 }
 
@@ -63,13 +68,18 @@ Pointer<git_oid> saveWithOpts({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final error = libgit2Runtime.bindings.git_stash_save_with_opts(
-      out,
-      repoPointer,
-      optionsPointer,
-    );
-    checkErrorAndThrow(error);
-    return out;
+    try {
+      final error = libgit2Runtime.bindings.git_stash_save_with_opts(
+        out,
+        repoPointer,
+        optionsPointer,
+      );
+      checkErrorAndThrow(error);
+      return out;
+    } catch (_) {
+      calloc.free(out);
+      rethrow;
+    }
   });
 }
 

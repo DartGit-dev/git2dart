@@ -1,0 +1,18 @@
+diff --git a/test/index_test.dart b/test/index_test.dart
+index 1d4330e..99e72fe 100644
+--- a/test/index_test.dart
++++ b/test/index_test.dart
+@@ -266,6 +266,13 @@ void main() {
+       expect(index.length, 5);
+     });
+
++    test('throws when native index persistence operations fail', () {
++      final inMemory = Index.newInMemory();
++
++      expect(() => inMemory.read(), throwsA(isA<LibGit2Error>()));
++      expect(() => inMemory.write(), throwsA(isA<LibGit2Error>()));
++    });
++
+     test('removes an entry', () {
+       expect(index.find('feature_file'), true);
+       index.remove('feature_file');

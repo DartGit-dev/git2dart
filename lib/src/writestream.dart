@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -40,7 +41,7 @@ class BlobWriteStream {
 
   /// Write UTF-8 [text] into the stream.
   void writeString(String text) {
-    write(Uint8List.fromList(text.codeUnits));
+    write(Uint8List.fromList(utf8.encode(text)));
   }
 
   /// Manually free the underlying stream if it wasn't committed.

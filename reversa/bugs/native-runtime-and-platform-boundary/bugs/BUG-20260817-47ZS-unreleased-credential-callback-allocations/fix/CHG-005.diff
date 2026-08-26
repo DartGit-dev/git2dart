@@ -20,7 +20,7 @@ diff --git a/test/callbacks_test.dart b/test/callbacks_test.dart
 +      );
 +      expect(callbackSource, isNot(contains('.toCharAlloc()')));
 +    });
- 
+
      test('releases credential payload idempotently during reset', () {
 
 ---

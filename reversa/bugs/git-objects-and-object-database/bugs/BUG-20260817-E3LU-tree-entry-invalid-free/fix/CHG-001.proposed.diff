@@ -4,7 +4,7 @@ diff --git a/test/tree_test.dart b/test/tree_test.dart
 @@ -187,12 +187,27 @@ void main() {
        );
      });
- 
+
 +    for (final source in <String, TreeEntry Function()>{
 +      'entries list': () => tree.entries.first,
 +      'index lookup': () => tree[0],
@@ -23,12 +23,12 @@ diff --git a/test/tree_test.dart b/test/tree_test.dart
        final tree = Tree.lookup(repo: repo, oid: repo['a8ae3dd']);
        expect(() => tree.free(), returnsNormally);
      });
- 
+
      test('manually releases allocated memory for tree entry '
          'looked up by path', () {
 -      expect(() => tree['dir/dir_file.txt'].free(), returnsNormally);
 +      final entry = tree['dir/dir_file.txt'];
 +      expect(entry.free, returnsNormally);
      });
- 
+
      test('supports value comparison', () {

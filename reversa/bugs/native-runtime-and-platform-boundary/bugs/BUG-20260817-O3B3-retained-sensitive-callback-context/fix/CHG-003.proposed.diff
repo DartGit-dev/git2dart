@@ -3,7 +3,7 @@ diff --git a/test/repository_clone_test.dart b/test/repository_clone_test.dart
 +++ b/test/repository_clone_test.dart
 @@ -3,6 +3,7 @@
  import 'dart:io';
- 
+
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/remote_callbacks.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -39,5 +39,5 @@ diff --git a/test/repository_clone_test.dart b/test/repository_clone_test.dart
 +      }
 +    });
    });
- 
+
    group('RepositoryCallback', () {

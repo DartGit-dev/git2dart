@@ -8,7 +8,7 @@ index dbc0865..e850b95 100644
    @internal
 -  const TreeEntry(this._treeEntryPointer);
 +  const TreeEntry(this._treeEntryPointer) : _isOwned = false;
- 
+
    /// Initializes a new instance of [TreeEntry] class from provided pointer to
    /// tree entry object in memory.
    ///
@@ -17,10 +17,10 @@ index dbc0865..e850b95 100644
 +  TreeEntry._byPath(this._treeEntryPointer) : _isOwned = true {
      _entryFinalizer.attach(this, _treeEntryPointer, detach: this);
    }
- 
+
    /// Pointer to memory address for allocated tree entry object.
    final Pointer<git_tree_entry> _treeEntryPointer;
- 
+
 +  /// Whether this entry owns the native pointer and may release it.
 +  final bool _isOwned;
 +

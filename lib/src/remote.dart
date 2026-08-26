@@ -267,8 +267,12 @@ class Remote extends Equatable {
       callbacks: callbacks,
       proxyOption: proxy,
     );
-    final refs = remote_bindings.lsRemotes(_remotePointer);
-    remote_bindings.disconnect(_remotePointer);
+    late final List<Map<String, Object?>> refs;
+    try {
+      refs = remote_bindings.lsRemotes(_remotePointer);
+    } finally {
+      remote_bindings.disconnect(_remotePointer);
+    }
 
     return <RemoteReference>[
       for (final ref in refs)

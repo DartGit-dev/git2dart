@@ -5,7 +5,7 @@ index bb5fd2a..49c20cc 100644
 @@ -187,6 +187,21 @@ void main() {
        );
      });
- 
+
 +    for (final source
 +        in <String, TreeEntry Function()>{
 +          'entries list': () => tree.entries.first,
@@ -25,12 +25,12 @@ index bb5fd2a..49c20cc 100644
        final tree = Tree.lookup(repo: repo, oid: repo['a8ae3dd']);
        expect(() => tree.free(), returnsNormally);
 @@ -194,7 +209,8 @@ void main() {
- 
+
      test('manually releases allocated memory for tree entry '
          'looked up by path', () {
 -      expect(() => tree['dir/dir_file.txt'].free(), returnsNormally);
 +      final entry = tree['dir/dir_file.txt'];
 +      expect(entry.free, returnsNormally);
      });
- 
+
      test('supports value comparison', () {

@@ -4,7 +4,7 @@ diff --git a/test/callbacks_test.dart b/test/callbacks_test.dart
 @@ -1,4 +1,5 @@
  import 'dart:ffi';
 +import 'dart:io';
- 
+
  import 'package:ffi/ffi.dart';
  import 'package:git2dart/git2dart.dart';
 @@ -115,7 +116,48 @@ void main() {
@@ -53,7 +53,7 @@ diff --git a/test/callbacks_test.dart b/test/callbacks_test.dart
 +      expect(RemoteCallbacks.reset, returnsNormally);
 +      expect(RemoteCallbacks.credentials, isNull);
 +    });
- 
+
      test('returns a value and clears callback state after success', () {
        final result = using(
 

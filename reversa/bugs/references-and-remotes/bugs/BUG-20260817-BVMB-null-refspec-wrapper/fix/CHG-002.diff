@@ -1,0 +1,32 @@
+diff --git a/lib/src/bindings/remote.dart b/lib/src/bindings/remote.dart
+index d2b7bdf..31267fd 100644
+--- a/lib/src/bindings/remote.dart
++++ b/lib/src/bindings/remote.dart
+@@ -4,6 +4,7 @@ import 'dart:ffi' as ffi;
+ import 'package:ffi/ffi.dart' show Arena, using;
+ import 'package:git2dart/src/bindings/remote_callbacks.dart';
+ import 'package:git2dart/src/callbacks.dart';
++import 'package:git2dart/src/error.dart';
+ import 'package:git2dart/src/extensions.dart';
+ import 'package:git2dart/src/helpers/error_helper.dart';
+ import 'package:git2dart/src/oid.dart';
+@@ -330,7 +331,18 @@ int refspecCount(Pointer<git_remote> remote) =>
+ Pointer<git_refspec> getRefspec({
+   required Pointer<git_remote> remotePointer,
+   required int position,
+-}) => libgit2Runtime.bindings.git_remote_get_refspec(remotePointer, position);
++}) {
++  final result = libgit2Runtime.bindings.git_remote_get_refspec(
++    remotePointer,
++    position,
++  );
++
++  if (result == nullptr) {
++    throw Git2DartError('Refspec index out of bounds');
++  }
++
++  return result;
++}
+
+ /// Get the remote's list of fetch refspecs.
+ List<String> fetchRefspecs(Pointer<git_remote> remote) {

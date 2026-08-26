@@ -3,7 +3,7 @@ diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_ca
 +++ b/lib/src/bindings/remote_callbacks.dart
 @@ -1,6 +1,6 @@
  import 'dart:ffi';
- 
+
 -import 'package:ffi/ffi.dart' show Arena, calloc;
 +import 'package:ffi/ffi.dart' show Arena, calloc, using;
  import 'package:git2dart/git2dart.dart';
@@ -23,10 +23,10 @@ diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_ca
 +      });
        throw LibGit2Error(libgit2.git_error_last());
      }
- 
+
      final credentialType = credentials!.credentialType;
      final allowedTypesSet = GitCredential.fromFlag(allowedTypes);
- 
+
      if (!allowedTypesSet.contains(credentialType)) {
 -      libgit2.git_error_set_str(
 -        git_error_t.GIT_ERROR_INVALID.value,

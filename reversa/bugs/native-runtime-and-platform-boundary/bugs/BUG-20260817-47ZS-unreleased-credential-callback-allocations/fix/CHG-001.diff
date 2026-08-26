@@ -27,7 +27,7 @@ diff --git a/test/credentials_test.dart b/test/credentials_test.dart
 +      expect(sshKeySource, isNot(contains('calloc<')));
 +      expect(sshKeySource, isNot(contains('.toCharAlloc()')));
 +    });
- 
+
      test('initializes keypair from memory credentials', () {
        final credentials = const KeypairFromMemory(
 

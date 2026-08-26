@@ -4,7 +4,7 @@ index 5d781cf..23bac59 100644
 +++ b/test/repository_clone_test.dart
 @@ -3,6 +3,7 @@
  import 'dart:io';
- 
+
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/remote_callbacks.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -40,5 +40,5 @@ index 5d781cf..23bac59 100644
 +      }
 +    });
    });
- 
+
    group('RepositoryCallback', () {

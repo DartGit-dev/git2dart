@@ -5,7 +5,7 @@ index b8bd924..7dd10e4 100644
 @@ -1,7 +1,9 @@
  import 'dart:ffi';
  import 'dart:io';
- 
+
 +import 'package:ffi/ffi.dart';
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/commit.dart' as commit_bindings;
@@ -15,7 +15,7 @@ index b8bd924..7dd10e4 100644
 @@ -324,6 +326,39 @@ Some description.
        expect(commit.parents.length, 0);
      });
- 
+
 +    test('does not write through zero-length parent pointer arrays', () {
 +      final source =
 +          File(

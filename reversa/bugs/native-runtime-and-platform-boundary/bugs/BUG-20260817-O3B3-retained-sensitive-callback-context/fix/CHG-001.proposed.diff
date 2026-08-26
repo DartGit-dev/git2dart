@@ -2,13 +2,13 @@ diff --git a/test/callbacks_test.dart b/test/callbacks_test.dart
 --- a/test/callbacks_test.dart
 +++ b/test/callbacks_test.dart
 @@ -2,6 +2,7 @@ import 'dart:ffi';
- 
+
  import 'package:ffi/ffi.dart';
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/remote_callbacks.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
  import 'package:test/test.dart';
- 
+
 @@ -115,5 +116,86 @@ void main() {
          calloc.free(cert);
        }

@@ -1,0 +1,44 @@
+diff --git a/lib/src/index.dart b/lib/src/index.dart
+--- a/lib/src/index.dart
++++ b/lib/src/index.dart
+@@
+-  const IndexEntry(this._indexEntryPointer);
+-  final Pointer<git_index_entry> _indexEntryPointer;
++  IndexEntry(Pointer<git_index_entry> pointer)
++    : _owner = pointer == nullptr ? null : _IndexEntryOwner(bindings.copyEntry(pointer)) {
++    final owner = _owner;
++    if (owner != null) _indexEntryFinalizer.attach(this, owner, detach: this);
++  }
++  final _IndexEntryOwner? _owner;
++  Pointer<git_index_entry> get _indexEntryPointer => _owner?.pointer ?? nullptr;
+@@
+-    _indexEntryPointer.ref.path = path.toCharAlloc();
++    final owner = _owner!;
++    owner.replace(bindings.copyEntry(owner.pointer, path: path));
+@@
++  void free() {
++    final owner = _owner;
++    if (owner != null) {
++      _indexEntryFinalizer.detach(this);
++      owner.free();
++    }
++  }
++
++final class _IndexEntryOwner {
++  _IndexEntryOwner(this.pointer);
++  Pointer<git_index_entry> pointer;
++  void replace(Pointer<git_index_entry> replacement) {
++    final previous = pointer;
++    pointer = replacement;
++    bindings.freeEntry(previous);
++  }
++  void free() {
++    final current = pointer;
++    if (current != nullptr) {
++      pointer = nullptr;
++      bindings.freeEntry(current);
++    }
++  }
++}
++
++final _indexEntryFinalizer = Finalizer<_IndexEntryOwner>((owner) => owner.free());

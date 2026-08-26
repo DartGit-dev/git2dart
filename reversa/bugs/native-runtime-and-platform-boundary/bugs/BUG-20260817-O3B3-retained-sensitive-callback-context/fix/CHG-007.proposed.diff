@@ -4,7 +4,7 @@ diff --git a/lib/src/bindings/repository.dart b/lib/src/bindings/repository.dart
 @@ -193,35 +193,38 @@ Pointer<git_repository> clone({
      final fetchOptions = arena<git_fetch_options>();
      libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
- 
+
 -    RemoteCallbacks.plug(
 +    return RemoteCallbacks.withCallbackState<Pointer<git_repository>>(
        callbacksOptions: fetchOptions.ref.callbacks,

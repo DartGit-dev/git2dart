@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show using;
+import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -144,7 +145,18 @@ int entryCount(Pointer<git_reflog> reflog) =>
 Pointer<git_reflog_entry> getByIndex({
   required Pointer<git_reflog> reflogPointer,
   required int index,
-}) => libgit2Runtime.bindings.git_reflog_entry_byindex(reflogPointer, index);
+}) {
+  final result = libgit2Runtime.bindings.git_reflog_entry_byindex(
+    reflogPointer,
+    index,
+  );
+
+  if (result == nullptr) {
+    throw Git2DartError('Out of bounds');
+  }
+
+  return result;
+}
 
 /// Get the log message.
 String entryMessage(Pointer<git_reflog_entry> entry) {

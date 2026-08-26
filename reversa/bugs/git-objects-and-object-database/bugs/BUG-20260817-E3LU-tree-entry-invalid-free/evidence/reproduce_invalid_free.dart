@@ -5,9 +5,7 @@ import 'package:git2dart/git2dart.dart';
 import '../../../../../../test/helpers/util.dart';
 
 void main() {
-  final temporaryRepository = setupRepo(
-    Directory('test/assets/test_repo'),
-  );
+  final temporaryRepository = setupRepo(Directory('test/assets/test_repo'));
   Repository? repository;
   Tree? tree;
 

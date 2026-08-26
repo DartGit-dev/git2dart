@@ -16,7 +16,7 @@ diff --git a/lib/src/bindings/credentials.dart b/lib/src/bindings/credentials.da
 +    final publicKeyC = publicKey.toChar(arena);
 +    final privateKeyC = privateKey.toChar(arena);
 +    final passPhraseC = passPhrase.toChar(arena);
- 
+
 -  final error = libgit2.git_credential_ssh_key_new(
 -    out,
 -    usernameC,
@@ -33,12 +33,12 @@ diff --git a/lib/src/bindings/credentials.dart b/lib/src/bindings/credentials.da
 +      passPhraseC,
 +    );
 +    checkErrorAndThrow(error);
- 
+
 -  return out.value;
 +    return out.value;
 +  });
  }
- 
+
  /// Creates a new SSH key credential object that uses an SSH agent.
 
 ---

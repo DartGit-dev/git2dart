@@ -519,7 +519,7 @@ Pointer<git_merge_options> _initMergeOptions({
   required int mergeFlags,
   required int fileFlags,
 }) {
-  final opts = calloc<git_merge_options>();
+  final opts = arena<git_merge_options>();
   libgit2Runtime.bindings.git_merge_options_init(
     opts,
     GIT_MERGE_OPTIONS_VERSION,

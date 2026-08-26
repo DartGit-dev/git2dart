@@ -3,14 +3,14 @@ diff --git a/test/remote_test.dart b/test/remote_test.dart
 +++ b/test/remote_test.dart
 @@ -1,6 +1,7 @@
  import 'dart:io';
- 
+
  import 'package:git2dart/git2dart.dart';
 +import 'package:git2dart/src/bindings/remote_callbacks.dart';
  import 'package:git2dart_binaries/git2dart_binaries.dart';
  import 'package:path/path.dart' as p;
  import 'package:test/test.dart';
 @@ -403,6 +404,45 @@ void main() {
- 
+
        expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
      });
 +
@@ -52,6 +52,6 @@ diff --git a/test/remote_test.dart b/test/remote_test.dart
 +        }
 +      }
 +    });
- 
+
      test(
        tags: 'remote_fetch',

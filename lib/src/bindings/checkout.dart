@@ -201,7 +201,7 @@ List<Object> initOptions({
   String? directory,
   List<String>? paths,
 }) {
-  final optsC = calloc<git_checkout_options>();
+  final optsC = arena<git_checkout_options>();
   libgit2Runtime.bindings.git_checkout_options_init(
     optsC,
     GIT_CHECKOUT_OPTIONS_VERSION,
@@ -217,7 +217,7 @@ List<Object> initOptions({
   Pointer<Pointer<Char>> strArray = nullptr;
   if (paths != null) {
     pathPointers = paths.map((e) => e.toChar(arena)).toList();
-    strArray = calloc(paths.length);
+    strArray = arena<Pointer<Char>>(paths.length);
     for (var i = 0; i < paths.length; i++) {
       strArray[i] = pathPointers[i];
     }

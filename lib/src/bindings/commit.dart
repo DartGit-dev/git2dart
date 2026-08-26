@@ -141,8 +141,12 @@ String createBuffer({
       parentsC,
     );
 
-    checkErrorAndThrow(error);
-    return out.ref.ptr.toDartString(length: out.ref.size);
+    try {
+      checkErrorAndThrow(error);
+      return out.ref.ptr.toDartString(length: out.ref.size);
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(out);
+    }
   });
 }
 
@@ -243,15 +247,19 @@ MapEntry<String, String> extractSignature({
       fieldC,
     );
 
-    checkErrorAndThrow(error);
-
-    final signatureStr = signatureOut.ref.ptr.toDartString(
-      length: signatureOut.ref.size,
-    );
-    final signedDataStr = signedDataOut.ref.ptr.toDartString(
-      length: signedDataOut.ref.size,
-    );
-    return MapEntry(signatureStr, signedDataStr);
+    try {
+      checkErrorAndThrow(error);
+      final signatureStr = signatureOut.ref.ptr.toDartString(
+        length: signatureOut.ref.size,
+      );
+      final signedDataStr = signedDataOut.ref.ptr.toDartString(
+        length: signedDataOut.ref.size,
+      );
+      return MapEntry(signatureStr, signedDataStr);
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(signatureOut);
+      libgit2Runtime.bindings.git_buf_dispose(signedDataOut);
+    }
   });
 }
 
@@ -376,9 +384,12 @@ String headerField({
       commitPointer,
       fieldC,
     );
-    checkErrorAndThrow(error);
-
-    return out.ref.ptr.toDartString(length: out.ref.size);
+    try {
+      checkErrorAndThrow(error);
+      return out.ref.ptr.toDartString(length: out.ref.size);
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(out);
+    }
   });
 }
 

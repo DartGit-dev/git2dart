@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -106,7 +107,9 @@ int findIndex({
 /// disk, unwritten in-memory changes are discarded.
 void read({required Pointer<git_index> indexPointer, required bool force}) {
   final forceC = force == true ? 1 : 0;
-  libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
+  final error = libgit2Runtime.bindings.git_index_read(indexPointer, forceC);
+
+  checkErrorAndThrow(error);
 }
 
 /// Read a tree into the index file with stats.
@@ -115,7 +118,14 @@ void read({required Pointer<git_index> indexPointer, required bool force}) {
 void readTree({
   required Pointer<git_index> indexPointer,
   required Pointer<git_tree> treePointer,
-}) => libgit2Runtime.bindings.git_index_read_tree(indexPointer, treePointer);
+}) {
+  final error = libgit2Runtime.bindings.git_index_read_tree(
+    indexPointer,
+    treePointer,
+  );
+
+  checkErrorAndThrow(error);
+}
 
 /// Write the index as a tree.
 ///
@@ -132,11 +142,15 @@ void readTree({
 /// Throws a [LibGit2Error] if error occured.
 Pointer<git_oid> writeTree(Pointer<git_index> index) {
   final out = calloc<git_oid>();
-  final error = libgit2Runtime.bindings.git_index_write_tree(out, index);
-
-  checkErrorAndThrow(error);
-
-  return out;
+  try {
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_index_write_tree(out, index),
+    );
+    return out;
+  } catch (_) {
+    calloc.free(out);
+    rethrow;
+  }
 }
 
 /// Write the index as a tree to the given repository.
@@ -152,15 +166,19 @@ Pointer<git_oid> writeTreeTo({
   required Pointer<git_repository> repoPointer,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2Runtime.bindings.git_index_write_tree_to(
-    out,
-    indexPointer,
-    repoPointer,
-  );
+  try {
+    final error = libgit2Runtime.bindings.git_index_write_tree_to(
+      out,
+      indexPointer,
+      repoPointer,
+    );
 
-  checkErrorAndThrow(error);
-
-  return out;
+    checkErrorAndThrow(error);
+    return out;
+  } catch (_) {
+    calloc.free(out);
+    rethrow;
+  }
 }
 
 /// Get the count of entries currently in the index.
@@ -212,6 +230,70 @@ Pointer<git_index_entry> getByPath({
       return result;
     }
   });
+}
+
+/// Creates an independently owned copy of [source].
+///
+/// The entry structure and its UTF-8 path share one allocation that must be
+/// released with [freeEntry]. When [path] is provided, the copied entry uses
+/// that path and updates the path-length bits in `flags`.
+Pointer<git_index_entry> copyEntry(
+  Pointer<git_index_entry> source, {
+  String? path,
+}) {
+  final sourceEntry = source.ref;
+  final pathBytes = utf8.encode(path ?? sourceEntry.path.toDartString());
+  final allocation = calloc<Uint8>(
+    sizeOf<git_index_entry>() + pathBytes.length + 1,
+  );
+
+  try {
+    final target = allocation.cast<git_index_entry>();
+    final targetEntry = target.ref;
+    final pathPointer = (allocation + sizeOf<git_index_entry>()).cast<Char>();
+    final pathBuffer = pathPointer.cast<Uint8>().asTypedList(
+      pathBytes.length + 1,
+    );
+
+    pathBuffer
+      ..setAll(0, pathBytes)
+      ..[pathBytes.length] = 0;
+    targetEntry.ctime
+      ..seconds = sourceEntry.ctime.seconds
+      ..nanoseconds = sourceEntry.ctime.nanoseconds;
+    targetEntry.mtime
+      ..seconds = sourceEntry.mtime.seconds
+      ..nanoseconds = sourceEntry.mtime.nanoseconds;
+    targetEntry
+      ..dev = sourceEntry.dev
+      ..ino = sourceEntry.ino
+      ..mode = sourceEntry.mode
+      ..uid = sourceEntry.uid
+      ..gid = sourceEntry.gid
+      ..file_size = sourceEntry.file_size
+      ..id = sourceEntry.id
+      ..flags = sourceEntry.flags
+      ..flags_extended = sourceEntry.flags_extended
+      ..path = pathPointer;
+
+    if (path != null) {
+      const nameMask = 0x0fff;
+      final encodedLength = pathBytes.length.clamp(0, nameMask);
+      targetEntry.flags = (targetEntry.flags & ~nameMask) | encodedLength;
+    }
+
+    return target;
+  } catch (_) {
+    calloc.free(allocation);
+    rethrow;
+  }
+}
+
+/// Releases an entry returned by [copyEntry].
+void freeEntry(Pointer<git_index_entry> entry) {
+  if (entry != nullptr) {
+    calloc.free(entry.cast<Uint8>());
+  }
 }
 
 /// Return the stage number from a git index entry.
@@ -367,8 +449,11 @@ void updateAll({
 
 /// Write an existing index object from memory back to disk using an atomic
 /// file lock.
-void write(Pointer<git_index> index) =>
-    libgit2Runtime.bindings.git_index_write(index);
+void write(Pointer<git_index> index) {
+  final error = libgit2Runtime.bindings.git_index_write(index);
+
+  checkErrorAndThrow(error);
+}
 
 /// Remove an entry from the index.
 ///

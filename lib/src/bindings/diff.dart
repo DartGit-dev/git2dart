@@ -309,15 +309,20 @@ Pointer<git_oid> patchOid(
   Pointer<git_diff_patchid_options>? options,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2Runtime.bindings.git_diff_patchid(
-    out,
-    diff,
-    options ?? nullptr,
-  );
+  try {
+    final error = libgit2Runtime.bindings.git_diff_patchid(
+      out,
+      diff,
+      options ?? nullptr,
+    );
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
 
-  return out;
+    return out;
+  } catch (_) {
+    calloc.free(out);
+    rethrow;
+  }
 }
 
 /// Allocate and initialize `git_diff_patchid_options` structure.
