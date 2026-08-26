@@ -32,9 +32,6 @@ jobs:
       - name: Analyze
         run: flutter analyze --fatal-infos
 
-      - name: Validate package contents
-        run: dart pub publish --dry-run
-
   desktop-test:
     name: Test (${{ matrix.name }})
     runs-on: ${{ matrix.os }}

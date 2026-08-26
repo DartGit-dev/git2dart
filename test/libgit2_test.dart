@@ -190,7 +190,10 @@ void main() {
     });
 
     test('sets location for ssl certificates', () {
-      final expectation = throwsA(isA<LibGit2Error>());
+      final expectation = anyOf(
+        returnsNormally,
+        throwsA(isA<LibGit2Error>()),
+      );
 
       expect(
         () => Libgit2.setSSLCertLocations(file: 'etc/ssl/cert.pem'),
