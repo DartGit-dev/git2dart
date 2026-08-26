@@ -15,3 +15,8 @@
 
 - CI proof across Linux, macOS, Windows, Android, and iOS is still pending;
   local Windows execution is not equivalent evidence.
+- Superseded on 2026-08-26: Build run 32974619039 completed successfully for
+  Quality and Linux, macOS, Windows, Android, and iOS at commit
+  `9b47c0aaba67168ea74d671f9dee47418d10ad65`; Publish run 32974619046 also
+  completed successfully. Its `publish` job was skipped, so this is workflow
+  success evidence, not proof of a package publication.

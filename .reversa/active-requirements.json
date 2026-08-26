@@ -4,13 +4,14 @@
   "feature-id": "003",
   "short-name": "binaries-1-13-migration",
   "started-at": "2026-08-26T14:00:42.8548518+07:00",
-  "current-stage": "coding",
+  "current-stage": "sync",
   "stages-completed": [
     "requirements",
     "plan",
     "to-do",
     "audit",
-    "quality"
+    "quality",
+    "coding"
   ],
   "paused-features": [
     {

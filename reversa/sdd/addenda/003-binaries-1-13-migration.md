@@ -42,3 +42,31 @@ T015–T021 remain open. No GitHub Actions evidence yet proves the hosted 1.13.0
 - `reversa/forward/003-binaries-1-13-migration/actions.md`
 - `reversa/sdd/architecture.md`
 - `reversa/sdd/domain.md`
+
+## Atualização 2026-08-26
+
+This update corrects the earlier partial-delivery snapshot. All 27 of 27
+planned actions are now complete. The full local delivery gate and GitHub
+Actions Build run `32974619039` succeeded at commit
+`9b47c0aaba67168ea74d671f9dee47418d10ad65`: Quality, Linux, macOS, Windows,
+Android, and iOS completed successfully.
+
+The Publish workflow run `32974619046` also completed successfully at that
+commit, including its platform test jobs. Its `publish` job was skipped; this
+is workflow and platform-validation evidence only, not evidence that a package
+was published.
+
+| Artefato | Seção | Tipo de impacto | Delta |
+| --- | --- | --- | --- |
+| `reversa/sdd/architecture.md` | [Quality and Delivery Architecture](../architecture.md#quality-and-delivery-architecture) | regra-nova | Read the delivery boundary as validated by the full local gate and successful hosted Build matrix for Quality, Linux, macOS, Windows, Android, and iOS at the recorded commit; no publication is implied by the skipped Publish job. |
+
+Only [W001](../../forward/003-binaries-1-13-migration/regression-watch.md#w001)
+and [W002](../../forward/003-binaries-1-13-migration/regression-watch.md#w002)
+are defined watch items. The historical W003 link in the original partial
+snapshot has no matching watch item and must not be treated as a rule under
+vigilance.
+
+The remaining non-blocking documentation observation is A001: BR-05 points to
+a nonexistent `reversa/sdd/gaps.md#Overlapping native operations` heading; the
+existing related entity is GAP-C02. This does not change the delivered feature
+or its validation evidence.
