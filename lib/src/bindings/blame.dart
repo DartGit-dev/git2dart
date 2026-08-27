@@ -25,9 +25,11 @@ Pointer<git_blame> file({
     final out = arena<Pointer<git_blame>>();
     final pathC = path.toChar(arena);
     final options = arena<git_blame_options>();
-    libgit2Runtime.bindings.git_blame_options_init(
-      options,
-      GIT_BLAME_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_blame_options_init(
+        options,
+        GIT_BLAME_OPTIONS_VERSION,
+      ),
     );
 
     options.ref.flags = flags;
@@ -113,9 +115,11 @@ Pointer<git_blame> fileFromBuffer({
     final pathC = path.toChar(arena);
     final bufferC = contents.toChar(arena);
     final options = arena<git_blame_options>();
-    libgit2Runtime.bindings.git_blame_options_init(
-      options,
-      GIT_BLAME_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_blame_options_init(
+        options,
+        GIT_BLAME_OPTIONS_VERSION,
+      ),
     );
 
     options.ref.flags = flags;

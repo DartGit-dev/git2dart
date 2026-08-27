@@ -365,15 +365,15 @@ class Remote extends Equatable {
   /// Throws a [LibGit2Error] if error occurred.
   void prune([Callbacks callbacks = const Callbacks()]) {
     using((arena) {
-      final remoteCallbacks = arena<git_remote_callbacks>();
-      remoteCallbacks.ref.version = 1;
-      RemoteCallbacks.plug(
+      final remoteCallbacks = initCallbacks(arena);
+      RemoteCallbacks.withCallbackState<void>(
         callbacksOptions: remoteCallbacks.ref,
         callbacks: callbacks,
-      );
-      remote_bindings.prune(
-        remotePointer: _remotePointer,
-        flags: remoteCallbacks,
+        operation:
+            () => remote_bindings.prune(
+              remotePointer: _remotePointer,
+              flags: remoteCallbacks,
+            ),
       );
     });
   }

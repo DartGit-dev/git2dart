@@ -144,9 +144,11 @@ Pointer<git_repository> init({
     final originUrlC = originUrl?.toChar(arena) ?? nullptr;
     final opts = arena<git_repository_init_options>();
 
-    libgit2Runtime.bindings.git_repository_init_options_init(
-      opts,
-      GIT_REPOSITORY_INIT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_repository_init_options_init(
+        opts,
+        GIT_REPOSITORY_INIT_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.flags = flags;
@@ -196,15 +198,19 @@ Pointer<git_repository> clone({
     final checkoutBranchC = checkoutBranch?.toChar(arena) ?? nullptr;
 
     final cloneOptions = arena<git_clone_options>();
-    libgit2Runtime.bindings.git_clone_options_init(
-      cloneOptions,
-      GIT_CLONE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_clone_options_init(
+        cloneOptions,
+        GIT_CLONE_OPTIONS_VERSION,
+      ),
     );
 
     final fetchOptions = arena<git_fetch_options>();
-    libgit2Runtime.bindings.git_fetch_options_init(
-      fetchOptions,
-      GIT_FETCH_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_fetch_options_init(
+        fetchOptions,
+        GIT_FETCH_OPTIONS_VERSION,
+      ),
     );
 
     return RemoteCallbacks.withCallbackState<Pointer<git_repository>>(

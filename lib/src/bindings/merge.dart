@@ -212,9 +212,11 @@ void merge({
     );
 
     final checkoutOpts = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      checkoutOpts,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        checkoutOpts,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     checkoutOpts.ref.checkout_strategy =
@@ -279,9 +281,11 @@ String mergeFile({
     Pointer<Char> theirsLabelC = nullptr;
 
     final opts = arena<git_merge_file_options>();
-    libgit2Runtime.bindings.git_merge_file_options_init(
-      opts,
-      GIT_MERGE_FILE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_merge_file_options_init(
+        opts,
+        GIT_MERGE_FILE_OPTIONS_VERSION,
+      ),
     );
     opts.ref.favorAsInt = favor;
     opts.ref.flags = flags;
@@ -337,9 +341,11 @@ String mergeFileFromIndex({
     Pointer<Char> oursLabelC = nullptr;
     Pointer<Char> theirsLabelC = nullptr;
 
-    libgit2Runtime.bindings.git_merge_file_options_init(
-      opts,
-      GIT_MERGE_FILE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_merge_file_options_init(
+        opts,
+        GIT_MERGE_FILE_OPTIONS_VERSION,
+      ),
     );
     opts.ref.favorAsInt = favor;
     opts.ref.flags = flags;
@@ -466,9 +472,11 @@ void cherryPick({
 }) {
   return using((arena) {
     final opts = arena<git_cherrypick_options>();
-    libgit2Runtime.bindings.git_cherrypick_options_init(
-      opts,
-      GIT_CHERRYPICK_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_cherrypick_options_init(
+        opts,
+        GIT_CHERRYPICK_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.checkout_opts.checkout_strategy =
@@ -520,9 +528,11 @@ Pointer<git_merge_options> _initMergeOptions({
   required int fileFlags,
 }) {
   final opts = arena<git_merge_options>();
-  libgit2Runtime.bindings.git_merge_options_init(
-    opts,
-    GIT_MERGE_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_merge_options_init(
+      opts,
+      GIT_MERGE_OPTIONS_VERSION,
+    ),
   );
 
   opts.ref.file_favorAsInt = favor;

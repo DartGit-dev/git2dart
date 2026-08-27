@@ -328,11 +328,18 @@ Pointer<git_oid> patchOid(
 /// Allocate and initialize `git_diff_patchid_options` structure.
 Pointer<git_diff_patchid_options> initPatchIdOptions() {
   final opts = calloc<git_diff_patchid_options>();
-  libgit2Runtime.bindings.git_diff_patchid_options_init(
-    opts,
-    GIT_DIFF_PATCHID_OPTIONS_VERSION,
-  );
-  return opts;
+  try {
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_diff_patchid_options_init(
+        opts,
+        GIT_DIFF_PATCHID_OPTIONS_VERSION,
+      ),
+    );
+    return opts;
+  } catch (_) {
+    calloc.free(opts);
+    rethrow;
+  }
 }
 
 /// Return the diff delta for an entry in the diff list.
@@ -827,9 +834,11 @@ Pointer<git_index> applyToTree({
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_apply_options>();
-    libgit2Runtime.bindings.git_apply_options_init(
-      opts,
-      GIT_APPLY_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_apply_options_init(
+        opts,
+        GIT_APPLY_OPTIONS_VERSION,
+      ),
     );
 
     Pointer<Int32> payload = nullptr;
@@ -884,7 +893,12 @@ Pointer<git_diff_options> _diffOptionsInit({
   required int interhunkLines,
 }) {
   final opts = arena<git_diff_options>();
-  libgit2Runtime.bindings.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_diff_options_init(
+      opts,
+      GIT_DIFF_OPTIONS_VERSION,
+    ),
+  );
 
   opts.ref.flags = flags;
   opts.ref.context_lines = contextLines;

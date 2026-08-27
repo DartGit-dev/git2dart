@@ -63,7 +63,13 @@ class Worktree extends Equatable {
   /// Throws a [LibGit2Error] if an error occurs.
   static List<String> list(Repository repo) {
     final worktrees = bindings.list(repo.pointer);
-    return worktrees.map((wt) => bindings.name(wt)).toList();
+    try {
+      return worktrees.map((wt) => bindings.name(wt)).toList();
+    } finally {
+      for (final worktree in worktrees) {
+        bindings.free(worktree);
+      }
+    }
   }
 
   /// Gets the name of the worktree.

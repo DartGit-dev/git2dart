@@ -32,9 +32,11 @@ void reset({
 }) {
   using((arena) {
     final opts = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      opts,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        opts,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     if (strategy != null) {
@@ -75,9 +77,11 @@ void resetFromAnnotated({
 }) {
   using((arena) {
     final opts = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      opts,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        opts,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     if (strategy != null) {

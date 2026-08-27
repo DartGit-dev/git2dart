@@ -25,9 +25,11 @@ Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
     // Initialize status options instead of passing nullptr
 
     final opts = arena<git_status_options>();
-    libgit2Runtime.bindings.git_status_options_init(
-      opts,
-      GIT_STATUS_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_status_options_init(
+        opts,
+        GIT_STATUS_OPTIONS_VERSION,
+      ),
     );
 
     final error = libgit2Runtime.bindings.git_status_list_new(out, repo, opts);
@@ -107,9 +109,11 @@ Map<String, int> foreachExt(Pointer<git_repository> repoPointer) {
 
   return using((arena) {
     final opts = arena<git_status_options>();
-    libgit2Runtime.bindings.git_status_options_init(
-      opts,
-      GIT_STATUS_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_status_options_init(
+        opts,
+        GIT_STATUS_OPTIONS_VERSION,
+      ),
     );
 
     final error = libgit2Runtime.bindings.git_status_foreach_ext(

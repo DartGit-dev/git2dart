@@ -70,5 +70,48 @@ void main() {
             'native status:\n${unchecked.join('\n')}',
       );
     });
+
+    test('regression: every binding initializer checks its status', () {
+      final sources =
+          Directory('lib/src/bindings')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((file) => file.path.endsWith('.dart'))
+              .toList();
+      final unchecked = <String>[];
+
+      for (final file in sources) {
+        final source = file.readAsStringSync();
+        final calls =
+            RegExp(
+              r'git_(?:[a-z0-9_]*options_init|remote_init_callbacks)\(',
+            ).allMatches(source).toList();
+
+        for (var index = 0; index < calls.length; index++) {
+          final call = calls[index];
+          final before = source.substring(
+            call.start > 160 ? call.start - 160 : 0,
+            call.start,
+          );
+          final wrapped = RegExp(
+            r'checkErrorAndThrow\(\s*libgit2Runtime\.bindings\.\s*$',
+          ).hasMatch(before);
+          if (wrapped) {
+            continue;
+          }
+
+          final semicolon = source.indexOf(';', call.end);
+          final nextCall =
+              index + 1 < calls.length ? calls[index + 1].start : source.length;
+          final following = source.substring(semicolon + 1, nextCall);
+          if (!RegExp(r'^\s*checkErrorAndThrow\(error\)').hasMatch(following)) {
+            final line = source.substring(0, call.start).split('\n').length;
+            unchecked.add('${file.path}:$line: ${call.group(0)}');
+          }
+        }
+      }
+
+      expect(unchecked, isEmpty, reason: unchecked.join('\n'));
+    });
   });
 }

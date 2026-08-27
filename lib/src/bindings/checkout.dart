@@ -46,9 +46,11 @@ void head({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      optsC,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     optsC.ref.checkout_strategy = strategy;
@@ -81,9 +83,11 @@ void headWithCallbacks({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      optsC,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
     optsC.ref.checkout_strategy = strategy;
 
@@ -116,9 +120,11 @@ void index({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      optsC,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     optsC.ref.checkout_strategy = strategy;
@@ -159,9 +165,11 @@ void tree({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2Runtime.bindings.git_checkout_options_init(
-      optsC,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     optsC.ref.checkout_strategy = strategy;
@@ -202,9 +210,11 @@ List<Object> initOptions({
   List<String>? paths,
 }) {
   final optsC = arena<git_checkout_options>();
-  libgit2Runtime.bindings.git_checkout_options_init(
-    optsC,
-    GIT_CHECKOUT_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_checkout_options_init(
+      optsC,
+      GIT_CHECKOUT_OPTIONS_VERSION,
+    ),
   );
 
   optsC.ref.checkout_strategy = strategy;

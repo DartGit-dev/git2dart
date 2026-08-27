@@ -12,9 +12,11 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 /// Allocate and initialize a [git_remote_callbacks] structure.
 Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
   final callbacks = arena<git_remote_callbacks>();
-  libgit2Runtime.bindings.git_remote_init_callbacks(
-    callbacks,
-    GIT_REMOTE_CALLBACKS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_remote_init_callbacks(
+      callbacks,
+      GIT_REMOTE_CALLBACKS_VERSION,
+    ),
   );
   return callbacks;
 }
@@ -23,6 +25,8 @@ Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
 /// These callbacks are used during fetch, push, and clone operations
 /// to provide progress updates and handle authentication.
 class RemoteCallbacks {
+  static bool _operationActive = false;
+
   /// Callback function that reports transfer progress during fetch/push operations.
   /// Provides information about the number of objects being transferred.
   static void Function(TransferProgress)? transferProgress;
@@ -318,11 +322,19 @@ class RemoteCallbacks {
     required Callbacks callbacks,
     required T Function() operation,
   }) {
+    if (_operationActive) {
+      throw StateError(
+        'Overlapping remote operations with callbacks are not supported.',
+      );
+    }
+
+    _operationActive = true;
     try {
       plug(callbacksOptions: callbacksOptions, callbacks: callbacks);
       return operation();
     } finally {
       reset();
+      _operationActive = false;
     }
   }
 

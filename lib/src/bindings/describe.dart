@@ -85,9 +85,11 @@ String format({
   return using((arena) {
     final out = arena<git_buf>();
     final opts = arena<git_describe_format_options>();
-    libgit2Runtime.bindings.git_describe_format_options_init(
-      opts,
-      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_describe_format_options_init(
+        opts,
+        GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+      ),
     );
 
     if (abbreviatedSize != null) {
@@ -129,9 +131,11 @@ Pointer<git_describe_options> _initOpts({
   bool? showCommitOidAsFallback,
 }) {
   final opts = calloc<git_describe_options>();
-  libgit2Runtime.bindings.git_describe_options_init(
-    opts,
-    GIT_DESCRIBE_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_describe_options_init(
+      opts,
+      GIT_DESCRIBE_OPTIONS_VERSION,
+    ),
   );
 
   if (maxCandidatesTags != null) {
@@ -183,9 +187,11 @@ Pointer<git_describe_format_options> initFormatOptions({
 }) {
   return using((arena) {
     final opts = arena<git_describe_format_options>();
-    libgit2Runtime.bindings.git_describe_format_options_init(
-      opts,
-      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_describe_format_options_init(
+        opts,
+        GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+      ),
     );
 
     if (abbreviatedSize != null) {

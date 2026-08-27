@@ -562,17 +562,20 @@ class Libgit2 {
   /// Negated extensions are not returned.
   static List<String> get extensions {
     final array = calloc<git_strarray>();
-    final error = libgit2Runtime.options.git_libgit2_opts_get_extensions(array);
-    checkErrorAndThrow(error);
+    try {
+      final error = libgit2Runtime.options.git_libgit2_opts_get_extensions(
+        array,
+      );
+      checkErrorAndThrow(error);
 
-    final result = <String>[
-      for (var i = 0; i < array.ref.count; i++)
-        array.ref.strings[i].cast<Char>().toDartString(),
-    ];
-
-    calloc.free(array);
-
-    return result;
+      return [
+        for (var i = 0; i < array.ref.count; i++)
+          array.ref.strings[i].cast<Char>().toDartString(),
+      ];
+    } finally {
+      libgit2Runtime.bindings.git_strarray_dispose(array);
+      calloc.free(array);
+    }
   }
 
   static set extensions(List<String> extensions) {

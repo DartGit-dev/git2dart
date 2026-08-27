@@ -550,9 +550,11 @@ void revert({
 }) {
   using((arena) {
     final opts = arena<git_revert_options>();
-    libgit2Runtime.bindings.git_revert_options_init(
-      opts,
-      GIT_REVERT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_revert_options_init(
+        opts,
+        GIT_REVERT_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.mainline = mainline;
@@ -607,9 +609,11 @@ Pointer<git_index> revertCommit({
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_merge_options>();
-    libgit2Runtime.bindings.git_merge_options_init(
-      opts,
-      GIT_MERGE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_merge_options_init(
+        opts,
+        GIT_MERGE_OPTIONS_VERSION,
+      ),
     );
 
     if (mergeFavor != null) opts.ref.file_favorAsInt = mergeFavor;

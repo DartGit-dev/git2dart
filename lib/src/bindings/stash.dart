@@ -54,9 +54,11 @@ Pointer<git_oid> save({
 /// Initialize [git_stash_save_options] structure with default values.
 Pointer<git_stash_save_options> saveOptionsInit(Arena arena) {
   final opts = arena<git_stash_save_options>();
-  libgit2Runtime.bindings.git_stash_save_options_init(
-    opts,
-    GIT_STASH_SAVE_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_stash_save_options_init(
+      opts,
+      GIT_STASH_SAVE_OPTIONS_VERSION,
+    ),
   );
   return opts;
 }
@@ -107,9 +109,11 @@ void apply({
 }) {
   using((arena) {
     final options = arena<git_stash_apply_options>();
-    libgit2Runtime.bindings.git_stash_apply_options_init(
-      options,
-      GIT_STASH_APPLY_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_stash_apply_options_init(
+        options,
+        GIT_STASH_APPLY_OPTIONS_VERSION,
+      ),
     );
 
     final checkoutOptions = checkout_bindings.initOptions(
@@ -170,9 +174,11 @@ void pop({
 }) {
   using((arena) {
     final options = arena<git_stash_apply_options>();
-    libgit2Runtime.bindings.git_stash_apply_options_init(
-      options,
-      GIT_STASH_APPLY_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_stash_apply_options_init(
+        options,
+        GIT_STASH_APPLY_OPTIONS_VERSION,
+      ),
     );
 
     final checkoutOptions = checkout_bindings.initOptions(

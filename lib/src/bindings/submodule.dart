@@ -123,9 +123,11 @@ void update({
   return using((arena) {
     final initC = init ? 1 : 0;
     final options = arena<git_submodule_update_options>();
-    libgit2Runtime.bindings.git_submodule_update_options_init(
-      options,
-      GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_submodule_update_options_init(
+        options,
+        GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+      ),
     );
 
     RemoteCallbacks.withCallbackState<void>(
@@ -250,9 +252,11 @@ void clone({
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
     final options = arena<git_submodule_update_options>();
-    libgit2Runtime.bindings.git_submodule_update_options_init(
-      options,
-      GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_submodule_update_options_init(
+        options,
+        GIT_SUBMODULE_UPDATE_OPTIONS_VERSION,
+      ),
     );
 
     RemoteCallbacks.withCallbackState<void>(

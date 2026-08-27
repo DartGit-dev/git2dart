@@ -31,9 +31,11 @@ Pointer<git_worktree> create({
     final pathC = path.toChar(arena);
 
     final opts = arena<git_worktree_add_options>();
-    libgit2Runtime.bindings.git_worktree_add_options_init(
-      opts,
-      GIT_WORKTREE_ADD_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_add_options_init(
+        opts,
+        GIT_WORKTREE_ADD_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.ref = refPointer ?? nullptr;
@@ -116,9 +118,11 @@ Pointer<git_repository> repositoryFromWorktree(Pointer<git_worktree> wt) {
 bool isPrunable(Pointer<git_worktree> wt) {
   return using((arena) {
     final opts = arena<git_worktree_prune_options>();
-    libgit2Runtime.bindings.git_worktree_prune_options_init(
-      opts,
-      GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_prune_options_init(
+        opts,
+        GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+      ),
     );
     return libgit2Runtime.bindings.git_worktree_is_prunable(wt, opts) > 0;
   });
@@ -133,9 +137,11 @@ bool isPrunable(Pointer<git_worktree> wt) {
 void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
   using((arena) {
     final opts = arena<git_worktree_prune_options>();
-    libgit2Runtime.bindings.git_worktree_prune_options_init(
-      opts,
-      GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_prune_options_init(
+        opts,
+        GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+      ),
     );
 
     if (flags != null) {
@@ -207,7 +213,11 @@ String path(Pointer<git_worktree> wt) =>
 bool isLocked(Pointer<git_worktree> wt) {
   return using((arena) {
     final reason = arena<git_buf>();
-    return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
+    try {
+      return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(reason);
+    }
   });
 }
 

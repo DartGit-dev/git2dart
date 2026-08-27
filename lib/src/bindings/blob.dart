@@ -256,9 +256,11 @@ String filterContent({
     final out = arena<git_buf>();
     final asPathC = asPath.toChar(arena);
     final opts = arena<git_blob_filter_options>();
-    libgit2Runtime.bindings.git_blob_filter_options_init(
-      opts,
-      GIT_BLOB_FILTER_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_blob_filter_options_init(
+        opts,
+        GIT_BLOB_FILTER_OPTIONS_VERSION,
+      ),
     );
     opts.ref.flags = flags;
     if (attributesCommit != null) {

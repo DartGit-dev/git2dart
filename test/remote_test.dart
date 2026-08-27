@@ -1,5 +1,7 @@
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -461,6 +463,29 @@ void main() {
         }
       }
     });
+
+    test(
+      'rejects overlapping callback operations before state is replaced',
+      () {
+        using((arena) {
+          final options = initCallbacks(arena);
+
+          expect(
+            () => RemoteCallbacks.withCallbackState<void>(
+              callbacksOptions: options.ref,
+              callbacks: const Callbacks(),
+              operation:
+                  () => RemoteCallbacks.withCallbackState<void>(
+                    callbacksOptions: options.ref,
+                    callbacks: const Callbacks(),
+                    operation: () {},
+                  ),
+            ),
+            throwsA(isA<StateError>()),
+          );
+        });
+      },
+    );
 
     test('owns fetch temporary allocations through the active arena', () {
       final source = File('lib/src/bindings/remote.dart').readAsStringSync();

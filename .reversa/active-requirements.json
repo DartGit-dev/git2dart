@@ -1,17 +1,13 @@
 {
   "schema-version": 1,
-  "feature-dir": "reversa/forward/003-binaries-1-13-migration",
-  "feature-id": "003",
-  "short-name": "binaries-1-13-migration",
-  "started-at": "2026-08-26T14:00:42.8548518+07:00",
-  "current-stage": "sync",
+  "feature-dir": "reversa/forward/004-open-defects-remediation",
+  "feature-id": "004",
+  "short-name": "open-defects-remediation",
+  "started-at": "2026-08-27T00:00:00+07:00",
+  "current-stage": "plan",
   "stages-completed": [
     "requirements",
-    "plan",
-    "to-do",
-    "audit",
-    "quality",
-    "coding"
+    "plan"
   ],
   "paused-features": [
     {

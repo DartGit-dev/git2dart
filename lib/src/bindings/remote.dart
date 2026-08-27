@@ -449,9 +449,11 @@ void connect({
 }) {
   using((arena) {
     final callbacksOptions = arena<git_remote_callbacks>();
-    libgit2Runtime.bindings.git_remote_init_callbacks(
-      callbacksOptions,
-      GIT_REMOTE_CALLBACKS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_remote_init_callbacks(
+        callbacksOptions,
+        GIT_REMOTE_CALLBACKS_VERSION,
+      ),
     );
 
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
@@ -556,9 +558,11 @@ void fetch({
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
     final opts = arena<git_fetch_options>();
-    libgit2Runtime.bindings.git_fetch_options_init(
-      opts,
-      GIT_FETCH_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_fetch_options_init(
+        opts,
+        GIT_FETCH_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.pruneAsInt = prune;
@@ -612,9 +616,11 @@ void push({
     final proxyOptions = _proxyOptionsInit(proxyOption, arena);
 
     final opts = arena<git_push_options>();
-    libgit2Runtime.bindings.git_push_options_init(
-      opts,
-      GIT_PUSH_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_push_options_init(
+        opts,
+        GIT_PUSH_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.proxy_opts = proxyOptions.ref;
@@ -766,9 +772,11 @@ String defaultBranch(Pointer<git_remote> remotePointer) {
 /// Initialize [git_remote_create_options] structure with default values.
 Pointer<git_remote_create_options> createOptionsInit(Arena arena) {
   final opts = arena<git_remote_create_options>();
-  libgit2Runtime.bindings.git_remote_create_options_init(
-    opts,
-    GIT_REMOTE_CREATE_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_remote_create_options_init(
+      opts,
+      GIT_REMOTE_CREATE_OPTIONS_VERSION,
+    ),
   );
   return opts;
 }
@@ -798,9 +806,11 @@ Pointer<git_remote> createWithOpts({
 /// through proxy.
 Pointer<git_proxy_options> _proxyOptionsInit(String? proxyOption, Arena arena) {
   final proxyOptions = arena<git_proxy_options>();
-  libgit2Runtime.bindings.git_proxy_options_init(
-    proxyOptions,
-    GIT_PROXY_OPTIONS_VERSION,
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_proxy_options_init(
+      proxyOptions,
+      GIT_PROXY_OPTIONS_VERSION,
+    ),
   );
 
   if (proxyOption == null) {
