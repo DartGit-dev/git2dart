@@ -1,0 +1,45 @@
+diff --git a/reversa/sdd/addenda/bug-BUG-20260817-H7NP-v001.md b/reversa/sdd/addenda/bug-BUG-20260817-H7NP-v001.md
+new file mode 100644
+--- /dev/null
++++ b/reversa/sdd/addenda/bug-BUG-20260817-H7NP-v001.md
+@@
++# Bug Addendum v001: BlobWriteStream UTF-8 serialization
++
++## Metadata
++
++- Bug: `BUG-20260817-H7NP`
++- Verdict: `spec-gap`
++- Addendum version: `v001`
++- Effective date: `2026-08-27`
++- Status: approved
++- Human decision: automatic remediation authorization approved the evidence-based default verdict.
++
++## Target
++
++This addendum extends the Git Objects and Object Database blob/stream requirements. The original specifications remain unchanged.
++
++## Delta
++
++The existing requirements preserve blob content and streaming writes but do not define the byte encoding used by `BlobWriteStream.writeString`.
++
++## Normative Addition
++
++1. `BlobWriteStream.writeString` must encode its Dart `String` input as UTF-8 before sending bytes to the native write stream.
++2. The result of committing such a stream must preserve the UTF-8 byte sequence exactly.
++3. `BlobWriteStream.write` remains the raw-byte API and must not decode, transcode, or otherwise alter supplied bytes.
++
++## Acceptance Criteria
++
++- ASCII, non-Latin text, supplementary-plane characters, and combining sequences round-trip through `writeString`.
++- The committed blob bytes exactly equal `utf8.encode(input)`.
++- Raw byte writes preserve the caller-supplied bytes unchanged.
++
++## Evidence
++
++- [Current-head audit](../../bugs/git-objects-and-object-database/bugs/BUG-20260817-H7NP-stream-string-not-utf8/evidence/current-head-audit.md)
++- [Regression-test change](../../bugs/git-objects-and-object-database/bugs/BUG-20260817-H7NP-stream-string-not-utf8/fix/CHG-001.diff)
++- [Production change](../../bugs/git-objects-and-object-database/bugs/BUG-20260817-H7NP-stream-string-not-utf8/fix/CHG-002.diff)
++
++## Approval
++
++Approved by the user's automatic-remediation authorization on `2026-08-27`.

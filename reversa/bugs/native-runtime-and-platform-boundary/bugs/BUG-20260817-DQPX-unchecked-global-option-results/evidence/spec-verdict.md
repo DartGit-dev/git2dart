@@ -2,7 +2,8 @@
 
 ## Decision
 
-The user selected `spec-correct` after Gate 2 validation.
+The user authorized an evidence-based default verdict of `spec-correta` in the
+automatic remediation campaign.
 
 ## Rationale
 

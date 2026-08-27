@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-21
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: native-integration
 module: references-and-remotes
@@ -74,9 +74,10 @@ change_set:
     diff: "fix/CHG-002.diff"
 delivery:
   branch: "0.5.5"
-  commit: null
+  commit: "c8ce43e"
   pull_request: null
-  merge: pending
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
 versions:
   fixed_in: null
@@ -125,7 +126,12 @@ FR-RR-08, FR-RR-12, FL-RR-04, ADR-003, and the remote fetch binding.
 
 ## Resolution
 
-The approved local change set is implemented and green. Package delivery remains pending; no commit, merge, or publication has been performed.
+The approved local change set is implemented in `c8ce43e` and remains green on
+current HEAD. A local structural regression confirms the three fetch
+temporaries are owned by the active arena; no remote-network validation was
+used. The evidence supports the existing `spec-correta` verdict. The commit is
+contained by local and origin `0.5.5`; package publication remains pending, so
+the record stays `active` / `delivering`.
 
 ## Agent Notes
 

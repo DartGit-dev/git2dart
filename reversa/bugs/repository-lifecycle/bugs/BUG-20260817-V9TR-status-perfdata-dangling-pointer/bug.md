@@ -8,7 +8,7 @@ phase: delivering
 severity: critical
 priority: P0
 created: 2026-08-17
-updated: 2026-08-21
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: native-integration
 module: repository-lifecycle
@@ -35,6 +35,7 @@ traceability:
       - {ref: "evidence/static-analysis.md", observation: "The returned pointer is allocated by the local Arena."}
       - {ref: "evidence/reproduction.md", observation: "The structural invariant reproduced 1/1 and the installed FFI source closes the release path."}
       - {ref: "evidence/red-tests.md", observation: "The approved runtime tests fail because libgit2 rejects version 0 before either ownership assertion can execute."}
+      - {ref: "evidence/current-head-audit.md", observation: "Current HEAD retains version initialization, managed copying, the approved tests, and the approved spec addendum."}
     code_refs:
       - {file: "lib/src/bindings/status.dart", symbol: "listPerfdata", commit: "ca9e4a6810793028d245bc9a404f4d970e5ac8cd"}
   reproduction_tests:
@@ -70,9 +71,11 @@ change_set:
     diff: "fix/CHG-003.diff"
 delivery:
   branch: "0.5.5"
-  commit: "6d65b30ce2ed7e8e8a531930834195e94328a74b"
+  commit: "764fbd712fb6065bcfee9e5179c57530c3eb5c16"
+  superseded_recorded_commit: "6d65b30ce2ed7e8e8a531930834195e94328a74b"
   pull_request: null
-  merge: pending
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
 versions:
   fixed_in: null
@@ -129,6 +132,15 @@ Red proof: the function type exposed `Pointer<git_diff_perfdata>`, and the
 runtime call failed with `invalid version 0`. Green proof: 2 focused tests and
 46 repository tests passed, static analysis found no issues, and the full suite
 passed 931 tests with 24 skips.
+
+### Current HEAD audit
+
+The code, tests, and approved `spec-gap` addendum are present on current HEAD.
+The originally recorded delivery commit was superseded by equivalent commit
+`764fbd7`, which is contained by both local and `origin/0.5.5`. The smallest
+current validation (`flutter test -j 1 test/repository_test.dart --plain-name
+"status performance"`) passed both targeted tests. See
+`evidence/current-head-audit.md`.
 
 No persistent data was affected, so no data repair is required. Package closure
 is not satisfied until the correction is merged and a fixed package version is

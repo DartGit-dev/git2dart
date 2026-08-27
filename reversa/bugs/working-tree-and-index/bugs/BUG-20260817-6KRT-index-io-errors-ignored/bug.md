@@ -4,11 +4,11 @@ id: BUG-20260817-6KRT
 display_number: 13
 title: Index read and write operations silently ignore native failures
 status: active
-phase: awaiting-human
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-26
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: repository-operations
 module: working-tree-and-index
@@ -34,18 +34,29 @@ traceability:
     evidence:
       - {ref: "evidence/static-analysis.md", observation: "All three stated native calls omit checkErrorAndThrow; a complete binding search found exactly these three calls in scope."}
       - {ref: "evidence/reproduction.md", observation: "An in-memory index read returned normally before the correction; after it, read and write throw LibGit2Error while the valid readTree path remains green."}
+      - {ref: "evidence/current-head-audit.md", observation: "Commit 1914a9053af88c6295fb58e6ed4e357dd8c27134 checks all three native statuses; focused failure and valid readTree tests pass, and targeted analysis is clean."}
     code_refs:
       - {file: "lib/src/bindings/index.dart", symbol: "read", commit: null}
       - {file: "lib/src/bindings/index.dart", symbol: "readTree", commit: null}
       - {file: "lib/src/bindings/index.dart", symbol: "write", commit: null}
   reproduction_tests: ["test/index_test.dart:269-274"]
   regression_tests: ["test/index_test.dart:255-267", "test/index_test.dart:269-274", "test/index_test.dart:308-317"]
-spec_verdict: null
+spec_verdict: spec-correta
 change_set:
   - {id: CHG-001, kind: test, artifact: "test/index_test.dart", purpose: "Cover safe native persistence failures and preserve valid read/readTree behavior.", diff: "fix/CHG-001.diff"}
   - {id: CHG-002, kind: code, artifact: "lib/src/bindings/index.dart", purpose: "Translate all three ignored index I/O statuses through the shared error boundary.", diff: "fix/CHG-002.diff"}
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
 closure: {policy: package, satisfied: false}
-resolution_kind: null
+resolution_kind: fixed
 change_risk:
   classification: low
   reasons:
@@ -112,6 +123,10 @@ path remains dynamically covered.
 
 ### Pending human decisions and delivery
 
-Recommended specification verdict: `spec-correta`. FR-WI-03 and FR-WI-04
-already require translated native failures. Package closure still requires a
-human-recorded verdict, merge, and publication.
+The evidence-backed default specification verdict is `spec-correta`: the
+existing index persistence/error behavior requires failures to be translated
+rather than reported as success. The user's automatic-remediation authorization
+permits recording this verdict; see `evidence/spec-verdict.md`. The correction
+is contained by local and remote `0.5.5`, while package publication remains
+pending. The bug therefore remains `active` / `delivering` until delivery
+closure is proven.

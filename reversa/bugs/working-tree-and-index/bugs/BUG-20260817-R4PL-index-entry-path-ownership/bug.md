@@ -4,11 +4,11 @@ id: BUG-20260817-R4PL
 display_number: 16
 title: IndexEntry path mutation overwrites borrowed native storage
 status: active
-phase: awaiting-human
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-26
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: native-integration
 module: working-tree-and-index
@@ -34,6 +34,7 @@ traceability:
     evidence:
       - {ref: "evidence/static-analysis.md", observation: "The documented non-modifiable lookup pointer is wrapped by IndexEntry and its path field is overwritten with an unmanaged allocation."}
       - {ref: "evidence/ownership-trace.md", observation: "All IndexEntry construction paths are borrowed; no safe owned-copy lifecycle exists, and oid/mode setters share the borrowed mutation problem."}
+      - {ref: "evidence/current-head-audit.md", observation: "Commit 1914a9053af88c6295fb58e6ed4e357dd8c27134 is an ancestor of HEAD; its owned-copy, replacement, and idempotent-disposal paths pass the focused regression suite and targeted analysis."}
     code_refs:
       - {file: "lib/src/index.dart", symbol: "IndexEntry", commit: null}
       - {file: "lib/src/bindings/index.dart", symbol: "getByIndex", commit: null}
@@ -47,13 +48,23 @@ change_risk:
     - "The repair changes the native ownership behind every IndexEntry projection."
     - "The public getters and setters remain source-compatible, and downstream native calls continue to receive a complete git_index_entry."
     - "The change is localized to index entry copying, disposal, and focused index tests."
-spec_verdict: null
+spec_verdict: spec-correta
 change_set:
   - {id: CHG-001, kind: test, artifact: "test/index_test.dart", purpose: "Prove borrowed-entry isolation and balanced replacement/disposal behavior.", diff: "fix/CHG-001.diff"}
   - {id: CHG-002, kind: code, artifact: "lib/src/bindings/index.dart", purpose: "Copy complete index entries into one matched owned allocation.", diff: "fix/CHG-002.diff"}
   - {id: CHG-003, kind: code, artifact: "lib/src/index.dart", purpose: "Manage mutable owned entry copies with idempotent explicit/finalizer disposal.", diff: "fix/CHG-003.diff"}
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
 closure: {policy: package, satisfied: false}
-resolution_kind: null
+resolution_kind: fixed
 ---
 
 # IndexEntry path mutation overwrites borrowed native storage
@@ -92,6 +103,6 @@ The confirmed root cause is direct mutation of libgit2-owned entry structures by
 | CHG-002 | code | `lib/src/bindings/index.dart` | `fix/CHG-002.diff` |
 | CHG-003 | code | `lib/src/index.dart` | `fix/CHG-003.diff` |
 
-Red-to-green evidence is recorded in `evidence/reproduction.md`. The focused index suite passed 58 tests, static analysis reported no issues, and the full suite passed 965 tests with 24 skips.
+Red-to-green evidence is recorded in `evidence/reproduction.md`. The current-head audit at commit `1914a9053af88c6295fb58e6ed4e357dd8c27134` reconfirmed the focused index suite with 58 passing tests and targeted static analysis with no issues; see `evidence/current-head-audit.md`. The historical full-suite result remains recorded in `evidence/reproduction.md` and was not rerun by this audit.
 
-The effective specification requires matching cleanup for owned native resources, so `spec-correta` is recommended. A human specification verdict is still required. Under the package closure policy, merge and publication evidence are also required; therefore the bug remains active and unlocked.
+The evidence-backed default specification verdict is `spec-correta`: the effective specification already requires matching cleanup for owned native resources. The user's explicit automatic-remediation authorization permits recording this default verdict; see `evidence/spec-verdict.md`. The correction is contained by local and remote `0.5.5`, but package publication remains pending. The bug therefore remains `active` / `delivering` until delivery closure is proven.

@@ -3,12 +3,12 @@ schema_version: 1
 id: BUG-20260817-3PON
 display_number: 4
 title: Libgit2 extensions getter leaks native string array storage
-status: open
-phase: triaging
+status: active
+phase: delivering
 severity: medium
 priority: P2
 created: 2026-08-17
-updated: 2026-08-17
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -30,15 +30,35 @@ traceability:
     - "reversa/sdd/adrs/003-use-arenas-and-finalizers-for-native-memory.md#decision"
   affected_code:
     - "lib/src/libgit2.dart:521"
-  root_cause: null
+  root_cause:
+    state: confirmed
+    hypothesis: "The extensions getter converted a libgit2-owned string array but freed only its Dart outer allocation, omitting the matching native disposer."
+    causal_path: ["extensions getter receives native string array", "Dart strings are converted", "outer allocation is freed", "native string-array storage remains live"]
+    evidence:
+      - {ref: "evidence/static-analysis.md", observation: "The original getter lacked the matching native disposer while comparable adapters used it."}
+      - {ref: "evidence/current-head-audit.md", observation: "Current getter disposes the native array in finally before freeing outer storage."}
+    code_refs:
+      - {file: "lib/src/libgit2.dart", symbol: "Libgit2.extensions", commit: "e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca"}
   reproduction_tests: []
-  regression_tests: []
-spec_verdict: null
-change_set: []
+  regression_tests: ["test/libgit2_test.dart#sets and returns the list of git extensions"]
+spec_verdict: spec-correta
+change_set:
+  - {id: CHG-001, kind: test, artifact: "test/libgit2_test.dart", purpose: "Exercise the local extension getter/setter round trip.", evidence: "evidence/current-head-audit.md"}
+  - {id: CHG-002, kind: code, artifact: "lib/src/libgit2.dart", purpose: "Dispose the native extension string array in finally before freeing outer storage.", evidence: "evidence/current-head-audit.md"}
 closure:
   policy: package
   satisfied: false
-resolution_kind: null
+resolution_kind: fixed
+delivery:
+  branch: "0.5.5"
+  commit: "e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
 ---
 
 # Libgit2 extensions getter leaks native string array storage
@@ -82,7 +102,19 @@ Manual temporary ownership in the global extensions getter.
 
 ## Resolution
 
-Pending `/reversa-debugger-fix` investigation and approved change set.
+The confirmed root cause was a missing native string-array disposer after Dart
+conversion. Current `Libgit2.extensions` converts the values, then calls
+`git_strarray_dispose` in `finally` before freeing its outer allocation. The
+required plan is recorded in `fix/plan.html`.
+
+Focused local extension behavior and analysis are green. No current source or
+test gap was demonstrated, so this audit applied no code or test diff. The
+authorized evidence-based verdict is `spec-correta`: the existing memory
+safety requirement and ADR-003 already require the matching native disposer.
+
+Commit `e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca` is contained by local and
+origin `0.5.5`; package publication remains pending, so the record is `active`
+/ `delivering`.
 
 ## Agent Notes
 

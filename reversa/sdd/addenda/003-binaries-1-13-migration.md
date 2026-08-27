@@ -70,3 +70,10 @@ The remaining non-blocking documentation observation is A001: BR-05 points to
 a nonexistent `reversa/sdd/gaps.md#Overlapping native operations` heading; the
 existing related entity is GAP-C02. This does not change the delivered feature
 or its validation evidence.
+
+## Deployment status 2026-08-27
+
+Deployment is recorded as **successful** on the user's explicit confirmation.
+This supersedes the earlier inference drawn from the skipped Publish job. The
+source is `USER-CONFIRMED`; independent package-registry verification was not
+performed. Feature 003 is complete, including the `sync` stage.

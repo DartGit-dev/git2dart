@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-21
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -95,9 +95,10 @@ change_set:
     diff: "fix/CHG-006.diff"
 delivery:
   branch: "0.5.5"
-  commit: null
+  commit: "c8ce43e"
   pull_request: null
-  merge: pending
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
 versions:
   fixed_in: null
@@ -152,7 +153,12 @@ Remote credential callback payload ownership.
 
 ## Resolution
 
-The approved local change set is implemented and green. Package delivery remains pending; no commit, merge, or publication has been performed.
+The approved local change set is implemented and green in commit `c8ce43e`.
+The current-head audit re-ran local synthetic ownership regressions and
+focused analysis without real credentials or network access; both remain
+green. The effective verdict remains `spec-correta`. Package publication is
+still pending, so the record remains `active` / `delivering`; see
+`evidence/current-head-audit.md`.
 
 ## Agent Notes
 

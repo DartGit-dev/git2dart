@@ -4,11 +4,11 @@ id: BUG-20260817-BVMB
 display_number: 10
 title: Remote getRefspec wraps a null native pointer for invalid indexes
 status: active
-phase: awaiting-human
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-26
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: repository-operations
 module: references-and-remotes
@@ -38,17 +38,28 @@ traceability:
     evidence:
       - {ref: "evidence/static-analysis.md", observation: "The nullable native result is returned without validation and then wrapped immediately."}
       - {ref: "evidence/reproduction.md", observation: "Before the correction, lower-bound lookup returned a wrapper and failed later during refspec property access instead of throwing Git2DartError at lookup."}
+      - {ref: "evidence/current-head-audit.md", observation: "Commit 1914a9053af88c6295fb58e6ed4e357dd8c27134 rejects nullptr before Refspec construction; focused invalid and valid refspec tests pass."}
     code_refs:
       - {file: "lib/src/bindings/remote.dart", symbol: "getRefspec", commit: null}
       - {file: "lib/src/remote.dart", symbol: "Remote.getRefspec", commit: null}
   reproduction_tests: ["test/remote_test.dart:242-250"]
   regression_tests: ["test/remote_test.dart:214-250"]
-spec_verdict: null
+spec_verdict: spec-correta
 change_set:
   - {id: CHG-001, kind: test, artifact: "test/remote_test.dart", purpose: "Cover valid and invalid refspec index boundaries.", diff: "fix/CHG-001.diff"}
   - {id: CHG-002, kind: code, artifact: "lib/src/bindings/remote.dart", purpose: "Reject null native refspec results before public wrapping.", diff: "fix/CHG-002.diff"}
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
 closure: {policy: package, satisfied: false}
-resolution_kind: null
+resolution_kind: fixed
 change_risk:
   classification: low
   reasons:
@@ -127,3 +138,13 @@ Package closure still requires a human-recorded verdict, merge, and publication.
 ## Agent Notes
 
 The positive tests cover only index zero.
+
+## Specification verdict and delivery
+
+The evidence-backed default specification verdict is `spec-correta`: the
+effective remote/refspec behavior already requires invalid indexes to fail
+without creating an invalid wrapper. The user's automatic-remediation
+authorization permits recording this verdict; see `evidence/spec-verdict.md`.
+The correction is contained by local and remote `0.5.5`, while package
+publication remains pending. The bug therefore remains `active` / `delivering`
+until delivery closure is proven.

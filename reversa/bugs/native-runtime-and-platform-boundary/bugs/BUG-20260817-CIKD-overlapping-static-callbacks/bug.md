@@ -3,12 +3,12 @@ schema_version: 1
 id: BUG-20260817-CIKD
 display_number: 7
 title: Overlapping remote operations overwrite process-static callbacks
-status: open
-phase: triaging
+status: active
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-17
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -51,15 +51,40 @@ traceability:
     - "lib/src/bindings/treebuilder.dart"
     - "lib/src/bindings/tag.dart"
     - "lib/src/bindings/status.dart"
-  root_cause: null
-  reproduction_tests: []
-  regression_tests: []
-spec_verdict: null
-change_set: []
+  root_cause:
+    state: confirmed
+    hypothesis: "Process-static callback closures cannot safely represent two active callback-bearing remote operations; nested or overlapping setup must be rejected until operation-local isolation is proven."
+    causal_path: ["first callback-bearing operation installs process-static closures", "second operation attempts callback setup", "reentrancy guard rejects before plug", "first operation keeps its callback state", "finally reset clears state"]
+    evidence:
+      - {ref: "evidence/static-analysis.md", observation: "The initial inspection identified process-static callback state and cross-operation overwrite risk."}
+      - {ref: "evidence/current-head-audit.md", observation: "All seven callback-bearing paths use withCallbackState; e2d8bb4 rejects reentrancy before plug and clears state in finally."}
+    code_refs:
+      - {file: "lib/src/bindings/remote_callbacks.dart", symbol: "RemoteCallbacks.withCallbackState", commit: "e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca"}
+  reproduction_tests:
+    - "test/remote_test.dart#rejects overlapping callback operations before state is replaced"
+  regression_tests:
+    - "test/remote_test.dart#clears callback state after repeated loopback fetch failures"
+    - "test/remote_test.dart#rejects overlapping callback operations before state is replaced"
+spec_verdict: spec-correta
+change_set:
+  - {id: CHG-001, kind: code, artifact: "lib/src/bindings/remote_callbacks.dart", purpose: "Serialize callback-bearing operations with reentrancy rejection and finally cleanup.", evidence: "evidence/current-head-audit.md"}
+  - {id: CHG-002, kind: code, artifact: "lib/src/{remote.dart,bindings/remote.dart,bindings/repository.dart,bindings/submodule.dart}", purpose: "Route every callback-bearing operation through the serialization boundary.", evidence: "evidence/current-head-audit.md"}
+  - {id: CHG-003, kind: test, artifact: "test/remote_test.dart", purpose: "Prove overlap rejection occurs before state replacement and failure cleanup resets the bridge.", evidence: "evidence/current-head-audit.md"}
+delivery:
+  branch: "0.5.5"
+  commit: "e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+  concurrent_native_matrix: pending
+versions:
+  fixed_in: null
+backports: []
 closure:
   policy: package
   satisfied: false
-resolution_kind: null
+resolution_kind: fixed
 ---
 
 # Overlapping remote operations overwrite process-static callbacks
@@ -106,7 +131,20 @@ Remote callback bridge concurrency and operation isolation.
 
 ## Resolution
 
-Pending `/reversa-debugger-fix` investigation and approved change set.
+The confirmed root cause is process-static callback state without safe overlap
+isolation. Commit `e2d8bb48123dcb290bccf63bcbfcc7eae2d89cca` makes the
+existing interim serialized-use rule executable: a second callback-bearing
+operation is rejected before it can replace the first operation's state, and
+the outer operation clears state in `finally`. Current-head audit confirms all
+seven callback-bearing paths use that boundary and focused structural/failure
+tests pass.
+
+The evidence-backed default verdict is `spec-correta`: the effective interim
+rule already requires serialization until isolation is proven; see
+`evidence/spec-verdict.md`. No code was changed in this audit, so no new
+independent review was required. A real concurrent native-operation matrix and
+package publication remain pending; the bug is therefore `active` /
+`delivering`.
 
 ## Agent Notes
 

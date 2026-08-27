@@ -8,7 +8,7 @@ phase: delivering
 severity: critical
 priority: P0
 created: 2026-08-17
-updated: 2026-08-20
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: native-integration
 module: git-objects-and-object-database
@@ -33,6 +33,7 @@ traceability:
     evidence:
       - {ref: "evidence/static-analysis.md", observation: "Binding ownership contracts and the unconditional high-level destructor conflict."}
       - {ref: "evidence/reproduction.md", observation: "Three of three isolated Flutter workers terminated with exit code 79 after the invalid ownership sequence."}
+      - {ref: "evidence/current-head-audit.md", observation: "Current HEAD preserves the borrowed/owned constructor split, release guard, regression tests, and original ownership specification."}
     code_refs:
       - {file: "lib/src/tree.dart", symbol: "Tree.entries and Tree.operator[]", commit: "d34661a"}
       - {file: "lib/src/tree.dart", symbol: "TreeEntry.free", commit: "d34661a"}
@@ -68,7 +69,8 @@ delivery:
   branch: "0.5.5"
   commit: "88bbed52ae15fd113ceb15af10e609591488943c"
   pull_request: null
-  merge: pending
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
 versions:
   fixed_in: null
@@ -141,6 +143,16 @@ their explicit native release and finalizer detachment.
 
 The user explicitly removed the separate Gate 1 and Gate 2 approval pauses for
 this E3LU correction after approving `fix/plan.html`. The local change is ready
-for delivery. Package closure remains unsatisfied until the change is committed,
-merged, published in a version, and assessed for backports. The bug therefore
-remains `active` in the `delivering` phase; no `DONE.md` is created.
+for delivery.
+
+### Current HEAD audit
+
+Current HEAD retains the borrowed/owned constructor split, the `StateError`
+guard before borrowed release, all four borrowed-route regressions, and the
+owned path-release regression. The original ownership specification supports
+the recorded `spec-correta` verdict. Commit `88bbed5` is contained by local and
+`origin/0.5.5`; focused tests passed. See `evidence/current-head-audit.md`.
+
+Package closure remains unsatisfied until a fixed version is published and
+backports are assessed. The bug therefore remains `active` in the `delivering`
+phase; no `DONE.md` is created.

@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-17
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -54,7 +54,7 @@ traceability:
   regression_tests:
     - "test/libgit2_option_error_test.dart#reproduction: native option failures are exposed"
     - "test/libgit2_option_error_test.dart#regression: every global option call checks its status"
-spec_verdict: spec-correct
+spec_verdict: spec-correta
 change_risk:
   classification: medium
   reasons:
@@ -80,7 +80,17 @@ change_set:
 closure:
   policy: package
   satisfied: false
-resolution_kind: null
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
+resolution_kind: fixed
 ---
 
 # Global libgit2 option APIs silently ignore native failures
@@ -133,10 +143,12 @@ Typed process-global option facade in `Libgit2`.
 
 ## Resolution
 
-CHG-002 and supplemental CHG-003 were approved and applied. The focused suite
-passes 31 tests and `flutter analyze lib test` reports no issues. The source
-contract confirms that all 42 global-option calls are checked. The user
-selected `spec-correct`; package delivery is not yet complete.
+CHG-002 and supplemental CHG-003 were approved and applied. The current-head
+audit confirms all global-option calls check their native status, the focused
+suite passes 34 tests, and focused analysis reports no issues. The authorized
+evidence-based verdict is `spec-correta`; package publication is not yet
+complete. See `evidence/current-head-audit.md` and
+`evidence/spec-verdict.md`.
 
 ## Agent Notes
 

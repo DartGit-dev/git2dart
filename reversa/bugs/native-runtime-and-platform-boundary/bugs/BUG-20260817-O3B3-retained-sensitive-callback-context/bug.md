@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-21
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -113,9 +113,10 @@ change_set:
     diff: "fix/CHG-008.diff"
 delivery:
   branch: "0.5.5"
-  commit: null
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
   pull_request: null
-  merge: pending
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
 versions:
   fixed_in: null
@@ -201,11 +202,13 @@ conformance, so no specification artifact was changed or added.
 
 ### Delivery state
 
-The correction is present only in the local working tree on branch `0.5.5`.
-No commit, pull request, merge, package version, publication, or backport has
-been produced by this workflow. Under the `package` closure policy the bug
-therefore remains `active` in phase `delivering`; `closure.satisfied` remains
-false and no `DONE.md` lock is created.
+The correction is contained in commit
+`1914a9053af88c6295fb58e6ed4e357dd8c27134`, itself contained by local and
+origin `0.5.5`. Current focused synthetic validation covers all recorded
+callback-cleanup routes without network or real credential material; see the
+restricted `evidence/current-head-audit.md`. Under the `package` closure
+policy, package publication remains pending, so the bug stays `active` /
+`delivering` and no `DONE.md` lock is created.
 
 ## Agent Notes
 

@@ -1,30 +1,31 @@
 # Delivery Status
 
-Observed on 2026-08-23.
+Observed on 2026-08-27.
 
 ## Repository integration
 
 - Local branch: `0.5.5`
 - Fix and integration commit: `131f7c8f405fd818affd1bf4cc3fd60cd2b52f60`
-- Remote verification command: `git ls-remote origin refs/heads/0.5.5`
-- Remote result: `origin/0.5.5` points to the same commit.
+- Current merge-base checks: `131f7c8` is contained by local `0.5.5` and
+  `origin/0.5.5`.
 - Integration form: direct commit on the release branch; no pull request.
 
-The commit contains the lifecycle source changes, regression tests, and the
-`git2dart_binaries >=1.12.2 <1.13.0` dependency constraint.
+The commit contains the lifecycle source changes and regressions. Subsequent
+branch work now declares `git2dart_binaries >=1.13.0 <1.14.0`.
 
 ## Fresh validation
 
 - `flutter test -j 1 test/libgit2_lifecycle_source_test.dart test/libgit2_lifecycle_test.dart`: 8/8 passed.
-- `flutter analyze lib test`: no issues found.
-- Validation used the direct `F:/git2dart_binaries` dependency override and
-  the hosted 1.12.1 package only as the Windows native binary root, preserving
-  the previously recorded proof boundary.
+- `flutter analyze lib/src/libgit2.dart lib/src/helpers/native_owner.dart lib/src/repository.dart lib/src/commit.dart test/libgit2_lifecycle_source_test.dart test/libgit2_lifecycle_test.dart`: no issues found.
+- Current `.dart_tool/package_config.json` resolves the lifecycle API from the
+  local hosted-cache directory `git2dart_binaries-1.13.0`.
 
 ## Publication boundary
 
 - Pub.dev latest `git2dart_binaries`: `1.12.1`
-- Required compatible companion: `>=1.12.2 <1.13.0`
+- Current required compatible companion: `>=1.13.0 <1.14.0`
+- Local green tests use cached `1.13.0`, but that version is not available on
+  the current pub.dev versions list.
 - Pub.dev latest `git2dart`: `0.5.4`
 - Published consumer version containing the fix: none observed
 

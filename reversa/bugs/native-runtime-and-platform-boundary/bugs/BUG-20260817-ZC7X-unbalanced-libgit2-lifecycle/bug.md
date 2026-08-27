@@ -8,7 +8,7 @@ phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-23
+updated: 2026-08-27
 origin:
   type: inspection
   external_ref: null
@@ -104,9 +104,10 @@ delivery:
   branch: "0.5.5"
   commit: "131f7c8f405fd818affd1bf4cc3fd60cd2b52f60"
   pull_request: null
-  merge: "integrated by direct commit; origin/0.5.5 points to the same commit"
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
   publication: pending
-  compatible_companion: pending
+  compatible_companion: unavailable-on-pub-dev
 versions: {fixed_in: null}
 backports: []
 ---
@@ -212,12 +213,12 @@ active applied resolution.
 No persistent data is changed and no data repair is required. The approved
 consumer change set is committed as
 `131f7c8f405fd818affd1bf4cc3fd60cd2b52f60` directly on branch `0.5.5`.
-Fresh remote verification on 2026-08-23 found `origin/0.5.5` at the same
-commit, so repository integration is complete without a pull request. No fixed
-`git2dart` package version is published. Pub.dev still lists
-`git2dart_binaries` 1.12.1 as latest while CHG-006 requires a compatible
-`>=1.12.2 <1.13.0` package; assignment and publication of that companion
-version remain pending. See `evidence/delivery-status.md`.
+Current-head audit confirms the lifecycle correction remains contained by
+local and origin `0.5.5`, and all focused lifecycle tests remain green. No
+fixed `git2dart` package version is published. The current consumer constraint
+is `git2dart_binaries >=1.13.0 <1.14.0`, while pub.dev currently publishes
+only 1.12.1; green local tests resolve cached 1.13.0 instead. See
+`evidence/current-head-audit.md` and `evidence/delivery-status.md`.
 
 The package closure policy therefore remains unsatisfied. The bug stays
 `active` in `delivering`, `versions.fixed_in` remains null, and no `DONE.md`

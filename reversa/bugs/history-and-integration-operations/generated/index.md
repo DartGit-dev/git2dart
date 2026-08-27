@@ -7,14 +7,14 @@
 | Status | Count |
 | --- | ---: |
 | active | 1 |
-| open | 3 |
+| active | 3 |
 
 ## Summary by phase
 
 | Phase | Count |
 | --- | ---: |
 | delivering | 1 |
-| triaging | 3 |
+| delivering | 3 |
 
 ## Open and active bugs
 

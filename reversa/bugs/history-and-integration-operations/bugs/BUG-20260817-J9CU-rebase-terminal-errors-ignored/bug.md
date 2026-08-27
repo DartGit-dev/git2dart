@@ -4,11 +4,11 @@ id: BUG-20260817-J9CU
 display_number: 18
 title: Rebase finish and abort silently ignore native failures
 status: active
-phase: awaiting-human
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-26
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: repository-operations
 module: history-and-integration-operations
@@ -35,12 +35,22 @@ traceability:
       - {file: "lib/src/bindings/rebase.dart", symbol: "abort", commit: null}
   reproduction_tests: ["test/rebase_test.dart:72"]
   regression_tests: ["test/rebase_test.dart:70-72", "test/rebase_test.dart:246-248"]
-spec_verdict: null
+spec_verdict: spec-correta
 change_set:
   - {id: CHG-001, kind: test, artifact: "test/rebase_test.dart", purpose: "Cover a successful finish followed by a safe terminal native failure; retain successful abort coverage.", diff: "fix/CHG-001.diff"}
   - {id: CHG-002, kind: code, artifact: "lib/src/bindings/rebase.dart", purpose: "Translate finish and abort native statuses through the shared error boundary.", diff: "fix/CHG-002.diff"}
 closure: {policy: package, satisfied: false}
-resolution_kind: null
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
+resolution_kind: fixed
 change_risk:
   classification: low
   reasons:
@@ -101,7 +111,13 @@ status through the shared boundary.
 - `flutter test -j 1 test/rebase_test.dart` — red before CHG-002, green after it (10 tests).
 - `flutter analyze` — passed with no issues.
 
-### Pending human decisions and delivery
+### Specification verdict and delivery
 
-Recommended specification verdict: `spec-correta`. Package closure still
-requires a human-recorded verdict, merge, and publication.
+The evidence-backed default verdict is `spec-correta`: the effective rebase
+flow requires `finish` to advance final state and `abort` to restore
+pre-rebase state, so their native failures must remain observable through the
+existing shared error contract. See `evidence/spec-verdict.md`.
+
+Commit `1914a9053af88c6295fb58e6ed4e357dd8c27134` is contained by local and
+origin `0.5.5`. Package publication is still pending, so the record remains
+`active` / `delivering` under the package closure policy.

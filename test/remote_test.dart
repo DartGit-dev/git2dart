@@ -333,6 +333,25 @@ void main() {
       expect(remote.ls(), hasLength(refs.length));
     });
 
+    test('keeps advertisement listing cleanup in finally', () {
+      final source =
+          File('lib/src/remote.dart').readAsStringSync().replaceAll('\r\n', '\n');
+      final start = source.indexOf('  List<RemoteReference> ls({');
+      final end = source.indexOf('  /// Downloads new data', start);
+      final lsSource = source.substring(start, end);
+
+      expect(
+        lsSource,
+        contains(
+          'try {\n'
+          '      refs = remote_bindings.lsRemotes(_remotePointer);\n'
+          '    } finally {\n'
+          '      remote_bindings.disconnect(_remotePointer);\n'
+          '    }',
+        ),
+      );
+    });
+
     test("throws when trying to get remote repo's reference list with "
         "invalid url", () {
       Remote.setUrl(repo: repo, remote: 'libgit2', url: 'invalid');

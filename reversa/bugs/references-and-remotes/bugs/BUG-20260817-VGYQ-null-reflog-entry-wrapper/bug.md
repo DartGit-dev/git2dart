@@ -4,11 +4,11 @@ id: BUG-20260817-VGYQ
 display_number: 11
 title: Reflog indexing wraps a null native entry for out-of-range access
 status: active
-phase: awaiting-human
+phase: delivering
 severity: high
 priority: P1
 created: 2026-08-17
-updated: 2026-08-26
+updated: 2026-08-27
 origin: {type: inspection, external_ref: null}
 area: repository-operations
 module: references-and-remotes
@@ -34,17 +34,28 @@ traceability:
     evidence:
       - {ref: "evidence/static-analysis.md", observation: "The nullable native entry result is forwarded and wrapped without validation."}
       - {ref: "evidence/reproduction.md", observation: "The focused out-of-range lookup did not complete before the correction; after the boundary guard, both invalid indexes throw Git2DartError."}
+      - {ref: "evidence/current-head-audit.md", observation: "Commit 1914a9053af88c6295fb58e6ed4e357dd8c27134 rejects nullptr before public wrapping; lower/upper invalid lookup and valid lookup pass the focused suite."}
     code_refs:
       - {file: "lib/src/bindings/reflog.dart", symbol: "getByIndex", commit: null}
       - {file: "lib/src/reflog.dart", symbol: "RefLog.operator []", commit: null}
   reproduction_tests: ["test/reflog_test.dart:56-59"]
   regression_tests: ["test/reflog_test.dart:35-59"]
-spec_verdict: null
+spec_verdict: spec-correta
 change_set:
   - {id: CHG-001, kind: test, artifact: "test/reflog_test.dart", purpose: "Cover empty, valid, and invalid reflog entry lookups.", diff: "fix/CHG-001.diff"}
   - {id: CHG-002, kind: code, artifact: "lib/src/bindings/reflog.dart", purpose: "Reject null native reflog entries before public wrapping.", diff: "fix/CHG-002.diff"}
+delivery:
+  branch: "0.5.5"
+  commit: "1914a9053af88c6295fb58e6ed4e357dd8c27134"
+  pull_request: null
+  merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
+  local_audit: "evidence/current-head-audit.md"
+  publication: pending
+versions:
+  fixed_in: null
+backports: []
 closure: {policy: package, satisfied: false}
-resolution_kind: null
+resolution_kind: fixed
 change_risk:
   classification: low
   reasons:
@@ -116,9 +127,13 @@ immediate `Git2DartError` for both lower and upper out-of-range indexes.
 
 ### Pending human decisions and delivery
 
-Recommended specification verdict: `spec-correta`. FR-RR-04 and the public
-index operator already require explicit out-of-range failure. Package closure
-still requires a human-recorded verdict, merge, and publication.
+The evidence-backed default specification verdict is `spec-correta`: the
+reflog requirements and test matrix already require invalid index states to
+fail without projecting an invalid native value. The user's automatic-
+remediation authorization permits recording this verdict; see
+`evidence/spec-verdict.md`. The correction is contained by local and remote
+`0.5.5`, while package publication remains pending. The bug therefore remains
+`active` / `delivering` until delivery closure is proven.
 
 ## Agent Notes
 
