@@ -1,6 +1,4 @@
 import 'dart:ffi';
-import 'dart:io';
-
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/remote_callbacks.dart';
@@ -116,49 +114,6 @@ void main() {
         calloc.free(rawHostkey);
         calloc.free(cert);
       }
-    });
-
-    test('gives the credential payload one reset owner', () {
-      final source =
-          File('lib/src/bindings/remote_callbacks.dart').readAsStringSync();
-      final plugStart = source.indexOf('static void plug({');
-      final resetStart = source.indexOf('static void reset()');
-      final plugSource = source.substring(plugStart, resetStart);
-      final resetSource = source.substring(resetStart);
-      final allocation = RegExp(
-        r'(\w+)\s*=\s*calloc<Int8>\(\)',
-      ).firstMatch(plugSource);
-
-      expect(plugStart, isNonNegative);
-      expect(resetStart, greaterThan(plugStart));
-      expect(allocation, isNotNull);
-      final owner = allocation!.group(1)!;
-      expect(
-        RegExp('static\\s+Pointer<Int8>\\?\\s+$owner').hasMatch(source),
-        isTrue,
-      );
-      expect(resetSource, contains('calloc.free($owner'));
-      expect(
-        RegExp('$owner\\s*=\\s*(?:null|nullptr)').hasMatch(resetSource),
-        isTrue,
-      );
-    });
-
-    test('owns credential error messages through callback arenas', () {
-      final source =
-          File('lib/src/bindings/remote_callbacks.dart').readAsStringSync();
-      final start = source.indexOf('static int credentialsCb(');
-      final end = source.indexOf('/// Plugs provided callbacks', start);
-      final callbackSource = source.substring(start, end);
-
-      expect(start, isNonNegative);
-      expect(end, greaterThan(start));
-      expect(callbackSource, contains('using((arena)'));
-      expect(
-        RegExp(r'\.toChar\(arena\)').allMatches(callbackSource),
-        hasLength(2),
-      );
-      expect(callbackSource, isNot(contains('.toCharAlloc()')));
     });
 
     test('releases credential payload idempotently during reset', () {

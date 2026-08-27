@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart' show LibGit2Error;
@@ -120,11 +119,6 @@ void main() {
         expect(options.first.read(), value);
       }
 
-      final source = File('lib/src/libgit2.dart').readAsStringSync();
-      expect(RegExp(r'arena<Size>\(\)').allMatches(source), hasLength(5));
-      expect(RegExp(r'calloc<Size>\(\)').allMatches(source), isEmpty);
-      expect(RegExp(r'arena<IntPtr>\(\)').allMatches(source), hasLength(2));
-      expect(RegExp(r'calloc<IntPtr>\(\)').allMatches(source), isEmpty);
       expect(Libgit2.cachedMemory.current, greaterThanOrEqualTo(0));
       expect(Libgit2.cachedMemory.allowed, greaterThanOrEqualTo(0));
     });

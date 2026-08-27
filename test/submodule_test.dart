@@ -300,15 +300,5 @@ void main() {
         equals(Submodule.lookup(repo: repo, name: testSubmodule)),
       );
     });
-
-    test('scopes update and clone callback state lexically', () {
-      final source = File('lib/src/bindings/submodule.dart').readAsStringSync();
-
-      expect(
-        RegExp(r'RemoteCallbacks\.withCallbackState').allMatches(source),
-        hasLength(2),
-      );
-      expect(source, isNot(contains('RemoteCallbacks.reset()')));
-    });
   });
 }

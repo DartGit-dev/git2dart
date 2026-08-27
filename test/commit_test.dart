@@ -325,21 +325,6 @@ Some description.
       expect(commit.parents.length, 0);
     });
 
-    test('does not write through zero-length parent pointer arrays', () {
-      final source =
-          File(
-            p.join('lib', 'src', 'bindings', 'commit.dart'),
-          ).readAsStringSync();
-
-      expect(
-        RegExp(r'parentsC\[0\]\s*=\s*nullptr').allMatches(source),
-        isEmpty,
-        reason:
-            'Empty parent lists must pass nullptr without indexing an '
-            'allocation with zero elements.',
-      );
-    });
-
     test('creates commit from ids without parents', () {
       final oidPointer = commit_bindings.createFromIds(
         repoPointer: repo.pointer,

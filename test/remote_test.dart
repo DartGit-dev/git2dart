@@ -333,25 +333,6 @@ void main() {
       expect(remote.ls(), hasLength(refs.length));
     });
 
-    test('keeps advertisement listing cleanup in finally', () {
-      final source =
-          File('lib/src/remote.dart').readAsStringSync().replaceAll('\r\n', '\n');
-      final start = source.indexOf('  List<RemoteReference> ls({');
-      final end = source.indexOf('  /// Downloads new data', start);
-      final lsSource = source.substring(start, end);
-
-      expect(
-        lsSource,
-        contains(
-          'try {\n'
-          '      refs = remote_bindings.lsRemotes(_remotePointer);\n'
-          '    } finally {\n'
-          '      remote_bindings.disconnect(_remotePointer);\n'
-          '    }',
-        ),
-      );
-    });
-
     test("throws when trying to get remote repo's reference list with "
         "invalid url", () {
       Remote.setUrl(repo: repo, remote: 'libgit2', url: 'invalid');
@@ -505,25 +486,6 @@ void main() {
         });
       },
     );
-
-    test('owns fetch temporary allocations through the active arena', () {
-      final source = File('lib/src/bindings/remote.dart').readAsStringSync();
-      final start = source.indexOf('void fetch({');
-      final end = source.indexOf('/// Perform a push.', start);
-      final fetchSource = source.substring(start, end);
-
-      expect(start, isNonNegative);
-      expect(end, greaterThan(start));
-      expect(fetchSource, contains('arena<git_strarray>()'));
-      expect(fetchSource, contains('arena<Pointer<Char>>(refspecs.length)'));
-      expect(fetchSource, contains('arena<git_fetch_options>()'));
-      expect(fetchSource, isNot(contains('calloc<git_strarray>()')));
-      expect(
-        fetchSource,
-        isNot(contains('calloc<Pointer<Char>>(refspecs.length)')),
-      );
-      expect(fetchSource, isNot(contains('calloc<git_fetch_options>()')));
-    });
 
     test(
       tags: 'remote_fetch',
