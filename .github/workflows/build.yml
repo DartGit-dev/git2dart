@@ -57,11 +57,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends libpcre3 libssl-dev
 
-      - name: Install Windows native dependencies
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: choco install openssl --yes --no-progress
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
