@@ -1,17 +1,23 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show Arena, calloc;
+import 'package:ffi/ffi.dart' show Arena, calloc, using;
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/credentials.dart' as credentials_bindings;
 import 'package:git2dart/src/bindings/remote.dart' as remote_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as repository_bindings;
 import 'package:git2dart/src/extensions.dart';
+import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Allocate and initialize a [git_remote_callbacks] structure.
 Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
   final callbacks = arena<git_remote_callbacks>();
-  libgit2.git_remote_init_callbacks(callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_remote_init_callbacks(
+      callbacks,
+      GIT_REMOTE_CALLBACKS_VERSION,
+    ),
+  );
   return callbacks;
 }
 
@@ -19,6 +25,8 @@ Pointer<git_remote_callbacks> initCallbacks(Arena arena) {
 /// These callbacks are used during fetch, push, and clone operations
 /// to provide progress updates and handle authentication.
 class RemoteCallbacks {
+  static bool _operationActive = false;
+
   /// Callback function that reports transfer progress during fetch/push operations.
   /// Provides information about the number of objects being transferred.
   static void Function(TransferProgress)? transferProgress;
@@ -60,7 +68,11 @@ class RemoteCallbacks {
     Pointer<git_oid> newOid,
     Pointer<Void> payload,
   ) {
-    updateTips!(refname.toDartString(), Oid(oldOid), Oid(newOid));
+    updateTips!(
+      refname.toDartString(),
+      Oid.fromBorrowed(oldOid),
+      Oid.fromBorrowed(newOid),
+    );
     return 0;
   }
 
@@ -173,6 +185,8 @@ class RemoteCallbacks {
   /// Handles various authentication methods like username/password and SSH keys.
   static Credentials? credentials;
 
+  static Pointer<Int8>? _credentialPayload;
+
   /// Native callback for credential acquisition during remote operations.
   /// Called when the remote host requires authentication.
   static int credentialsCb(
@@ -183,22 +197,26 @@ class RemoteCallbacks {
     Pointer<Void> payload,
   ) {
     if (payload.cast<Char>().value == 2) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID.value,
-        'Incorrect credentials.'.toCharAlloc(),
-      );
-      throw LibGit2Error(libgit2.git_error_last());
+      using((arena) {
+        libgit2Runtime.bindings.git_error_set_str(
+          git_error_t.GIT_ERROR_INVALID.value,
+          'Incorrect credentials.'.toChar(arena),
+        );
+      });
+      throwLastError();
     }
 
     final credentialType = credentials!.credentialType;
     final allowedTypesSet = GitCredential.fromFlag(allowedTypes);
 
     if (!allowedTypesSet.contains(credentialType)) {
-      libgit2.git_error_set_str(
-        git_error_t.GIT_ERROR_INVALID.value,
-        'Invalid credential type $credentialType'.toCharAlloc(),
-      );
-      throw LibGit2Error(libgit2.git_error_last());
+      using((arena) {
+        libgit2Runtime.bindings.git_error_set_str(
+          git_error_t.GIT_ERROR_INVALID.value,
+          'Invalid credential type $credentialType'.toChar(arena),
+        );
+      });
+      throwLastError();
     }
 
     if (credentials is UserPass) {
@@ -289,8 +307,8 @@ class RemoteCallbacks {
 
     if (callbacks.credentials != null) {
       credentials = callbacks.credentials;
-      final withUser = calloc<Int8>()..value = 1;
-      callbacksOptions.payload = withUser.cast();
+      _credentialPayload = calloc<Int8>()..value = 1;
+      callbacksOptions.payload = _credentialPayload!.cast();
       callbacksOptions.credentials = Pointer.fromFunction(
         credentialsCb,
         except,
@@ -298,9 +316,36 @@ class RemoteCallbacks {
     }
   }
 
+  /// Runs a synchronous remote operation with lexically scoped callback state.
+  static T withCallbackState<T>({
+    required git_remote_callbacks callbacksOptions,
+    required Callbacks callbacks,
+    required T Function() operation,
+  }) {
+    if (_operationActive) {
+      throw StateError(
+        'Overlapping remote operations with callbacks are not supported.',
+      );
+    }
+
+    _operationActive = true;
+    try {
+      plug(callbacksOptions: callbacksOptions, callbacks: callbacks);
+      return operation();
+    } finally {
+      reset();
+      _operationActive = false;
+    }
+  }
+
   /// Resets all callback functions to their original null values.
   /// Should be called after remote operations are complete.
   static void reset() {
+    if (_credentialPayload != null) {
+      calloc.free(_credentialPayload!);
+      _credentialPayload = null;
+    }
+
     transferProgress = null;
     sidebandProgress = null;
     updateTips = null;

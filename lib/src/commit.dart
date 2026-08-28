@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:git2dart/git2dart.dart';
 import 'package:git2dart/src/bindings/commit.dart' as bindings;
 import 'package:git2dart/src/bindings/graph.dart' as graph_bindings;
+import 'package:git2dart/src/helpers/native_owner.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
@@ -23,7 +24,11 @@ class Commit extends Equatable {
   /// [commitPointer] is a pointer to the underlying libgit2 commit object.
   @internal
   Commit(this._commitPointer) {
-    _finalizer.attach(this, _commitPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'commit',
+      destroy: () => bindings.free(_commitPointer),
+    );
   }
 
   /// Creates a new commit instance by looking up a commit object in the repository.
@@ -37,9 +42,14 @@ class Commit extends Equatable {
       repoPointer: repo.pointer,
       oidPointer: oid.pointer,
     );
-    _finalizer.attach(this, _commitPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'commit',
+      destroy: () => bindings.free(_commitPointer),
+    );
   }
 
+  late final ManagedNativeOwner _nativeOwner;
   late final Pointer<git_commit> _commitPointer;
 
   /// Gets the pointer to the underlying libgit2 commit object.
@@ -276,7 +286,7 @@ class Commit extends Equatable {
   String get body => bindings.body(_commitPointer);
 
   /// Gets the [Oid] of the commit.
-  Oid get oid => Oid(bindings.id(_commitPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_commitPointer));
 
   /// Gets the commit time (i.e. committer time).
   int get time => bindings.time(_commitPointer);
@@ -317,7 +327,9 @@ class Commit extends Equatable {
     final parentCount = bindings.parentCount(_commitPointer);
     return <Oid>[
       for (var i = 0; i < parentCount; i++)
-        Oid(bindings.parentId(commitPointer: _commitPointer, position: i)),
+        Oid.fromBorrowed(
+          bindings.parentId(commitPointer: _commitPointer, position: i),
+        ),
     ];
   }
 
@@ -338,7 +350,7 @@ class Commit extends Equatable {
   Tree get tree => Tree(bindings.tree(_commitPointer));
 
   /// Gets the [Oid] of the tree pointed to by the commit.
-  Oid get treeOid => Oid(bindings.treeOid(_commitPointer));
+  Oid get treeOid => Oid.fromBorrowed(bindings.treeOid(_commitPointer));
 
   /// Gets an arbitrary header field from the commit.
   ///
@@ -393,8 +405,7 @@ class Commit extends Equatable {
   ///
   /// This should be called when the commit object is no longer needed.
   void free() {
-    bindings.free(_commitPointer);
-    _finalizer.detach(this);
+    _nativeOwner.release(this);
   }
 
   @override
@@ -409,7 +420,3 @@ class Commit extends Equatable {
 }
 
 // coverage:ignore-start
-final _finalizer = Finalizer<Pointer<git_commit>>(
-  (pointer) => bindings.free(pointer),
-);
-// coverage:ignore-end

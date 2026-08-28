@@ -13,6 +13,7 @@ import 'package:git2dart/src/bindings/object.dart' as object_bindings;
 import 'package:git2dart/src/bindings/repository.dart' as bindings;
 import 'package:git2dart/src/bindings/reset.dart' as reset_bindings;
 import 'package:git2dart/src/bindings/status.dart' as status_bindings;
+import 'package:git2dart/src/helpers/native_owner.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:meta/meta.dart';
 
@@ -28,7 +29,11 @@ class Repository extends Equatable {
   @internal
   Repository(Pointer<git_repository> pointer) {
     _repoPointer = pointer;
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Creates new git repository at the provided [path].
@@ -73,8 +78,6 @@ class Repository extends Equatable {
     String? initialHead,
     String? originUrl,
   }) {
-    libgit2.git_libgit2_init();
-
     var flagsInt = flags.fold(0, (int acc, e) => acc | e.value);
 
     if (bare) {
@@ -92,7 +95,11 @@ class Repository extends Equatable {
       originUrl: originUrl,
     );
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Creates a new git repository using the basic libgit2 initializer.
@@ -100,11 +107,13 @@ class Repository extends Equatable {
   /// This is equivalent to `git init` for non-bare repositories and
   /// `git init --bare` when [bare] is true.
   Repository.initBasic({required String path, bool bare = false}) {
-    libgit2.git_libgit2_init();
-
     _repoPointer = bindings.initBasic(path: path, bare: bare);
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Opens repository at provided [path].
@@ -115,11 +124,13 @@ class Repository extends Equatable {
   ///
   /// Throws a [LibGit2Error] if error occured.
   Repository.open(String path) {
-    libgit2.git_libgit2_init();
-
     _repoPointer = bindings.open(path);
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Opens a repository with extended search [flags].
@@ -131,33 +142,37 @@ class Repository extends Equatable {
     Set<GitRepositoryOpen> flags = const {},
     String? ceilingDirs,
   }) {
-    libgit2.git_libgit2_init();
-
     _repoPointer = bindings.openExt(
       path: path,
       flags: flags.fold(0, (int acc, e) => acc | e.value),
       ceilingDirs: ceilingDirs,
     );
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Opens a bare repository at provided [path].
   ///
   /// Throws a [LibGit2Error] if error occured.
   Repository.openBare(String path) {
-    libgit2.git_libgit2_init();
-
     _repoPointer = bindings.openBare(path);
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
   /// Clones a remote repository at provided [url] into [localPath].
   ///
   /// By default this creates its repository and initial remote to match git's
-  /// defaults. You can use the [remote] and [repository] options to customize
-  /// how these are created.
+  /// defaults. Use [remoteCallback] and [repositoryCallback] to customize how
+  /// these are created.
   ///
   /// [url] is the remote repository to clone.
   ///
@@ -187,8 +202,6 @@ class Repository extends Equatable {
     String? checkoutBranch,
     Callbacks callbacks = const Callbacks(),
   }) {
-    libgit2.git_libgit2_init();
-
     _repoPointer = bindings.clone(
       url: url,
       localPath: localPath,
@@ -199,9 +212,14 @@ class Repository extends Equatable {
       callbacks: callbacks,
     );
 
-    _finalizer.attach(this, _repoPointer, detach: this);
+    _nativeOwner = ManagedNativeOwner.attach(
+      this,
+      debugLabel: 'repository',
+      destroy: () => bindings.free(_repoPointer),
+    );
   }
 
+  late final ManagedNativeOwner _nativeOwner;
   late final Pointer<git_repository> _repoPointer;
 
   /// Pointer to memory address for allocated repository object.
@@ -422,7 +440,7 @@ class Repository extends Equatable {
   /// into a normal repository, capable of performing all the common workdir
   /// operations (checkout, status, index manipulation, etc).
   ///
-  /// [updateGitLink] if set creates/updates gitlink in workdir and sets config
+  /// [updateGitlink] if set creates/updates gitlink in workdir and sets config
   /// "core.worktree" (if workdir is not the parent of the ".git" directory)
   ///
   /// Throws a [LibGit2Error] if error occured.
@@ -436,8 +454,7 @@ class Repository extends Equatable {
 
   /// Releases memory allocated for repository object.
   void free() {
-    bindings.free(_repoPointer);
-    _finalizer.detach(this);
+    _nativeOwner.release(this);
   }
 
   @override
@@ -942,10 +959,6 @@ class Repository extends Equatable {
 }
 
 // coverage:ignore-start
-final _finalizer = Finalizer<Pointer<git_repository>>(
-  (pointer) => bindings.free(pointer),
-);
-// coverage:ignore-end
 
 class RepositoryCallback {
   /// Values used to override the repository creation and customization process

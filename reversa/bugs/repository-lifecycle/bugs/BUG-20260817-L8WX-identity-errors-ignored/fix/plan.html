@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fix plan — BUG-20260817-L8WX</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--card:#151e32;--line:#293652;--text:#e6edf7;--muted:#aebbd2;--accent:#f3c969;--ok:#69d3a7;--warn:#ff9d7a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,Segoe UI,Arial,sans-serif}main{max-width:1040px;margin:auto;padding:32px 20px 56px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:16px}h1{margin:4px 0;font-size:30px}h2{margin:0 0 10px;font-size:19px}p,li{color:var(--muted)}strong{color:var(--text)}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;vertical-align:top;border-top:1px solid var(--line)}th{color:var(--accent)}code{color:#d8e7ff}.tag{display:inline-block;padding:3px 9px;border-radius:99px;background:#243353;color:var(--accent);font-size:13px}.ok{color:var(--ok)}.warn{color:var(--warn)}.graph{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;text-align:center}.node{border:1px solid var(--line);border-radius:10px;padding:12px}.focus{border-color:var(--accent);box-shadow:0 0 0 2px #f3c96924}.arrow{color:var(--accent);font-size:24px}a{color:#a8d1ff}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Repository lifecycle · 2026-08-27</div>
+<h1>#26 · BUG-20260817-L8WX</h1>
+<p><span class="tag">medium</span> <span class="tag">P2</span> Repository identity lookup silently ignores native failures.</p>
+<section class="card"><h2>Defect and confirmed root cause</h2>
+<p>Historically, <code>identity</code> called <code>git_repository_ident</code> and read its output pointers without checking the native status. That turned a native repository failure into an empty or partial identity result. Historical diff <code>1914a905</code> records the corrective ordering: capture the status, call <code>checkErrorAndThrow</code> before reading pointers, and free both temporary output slots in <code>finally</code>.</p>
+<p><strong>Evidence state:</strong> confirmed by the historical diff and current-head source audit.</p></section>
+<section class="card"><h2>Chosen strategy</h2><p>Direct, minimal audit. The necessary binding correction is already contained in the current branch, so no new product patch is proposed. Local validation confirms configured and absent-identity behavior; static source inspection confirms the native-error path is translated before any output dereference.</p></section>
+<section class="card"><h2>Correction change set</h2><table><thead><tr><th>CHG</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr></thead><tbody><tr><td>CHG-001</td><td>code</td><td><code>lib/src/bindings/repository.dart</code></td><td>Already applied in <code>1914a905</code>: check <code>git_repository_ident</code> before output access and release both allocated pointer slots in guaranteed cleanup.</td></tr></tbody></table></section>
+<section class="card"><h2>Planned proof</h2><ul><li><strong>Regression:</strong> <code>test/repository_empty_test.dart</code> verifies a configured identity is returned and an unset identity produces the documented empty public value.</li><li><strong>Error-path proof:</strong> static current-head review verifies <code>checkErrorAndThrow(error)</code> precedes both pointer conversions. No safe public test seam can force libgit2 to fail identity lookup without injecting a binding or passing an invalid native handle, so no unsafe test is added.</li><li><strong>Quality:</strong> focused Flutter test, focused analyzer, historical diff integrity, and branch containment checks.</li></ul></section>
+<section class="card"><h2>Risk and boundaries</h2><p><strong class="ok">Low</strong> — the historical change is local to one adapter and only restores the existing native-error contract. No public API, data migration, network access, or unrelated cleanup is in scope.</p></section>
+<section class="card"><h2>Bug relationship graph</h2><div class="graph"><div class="node focus"><a href="../bug.md">BUG-20260817-L8WX<br>identity errors ignored</a></div><div class="arrow">⋯ related-to (proposed) ⋯</div><div class="node"><a href="../../../../working-tree-and-index/bugs/BUG-20260817-6KRT-index-io-errors-ignored/bug.md">BUG-20260817-6KRT<br>index I/O errors ignored</a></div></div></section>
+<section class="card"><h2>Relationship matrix</h2><table><thead><tr><th>Origin</th><th>Type</th><th>Target</th><th>State</th></tr></thead><tbody><tr><td><a href="../bug.md">BUG-20260817-L8WX</a></td><td>related-to</td><td><a href="../../../../working-tree-and-index/bugs/BUG-20260817-6KRT-index-io-errors-ignored/bug.md">BUG-20260817-6KRT</a></td><td>proposed</td></tr></tbody></table></section>
+</main></body></html>

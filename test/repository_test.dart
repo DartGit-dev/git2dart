@@ -262,6 +262,28 @@ void main() {
       });
     });
 
+    test('does not expose a pointer for status performance data', () {
+      expect(
+        status_bindings.listPerfdata,
+        isNot(
+          isA<Pointer<git_diff_perfdata> Function(Pointer<git_status_list>)>(),
+        ),
+      );
+    });
+
+    test('keeps status performance counters readable after return', () {
+      final list = status_bindings.listNew(repo.pointer);
+
+      try {
+        final dynamic data = status_bindings.listPerfdata(list);
+
+        expect(data.statCalls, greaterThanOrEqualTo(0));
+        expect(data.oidCalculations, greaterThanOrEqualTo(0));
+      } finally {
+        status_bindings.listFree(list);
+      }
+    });
+
     test('returns status entries through callback APIs', () {
       File(p.join(tmpDir.path, 'new_file.txt')).createSync();
       repo.index.remove('file');

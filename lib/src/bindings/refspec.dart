@@ -7,23 +7,23 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 
 /// Get the source specifier.
 String source(Pointer<git_refspec> refspec) =>
-    libgit2.git_refspec_src(refspec).toDartString();
+    libgit2Runtime.bindings.git_refspec_src(refspec).toDartString();
 
 /// Get the destination specifier.
 String destination(Pointer<git_refspec> refspec) =>
-    libgit2.git_refspec_dst(refspec).toDartString();
+    libgit2Runtime.bindings.git_refspec_dst(refspec).toDartString();
 
 /// Get the force update setting.
 bool force(Pointer<git_refspec> refspec) =>
-    libgit2.git_refspec_force(refspec) == 1;
+    libgit2Runtime.bindings.git_refspec_force(refspec) == 1;
 
 /// Get the refspec's string.
 String string(Pointer<git_refspec> refspec) =>
-    libgit2.git_refspec_string(refspec).toDartString();
+    libgit2Runtime.bindings.git_refspec_string(refspec).toDartString();
 
 /// Get the refspec's direction.
 git_direction direction(Pointer<git_refspec> refspec) =>
-    libgit2.git_refspec_direction(refspec);
+    libgit2Runtime.bindings.git_refspec_direction(refspec);
 
 /// Parse a refspec string into a [git_refspec] instance. The returned refspec
 /// must be freed with [free].
@@ -33,7 +33,7 @@ Pointer<git_refspec> parse(String spec) {
   return using((arena) {
     final out = arena<Pointer<git_refspec>>();
     final specC = spec.toChar(arena);
-    final error = libgit2.git_refspec_parse(out, specC, 0);
+    final error = libgit2Runtime.bindings.git_refspec_parse(out, specC, 0);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -41,7 +41,8 @@ Pointer<git_refspec> parse(String spec) {
 }
 
 /// Free a refspec created by [parse].
-void free(Pointer<git_refspec> refspec) => libgit2.git_refspec_free(refspec);
+void free(Pointer<git_refspec> refspec) =>
+    libgit2Runtime.bindings.git_refspec_free(refspec);
 
 /// Check if a refspec's source descriptor matches a reference negatively.
 bool matchesSourceNegative({
@@ -50,7 +51,10 @@ bool matchesSourceNegative({
 }) {
   return using((arena) {
     final refnameC = refname.toChar(arena);
-    return libgit2.git_refspec_src_matches_negative(refspecPointer, refnameC) ==
+    return libgit2Runtime.bindings.git_refspec_src_matches_negative(
+          refspecPointer,
+          refnameC,
+        ) ==
         1;
   });
 }
@@ -62,7 +66,11 @@ bool matchesSource({
 }) {
   return using((arena) {
     final refnameC = refname.toChar(arena);
-    return libgit2.git_refspec_src_matches(refspecPointer, refnameC) == 1;
+    return libgit2Runtime.bindings.git_refspec_src_matches(
+          refspecPointer,
+          refnameC,
+        ) ==
+        1;
   });
 }
 
@@ -73,7 +81,11 @@ bool matchesDestination({
 }) {
   return using((arena) {
     final refnameC = refname.toChar(arena);
-    return libgit2.git_refspec_dst_matches(refspecPointer, refnameC) == 1;
+    return libgit2Runtime.bindings.git_refspec_dst_matches(
+          refspecPointer,
+          refnameC,
+        ) ==
+        1;
   });
 }
 
@@ -87,12 +99,16 @@ String transform({
   return using((arena) {
     final out = arena<git_buf>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_refspec_transform(out, refspecPointer, nameC);
+    final error = libgit2Runtime.bindings.git_refspec_transform(
+      out,
+      refspecPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -108,12 +124,16 @@ String rTransform({
   return using((arena) {
     final out = arena<git_buf>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_refspec_rtransform(out, refspecPointer, nameC);
+    final error = libgit2Runtime.bindings.git_refspec_rtransform(
+      out,
+      refspecPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }

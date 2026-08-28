@@ -1,0 +1,101 @@
+{
+  "generated_at": "2026-08-16T15:22:37Z",
+  "project_root": "F:\\git2dart",
+  "languages": [
+    {
+      "name": "Dart",
+      "extensions": [".dart"],
+      "file_count": 148
+    },
+    {
+      "name": "Markdown",
+      "extensions": [".md"],
+      "file_count": 53
+    },
+    {
+      "name": "YAML",
+      "extensions": [".yaml"],
+      "file_count": 4
+    },
+    {
+      "name": "Shell",
+      "extensions": [".sh"],
+      "file_count": 1
+    }
+  ],
+  "primary_language": "Dart",
+  "frameworks": [
+    {
+      "name": "Flutter",
+      "version": ">=3.29.3",
+      "source": "pubspec.yaml"
+    },
+    {
+      "name": "Dart FFI",
+      "version": "2.1.4",
+      "source": "pubspec.lock"
+    },
+    {
+      "name": "libgit2 via git2dart_binaries",
+      "version": "git2dart_binaries 1.12.1",
+      "source": "pubspec.lock"
+    }
+  ],
+  "package_manager": "Dart pub",
+  "entry_points": [
+    {
+      "path": "lib/git2dart.dart",
+      "type": "package_entry"
+    },
+    {
+      "path": "example/example.dart",
+      "type": "example_entry"
+    },
+    {
+      "path": "tool/compare_git2dart_binaries_api.dart",
+      "type": "maintainer_cli"
+    }
+  ],
+  "config_files": [
+    "pubspec.yaml",
+    "pubspec.lock",
+    "analysis_options.yaml",
+    "dart_test.yaml",
+    ".metadata",
+    ".flutter-plugins-dependencies"
+  ],
+  "ci_cd": [
+    ".github/workflows/publish.yml"
+  ],
+  "docker": {},
+  "database_hints": [],
+  "test_framework": "Dart test via Flutter",
+  "test_file_count": 50,
+  "modules": [
+    "repository-lifecycle",
+    "git-objects-and-object-database",
+    "working-tree-and-index",
+    "references-and-remotes",
+    "history-and-integration-operations",
+    "native-runtime-and-platform-boundary"
+  ],
+  "total_files": 248,
+  "external_integrations": [
+    "git2dart_binaries and libgit2",
+    "pub.dev",
+    "GitHub and GitHub Actions"
+  ],
+  "organization_suggestion": {
+    "granularity": "feature",
+    "rationale": "The public API is a flat collection of Git capabilities rather than endpoint routes, domain folders, or behavior-first specifications.",
+    "signals": [],
+    "features": [
+      "repository-lifecycle",
+      "git-objects-and-object-database",
+      "working-tree-and-index",
+      "references-and-remotes",
+      "history-and-integration-operations",
+      "native-runtime-and-platform-boundary"
+    ]
+  }
+}

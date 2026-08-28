@@ -22,7 +22,13 @@ Pointer<git_signature> create({
     final out = arena<Pointer<git_signature>>();
     final nameC = name.toChar(arena);
     final emailC = email.toChar(arena);
-    final error = libgit2.git_signature_new(out, nameC, emailC, time, offset);
+    final error = libgit2Runtime.bindings.git_signature_new(
+      out,
+      nameC,
+      emailC,
+      time,
+      offset,
+    );
 
     checkErrorAndThrow(error);
 
@@ -39,7 +45,7 @@ Pointer<git_signature> now({required String name, required String email}) {
     final out = arena<Pointer<git_signature>>();
     final nameC = name.toChar(arena);
     final emailC = email.toChar(arena);
-    final error = libgit2.git_signature_now(out, nameC, emailC);
+    final error = libgit2Runtime.bindings.git_signature_now(out, nameC, emailC);
 
     checkErrorAndThrow(error);
 
@@ -61,7 +67,7 @@ Pointer<git_signature> now({required String name, required String email}) {
 Pointer<git_signature> defaultSignature(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
-    final error = libgit2.git_signature_default(out, repo);
+    final error = libgit2Runtime.bindings.git_signature_default(out, repo);
 
     checkErrorAndThrow(error);
 
@@ -79,7 +85,7 @@ List<Pointer<git_signature>> defaultSignaturesFromEnv(
   return using((arena) {
     final author = arena<Pointer<git_signature>>();
     final committer = arena<Pointer<git_signature>>();
-    final error = libgit2.git_signature_default_from_env(
+    final error = libgit2Runtime.bindings.git_signature_default_from_env(
       author,
       committer,
       repo,
@@ -96,7 +102,7 @@ List<Pointer<git_signature>> defaultSignaturesFromEnv(
 Pointer<git_signature> duplicate(Pointer<git_signature> sig) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
-    final error = libgit2.git_signature_dup(out, sig);
+    final error = libgit2Runtime.bindings.git_signature_dup(out, sig);
 
     checkErrorAndThrow(error);
 
@@ -112,11 +118,12 @@ Pointer<git_signature> fromBuffer(String buffer) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
     final bufC = buffer.toChar(arena);
-    final error = libgit2.git_signature_from_buffer(out, bufC);
+    final error = libgit2Runtime.bindings.git_signature_from_buffer(out, bufC);
     checkErrorAndThrow(error);
     return out.value;
   });
 }
 
 /// Free an existing signature.
-void free(Pointer<git_signature> sig) => libgit2.git_signature_free(sig);
+void free(Pointer<git_signature> sig) =>
+    libgit2Runtime.bindings.git_signature_free(sig);

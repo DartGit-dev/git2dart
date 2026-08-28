@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show using;
+import 'package:git2dart/src/error.dart';
 import 'package:git2dart/src/extensions.dart';
 import 'package:git2dart/src/helpers/error_helper.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
@@ -17,7 +18,11 @@ Pointer<git_reflog> read({
   return using((arena) {
     final out = arena<Pointer<git_reflog>>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_reflog_read(out, repoPointer, nameC);
+    final error = libgit2Runtime.bindings.git_reflog_read(
+      out,
+      repoPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
@@ -30,7 +35,7 @@ Pointer<git_reflog> read({
 ///
 /// Throws a [LibGit2Error] if error occured.
 void write(Pointer<git_reflog> reflog) {
-  final error = libgit2.git_reflog_write(reflog);
+  final error = libgit2Runtime.bindings.git_reflog_write(reflog);
 
   checkErrorAndThrow(error);
 }
@@ -42,7 +47,7 @@ void delete({
 }) {
   using((arena) {
     final nameC = name.toChar(arena);
-    final error = libgit2.git_reflog_delete(repoPointer, nameC);
+    final error = libgit2Runtime.bindings.git_reflog_delete(repoPointer, nameC);
 
     checkErrorAndThrow(error);
   });
@@ -63,7 +68,11 @@ void rename({
   using((arena) {
     final oldNameC = oldName.toChar(arena);
     final newNameC = newName.toChar(arena);
-    final error = libgit2.git_reflog_rename(repoPointer, oldNameC, newNameC);
+    final error = libgit2Runtime.bindings.git_reflog_rename(
+      repoPointer,
+      oldNameC,
+      newNameC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -80,7 +89,7 @@ void add({
 }) {
   using((arena) {
     final messageC = message.isEmpty ? nullptr : message.toChar(arena);
-    final error = libgit2.git_reflog_append(
+    final error = libgit2Runtime.bindings.git_reflog_append(
       reflogPointer,
       oidPointer,
       committerPointer,
@@ -95,7 +104,11 @@ void add({
 ///
 /// Throws a [LibGit2Error] if error occured.
 void remove({required Pointer<git_reflog> reflogPointer, required int index}) {
-  final error = libgit2.git_reflog_drop(reflogPointer, index, 1);
+  final error = libgit2Runtime.bindings.git_reflog_drop(
+    reflogPointer,
+    index,
+    1,
+  );
 
   checkErrorAndThrow(error);
 }
@@ -112,7 +125,7 @@ void drop({
   required int index,
   bool rewritePrevious = true,
 }) {
-  final error = libgit2.git_reflog_drop(
+  final error = libgit2Runtime.bindings.git_reflog_drop(
     reflogPointer,
     index,
     rewritePrevious ? 1 : 0,
@@ -123,7 +136,7 @@ void drop({
 
 /// Get the number of log entries in a reflog.
 int entryCount(Pointer<git_reflog> reflog) =>
-    libgit2.git_reflog_entrycount(reflog);
+    libgit2Runtime.bindings.git_reflog_entrycount(reflog);
 
 /// Lookup an entry by its index.
 ///
@@ -132,25 +145,37 @@ int entryCount(Pointer<git_reflog> reflog) =>
 Pointer<git_reflog_entry> getByIndex({
   required Pointer<git_reflog> reflogPointer,
   required int index,
-}) => libgit2.git_reflog_entry_byindex(reflogPointer, index);
+}) {
+  final result = libgit2Runtime.bindings.git_reflog_entry_byindex(
+    reflogPointer,
+    index,
+  );
+
+  if (result == nullptr) {
+    throw Git2DartError('Out of bounds');
+  }
+
+  return result;
+}
 
 /// Get the log message.
 String entryMessage(Pointer<git_reflog_entry> entry) {
-  final result = libgit2.git_reflog_entry_message(entry);
+  final result = libgit2Runtime.bindings.git_reflog_entry_message(entry);
   return result == nullptr ? '' : result.toDartString();
 }
 
 /// Get the committer of this entry. The returned signature must be freed.
 Pointer<git_signature> entryCommiter(Pointer<git_reflog_entry> entry) =>
-    libgit2.git_reflog_entry_committer(entry);
+    libgit2Runtime.bindings.git_reflog_entry_committer(entry);
 
 /// Get the new oid.
 Pointer<git_oid> entryOidNew(Pointer<git_reflog_entry> entry) =>
-    libgit2.git_reflog_entry_id_new(entry);
+    libgit2Runtime.bindings.git_reflog_entry_id_new(entry);
 
 /// Get the old oid.
 Pointer<git_oid> entryOidOld(Pointer<git_reflog_entry> entry) =>
-    libgit2.git_reflog_entry_id_old(entry);
+    libgit2Runtime.bindings.git_reflog_entry_id_old(entry);
 
 /// Free the reflog.
-void free(Pointer<git_reflog> reflog) => libgit2.git_reflog_free(reflog);
+void free(Pointer<git_reflog> reflog) =>
+    libgit2Runtime.bindings.git_reflog_free(reflog);

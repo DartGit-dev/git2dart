@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -144,6 +145,31 @@ void main() {
         ),
         throwsA(isA<LibGit2Error>()),
       );
+    });
+
+    test('clears both clone callback data fields after failure', () {
+      try {
+        expect(
+          () => Repository.clone(
+            url: tmpDir.path,
+            localPath: cloneDir.path,
+            remoteCallback: const RemoteCallback(name: '', url: ''),
+            repositoryCallback: const RepositoryCallback(path: ''),
+          ),
+          throwsA(isA<LibGit2Error>()),
+        );
+
+        expect(RemoteCallbacks.remoteCbData, isNull);
+        expect(RemoteCallbacks.repositoryCbData, isNull);
+        expect(RemoteCallbacks.transferProgress, isNull);
+        expect(RemoteCallbacks.sidebandProgress, isNull);
+        expect(RemoteCallbacks.updateTips, isNull);
+        expect(RemoteCallbacks.pushUpdateReference, isNull);
+        expect(RemoteCallbacks.certificateCheck, isNull);
+        expect(RemoteCallbacks.credentials, isNull);
+      } finally {
+        RemoteCallbacks.reset();
+      }
     });
   });
 

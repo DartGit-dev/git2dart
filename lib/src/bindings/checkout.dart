@@ -46,7 +46,12 @@ void head({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
+    );
 
     optsC.ref.checkout_strategy = strategy;
 
@@ -64,7 +69,7 @@ void head({
       optsC.ref.paths.count = paths.length;
     }
 
-    final error = libgit2.git_checkout_head(repoPointer, optsC);
+    final error = libgit2Runtime.bindings.git_checkout_head(repoPointer, optsC);
     checkErrorAndThrow(error);
   });
 }
@@ -78,7 +83,12 @@ void headWithCallbacks({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
+    );
     optsC.ref.checkout_strategy = strategy;
 
     if (progress != null) {
@@ -92,7 +102,7 @@ void headWithCallbacks({
           Pointer.fromFunction<git_checkout_perfdata_cbFunction>(_perfdataCb);
     }
 
-    final error = libgit2.git_checkout_head(repoPointer, optsC);
+    final error = libgit2Runtime.bindings.git_checkout_head(repoPointer, optsC);
     _progress = null;
     _perfdata = null;
     checkErrorAndThrow(error);
@@ -110,7 +120,12 @@ void index({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
+    );
 
     optsC.ref.checkout_strategy = strategy;
 
@@ -128,7 +143,11 @@ void index({
       optsC.ref.paths.count = paths.length;
     }
 
-    final error = libgit2.git_checkout_index(repoPointer, nullptr, optsC);
+    final error = libgit2Runtime.bindings.git_checkout_index(
+      repoPointer,
+      nullptr,
+      optsC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -146,7 +165,12 @@ void tree({
 }) {
   using((arena) {
     final optsC = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        optsC,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
+    );
 
     optsC.ref.checkout_strategy = strategy;
 
@@ -164,7 +188,11 @@ void tree({
       optsC.ref.paths.count = paths.length;
     }
 
-    final error = libgit2.git_checkout_tree(repoPointer, treeishPointer, optsC);
+    final error = libgit2Runtime.bindings.git_checkout_tree(
+      repoPointer,
+      treeishPointer,
+      optsC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -181,8 +209,13 @@ List<Object> initOptions({
   String? directory,
   List<String>? paths,
 }) {
-  final optsC = calloc<git_checkout_options>();
-  libgit2.git_checkout_options_init(optsC, GIT_CHECKOUT_OPTIONS_VERSION);
+  final optsC = arena<git_checkout_options>();
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_checkout_options_init(
+      optsC,
+      GIT_CHECKOUT_OPTIONS_VERSION,
+    ),
+  );
 
   optsC.ref.checkout_strategy = strategy;
 
@@ -194,7 +227,7 @@ List<Object> initOptions({
   Pointer<Pointer<Char>> strArray = nullptr;
   if (paths != null) {
     pathPointers = paths.map((e) => e.toChar(arena)).toList();
-    strArray = calloc(paths.length);
+    strArray = arena<Pointer<Char>>(paths.length);
     for (var i = 0; i < paths.length; i++) {
       strArray[i] = pathPointers[i];
     }

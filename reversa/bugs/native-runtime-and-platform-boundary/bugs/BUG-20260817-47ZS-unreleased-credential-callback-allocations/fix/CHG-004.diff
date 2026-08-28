@@ -1,0 +1,37 @@
+diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_callbacks.dart
+--- a/lib/src/bindings/remote_callbacks.dart
++++ b/lib/src/bindings/remote_callbacks.dart
+@@ -176,6 +176,8 @@ class RemoteCallbacks {
+   /// Handles various authentication methods like username/password and SSH keys.
+   static Credentials? credentials;
+
++  static Pointer<Int8>? _credentialPayload;
++
+   /// Native callback for credential acquisition during remote operations.
+   /// Called when the remote host requires authentication.
+   static int credentialsCb(
+@@ -293,8 +295,8 @@ class RemoteCallbacks {
+
+     if (callbacks.credentials != null) {
+       credentials = callbacks.credentials;
+-      final withUser = calloc<Int8>()..value = 1;
+-      callbacksOptions.payload = withUser.cast();
++      _credentialPayload = calloc<Int8>()..value = 1;
++      callbacksOptions.payload = _credentialPayload!.cast();
+       callbacksOptions.credentials = Pointer.fromFunction(
+         credentialsCb,
+         except,
+@@ -319,6 +321,11 @@ class RemoteCallbacks {
+   /// Resets all callback functions to their original null values.
+   /// Should be called after remote operations are complete.
+   static void reset() {
++    if (_credentialPayload != null) {
++      calloc.free(_credentialPayload!);
++      _credentialPayload = null;
++    }
++
+     transferProgress = null;
+     sidebandProgress = null;
+     updateTips = null;
+
+---

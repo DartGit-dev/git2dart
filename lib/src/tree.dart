@@ -150,7 +150,7 @@ class Tree extends Equatable {
   /// [Oid] of a tree.
   ///
   /// Returns the OID (Object ID) of this tree object.
-  Oid get oid => Oid(bindings.id(_treePointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_treePointer));
 
   /// Number of entries listed in a tree.
   ///
@@ -229,23 +229,26 @@ class TreeEntry extends Equatable {
   ///
   /// Note: For internal use.
   @internal
-  const TreeEntry(this._treeEntryPointer);
+  const TreeEntry(this._treeEntryPointer) : _isOwned = false;
 
   /// Initializes a new instance of [TreeEntry] class from provided pointer to
   /// tree entry object in memory.
   ///
   /// Unlike the other lookup methods, must be freed.
-  TreeEntry._byPath(this._treeEntryPointer) {
+  TreeEntry._byPath(this._treeEntryPointer) : _isOwned = true {
     _entryFinalizer.attach(this, _treeEntryPointer, detach: this);
   }
 
   /// Pointer to memory address for allocated tree entry object.
   final Pointer<git_tree_entry> _treeEntryPointer;
 
+  /// Whether this entry owns the native pointer and may release it.
+  final bool _isOwned;
+
   /// [Oid] of the object pointed by the entry.
   ///
   /// Returns the OID of the blob or tree that this entry points to.
-  Oid get oid => Oid(bindings.entryId(_treeEntryPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.entryId(_treeEntryPointer));
 
   /// Filename of a tree entry.
   ///
@@ -307,7 +310,15 @@ class TreeEntry extends Equatable {
   ///
   /// **IMPORTANT**: Only tree entries looked up by path should be freed.
   /// Other entries are owned by their parent tree and will be freed automatically.
+  ///
+  /// Throws [StateError] if this entry is borrowed from its parent tree.
   void free() {
+    if (!_isOwned) {
+      throw StateError(
+        'Cannot free a borrowed TreeEntry; it is owned by its parent Tree.',
+      );
+    }
+
     bindings.freeEntry(_treeEntryPointer);
     _entryFinalizer.detach(this);
   }

@@ -12,7 +12,10 @@ void addRule({
 }) {
   using((arena) {
     final rulesC = rules.toChar(arena);
-    final error = libgit2.git_ignore_add_rule(repoPointer, rulesC);
+    final error = libgit2Runtime.bindings.git_ignore_add_rule(
+      repoPointer,
+      rulesC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -20,7 +23,9 @@ void addRule({
 
 /// Clear in-memory ignore rules for [repoPointer].
 void clearInternalRules(Pointer<git_repository> repoPointer) {
-  final error = libgit2.git_ignore_clear_internal_rules(repoPointer);
+  final error = libgit2Runtime.bindings.git_ignore_clear_internal_rules(
+    repoPointer,
+  );
 
   checkErrorAndThrow(error);
 }
@@ -33,7 +38,7 @@ bool pathIsIgnored({
   return using((arena) {
     final ignored = arena<Int>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_ignore_path_is_ignored(
+    final error = libgit2Runtime.bindings.git_ignore_path_is_ignored(
       ignored,
       repoPointer,
       pathC,

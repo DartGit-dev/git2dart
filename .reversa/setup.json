@@ -1,0 +1,26 @@
+{
+  "schema-version": 1,
+  "reversa-version": "1.2.58",
+  "installed-at": "2026-08-16T06:01:52.149Z",
+  "project-name": "git2dart",
+  "prefix-format": "sequencial",
+  "language": "en-US",
+  "watch": {
+    "archive-after": 3,
+    "block-on-red": false
+  },
+  "paths": {
+    "sdd-dir": "reversa/sdd",
+    "forward-dir": "reversa/forward",
+    "docs-dir": "reversa/docs",
+    "bugs-dir": "reversa/bugs",
+    "config-dir": ".reversa"
+  },
+  "principles": {
+    "enabled": true,
+    "auto-load-into-plan": true
+  },
+  "telemetry": {
+    "enabled": false
+  }
+}

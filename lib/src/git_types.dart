@@ -1293,8 +1293,8 @@ enum GitRepositoryInit {
   mkpath(16),
 
   /// libgit2 normally uses internal templates to initialize a new repo.
-  /// This flags enables external templates, looking the [templatePath] from
-  /// the options if set, or the `init.templatedir` global config if not,
+  /// This flag enables external templates, using the `templatePath` option if
+  /// set, or the `init.templatedir` global config if not,
   /// or falling back on "/usr/share/git-core/templates" if it exists.
   externalTemplate(32),
 

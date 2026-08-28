@@ -13,7 +13,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_mailmap> init() {
   return using((arena) {
     final out = arena<Pointer<git_mailmap>>();
-    final error = libgit2.git_mailmap_new(out);
+    final error = libgit2Runtime.bindings.git_mailmap_new(out);
 
     checkErrorAndThrow(error);
 
@@ -27,7 +27,11 @@ Pointer<git_mailmap> fromBuffer(String buffer) {
   return using((arena) {
     final out = arena<Pointer<git_mailmap>>();
     final bufferC = buffer.toChar(arena);
-    final error = libgit2.git_mailmap_from_buffer(out, bufferC, buffer.length);
+    final error = libgit2Runtime.bindings.git_mailmap_from_buffer(
+      out,
+      bufferC,
+      buffer.length,
+    );
 
     checkErrorAndThrow(error);
 
@@ -50,7 +54,10 @@ Pointer<git_mailmap> fromBuffer(String buffer) {
 Pointer<git_mailmap> fromRepository(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_mailmap>>();
-    final error = libgit2.git_mailmap_from_repository(out, repo);
+    final error = libgit2Runtime.bindings.git_mailmap_from_repository(
+      out,
+      repo,
+    );
 
     checkErrorAndThrow(error);
 
@@ -70,7 +77,7 @@ List<String> resolve({
     final nameC = name.toChar(arena);
     final emailC = email.toChar(arena);
 
-    libgit2.git_mailmap_resolve(
+    libgit2Runtime.bindings.git_mailmap_resolve(
       outRealName,
       outRealEmail,
       mailmapPointer,
@@ -93,7 +100,7 @@ Pointer<git_signature> resolveSignature({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_signature>>();
-    final error = libgit2.git_mailmap_resolve_signature(
+    final error = libgit2Runtime.bindings.git_mailmap_resolve_signature(
       out,
       mailmapPointer,
       signaturePointer,
@@ -122,7 +129,7 @@ void addEntry({
     final replaceNameC = replaceName?.toChar(arena) ?? nullptr;
     final replaceEmailC = replaceEmail.toChar(arena);
 
-    final error = libgit2.git_mailmap_add_entry(
+    final error = libgit2Runtime.bindings.git_mailmap_add_entry(
       mailmapPointer,
       realNameC,
       realEmailC,
@@ -135,4 +142,5 @@ void addEntry({
 }
 
 /// Free the mailmap and its associated memory.
-void free(Pointer<git_mailmap> mm) => libgit2.git_mailmap_free(mm);
+void free(Pointer<git_mailmap> mm) =>
+    libgit2Runtime.bindings.git_mailmap_free(mm);

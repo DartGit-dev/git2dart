@@ -32,11 +32,12 @@ int _walkCb(
 }
 
 /// Get the id of a tree.
-Pointer<git_oid> id(Pointer<git_tree> tree) => libgit2.git_tree_id(tree);
+Pointer<git_oid> id(Pointer<git_tree> tree) =>
+    libgit2Runtime.bindings.git_tree_id(tree);
 
 /// Get the repository that owns this tree.
 Pointer<git_repository> owner(Pointer<git_tree> tree) =>
-    libgit2.git_tree_owner(tree);
+    libgit2Runtime.bindings.git_tree_owner(tree);
 
 /// Lookup a tree object from the repository. The returned tree must be freed
 /// with [free].
@@ -48,7 +49,11 @@ Pointer<git_tree> lookup({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_tree>>();
-    final error = libgit2.git_tree_lookup(out, repoPointer, oidPointer);
+    final error = libgit2Runtime.bindings.git_tree_lookup(
+      out,
+      repoPointer,
+      oidPointer,
+    );
 
     checkErrorAndThrow(error);
 
@@ -68,7 +73,7 @@ Pointer<git_tree> lookupPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_tree>>();
-    final error = libgit2.git_tree_lookup_prefix(
+    final error = libgit2Runtime.bindings.git_tree_lookup_prefix(
       out,
       repoPointer,
       oidPointer,
@@ -90,7 +95,10 @@ Pointer<git_tree_entry> getByIndex({
   required Pointer<git_tree> treePointer,
   required int index,
 }) {
-  final result = libgit2.git_tree_entry_byindex(treePointer, index);
+  final result = libgit2Runtime.bindings.git_tree_entry_byindex(
+    treePointer,
+    index,
+  );
   if (result == nullptr) {
     throw Git2DartError('Out of bounds');
   }
@@ -109,7 +117,10 @@ Pointer<git_tree_entry> getByName({
 }) {
   return using((arena) {
     final filenameC = filename.toChar(arena);
-    final result = libgit2.git_tree_entry_byname(treePointer, filenameC);
+    final result = libgit2Runtime.bindings.git_tree_entry_byname(
+      treePointer,
+      filenameC,
+    );
     if (result == nullptr) {
       throw Git2DartError('$filename was not found');
     }
@@ -122,7 +133,10 @@ Pointer<git_tree_entry> getById({
   required Pointer<git_tree> treePointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  final result = libgit2.git_tree_entry_byid(treePointer, oidPointer);
+  final result = libgit2Runtime.bindings.git_tree_entry_byid(
+    treePointer,
+    oidPointer,
+  );
   if (result == nullptr) {
     throw Git2DartError('Tree entry was not found');
   }
@@ -143,14 +157,19 @@ Pointer<git_tree_entry> getByPath({
   return using((arena) {
     final out = arena<Pointer<git_tree_entry>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_tree_entry_bypath(out, rootPointer, pathC);
+    final error = libgit2Runtime.bindings.git_tree_entry_bypath(
+      out,
+      rootPointer,
+      pathC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
 }
 
 /// Get the number of entries listed in a tree.
-int entryCount(Pointer<git_tree> tree) => libgit2.git_tree_entrycount(tree);
+int entryCount(Pointer<git_tree> tree) =>
+    libgit2Runtime.bindings.git_tree_entrycount(tree);
 
 /// Walk entries in a tree.
 List<String> walk({
@@ -159,7 +178,7 @@ List<String> walk({
 }) {
   _walkEntries = <String>[];
 
-  final error = libgit2.git_tree_walk(
+  final error = libgit2Runtime.bindings.git_tree_walk(
     treePointer,
     mode,
     Pointer.fromFunction<
@@ -201,7 +220,7 @@ Pointer<git_oid> createUpdated({
       }
     }
 
-    final error = libgit2.git_tree_create_updated(
+    final error = libgit2Runtime.bindings.git_tree_create_updated(
       out,
       repoPointer,
       baselinePointer,
@@ -217,13 +236,13 @@ Pointer<git_oid> createUpdated({
 
 /// Get the id of the object pointed by the entry.
 Pointer<git_oid> entryId(Pointer<git_tree_entry> entry) =>
-    libgit2.git_tree_entry_id(entry);
+    libgit2Runtime.bindings.git_tree_entry_id(entry);
 
 /// Duplicate a tree entry owned by the user.
 Pointer<git_tree_entry> duplicateEntry(Pointer<git_tree_entry> entry) {
   return using((arena) {
     final out = arena<Pointer<git_tree_entry>>();
-    final error = libgit2.git_tree_entry_dup(out, entry);
+    final error = libgit2Runtime.bindings.git_tree_entry_dup(out, entry);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -233,7 +252,7 @@ Pointer<git_tree_entry> duplicateEntry(Pointer<git_tree_entry> entry) {
 Pointer<git_tree> duplicateTree(Pointer<git_tree> tree) {
   return using((arena) {
     final out = arena<Pointer<git_tree>>();
-    final error = libgit2.git_tree_dup(out, tree);
+    final error = libgit2Runtime.bindings.git_tree_dup(out, tree);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -241,19 +260,19 @@ Pointer<git_tree> duplicateTree(Pointer<git_tree> tree) {
 
 /// Get the filename of a tree entry.
 String entryName(Pointer<git_tree_entry> entry) =>
-    libgit2.git_tree_entry_name(entry).toDartString();
+    libgit2Runtime.bindings.git_tree_entry_name(entry).toDartString();
 
 /// Get the UNIX file attributes of a tree entry.
 git_filemode_t entryFilemode(Pointer<git_tree_entry> entry) =>
-    libgit2.git_tree_entry_filemode(entry);
+    libgit2Runtime.bindings.git_tree_entry_filemode(entry);
 
 /// Get the raw UNIX file attributes of a tree entry.
 git_filemode_t entryFilemodeRaw(Pointer<git_tree_entry> entry) =>
-    libgit2.git_tree_entry_filemode_raw(entry);
+    libgit2Runtime.bindings.git_tree_entry_filemode_raw(entry);
 
 /// Get the Git object type of a tree entry.
 git_object_t entryType(Pointer<git_tree_entry> entry) {
-  return libgit2.git_tree_entry_type(entry);
+  return libgit2Runtime.bindings.git_tree_entry_type(entry);
 }
 
 /// Compare two tree entries.
@@ -261,7 +280,7 @@ int entryCompare({
   required Pointer<git_tree_entry> aPointer,
   required Pointer<git_tree_entry> bPointer,
 }) {
-  return libgit2.git_tree_entry_cmp(aPointer, bPointer);
+  return libgit2Runtime.bindings.git_tree_entry_cmp(aPointer, bPointer);
 }
 
 /// Convert a tree entry to the object it points to.
@@ -273,7 +292,7 @@ Pointer<git_object> entryToObject({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_object>>();
-    final error = libgit2.git_tree_entry_to_object(
+    final error = libgit2Runtime.bindings.git_tree_entry_to_object(
       out,
       repoPointer,
       entryPointer,
@@ -289,7 +308,8 @@ Pointer<git_object> entryToObject({
 /// IMPORTANT: This function is only needed for tree entries owned by the user,
 /// such as [getByPath].
 void freeEntry(Pointer<git_tree_entry> entry) =>
-    libgit2.git_tree_entry_free(entry);
+    libgit2Runtime.bindings.git_tree_entry_free(entry);
 
 /// Close an open tree to release memory.
-void free(Pointer<git_tree> tree) => libgit2.git_tree_free(tree);
+void free(Pointer<git_tree> tree) =>
+    libgit2Runtime.bindings.git_tree_free(tree);

@@ -10,7 +10,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_config> init() {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_config_new(out);
+    final error = libgit2Runtime.bindings.git_config_new(out);
 
     checkErrorAndThrow(error);
 
@@ -24,7 +24,7 @@ Pointer<git_config> open(String path) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_config_open_ondisk(out, pathC);
+    final error = libgit2Runtime.bindings.git_config_open_ondisk(out, pathC);
 
     checkErrorAndThrow(error);
 
@@ -44,7 +44,7 @@ Pointer<git_config> open(String path) {
 Pointer<git_config> openDefault() {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_config_open_default(out);
+    final error = libgit2Runtime.bindings.git_config_open_default(out);
 
     checkErrorAndThrow(error);
 
@@ -58,7 +58,10 @@ Pointer<git_config> openDefault() {
 Pointer<git_config> openGlobal(Pointer<git_config> configPointer) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_config_open_global(out, configPointer);
+    final error = libgit2Runtime.bindings.git_config_open_global(
+      out,
+      configPointer,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -75,7 +78,7 @@ Pointer<git_config> openLevel({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_config_open_level(
+    final error = libgit2Runtime.bindings.git_config_open_level(
       out,
       parentPointer,
       git_config_level_t.fromValue(level),
@@ -98,7 +101,7 @@ void addFileOndisk({
 }) {
   using((arena) {
     final pathC = path.toChar(arena);
-    final error = libgit2.git_config_add_file_ondisk(
+    final error = libgit2Runtime.bindings.git_config_add_file_ondisk(
       configPointer,
       pathC,
       git_config_level_t.fromValue(level),
@@ -122,7 +125,7 @@ void setWriteOrder({
     for (var i = 0; i < levels.length; i++) {
       levelsC[i] = levels[i];
     }
-    final error = libgit2.git_config_set_writeorder(
+    final error = libgit2Runtime.bindings.git_config_set_writeorder(
       configPointer,
       levelsC,
       levels.length,
@@ -141,12 +144,16 @@ String getPath({
   return using((arena) {
     final out = arena<git_buf>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_config_get_path(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_path(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -166,7 +173,7 @@ String getPath({
 String findGlobal() {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_config_find_global(out);
+    final error = libgit2Runtime.bindings.git_config_find_global(out);
 
     checkErrorAndThrow(error);
 
@@ -183,7 +190,7 @@ String findGlobal() {
 String findSystem() {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_config_find_system(out);
+    final error = libgit2Runtime.bindings.git_config_find_system(out);
 
     checkErrorAndThrow(error);
 
@@ -204,7 +211,7 @@ String findSystem() {
 String findXdg() {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_config_find_xdg(out);
+    final error = libgit2Runtime.bindings.git_config_find_xdg(out);
 
     checkErrorAndThrow(error);
 
@@ -218,12 +225,12 @@ String findXdg() {
 String findProgramData() {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_config_find_programdata(out);
+    final error = libgit2Runtime.bindings.git_config_find_programdata(out);
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -237,7 +244,7 @@ String findProgramData() {
 Pointer<git_config> snapshot(Pointer<git_config> config) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_config_snapshot(out, config);
+    final error = libgit2Runtime.bindings.git_config_snapshot(out, config);
 
     checkErrorAndThrow(error);
 
@@ -256,7 +263,11 @@ Pointer<git_config_entry> getEntry({
   return using((arena) {
     final out = arena<Pointer<git_config_entry>>();
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_get_entry(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_entry(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
@@ -272,7 +283,11 @@ bool getBool({
   return using((arena) {
     final out = arena<Int>();
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_get_bool(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_bool(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
     return out.value != 0;
@@ -287,7 +302,11 @@ int getInt32({
   return using((arena) {
     final out = arena<Int32>();
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_get_int32(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_int32(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -302,7 +321,11 @@ int getInt64({
   return using((arena) {
     final out = arena<Int64>();
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_get_int64(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_int64(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -328,7 +351,11 @@ String getStringPointer({
   return using((arena) {
     final out = arena<Pointer<Char>>();
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_get_string(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_string(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
     return out.value.toDartString();
@@ -345,7 +372,11 @@ void setBool({
   return using((arena) {
     final nameC = variable.toChar(arena);
     final valueC = value ? 1 : 0;
-    final error = libgit2.git_config_set_bool(configPointer, nameC, valueC);
+    final error = libgit2Runtime.bindings.git_config_set_bool(
+      configPointer,
+      nameC,
+      valueC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -360,7 +391,11 @@ void setInt({
 }) {
   return using((arena) {
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_set_int64(configPointer, nameC, value);
+    final error = libgit2Runtime.bindings.git_config_set_int64(
+      configPointer,
+      nameC,
+      value,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -375,7 +410,11 @@ void setInt32({
 }) {
   return using((arena) {
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_set_int32(configPointer, nameC, value);
+    final error = libgit2Runtime.bindings.git_config_set_int32(
+      configPointer,
+      nameC,
+      value,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -391,7 +430,11 @@ void setString({
   return using((arena) {
     final nameC = variable.toChar(arena);
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_set_string(configPointer, nameC, valueC);
+    final error = libgit2Runtime.bindings.git_config_set_string(
+      configPointer,
+      nameC,
+      valueC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -402,7 +445,7 @@ void setString({
 Pointer<git_config_iterator> iterator(Pointer<git_config> cfg) {
   return using((arena) {
     final out = arena<Pointer<git_config_iterator>>();
-    final error = libgit2.git_config_iterator_new(out, cfg);
+    final error = libgit2Runtime.bindings.git_config_iterator_new(out, cfg);
 
     checkErrorAndThrow(error);
 
@@ -420,7 +463,7 @@ Pointer<git_config_iterator> globIterator({
   return using((arena) {
     final out = arena<Pointer<git_config_iterator>>();
     final regexpC = regexp.toChar(arena);
-    final error = libgit2.git_config_iterator_glob_new(
+    final error = libgit2Runtime.bindings.git_config_iterator_glob_new(
       out,
       configPointer,
       regexpC,
@@ -449,7 +492,7 @@ List<Map<String, Object?>> _entriesFromIterator(
     final result = <Map<String, Object?>>[];
 
     while (true) {
-      final error = libgit2.git_config_next(entry, iterator);
+      final error = libgit2Runtime.bindings.git_config_next(entry, iterator);
       if (error == git_error_code.GIT_ITEROVER.value) {
         break;
       }
@@ -489,7 +532,11 @@ List<Map<String, Object?>> foreachEntries(Pointer<git_config> configPointer) {
   >(_foreachCb, 0);
 
   _foreachEntries.clear();
-  final error = libgit2.git_config_foreach(configPointer, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_config_foreach(
+    configPointer,
+    cb,
+    nullptr,
+  );
   checkErrorAndThrow(error);
   final result = _foreachEntries.toList(growable: false);
   _foreachEntries.clear();
@@ -508,7 +555,7 @@ List<Map<String, Object?>> foreachMatchEntries({
     final regexpC = regexp.toChar(arena);
 
     _foreachEntries.clear();
-    final error = libgit2.git_config_foreach_match(
+    final error = libgit2Runtime.bindings.git_config_foreach_match(
       configPointer,
       regexpC,
       cb,
@@ -531,7 +578,10 @@ void delete({
 }) {
   return using((arena) {
     final nameC = variable.toChar(arena);
-    final error = libgit2.git_config_delete_entry(configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_delete_entry(
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -556,7 +606,7 @@ List<String> multivarValues({
     final iterator = arena<Pointer<git_config_iterator>>();
     final entry = arena<Pointer<git_config_entry>>();
 
-    final error = libgit2.git_config_multivar_iterator_new(
+    final error = libgit2Runtime.bindings.git_config_multivar_iterator_new(
       iterator,
       configPointer,
       nameC,
@@ -570,7 +620,10 @@ List<String> multivarValues({
 
     try {
       while (nextError == 0) {
-        nextError = libgit2.git_config_next(entry, iterator.value);
+        nextError = libgit2Runtime.bindings.git_config_next(
+          entry,
+          iterator.value,
+        );
         if (nextError == git_error_code.GIT_ITEROVER.value) {
           break;
         }
@@ -600,7 +653,7 @@ List<String> multivarValuesForeach({
     >(_foreachCb, 0);
 
     _foreachEntries.clear();
-    final error = libgit2.git_config_get_multivar_foreach(
+    final error = libgit2Runtime.bindings.git_config_get_multivar_foreach(
       configPointer,
       nameC,
       regexpC,
@@ -656,7 +709,7 @@ int getMapped({
     final out = arena<Int>();
     final nameC = name.toChar(arena);
     final mapsC = _configMaps(arena, maps);
-    final error = libgit2.git_config_get_mapped(
+    final error = libgit2Runtime.bindings.git_config_get_mapped(
       out,
       configPointer,
       nameC,
@@ -675,7 +728,7 @@ int lookupMapValue({required List<ConfigMapSpec> maps, required String value}) {
     final out = arena<Int>();
     final mapsC = _configMaps(arena, maps);
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_lookup_map_value(
+    final error = libgit2Runtime.bindings.git_config_lookup_map_value(
       out,
       mapsC,
       maps.length,
@@ -691,23 +744,24 @@ int lookupMapValue({required List<ConfigMapSpec> maps, required String value}) {
 void lock(Pointer<git_config> configPointer) {
   return using((arena) {
     final out = arena<Pointer<git_transaction>>();
-    final error = libgit2.git_config_lock(out, configPointer);
+    final error = libgit2Runtime.bindings.git_config_lock(out, configPointer);
 
     checkErrorAndThrow(error);
-    libgit2.git_transaction_free(out.value);
+    libgit2Runtime.bindings.git_transaction_free(out.value);
   });
 }
 
 /// Free the configuration and its associated memory and files.
-void free(Pointer<git_config> cfg) => libgit2.git_config_free(cfg);
+void free(Pointer<git_config> cfg) =>
+    libgit2Runtime.bindings.git_config_free(cfg);
 
 /// Free a config entry.
 void freeEntry(Pointer<git_config_entry> entry) =>
-    libgit2.git_config_entry_free(entry);
+    libgit2Runtime.bindings.git_config_entry_free(entry);
 
 /// Free a config iterator.
 void freeIterator(Pointer<git_config_iterator> iter) =>
-    libgit2.git_config_iterator_free(iter);
+    libgit2Runtime.bindings.git_config_iterator_free(iter);
 
 /// Get a string value from a config.
 ///
@@ -721,12 +775,16 @@ String getStringBuf({
   return using((arena) {
     final out = arena<git_buf>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_config_get_string_buf(out, configPointer, nameC);
+    final error = libgit2Runtime.bindings.git_config_get_string_buf(
+      out,
+      configPointer,
+      nameC,
+    );
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -736,7 +794,7 @@ bool parseBool(String value) {
   return using((arena) {
     final out = arena<Int>();
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_parse_bool(out, valueC);
+    final error = libgit2Runtime.bindings.git_config_parse_bool(out, valueC);
 
     checkErrorAndThrow(error);
     return out.value != 0;
@@ -748,7 +806,7 @@ int parseInt32(String value) {
   return using((arena) {
     final out = arena<Int32>();
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_parse_int32(out, valueC);
+    final error = libgit2Runtime.bindings.git_config_parse_int32(out, valueC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -760,7 +818,7 @@ int parseInt64(String value) {
   return using((arena) {
     final out = arena<Int64>();
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_parse_int64(out, valueC);
+    final error = libgit2Runtime.bindings.git_config_parse_int64(out, valueC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -772,12 +830,12 @@ String parsePath(String value) {
   return using((arena) {
     final out = arena<git_buf>();
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_parse_path(out, valueC);
+    final error = libgit2Runtime.bindings.git_config_parse_path(out, valueC);
 
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -797,7 +855,7 @@ void setMultivar({
     final nameC = name.toChar(arena);
     final regexpC = regexp.toChar(arena);
     final valueC = value.toChar(arena);
-    final error = libgit2.git_config_set_multivar(
+    final error = libgit2Runtime.bindings.git_config_set_multivar(
       configPointer,
       nameC,
       regexpC,
@@ -821,7 +879,7 @@ void deleteMultivar({
   return using((arena) {
     final nameC = name.toChar(arena);
     final regexpC = regexp.toChar(arena);
-    final error = libgit2.git_config_delete_multivar(
+    final error = libgit2Runtime.bindings.git_config_delete_multivar(
       configPointer,
       nameC,
       regexpC,

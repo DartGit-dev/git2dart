@@ -266,7 +266,6 @@ class Diff extends Equatable {
   /// it will not read unified diffs produced by the `diff` program, nor any
   /// other types of patch files.
   Diff.parse(String content) {
-    libgit2.git_libgit2_init();
     _diffPointer = bindings.parse(content);
     _finalizer.attach(this, _diffPointer, detach: this);
   }
@@ -445,7 +444,10 @@ class Diff extends Equatable {
     int renameLimit = 200,
   }) {
     final options = calloc<git_diff_find_options>();
-    libgit2.git_diff_find_options_init(options, GIT_DIFF_FIND_OPTIONS_VERSION);
+    libgit2Runtime.bindings.git_diff_find_options_init(
+      options,
+      GIT_DIFF_FIND_OPTIONS_VERSION,
+    );
 
     options.ref.flags = flags.fold(0, (acc, e) => acc | e.value);
     options.ref.rename_threshold = renameThreshold;

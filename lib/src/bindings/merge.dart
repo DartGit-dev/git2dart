@@ -18,7 +18,12 @@ Pointer<git_oid> mergeBase({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final error = libgit2.git_merge_base(out, repoPointer, aPointer, bPointer);
+    final error = libgit2Runtime.bindings.git_merge_base(
+      out,
+      repoPointer,
+      aPointer,
+      bPointer,
+    );
 
     checkErrorAndThrow(error);
 
@@ -44,7 +49,7 @@ Pointer<git_oidarray> mergeBasesMany({
       commitsC[i] = commits[i].ref;
     }
 
-    final error = libgit2.git_merge_bases_many(
+    final error = libgit2Runtime.bindings.git_merge_bases_many(
       out,
       repoPointer,
       commits.length,
@@ -65,7 +70,12 @@ Pointer<git_oidarray> mergeBases({
 }) {
   return using((arena) {
     final out = calloc<git_oidarray>();
-    final error = libgit2.git_merge_bases(out, repoPointer, aPointer, bPointer);
+    final error = libgit2Runtime.bindings.git_merge_bases(
+      out,
+      repoPointer,
+      aPointer,
+      bPointer,
+    );
 
     checkErrorAndThrow(error);
 
@@ -85,7 +95,7 @@ Pointer<git_oid> mergeBaseMany({
       commitsC[i] = commits[i].ref;
     }
 
-    final error = libgit2.git_merge_base_many(
+    final error = libgit2Runtime.bindings.git_merge_base_many(
       out,
       repoPointer,
       commits.length,
@@ -100,7 +110,7 @@ Pointer<git_oid> mergeBaseMany({
 
 /// Dispose a libgit2-owned oid array and free its wrapper allocation.
 void oidArrayDispose(Pointer<git_oidarray> array) {
-  libgit2.git_oidarray_dispose(array);
+  libgit2Runtime.bindings.git_oidarray_dispose(array);
   calloc.free(array);
 }
 
@@ -122,7 +132,7 @@ Pointer<git_oid> mergeBaseOctopus({
       commitsC[i] = commits[i].ref;
     }
 
-    final error = libgit2.git_merge_base_octopus(
+    final error = libgit2Runtime.bindings.git_merge_base_octopus(
       out,
       repoPointer,
       commits.length,
@@ -155,7 +165,7 @@ List<int> analysis({
     final theirHead = arena<Pointer<git_annotated_commit>>();
     theirHead[0] = theirHeadPointer;
 
-    final error = libgit2.git_merge_analysis_for_ref(
+    final error = libgit2Runtime.bindings.git_merge_analysis_for_ref(
       analysisOut,
       preferenceOut,
       repoPointer,
@@ -202,16 +212,18 @@ void merge({
     );
 
     final checkoutOpts = arena<git_checkout_options>();
-    libgit2.git_checkout_options_init(
-      checkoutOpts,
-      GIT_CHECKOUT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_checkout_options_init(
+        checkoutOpts,
+        GIT_CHECKOUT_OPTIONS_VERSION,
+      ),
     );
 
     checkoutOpts.ref.checkout_strategy =
         git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value |
         git_checkout_strategy_t.GIT_CHECKOUT_RECREATE_MISSING.value;
 
-    final error = libgit2.git_merge(
+    final error = libgit2Runtime.bindings.git_merge(
       repoPointer,
       theirHead,
       theirHeadsLen,
@@ -246,9 +258,18 @@ String mergeFile({
     final ancestorC = arena<git_merge_file_input>();
     final oursC = arena<git_merge_file_input>();
     final theirsC = arena<git_merge_file_input>();
-    libgit2.git_merge_file_input_init(ancestorC, GIT_MERGE_FILE_INPUT_VERSION);
-    libgit2.git_merge_file_input_init(oursC, GIT_MERGE_FILE_INPUT_VERSION);
-    libgit2.git_merge_file_input_init(theirsC, GIT_MERGE_FILE_INPUT_VERSION);
+    libgit2Runtime.bindings.git_merge_file_input_init(
+      ancestorC,
+      GIT_MERGE_FILE_INPUT_VERSION,
+    );
+    libgit2Runtime.bindings.git_merge_file_input_init(
+      oursC,
+      GIT_MERGE_FILE_INPUT_VERSION,
+    );
+    libgit2Runtime.bindings.git_merge_file_input_init(
+      theirsC,
+      GIT_MERGE_FILE_INPUT_VERSION,
+    );
     ancestorC.ref.ptr = ancestor.toChar(arena);
     ancestorC.ref.size = ancestor.length;
     Pointer<Char> ancestorLabelC = nullptr;
@@ -260,7 +281,12 @@ String mergeFile({
     Pointer<Char> theirsLabelC = nullptr;
 
     final opts = arena<git_merge_file_options>();
-    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_merge_file_options_init(
+        opts,
+        GIT_MERGE_FILE_OPTIONS_VERSION,
+      ),
+    );
     opts.ref.favorAsInt = favor;
     opts.ref.flags = flags;
     if (ancestorLabel.isNotEmpty) {
@@ -276,11 +302,17 @@ String mergeFile({
       opts.ref.their_label = theirsLabelC;
     }
 
-    final error = libgit2.git_merge_file(out, ancestorC, oursC, theirsC, opts);
+    final error = libgit2Runtime.bindings.git_merge_file(
+      out,
+      ancestorC,
+      oursC,
+      theirsC,
+      opts,
+    );
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.len);
-    libgit2.git_merge_file_result_free(out);
+    libgit2Runtime.bindings.git_merge_file_result_free(out);
     return result;
   });
 }
@@ -309,7 +341,12 @@ String mergeFileFromIndex({
     Pointer<Char> oursLabelC = nullptr;
     Pointer<Char> theirsLabelC = nullptr;
 
-    libgit2.git_merge_file_options_init(opts, GIT_MERGE_FILE_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_merge_file_options_init(
+        opts,
+        GIT_MERGE_FILE_OPTIONS_VERSION,
+      ),
+    );
     opts.ref.favorAsInt = favor;
     opts.ref.flags = flags;
     if (ancestorLabel.isNotEmpty) {
@@ -325,7 +362,7 @@ String mergeFileFromIndex({
       opts.ref.their_label = theirsLabelC;
     }
 
-    final error = libgit2.git_merge_file_from_index(
+    final error = libgit2Runtime.bindings.git_merge_file_from_index(
       out,
       repoPointer,
       ancestorPointer ?? nullptr,
@@ -339,7 +376,7 @@ String mergeFileFromIndex({
     if (out.ref.ptr != nullptr) {
       result = out.ref.ptr.toDartString(length: out.ref.len);
     }
-    libgit2.git_merge_file_result_free(out);
+    libgit2Runtime.bindings.git_merge_file_result_free(out);
     return result;
   });
 }
@@ -371,7 +408,7 @@ Pointer<git_index> mergeCommits({
       fileFlags: fileFlags,
     );
 
-    final error = libgit2.git_merge_commits(
+    final error = libgit2Runtime.bindings.git_merge_commits(
       out,
       repoPointer,
       ourCommitPointer,
@@ -411,7 +448,7 @@ Pointer<git_index> mergeTrees({
       fileFlags: fileFlags,
     );
 
-    final error = libgit2.git_merge_trees(
+    final error = libgit2Runtime.bindings.git_merge_trees(
       out,
       repoPointer,
       ancestorTreePointer,
@@ -435,12 +472,21 @@ void cherryPick({
 }) {
   return using((arena) {
     final opts = arena<git_cherrypick_options>();
-    libgit2.git_cherrypick_options_init(opts, GIT_CHERRYPICK_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_cherrypick_options_init(
+        opts,
+        GIT_CHERRYPICK_OPTIONS_VERSION,
+      ),
+    );
 
     opts.ref.checkout_opts.checkout_strategy =
         git_checkout_strategy_t.GIT_CHECKOUT_SAFE.value;
 
-    final error = libgit2.git_cherrypick(repoPointer, commitPointer, opts);
+    final error = libgit2Runtime.bindings.git_cherrypick(
+      repoPointer,
+      commitPointer,
+      opts,
+    );
 
     checkErrorAndThrow(error);
   });
@@ -460,7 +506,7 @@ Pointer<git_index> cherryPickCommit({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
-    final error = libgit2.git_cherrypick_commit(
+    final error = libgit2Runtime.bindings.git_cherrypick_commit(
       out,
       repoPointer,
       cherrypickCommitPointer,
@@ -481,8 +527,13 @@ Pointer<git_merge_options> _initMergeOptions({
   required int mergeFlags,
   required int fileFlags,
 }) {
-  final opts = calloc<git_merge_options>();
-  libgit2.git_merge_options_init(opts, GIT_MERGE_OPTIONS_VERSION);
+  final opts = arena<git_merge_options>();
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_merge_options_init(
+      opts,
+      GIT_MERGE_OPTIONS_VERSION,
+    ),
+  );
 
   opts.ref.file_favorAsInt = favor;
   opts.ref.flags = mergeFlags;

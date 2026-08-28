@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BUG-003 / BUG-20260817-QWMA Audit Plan</title>
+  <style>
+    body{margin:0;background:#0c1220;color:#e7edf8;font:15px system-ui,sans-serif;line-height:1.5}main{max-width:980px;margin:auto;padding:32px}.hero,.card{background:#121c2f;border:1px solid #263853;border-radius:12px;padding:20px;margin:16px 0}.tag{color:#9fc5ff}.risk{color:#ffd28a}table{border-collapse:collapse;width:100%}th,td{padding:9px;border-bottom:1px solid #263853;text-align:left}code{color:#a8dcff}a{color:#9fc5ff}
+  </style>
+</head>
+<body><main>
+  <section class="hero"><div class="tag">BUG-003 · BUG-20260817-QWMA · native-runtime-and-platform-boundary</div><h1>Options initializer status audit</h1><p>High / P1. The recorded correction ensures a failed libgit2 options initializer is translated before any initialized structure is used.</p></section>
+  <section class="card"><h2>Confirmed cause</h2><p>Unchecked native initializer statuses could flow into structure mutation and dependent native calls. Current-head audit enumerates 44 initializer calls in 16 binding files; every current path checks its result before use.</p></section>
+  <section class="card"><h2>Correction change set</h2><table><tr><th>ID</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr><tr><td>CHG-001</td><td>code</td><td><code>lib/src/bindings/*</code></td><td>Check each fallible initializer status before options structure use.</td></tr><tr><td>CHG-002</td><td>test</td><td><code>test/{checkout,remote,repository,stash,rebase,blob,diff,commit}_test.dart</code></td><td>Keep available option consumers and downstream failure paths green.</td></tr></table></section>
+  <section class="card"><h2>Risk and proof boundary</h2><p class="risk">Medium: the fix spans ABI-facing structures. Local focused tests and static analysis are green. A mismatched-ABI harness and five-platform load matrix remain unavailable, so that runtime proof is pending.</p></section>
+  <section class="card"><h2>Specification and delivery</h2><p>Existing native error-translation requirements support <code>spec-correta</code>. The correction is contained by local/origin <code>0.5.5</code>; package publication remains pending.</p></section>
+  <section class="card"><h2>Relations</h2><p><a href="../bug.md">BUG-20260817-QWMA</a> has no registered bug-to-bug relationships.</p></section>
+</main></body></html>

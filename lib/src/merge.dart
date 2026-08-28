@@ -128,7 +128,7 @@ class Merge {
   ///
   /// For compatibility with git, the repository is put into a merging state.
   /// Once the commit is done (or if the user wishes to abort), that state
-  /// should be cleared by calling [stateCleanup] method of [Repository] object.
+  /// should be cleared by calling [Repository.stateCleanup].
   ///
   /// [repo] is the repository to merge.
   /// [commit] is the commit to merge.
@@ -273,8 +273,6 @@ class Merge {
     GitMergeFileFavor favor = GitMergeFileFavor.normal,
     Set<GitMergeFileFlag> flags = const {GitMergeFileFlag.defaults},
   }) {
-    libgit2.git_libgit2_init();
-
     return bindings.mergeFile(
       ancestor: ancestor,
       ancestorLabel: ancestorLabel,

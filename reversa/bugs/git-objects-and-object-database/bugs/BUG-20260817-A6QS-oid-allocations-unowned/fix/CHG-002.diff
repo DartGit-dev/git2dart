@@ -1,0 +1,367 @@
+diff --git a/lib/src/bindings/oid.dart b/lib/src/bindings/oid.dart
+index b8debc6..7413252 100644
+--- a/lib/src/bindings/oid.dart
++++ b/lib/src/bindings/oid.dart
+@@ -204,6 +204,9 @@ Pointer<git_oid> copy(Pointer<git_oid> src) {
+   return out;
+ }
+
++/// Release memory allocated for an OID.
++void free(Pointer<git_oid> oid) => calloc.free(oid);
++
+ /// Check two oid structures for equality.
+ bool equal({
+   required Pointer<git_oid> aPointer,
+diff --git a/lib/src/bindings/remote_callbacks.dart b/lib/src/bindings/remote_callbacks.dart
+index 4a910ce..b48d5a4 100644
+--- a/lib/src/bindings/remote_callbacks.dart
++++ b/lib/src/bindings/remote_callbacks.dart
+@@ -60,7 +60,11 @@ class RemoteCallbacks {
+     Pointer<git_oid> newOid,
+     Pointer<Void> payload,
+   ) {
+-    updateTips!(refname.toDartString(), Oid(oldOid), Oid(newOid));
++    updateTips!(
++      refname.toDartString(),
++      Oid.fromBorrowed(oldOid),
++      Oid.fromBorrowed(newOid),
++    );
+     return 0;
+   }
+
+diff --git a/lib/src/blob.dart b/lib/src/blob.dart
+index 6945fe0..e3eb8b0 100644
+--- a/lib/src/blob.dart
++++ b/lib/src/blob.dart
+@@ -105,7 +105,7 @@ class Blob extends Equatable {
+   }
+
+   /// [Oid] of the blob.
+-  Oid get oid => Oid(bindings.id(_blobPointer));
++  Oid get oid => Oid.fromBorrowed(bindings.id(_blobPointer));
+
+   /// Whether the blob content is most certainly binary or not.
+   ///
+diff --git a/lib/src/branch.dart b/lib/src/branch.dart
+index 00a2f16..5fa636c 100644
+--- a/lib/src/branch.dart
++++ b/lib/src/branch.dart
+@@ -158,7 +158,9 @@ class Branch extends Equatable {
+   /// [Oid] pointed to by a branch.
+   ///
+   /// Throws a [LibGit2Error] if error occurred.
+-  Oid get target => Oid(reference_bindings.target(_branchPointer));
++  Oid get target => Oid.fromBorrowed(
++    reference_bindings.target(_branchPointer),
++  );
+
+   /// Whether HEAD points to the given branch.
+   ///
+diff --git a/lib/src/commit.dart b/lib/src/commit.dart
+index 85b737b..d056ada 100644
+--- a/lib/src/commit.dart
++++ b/lib/src/commit.dart
+@@ -276,7 +276,7 @@ class Commit extends Equatable {
+   String get body => bindings.body(_commitPointer);
+
+   /// Gets the [Oid] of the commit.
+-  Oid get oid => Oid(bindings.id(_commitPointer));
++  Oid get oid => Oid.fromBorrowed(bindings.id(_commitPointer));
+
+   /// Gets the commit time (i.e. committer time).
+   int get time => bindings.time(_commitPointer);
+@@ -317,7 +317,9 @@ class Commit extends Equatable {
+     final parentCount = bindings.parentCount(_commitPointer);
+     return <Oid>[
+       for (var i = 0; i < parentCount; i++)
+-        Oid(bindings.parentId(commitPointer: _commitPointer, position: i)),
++        Oid.fromBorrowed(
++          bindings.parentId(commitPointer: _commitPointer, position: i),
++        ),
+     ];
+   }
+
+@@ -338,7 +340,7 @@ class Commit extends Equatable {
+   Tree get tree => Tree(bindings.tree(_commitPointer));
+
+   /// Gets the [Oid] of the tree pointed to by the commit.
+-  Oid get treeOid => Oid(bindings.treeOid(_commitPointer));
++  Oid get treeOid => Oid.fromBorrowed(bindings.treeOid(_commitPointer));
+
+   /// Gets an arbitrary header field from the commit.
+   ///
+diff --git a/lib/src/note.dart b/lib/src/note.dart
+index 01a7063..3b3c930 100644
+--- a/lib/src/note.dart
++++ b/lib/src/note.dart
+@@ -21,7 +21,8 @@ class Note extends Equatable {
+   ///
+   /// Note: For internal use. Use [Note.lookup] instead.
+   @internal
+-  Note(this._notePointer, this._annotatedOidPointer) {
++  Note(this._notePointer, Pointer<git_oid> annotatedOidPointer)
++    : _annotatedOid = Oid(annotatedOidPointer) {
+     _finalizer.attach(this, _notePointer, detach: this);
+   }
+
+@@ -46,15 +47,15 @@ class Note extends Equatable {
+       oidPointer: annotatedOid.pointer,
+       notesRef: notesRef,
+     );
+-    _annotatedOidPointer = annotatedOid.pointer;
++    _annotatedOid = Oid.fromBorrowed(annotatedOid.pointer);
+     _finalizer.attach(this, _notePointer, detach: this);
+   }
+
+   /// Pointer to memory address for allocated note object.
+   late final Pointer<git_note> _notePointer;
+
+-  /// Pointer to memory address for allocated annotatedOid object.
+-  late final Pointer<git_oid> _annotatedOidPointer;
++  /// Owned copy of the annotated object's OID.
++  late final Oid _annotatedOid;
+
+   /// Creates a note for an [annotatedOid].
+   ///
+@@ -152,7 +153,7 @@ class Note extends Equatable {
+   }
+
+   /// The [Oid] of this note object.
+-  Oid get oid => Oid(bindings.id(_notePointer));
++  Oid get oid => Oid.fromBorrowed(bindings.id(_notePointer));
+
+   /// The message content of this note.
+   String get message => bindings.message(_notePointer);
+@@ -164,13 +165,14 @@ class Note extends Equatable {
+   Signature get committer => Signature(bindings.committer(_notePointer));
+
+   /// The [Oid] of the git object being annotated by this note.
+-  Oid get annotatedOid => Oid(_annotatedOidPointer);
++  Oid get annotatedOid => Oid.fromBorrowed(_annotatedOid.pointer);
+
+   /// Releases memory allocated for note object.
+   ///
+   /// This method should be called when the note is no longer needed to prevent memory leaks.
+   void free() {
+     bindings.free(_notePointer);
++    _annotatedOid.free();
+     _finalizer.detach(this);
+   }
+
+diff --git a/lib/src/odb.dart b/lib/src/odb.dart
+index 0471afd..32aa395 100644
+--- a/lib/src/odb.dart
++++ b/lib/src/odb.dart
+@@ -177,7 +177,7 @@ class OdbObject extends Equatable {
+   final Pointer<git_odb_object> _odbObjectPointer;
+
+   /// [Oid] of an ODB object.
+-  Oid get oid => Oid(bindings.objectId(_odbObjectPointer));
++  Oid get oid => Oid.fromBorrowed(bindings.objectId(_odbObjectPointer));
+
+   /// Type of an ODB object.
+   GitObject get type {
+diff --git a/lib/src/oid.dart b/lib/src/oid.dart
+index a5ef8ea..7d18cc3 100644
+--- a/lib/src/oid.dart
++++ b/lib/src/oid.dart
+@@ -19,7 +19,15 @@ class Oid extends Equatable {
+   ///
+   /// Note: For internal use. Use [Oid.fromSHA] instead.
+   @internal
+-  Oid(this._oidPointer);
++  Oid(this._oidPointer) {
++    _finalizer.attach(this, _oidPointer, detach: this);
++  }
++
++  /// Initializes a new instance by copying a borrowed OID pointer.
++  ///
++  /// Note: For internal use. The source pointer remains owned by its parent.
++  @internal
++  Oid.fromBorrowed(Pointer<git_oid> pointer) : this(bindings.copy(pointer));
+
+   /// Initializes a new instance by parsing a possibly shortened hexadecimal
+   /// object id.
+@@ -39,6 +47,7 @@ class Oid extends Equatable {
+             ? git_oid_t.GIT_OID_SHA256
+             : git_oid_t.GIT_OID_SHA1;
+     _oidPointer = bindings.fromStrP(sha, type: type);
++    _finalizer.attach(this, _oidPointer, detach: this);
+   }
+
+   /// Initializes a new instance of [Oid] class by determining if an object can
+@@ -95,12 +104,18 @@ class Oid extends Equatable {
+     if (sha.length == fullLength) {
+       _oidPointer = bindings.fromSHA(sha, type: type);
+     } else {
+-      _oidPointer = odb_bindings.existsPrefix(
+-        odbPointer: repo.odb.pointer,
+-        shortOidPointer: bindings.fromStrN(sha, type: type),
+-        length: sha.length,
+-      );
++      final shortOidPointer = bindings.fromStrN(sha, type: type);
++      try {
++        _oidPointer = odb_bindings.existsPrefix(
++          odbPointer: repo.odb.pointer,
++          shortOidPointer: shortOidPointer,
++          length: sha.length,
++        );
++      } finally {
++        bindings.free(shortOidPointer);
++      }
+     }
++    _finalizer.attach(this, _oidPointer, detach: this);
+   }
+
+   /// Initializes a new instance of [Oid] class from provided raw git_oid
+@@ -110,6 +125,7 @@ class Oid extends Equatable {
+   @internal
+   Oid.fromRaw(git_oid raw) {
+     _oidPointer = bindings.fromRaw(raw.id);
++    _finalizer.attach(this, _oidPointer, detach: this);
+   }
+
+   late final Pointer<git_oid> _oidPointer;
+@@ -138,6 +154,12 @@ class Oid extends Equatable {
+   /// Returns whether this Oid equals a hexadecimal object id string.
+   bool equalsHex(String hex) => bindings.streq(id: _oidPointer, hex: hex);
+
++  /// Releases the native memory owned by this OID.
++  void free() {
++    bindings.free(_oidPointer);
++    _finalizer.detach(this);
++  }
++
+   /// Compares this Oid with another for sorting purposes.
+   ///
+   /// Returns true if this Oid is less than the [other].
+@@ -189,6 +211,12 @@ class Oid extends Equatable {
+   List<Object?> get props => [sha];
+ }
+
++// coverage:ignore-start
++final _finalizer = Finalizer<Pointer<git_oid>>(
++  (pointer) => bindings.free(pointer),
++);
++// coverage:ignore-end
++
+ /// Calculates short unique prefixes for a set of SHA-1 object ids.
+ class OidShortener {
+   /// Creates an OID shortener with [minLength] as the minimum abbreviation.
+diff --git a/lib/src/reference.dart b/lib/src/reference.dart
+index 65f8ef1..2b572e4 100644
+--- a/lib/src/reference.dart
++++ b/lib/src/reference.dart
+@@ -322,8 +322,8 @@ class Reference extends Equatable {
+   /// Throws an [Exception] if error occured.
+   Oid get target {
+     return type == ReferenceType.direct
+-        ? Oid(bindings.target(_refPointer))
+-        : Oid(bindings.target(bindings.resolve(_refPointer)));
++        ? Oid.fromBorrowed(bindings.target(_refPointer))
++        : Oid.fromBorrowed(bindings.target(bindings.resolve(_refPointer)));
+   }
+
+   /// Peeled OID target for a direct reference to an annotated tag.
+@@ -331,7 +331,7 @@ class Reference extends Equatable {
+   /// Returns `null` when the reference has no peeled target.
+   Oid? get peeledTarget {
+     final result = bindings.targetPeel(_refPointer);
+-    return result == null ? null : Oid(result);
++    return result == null ? null : Oid.fromBorrowed(result);
+   }
+
+   /// Recursively peel reference until object of the specified [type] is found.
+diff --git a/lib/src/reflog.dart b/lib/src/reflog.dart
+index 4082d24..72266c8 100644
+--- a/lib/src/reflog.dart
++++ b/lib/src/reflog.dart
+@@ -176,10 +176,10 @@ class RefLogEntry extends Equatable {
+   Signature get committer => Signature(bindings.entryCommiter(_entryPointer));
+
+   /// New OID that the reference points to after this change.
+-  Oid get newOid => Oid(bindings.entryOidNew(_entryPointer));
++  Oid get newOid => Oid.fromBorrowed(bindings.entryOidNew(_entryPointer));
+
+   /// Old OID that the reference pointed to before this change.
+-  Oid get oldOid => Oid(bindings.entryOidOld(_entryPointer));
++  Oid get oldOid => Oid.fromBorrowed(bindings.entryOidOld(_entryPointer));
+
+   @override
+   String toString() => 'RefLogEntry{message: $message, committer: $committer}';
+diff --git a/lib/src/submodule.dart b/lib/src/submodule.dart
+index a4679b5..4c59b93 100644
+--- a/lib/src/submodule.dart
++++ b/lib/src/submodule.dart
+@@ -208,14 +208,14 @@ class Submodule extends Equatable {
+   /// not in the HEAD.
+   Oid? get headOid {
+     final result = bindings.headId(_submodulePointer);
+-    return result == null ? null : Oid(result);
++    return result == null ? null : Oid.fromBorrowed(result);
+   }
+
+   /// [Oid] for the submodule in the index or null if submodule is not in the
+   /// index.
+   Oid? get indexOid {
+     final result = bindings.indexId(_submodulePointer);
+-    return result == null ? null : Oid(result);
++    return result == null ? null : Oid.fromBorrowed(result);
+   }
+
+   /// [Oid] for the submodule in the current working directory or null if
+@@ -227,7 +227,9 @@ class Submodule extends Equatable {
+   /// more complete picture about the state of the working directory.
+   Oid? get workdirOid {
+     final result = bindings.workdirId(_submodulePointer);
+-    return result == nullptr || result == null ? null : Oid(result);
++    return result == nullptr || result == null
++        ? null
++        : Oid.fromBorrowed(result);
+   }
+
+   /// Ignore rule that will be used for the submodule.
+diff --git a/lib/src/tag.dart b/lib/src/tag.dart
+index ce63f62..0548529 100644
+--- a/lib/src/tag.dart
++++ b/lib/src/tag.dart
+@@ -66,7 +66,7 @@ class Tag extends Equatable {
+   Pointer<git_tag> get pointer => _tagPointer;
+
+   /// Gets the [Oid] of the tag.
+-  Oid get oid => Oid(bindings.id(_tagPointer));
++  Oid get oid => Oid.fromBorrowed(bindings.id(_tagPointer));
+
+   /// Gets the name of the tag.
+   String get name => bindings.name(_tagPointer);
+@@ -84,7 +84,7 @@ class Tag extends Equatable {
+   }
+
+   /// Gets the [Oid] of the tagged object.
+-  Oid get targetOid => Oid(bindings.targetOid(_tagPointer));
++  Oid get targetOid => Oid.fromBorrowed(bindings.targetOid(_tagPointer));
+
+   /// Gets the tagged object.
+   ///
+diff --git a/lib/src/tree.dart b/lib/src/tree.dart
+index e850b95..00ad088 100644
+--- a/lib/src/tree.dart
++++ b/lib/src/tree.dart
+@@ -150,7 +150,7 @@ class Tree extends Equatable {
+   /// [Oid] of a tree.
+   ///
+   /// Returns the OID (Object ID) of this tree object.
+-  Oid get oid => Oid(bindings.id(_treePointer));
++  Oid get oid => Oid.fromBorrowed(bindings.id(_treePointer));
+
+   /// Number of entries listed in a tree.
+   ///
+@@ -248,7 +248,7 @@ class TreeEntry extends Equatable {
+   /// [Oid] of the object pointed by the entry.
+   ///
+   /// Returns the OID of the blob or tree that this entry points to.
+-  Oid get oid => Oid(bindings.entryId(_treeEntryPointer));
++  Oid get oid => Oid.fromBorrowed(bindings.entryId(_treeEntryPointer));
+
+   /// Filename of a tree entry.
+   ///

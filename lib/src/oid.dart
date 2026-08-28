@@ -19,7 +19,15 @@ class Oid extends Equatable {
   ///
   /// Note: For internal use. Use [Oid.fromSHA] instead.
   @internal
-  Oid(this._oidPointer);
+  Oid(this._oidPointer) {
+    _finalizer.attach(this, _oidPointer, detach: this);
+  }
+
+  /// Initializes a new instance by copying a borrowed OID pointer.
+  ///
+  /// Note: For internal use. The source pointer remains owned by its parent.
+  @internal
+  Oid.fromBorrowed(Pointer<git_oid> pointer) : this(bindings.copy(pointer));
 
   /// Initializes a new instance by parsing a possibly shortened hexadecimal
   /// object id.
@@ -39,6 +47,7 @@ class Oid extends Equatable {
             ? git_oid_t.GIT_OID_SHA256
             : git_oid_t.GIT_OID_SHA1;
     _oidPointer = bindings.fromStrP(sha, type: type);
+    _finalizer.attach(this, _oidPointer, detach: this);
   }
 
   /// Initializes a new instance of [Oid] class by determining if an object can
@@ -95,12 +104,18 @@ class Oid extends Equatable {
     if (sha.length == fullLength) {
       _oidPointer = bindings.fromSHA(sha, type: type);
     } else {
-      _oidPointer = odb_bindings.existsPrefix(
-        odbPointer: repo.odb.pointer,
-        shortOidPointer: bindings.fromStrN(sha, type: type),
-        length: sha.length,
-      );
+      final shortOidPointer = bindings.fromStrN(sha, type: type);
+      try {
+        _oidPointer = odb_bindings.existsPrefix(
+          odbPointer: repo.odb.pointer,
+          shortOidPointer: shortOidPointer,
+          length: sha.length,
+        );
+      } finally {
+        bindings.free(shortOidPointer);
+      }
     }
+    _finalizer.attach(this, _oidPointer, detach: this);
   }
 
   /// Initializes a new instance of [Oid] class from provided raw git_oid
@@ -110,6 +125,7 @@ class Oid extends Equatable {
   @internal
   Oid.fromRaw(git_oid raw) {
     _oidPointer = bindings.fromRaw(raw.id);
+    _finalizer.attach(this, _oidPointer, detach: this);
   }
 
   late final Pointer<git_oid> _oidPointer;
@@ -137,6 +153,12 @@ class Oid extends Equatable {
 
   /// Returns whether this Oid equals a hexadecimal object id string.
   bool equalsHex(String hex) => bindings.streq(id: _oidPointer, hex: hex);
+
+  /// Releases the native memory owned by this OID.
+  void free() {
+    bindings.free(_oidPointer);
+    _finalizer.detach(this);
+  }
 
   /// Compares this Oid with another for sorting purposes.
   ///
@@ -188,6 +210,12 @@ class Oid extends Equatable {
   @override
   List<Object?> get props => [sha];
 }
+
+// coverage:ignore-start
+final _finalizer = Finalizer<Pointer<git_oid>>(
+  (pointer) => bindings.free(pointer),
+);
+// coverage:ignore-end
 
 /// Calculates short unique prefixes for a set of SHA-1 object ids.
 class OidShortener {

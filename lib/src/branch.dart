@@ -158,7 +158,7 @@ class Branch extends Equatable {
   /// [Oid] pointed to by a branch.
   ///
   /// Throws a [LibGit2Error] if error occurred.
-  Oid get target => Oid(reference_bindings.target(_branchPointer));
+  Oid get target => Oid.fromBorrowed(reference_bindings.target(_branchPointer));
 
   /// Whether HEAD points to the given branch.
   ///

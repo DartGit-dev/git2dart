@@ -25,8 +25,8 @@ class Blame with IterableMixin<BlameHunk> {
   /// [minMatchCharacters] is the lower bound on the number of alphanumeric
   /// characters that must be detected as moving/copying within a file for
   /// it to associate those lines with the parent commit. The default value is
-  /// 20. This value only takes effect if any of the [GitBlameFlag.trackCopies*]
-  /// flags are specified.
+  /// 20. This value only takes effect if any of the copy-tracking
+  /// [GitBlameFlag] values are specified.
   ///
   /// [newestCommit] is the id of the newest commit to consider. The default is
   /// HEAD.
@@ -140,7 +140,7 @@ class BlameHunk extends Equatable {
   int get linesCount => _blameHunkPointer.ref.lines_in_hunk;
 
   /// Whether the hunk has been tracked to a boundary commit
-  /// (the root, or the commit specified in [oldestCommit] argument).
+  /// (the root, or the oldest commit passed to [Blame.file]).
   bool get isBoundary {
     return _blameHunkPointer.ref.boundary == 1 || false;
   }
@@ -161,7 +161,7 @@ class BlameHunk extends Equatable {
   Oid get finalCommitOid => Oid.fromRaw(_blameHunkPointer.ref.final_commit_id);
 
   /// 1-based line number where this hunk begins, in the file named by
-  /// [originPath] in the commit specified by [originCommitId].
+  /// [originPath] in the commit specified by [originCommitOid].
   int get originStartLineNumber => _blameHunkPointer.ref.orig_start_line_number;
 
   /// Author of [originCommitOid]. If [GitBlameFlag.useMailmap] has been

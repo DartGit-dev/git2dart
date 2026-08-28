@@ -13,7 +13,7 @@ bool descendantOf({
   required Pointer<git_oid> commitPointer,
   required Pointer<git_oid> ancestorPointer,
 }) {
-  final result = libgit2.git_graph_descendant_of(
+  final result = libgit2Runtime.bindings.git_graph_descendant_of(
     repoPointer,
     commitPointer,
     ancestorPointer,
@@ -37,7 +37,7 @@ List<int> aheadBehind({
     final ahead = arena<Size>();
     final behind = arena<Size>();
 
-    final error = libgit2.git_graph_ahead_behind(
+    final error = libgit2Runtime.bindings.git_graph_ahead_behind(
       ahead,
       behind,
       repoPointer,
@@ -63,7 +63,7 @@ bool reachableFromAny({
       arr[i] = descendants[i].ref;
     }
 
-    final result = libgit2.git_graph_reachable_from_any(
+    final result = libgit2Runtime.bindings.git_graph_reachable_from_any(
       repoPointer,
       commitPointer,
       arr,

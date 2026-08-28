@@ -486,9 +486,20 @@ class IndexEntry extends Equatable {
   ///
   /// Note: For internal use.
   @internal
-  const IndexEntry(this._indexEntryPointer);
+  IndexEntry(Pointer<git_index_entry> pointer)
+    : _owner =
+          pointer == nullptr
+              ? null
+              : _IndexEntryOwner(bindings.copyEntry(pointer)) {
+    final owner = _owner;
+    if (owner != null) {
+      _indexEntryFinalizer.attach(this, owner, detach: this);
+    }
+  }
 
-  final Pointer<git_index_entry> _indexEntryPointer;
+  final _IndexEntryOwner? _owner;
+
+  Pointer<git_index_entry> get _indexEntryPointer => _owner?.pointer ?? nullptr;
 
   /// Pointer to memory address for allocated index entry object.
   ///
@@ -505,7 +516,8 @@ class IndexEntry extends Equatable {
   String get path => _indexEntryPointer.ref.path.toDartString();
 
   set path(String path) {
-    _indexEntryPointer.ref.path = path.toCharAlloc();
+    final owner = _owner!;
+    owner.replace(bindings.copyEntry(owner.pointer, path: path));
   }
 
   /// UNIX file attributes of a index entry.
@@ -520,6 +532,18 @@ class IndexEntry extends Equatable {
   /// Whether the given index entry is a conflict (has a high stage entry).
   bool get isConflict => bindings.entryIsConflict(_indexEntryPointer);
 
+  /// Releases the native copy owned by this entry.
+  ///
+  /// Repeated calls are safe. The entry must not be read or mutated after it
+  /// has been released.
+  void free() {
+    final owner = _owner;
+    if (owner != null) {
+      _indexEntryFinalizer.detach(this);
+      owner.free();
+    }
+  }
+
   @override
   String toString() {
     return 'IndexEntry{oid: $oid, path: $path, mode: $mode, stage: $stage}';
@@ -528,6 +552,32 @@ class IndexEntry extends Equatable {
   @override
   List<Object?> get props => [oid, path, mode, stage];
 }
+
+final class _IndexEntryOwner {
+  _IndexEntryOwner(this.pointer);
+
+  Pointer<git_index_entry> pointer;
+
+  void replace(Pointer<git_index_entry> replacement) {
+    final previous = pointer;
+    pointer = replacement;
+    bindings.freeEntry(previous);
+  }
+
+  void free() {
+    final current = pointer;
+    if (current != nullptr) {
+      pointer = nullptr;
+      bindings.freeEntry(current);
+    }
+  }
+}
+
+// coverage:ignore-start
+final _indexEntryFinalizer = Finalizer<_IndexEntryOwner>(
+  (owner) => owner.free(),
+);
+// coverage:ignore-end
 
 class ConflictEntry {
   /// Initializes a new instance of [ConflictEntry] class.

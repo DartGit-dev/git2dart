@@ -38,7 +38,7 @@ class Packbuilder {
   static Pointer<git_packbuilder> init(Pointer<git_repository> repo) {
     return using((arena) {
       final out = arena<Pointer<git_packbuilder>>();
-      final error = libgit2.git_packbuilder_new(out, repo);
+      final error = libgit2Runtime.bindings.git_packbuilder_new(out, repo);
 
       checkErrorAndThrow(error);
 
@@ -59,7 +59,7 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required Pointer<git_oid> oidPointer,
   }) {
-    final error = libgit2.git_packbuilder_insert(
+    final error = libgit2Runtime.bindings.git_packbuilder_insert(
       packbuilderPointer,
       oidPointer,
       nullptr,
@@ -81,7 +81,7 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required Pointer<git_oid> oidPointer,
   }) {
-    final error = libgit2.git_packbuilder_insert_recur(
+    final error = libgit2Runtime.bindings.git_packbuilder_insert_recur(
       packbuilderPointer,
       oidPointer,
       nullptr,
@@ -102,7 +102,7 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required Pointer<git_oid> oidPointer,
   }) {
-    final error = libgit2.git_packbuilder_insert_commit(
+    final error = libgit2Runtime.bindings.git_packbuilder_insert_commit(
       packbuilderPointer,
       oidPointer,
     );
@@ -122,7 +122,7 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required Pointer<git_oid> oidPointer,
   }) {
-    final error = libgit2.git_packbuilder_insert_tree(
+    final error = libgit2Runtime.bindings.git_packbuilder_insert_tree(
       packbuilderPointer,
       oidPointer,
     );
@@ -142,7 +142,7 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required Pointer<git_revwalk> walkerPointer,
   }) {
-    final error = libgit2.git_packbuilder_insert_walk(
+    final error = libgit2Runtime.bindings.git_packbuilder_insert_walk(
       packbuilderPointer,
       walkerPointer,
     );
@@ -163,7 +163,7 @@ class Packbuilder {
   }) {
     return using((arena) {
       final pathC = path?.toChar(arena) ?? nullptr;
-      final error = libgit2.git_packbuilder_write(
+      final error = libgit2Runtime.bindings.git_packbuilder_write(
         packbuilderPointer,
         pathC,
         0,
@@ -179,11 +179,14 @@ class Packbuilder {
   static Uint8List writeToBuffer(Pointer<git_packbuilder> packbuilderPointer) {
     return using((arena) {
       final buf = arena<git_buf>();
-      final error = libgit2.git_packbuilder_write_buf(buf, packbuilderPointer);
+      final error = libgit2Runtime.bindings.git_packbuilder_write_buf(
+        buf,
+        packbuilderPointer,
+      );
       checkErrorAndThrow(error);
       final list = buf.ref.ptr.cast<Uint8>().asTypedList(buf.ref.size);
       final result = Uint8List.fromList(list);
-      libgit2.git_buf_dispose(buf);
+      libgit2Runtime.bindings.git_buf_dispose(buf);
       return result;
     });
   }
@@ -199,7 +202,7 @@ class Packbuilder {
       _progressCb,
       except,
     );
-    final error = libgit2.git_packbuilder_set_callbacks(
+    final error = libgit2Runtime.bindings.git_packbuilder_set_callbacks(
       packbuilderPointer,
       cb,
       nullptr,
@@ -219,7 +222,7 @@ class Packbuilder {
       _foreachCb,
       except,
     );
-    final error = libgit2.git_packbuilder_foreach(
+    final error = libgit2Runtime.bindings.git_packbuilder_foreach(
       packbuilderPointer,
       cb,
       nullptr,
@@ -232,13 +235,13 @@ class Packbuilder {
   ///
   /// [pb] is the packbuilder to get the count from.
   static int length(Pointer<git_packbuilder> pb) =>
-      libgit2.git_packbuilder_object_count(pb);
+      libgit2Runtime.bindings.git_packbuilder_object_count(pb);
 
   /// Get the number of objects the packbuilder has already written out.
   ///
   /// [pb] is the packbuilder to get the count from.
   static int writtenCount(Pointer<git_packbuilder> pb) =>
-      libgit2.git_packbuilder_written(pb);
+      libgit2Runtime.bindings.git_packbuilder_written(pb);
 
   /// Get the unique name for the resulting packfile.
   ///
@@ -247,13 +250,13 @@ class Packbuilder {
   ///
   /// [pb] is the packbuilder to get the name from.
   static String name(Pointer<git_packbuilder> pb) {
-    final result = libgit2.git_packbuilder_name(pb);
+    final result = libgit2Runtime.bindings.git_packbuilder_name(pb);
     return result == nullptr ? '' : result.toDartString();
   }
 
   /// Get the packfile hash.
   static Pointer<git_oid> hash(Pointer<git_packbuilder> pb) =>
-      libgit2.git_packbuilder_hash(pb);
+      libgit2Runtime.bindings.git_packbuilder_hash(pb);
 
   /// Set the number of threads to use for pack creation.
   ///
@@ -268,12 +271,15 @@ class Packbuilder {
     required Pointer<git_packbuilder> packbuilderPointer,
     required int number,
   }) {
-    return libgit2.git_packbuilder_set_threads(packbuilderPointer, number);
+    return libgit2Runtime.bindings.git_packbuilder_set_threads(
+      packbuilderPointer,
+      number,
+    );
   }
 
   /// Free the packbuilder and all associated data.
   ///
   /// [pb] is the packbuilder to free.
   static void free(Pointer<git_packbuilder> pb) =>
-      libgit2.git_packbuilder_free(pb);
+      libgit2Runtime.bindings.git_packbuilder_free(pb);
 }

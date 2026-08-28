@@ -11,7 +11,7 @@ import 'package:git2dart_binaries/git2dart_binaries.dart';
 Pointer<git_refdb> create(Pointer<git_repository> repoPointer) {
   return using((arena) {
     final out = arena<Pointer<git_refdb>>();
-    final error = libgit2.git_refdb_new(out, repoPointer);
+    final error = libgit2Runtime.bindings.git_refdb_new(out, repoPointer);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -25,7 +25,7 @@ Pointer<git_refdb> create(Pointer<git_repository> repoPointer) {
 Pointer<git_refdb> open(Pointer<git_repository> repoPointer) {
   return using((arena) {
     final out = arena<Pointer<git_refdb>>();
-    final error = libgit2.git_refdb_open(out, repoPointer);
+    final error = libgit2Runtime.bindings.git_refdb_open(out, repoPointer);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -34,7 +34,10 @@ Pointer<git_refdb> open(Pointer<git_repository> repoPointer) {
 
 /// Initialize a refdb backend structure with default values.
 void initBackend(Pointer<git_refdb_backend> backend) {
-  libgit2.git_refdb_init_backend(backend, GIT_REFDB_BACKEND_VERSION);
+  libgit2Runtime.bindings.git_refdb_init_backend(
+    backend,
+    GIT_REFDB_BACKEND_VERSION,
+  );
 }
 
 /// Create a filesystem-based backend for the repository.
@@ -43,7 +46,10 @@ void initBackend(Pointer<git_refdb_backend> backend) {
 Pointer<git_refdb_backend> backendFs(Pointer<git_repository> repoPointer) {
   return using((arena) {
     final out = arena<Pointer<git_refdb_backend>>();
-    final error = libgit2.git_refdb_backend_fs(out, repoPointer);
+    final error = libgit2Runtime.bindings.git_refdb_backend_fs(
+      out,
+      repoPointer,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -59,14 +65,19 @@ void setBackend({
   required Pointer<git_refdb> refdbPointer,
   required Pointer<git_refdb_backend> backendPointer,
 }) {
-  final error = libgit2.git_refdb_set_backend(refdbPointer, backendPointer);
+  final error = libgit2Runtime.bindings.git_refdb_set_backend(
+    refdbPointer,
+    backendPointer,
+  );
   checkErrorAndThrow(error);
 }
 
 /// Suggests that the given refdb compress or optimize its references.
 /// This mechanism is implementation specific. For on-disk reference databases,
 /// for example, this may pack all loose references.
-void compress(Pointer<git_refdb> refdb) => libgit2.git_refdb_compress(refdb);
+void compress(Pointer<git_refdb> refdb) =>
+    libgit2Runtime.bindings.git_refdb_compress(refdb);
 
 /// Close an open reference database to release memory.
-void free(Pointer<git_refdb> refdb) => libgit2.git_refdb_free(refdb);
+void free(Pointer<git_refdb> refdb) =>
+    libgit2Runtime.bindings.git_refdb_free(refdb);

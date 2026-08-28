@@ -1,0 +1,40 @@
+diff --git a/lib/src/bindings/rebase.dart b/lib/src/bindings/rebase.dart
+index 66d10ab..9eb6190 100644
+--- a/lib/src/bindings/rebase.dart
++++ b/lib/src/bindings/rebase.dart
+@@ -143,27 +143,31 @@ Pointer<git_index> inmemoryIndex(Pointer<git_rebase> rebase) {
+       out,
+       rebase,
+     );
+     checkErrorAndThrow(error);
+     return out.value;
+   });
+ }
+
+ /// Finishes a rebase that is currently in progress once all patches have been
+ /// applied.
+-void finish(Pointer<git_rebase> rebase) =>
+-    libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
++void finish(Pointer<git_rebase> rebase) {
++  final error = libgit2Runtime.bindings.git_rebase_finish(rebase, nullptr);
++  checkErrorAndThrow(error);
++}
+
+ /// Aborts a rebase that is currently in progress, resetting the repository and
+ /// working directory to their state before rebase began.
+-void abort(Pointer<git_rebase> rebase) =>
+-    libgit2Runtime.bindings.git_rebase_abort(rebase);
++void abort(Pointer<git_rebase> rebase) {
++  final error = libgit2Runtime.bindings.git_rebase_abort(rebase);
++  checkErrorAndThrow(error);
++}
+
+ /// Gets the original HEAD id for merge rebases.
+ Pointer<git_oid> origHeadOid(Pointer<git_rebase> rebase) =>
+     libgit2Runtime.bindings.git_rebase_orig_head_id(rebase);
+
+ /// Gets the original HEAD ref name for merge rebases.
+ String origHeadName(Pointer<git_rebase> rebase) {
+   final result = libgit2Runtime.bindings.git_rebase_orig_head_name(rebase);
+   return result == nullptr ? '' : result.toDartString();
+ }

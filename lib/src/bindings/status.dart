@@ -25,9 +25,14 @@ Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
     // Initialize status options instead of passing nullptr
 
     final opts = arena<git_status_options>();
-    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_status_options_init(
+        opts,
+        GIT_STATUS_OPTIONS_VERSION,
+      ),
+    );
 
-    final error = libgit2.git_status_list_new(out, repo, opts);
+    final error = libgit2Runtime.bindings.git_status_list_new(out, repo, opts);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -39,7 +44,7 @@ Pointer<git_status_list> listNew(Pointer<git_repository> repo) {
 /// If there are no changes in status (at least according the options given when
 /// the status list was created), this can return 0.
 int listEntryCount(Pointer<git_status_list> statuslist) =>
-    libgit2.git_status_list_entrycount(statuslist);
+    libgit2Runtime.bindings.git_status_list_entrycount(statuslist);
 
 /// Get a pointer to one of the entries in the status list.
 ///
@@ -48,7 +53,7 @@ int listEntryCount(Pointer<git_status_list> statuslist) =>
 Pointer<git_status_entry> getByIndex({
   required Pointer<git_status_list> statuslistPointer,
   required int index,
-}) => libgit2.git_status_byindex(statuslistPointer, index);
+}) => libgit2Runtime.bindings.git_status_byindex(statuslistPointer, index);
 
 /// Get file status for a single file.
 ///
@@ -72,7 +77,11 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
   return using((arena) {
     final out = arena<UnsignedInt>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_status_file(out, repoPointer, pathC);
+    final error = libgit2Runtime.bindings.git_status_file(
+      out,
+      repoPointer,
+      pathC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -82,7 +91,7 @@ int file({required Pointer<git_repository> repoPointer, required String path}) {
 Map<String, int> foreach(Pointer<git_repository> repoPointer) {
   _statusEntries = <String, int>{};
 
-  final error = libgit2.git_status_foreach(
+  final error = libgit2Runtime.bindings.git_status_foreach(
     repoPointer,
     Pointer.fromFunction<
       Int Function(Pointer<Char>, UnsignedInt, Pointer<Void>)
@@ -100,9 +109,14 @@ Map<String, int> foreachExt(Pointer<git_repository> repoPointer) {
 
   return using((arena) {
     final opts = arena<git_status_options>();
-    libgit2.git_status_options_init(opts, GIT_STATUS_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_status_options_init(
+        opts,
+        GIT_STATUS_OPTIONS_VERSION,
+      ),
+    );
 
-    final error = libgit2.git_status_foreach_ext(
+    final error = libgit2Runtime.bindings.git_status_foreach_ext(
       repoPointer,
       opts,
       Pointer.fromFunction<
@@ -124,19 +138,30 @@ bool shouldIgnore({
   return using((arena) {
     final ignored = arena<Int>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_status_should_ignore(ignored, repoPointer, pathC);
+    final error = libgit2Runtime.bindings.git_status_should_ignore(
+      ignored,
+      repoPointer,
+      pathC,
+    );
     checkErrorAndThrow(error);
     return ignored.value == 1;
   });
 }
 
 /// Retrieve diff performance data for a status list.
-Pointer<git_diff_perfdata> listPerfdata(Pointer<git_status_list> statuslist) {
+StatusPerfData listPerfdata(Pointer<git_status_list> statuslist) {
   return using((arena) {
     final out = arena<git_diff_perfdata>();
-    final error = libgit2.git_status_list_get_perfdata(out, statuslist);
+    out.ref.version = GIT_DIFF_PERFDATA_VERSION;
+    final error = libgit2Runtime.bindings.git_status_list_get_perfdata(
+      out,
+      statuslist,
+    );
     checkErrorAndThrow(error);
-    return out;
+    return StatusPerfData(
+      statCalls: out.ref.stat_calls,
+      oidCalculations: out.ref.oid_calculations,
+    );
   });
 }
 
@@ -144,4 +169,19 @@ Pointer<git_diff_perfdata> listPerfdata(Pointer<git_status_list> statuslist) {
 ///
 /// This will free all the status entries in the list.
 void listFree(Pointer<git_status_list> statuslist) =>
-    libgit2.git_status_list_free(statuslist);
+    libgit2Runtime.bindings.git_status_list_free(statuslist);
+
+/// Status list performance counters.
+class StatusPerfData {
+  /// Creates status list performance counters.
+  const StatusPerfData({
+    required this.statCalls,
+    required this.oidCalculations,
+  });
+
+  /// Number of stat calls performed.
+  final int statCalls;
+
+  /// Number of object ID calculations performed.
+  final int oidCalculations;
+}

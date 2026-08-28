@@ -21,7 +21,8 @@ class Note extends Equatable {
   ///
   /// Note: For internal use. Use [Note.lookup] instead.
   @internal
-  Note(this._notePointer, this._annotatedOidPointer) {
+  Note(this._notePointer, Pointer<git_oid> annotatedOidPointer)
+    : _annotatedOid = Oid(annotatedOidPointer) {
     _finalizer.attach(this, _notePointer, detach: this);
   }
 
@@ -46,15 +47,15 @@ class Note extends Equatable {
       oidPointer: annotatedOid.pointer,
       notesRef: notesRef,
     );
-    _annotatedOidPointer = annotatedOid.pointer;
+    _annotatedOid = Oid.fromBorrowed(annotatedOid.pointer);
     _finalizer.attach(this, _notePointer, detach: this);
   }
 
   /// Pointer to memory address for allocated note object.
   late final Pointer<git_note> _notePointer;
 
-  /// Pointer to memory address for allocated annotatedOid object.
-  late final Pointer<git_oid> _annotatedOidPointer;
+  /// Owned copy of the annotated object's OID.
+  late final Oid _annotatedOid;
 
   /// Creates a note for an [annotatedOid].
   ///
@@ -152,7 +153,7 @@ class Note extends Equatable {
   }
 
   /// The [Oid] of this note object.
-  Oid get oid => Oid(bindings.id(_notePointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_notePointer));
 
   /// The message content of this note.
   String get message => bindings.message(_notePointer);
@@ -164,13 +165,14 @@ class Note extends Equatable {
   Signature get committer => Signature(bindings.committer(_notePointer));
 
   /// The [Oid] of the git object being annotated by this note.
-  Oid get annotatedOid => Oid(_annotatedOidPointer);
+  Oid get annotatedOid => Oid.fromBorrowed(_annotatedOid.pointer);
 
   /// Releases memory allocated for note object.
   ///
   /// This method should be called when the note is no longer needed to prevent memory leaks.
   void free() {
     bindings.free(_notePointer);
+    _annotatedOid.free();
     _finalizer.detach(this);
   }
 

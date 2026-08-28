@@ -22,7 +22,7 @@ Pointer<git_repository> open(String path) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_repository_open(out, pathC);
+    final error = libgit2Runtime.bindings.git_repository_open(out, pathC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -39,7 +39,7 @@ Pointer<git_repository> openExt({
     final out = arena<Pointer<git_repository>>();
     final pathC = path?.toChar(arena) ?? nullptr;
     final ceilingDirsC = ceilingDirs?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_repository_open_ext(
+    final error = libgit2Runtime.bindings.git_repository_open_ext(
       out,
       pathC,
       flags,
@@ -56,7 +56,7 @@ Pointer<git_repository> openBare(String path) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_repository_open_bare(out, pathC);
+    final error = libgit2Runtime.bindings.git_repository_open_bare(out, pathC);
 
     checkErrorAndThrow(error);
     return out.value;
@@ -68,7 +68,11 @@ Pointer<git_repository> initBasic({required String path, required bool bare}) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_repository_init(out, pathC, bare ? 1 : 0);
+    final error = libgit2Runtime.bindings.git_repository_init(
+      out,
+      pathC,
+      bare ? 1 : 0,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -91,7 +95,7 @@ String discover({required String startPath, String? ceilingDirs}) {
     final startPathC = startPath.toChar(arena);
     final ceilingDirsC = ceilingDirs?.toChar(arena) ?? nullptr;
 
-    final error = libgit2.git_repository_discover(
+    final error = libgit2Runtime.bindings.git_repository_discover(
       out,
       startPathC,
       0,
@@ -101,7 +105,7 @@ String discover({required String startPath, String? ceilingDirs}) {
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -140,9 +144,11 @@ Pointer<git_repository> init({
     final originUrlC = originUrl?.toChar(arena) ?? nullptr;
     final opts = arena<git_repository_init_options>();
 
-    libgit2.git_repository_init_options_init(
-      opts,
-      GIT_REPOSITORY_INIT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_repository_init_options_init(
+        opts,
+        GIT_REPOSITORY_INIT_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.flags = flags;
@@ -153,7 +159,11 @@ Pointer<git_repository> init({
     opts.ref.initial_head = initialHeadC;
     opts.ref.origin_url = originUrlC;
 
-    final error = libgit2.git_repository_init_ext(out, pathC, opts);
+    final error = libgit2Runtime.bindings.git_repository_init_ext(
+      out,
+      pathC,
+      opts,
+    );
 
     checkErrorAndThrow(error);
     return out.value;
@@ -188,41 +198,59 @@ Pointer<git_repository> clone({
     final checkoutBranchC = checkoutBranch?.toChar(arena) ?? nullptr;
 
     final cloneOptions = arena<git_clone_options>();
-    libgit2.git_clone_options_init(cloneOptions, GIT_CLONE_OPTIONS_VERSION);
-
-    final fetchOptions = arena<git_fetch_options>();
-    libgit2.git_fetch_options_init(fetchOptions, GIT_FETCH_OPTIONS_VERSION);
-
-    RemoteCallbacks.plug(
-      callbacksOptions: fetchOptions.ref.callbacks,
-      callbacks: callbacks,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_clone_options_init(
+        cloneOptions,
+        GIT_CLONE_OPTIONS_VERSION,
+      ),
     );
 
-    const except = -1;
+    final fetchOptions = arena<git_fetch_options>();
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_fetch_options_init(
+        fetchOptions,
+        GIT_FETCH_OPTIONS_VERSION,
+      ),
+    );
 
-    git_remote_create_cb remoteCb = nullptr;
-    if (remoteCallback != null) {
-      RemoteCallbacks.remoteCbData = remoteCallback;
-      remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
-    }
+    return RemoteCallbacks.withCallbackState<Pointer<git_repository>>(
+      callbacksOptions: fetchOptions.ref.callbacks,
+      callbacks: callbacks,
+      operation: () {
+        const except = -1;
 
-    git_repository_create_cb repositoryCb = nullptr;
-    if (repositoryCallback != null) {
-      RemoteCallbacks.repositoryCbData = repositoryCallback;
-      repositoryCb = Pointer.fromFunction(RemoteCallbacks.repositoryCb, except);
-    }
+        git_remote_create_cb remoteCb = nullptr;
+        if (remoteCallback != null) {
+          RemoteCallbacks.remoteCbData = remoteCallback;
+          remoteCb = Pointer.fromFunction(RemoteCallbacks.remoteCb, except);
+        }
 
-    cloneOptions.ref.bare = bare ? 1 : 0;
-    cloneOptions.ref.remote_cb = remoteCb;
-    cloneOptions.ref.checkout_branch = checkoutBranchC;
-    cloneOptions.ref.repository_cb = repositoryCb;
-    cloneOptions.ref.fetch_opts = fetchOptions.ref;
+        git_repository_create_cb repositoryCb = nullptr;
+        if (repositoryCallback != null) {
+          RemoteCallbacks.repositoryCbData = repositoryCallback;
+          repositoryCb = Pointer.fromFunction(
+            RemoteCallbacks.repositoryCb,
+            except,
+          );
+        }
 
-    final error = libgit2.git_clone(out, urlC, localPathC, cloneOptions);
+        cloneOptions.ref.bare = bare ? 1 : 0;
+        cloneOptions.ref.remote_cb = remoteCb;
+        cloneOptions.ref.checkout_branch = checkoutBranchC;
+        cloneOptions.ref.repository_cb = repositoryCb;
+        cloneOptions.ref.fetch_opts = fetchOptions.ref;
 
-    checkErrorAndThrow(error);
-    RemoteCallbacks.reset();
-    return out.value;
+        final error = libgit2Runtime.bindings.git_clone(
+          out,
+          urlC,
+          localPathC,
+          cloneOptions,
+        );
+
+        checkErrorAndThrow(error);
+        return out.value;
+      },
+    );
   });
 }
 
@@ -231,7 +259,7 @@ Pointer<git_repository> clone({
 /// For normal repositories, this is the path to the `.git` directory.
 /// For bare repositories, this is the path to the repository itself.
 String path(Pointer<git_repository> repo) {
-  return libgit2.git_repository_path(repo).toDartString();
+  return libgit2Runtime.bindings.git_repository_path(repo).toDartString();
 }
 
 /// Get the path to the repository's common directory.
@@ -241,14 +269,14 @@ String path(Pointer<git_repository> repo) {
 /// - For bare repositories: the repository root
 /// - For worktrees: the parent repository's `.git` directory
 String commonDir(Pointer<git_repository> repo) =>
-    libgit2.git_repository_commondir(repo).toDartString();
+    libgit2Runtime.bindings.git_repository_commondir(repo).toDartString();
 
 /// Get the repository's current namespace.
 ///
 /// The namespace affects all reference operations. If no namespace is set or
 /// the namespace is not valid UTF-8, returns an empty string.
 String getNamespace(Pointer<git_repository> repo) {
-  final result = libgit2.git_repository_get_namespace(repo);
+  final result = libgit2Runtime.bindings.git_repository_get_namespace(repo);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -265,7 +293,10 @@ void setNamespace({
 }) {
   using((arena) {
     final namespaceC = namespace?.toChar(arena) ?? nullptr;
-    libgit2.git_repository_set_namespace(repoPointer, namespaceC);
+    libgit2Runtime.bindings.git_repository_set_namespace(
+      repoPointer,
+      namespaceC,
+    );
   });
 }
 
@@ -274,7 +305,7 @@ void setNamespace({
 /// A bare repository has no working directory and is typically used as a
 /// central repository for collaboration.
 bool isBare(Pointer<git_repository> repo) =>
-    libgit2.git_repository_is_bare(repo) == 1;
+    libgit2Runtime.bindings.git_repository_is_bare(repo) == 1;
 
 /// Check if the repository is empty.
 ///
@@ -283,7 +314,7 @@ bool isBare(Pointer<git_repository> repo) =>
 ///
 /// Throws a [LibGit2Error] if the repository is corrupted.
 bool isEmpty(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_is_empty(repo);
+  final error = libgit2Runtime.bindings.git_repository_is_empty(repo);
   checkErrorAndThrow(error);
   return error == 1;
 }
@@ -297,7 +328,7 @@ bool isEmpty(Pointer<git_repository> repo) {
 Pointer<git_reference> head(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
-    final error = libgit2.git_repository_head(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_head(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -311,7 +342,7 @@ Pointer<git_reference> headForWorktree({
   return using((arena) {
     final out = arena<Pointer<git_reference>>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_repository_head_for_worktree(
+    final error = libgit2Runtime.bindings.git_repository_head_for_worktree(
       out,
       repoPointer,
       nameC,
@@ -327,7 +358,7 @@ Pointer<git_reference> headForWorktree({
 ///
 /// Throws a [LibGit2Error] if error occured.
 bool isHeadDetached(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_head_detached(repo);
+  final error = libgit2Runtime.bindings.git_repository_head_detached(repo);
   checkErrorAndThrow(error);
   return error == 1;
 }
@@ -339,10 +370,8 @@ bool isHeadDetachedForWorktree({
 }) {
   return using((arena) {
     final nameC = name.toChar(arena);
-    final error = libgit2.git_repository_head_detached_for_worktree(
-      repoPointer,
-      nameC,
-    );
+    final error = libgit2Runtime.bindings
+        .git_repository_head_detached_for_worktree(repoPointer, nameC);
 
     checkErrorAndThrow(error);
     return error == 1;
@@ -353,7 +382,7 @@ bool isHeadDetachedForWorktree({
 ///
 /// For bare repositories, this returns an empty string.
 String workdir(Pointer<git_repository> repo) {
-  final result = libgit2.git_repository_workdir(repo);
+  final result = libgit2Runtime.bindings.git_repository_workdir(repo);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -374,7 +403,7 @@ void setWorkdir({
 }) {
   using((arena) {
     final workdirC = workdir.toChar(arena);
-    final error = libgit2.git_repository_set_workdir(
+    final error = libgit2Runtime.bindings.git_repository_set_workdir(
       repoPointer,
       workdirC,
       updateGitlink ? 1 : 0,
@@ -393,7 +422,7 @@ void setWorkdir({
 Pointer<git_config> config(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_repository_config(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_config(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -408,7 +437,7 @@ Pointer<git_config> config(Pointer<git_repository> repo) {
 Pointer<git_index> index(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_index>>();
-    final error = libgit2.git_repository_index(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_index(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -423,7 +452,7 @@ Pointer<git_index> index(Pointer<git_repository> repo) {
 Pointer<git_odb> odb(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_odb>>();
-    final error = libgit2.git_repository_odb(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_odb(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -434,7 +463,10 @@ void setConfig({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_config> configPointer,
 }) {
-  final error = libgit2.git_repository_set_config(repoPointer, configPointer);
+  final error = libgit2Runtime.bindings.git_repository_set_config(
+    repoPointer,
+    configPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -443,7 +475,10 @@ void setOdb({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_odb> odbPointer,
 }) {
-  final error = libgit2.git_repository_set_odb(repoPointer, odbPointer);
+  final error = libgit2Runtime.bindings.git_repository_set_odb(
+    repoPointer,
+    odbPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -452,7 +487,10 @@ void setIndex({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_index> indexPointer,
 }) {
-  final error = libgit2.git_repository_set_index(repoPointer, indexPointer);
+  final error = libgit2Runtime.bindings.git_repository_set_index(
+    repoPointer,
+    indexPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -465,7 +503,7 @@ void setIndex({
 Pointer<git_refdb> refdb(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_refdb>>();
-    final error = libgit2.git_repository_refdb(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_refdb(out, repo);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -476,7 +514,10 @@ void setRefdb({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_refdb> refdbPointer,
 }) {
-  final error = libgit2.git_repository_set_refdb(repoPointer, refdbPointer);
+  final error = libgit2Runtime.bindings.git_repository_set_refdb(
+    repoPointer,
+    refdbPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -484,7 +525,10 @@ void setRefdb({
 Pointer<git_repository> wrapOdb(Pointer<git_odb> odbPointer) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
-    final error = libgit2.git_repository_wrap_odb(out, odbPointer);
+    final error = libgit2Runtime.bindings.git_repository_wrap_odb(
+      out,
+      odbPointer,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -497,23 +541,31 @@ String itemPath({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_repository_item_path(out, repoPointer, item);
+    final error = libgit2Runtime.bindings.git_repository_item_path(
+      out,
+      repoPointer,
+      item,
+    );
     checkErrorAndThrow(error);
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
 
 /// Cache all submodule information for the repository.
 void submoduleCacheAll(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_submodule_cache_all(repo);
+  final error = libgit2Runtime.bindings.git_repository_submodule_cache_all(
+    repo,
+  );
   checkErrorAndThrow(error);
 }
 
 /// Clear the repository's submodule cache.
 void submoduleCacheClear(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_submodule_cache_clear(repo);
+  final error = libgit2Runtime.bindings.git_repository_submodule_cache_clear(
+    repo,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -522,7 +574,7 @@ void reinitFilesystem({
   required Pointer<git_repository> repoPointer,
   required bool recurseSubmodules,
 }) {
-  final error = libgit2.git_repository_reinit_filesystem(
+  final error = libgit2Runtime.bindings.git_repository_reinit_filesystem(
     repoPointer,
     recurseSubmodules ? 1 : 0,
   );
@@ -531,7 +583,7 @@ void reinitFilesystem({
 
 /// Toggle the repository's bare status.
 void setBare({required Pointer<git_repository> repoPointer}) {
-  final error = libgit2.git_repository_set_bare(repoPointer);
+  final error = libgit2Runtime.bindings.git_repository_set_bare(repoPointer);
   checkErrorAndThrow(error);
 }
 
@@ -540,7 +592,7 @@ void setBare({required Pointer<git_repository> repoPointer}) {
 /// This will free the repository and all associated resources. The repository
 /// must not be used after this call.
 void free(Pointer<git_repository> repo) {
-  libgit2.git_repository_free(repo);
+  libgit2Runtime.bindings.git_repository_free(repo);
 }
 
 /// Set the repository's HEAD to point to a reference.
@@ -554,7 +606,10 @@ void setHead({
 }) {
   using((arena) {
     final refnameC = refname.toChar(arena);
-    final error = libgit2.git_repository_set_head(repoPointer, refnameC);
+    final error = libgit2Runtime.bindings.git_repository_set_head(
+      repoPointer,
+      refnameC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -568,7 +623,7 @@ void setHeadDetached({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_oid> commitishPointer,
 }) {
-  final error = libgit2.git_repository_set_head_detached(
+  final error = libgit2Runtime.bindings.git_repository_set_head_detached(
     repoPointer,
     commitishPointer,
   );
@@ -580,16 +635,17 @@ void setHeadDetachedFromAnnotated({
   required Pointer<git_repository> repoPointer,
   required Pointer<git_annotated_commit> commitPointer,
 }) {
-  final error = libgit2.git_repository_set_head_detached_from_annotated(
-    repoPointer,
-    commitPointer,
-  );
+  final error = libgit2Runtime.bindings
+      .git_repository_set_head_detached_from_annotated(
+        repoPointer,
+        commitPointer,
+      );
   checkErrorAndThrow(error);
 }
 
 /// Detach HEAD from its current branch.
 void detachHead(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_detach_head(repo);
+  final error = libgit2Runtime.bindings.git_repository_detach_head(repo);
   checkErrorAndThrow(error);
 }
 
@@ -599,7 +655,7 @@ void detachHead(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 bool isBranchUnborn(Pointer<git_repository> repo) {
-  final result = libgit2.git_repository_head_unborn(repo);
+  final result = libgit2Runtime.bindings.git_repository_head_unborn(repo);
   checkErrorAndThrow(result);
   return result == 1;
 }
@@ -618,7 +674,11 @@ void setIdentity({
   using((arena) {
     final nameC = name?.toChar(arena) ?? nullptr;
     final emailC = email?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_repository_set_ident(repoPointer, nameC, emailC);
+    final error = libgit2Runtime.bindings.git_repository_set_ident(
+      repoPointer,
+      nameC,
+      emailC,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -629,30 +689,31 @@ void setIdentity({
 List<String> identity(Pointer<git_repository> repo) {
   final name = calloc<Pointer<Char>>();
   final email = calloc<Pointer<Char>>();
-  libgit2.git_repository_ident(name, email, repo);
-
-  final result = <String>[];
-  if (name.value != nullptr) {
-    result.add(name.value.toDartString());
+  try {
+    final error = libgit2Runtime.bindings.git_repository_ident(
+      name,
+      email,
+      repo,
+    );
+    checkErrorAndThrow(error);
+    final result = <String>[];
+    if (name.value != nullptr) result.add(name.value.toDartString());
+    if (email.value != nullptr) result.add(email.value.toDartString());
+    return result;
+  } finally {
+    calloc.free(name);
+    calloc.free(email);
   }
-  if (email.value != nullptr) {
-    result.add(email.value.toDartString());
-  }
-
-  calloc.free(name);
-  calloc.free(email);
-
-  return result;
 }
 
 /// Check if the repository was a shallow clone.
 bool isShallow(Pointer<git_repository> repo) {
-  return libgit2.git_repository_is_shallow(repo) == 1;
+  return libgit2Runtime.bindings.git_repository_is_shallow(repo) == 1;
 }
 
 /// Object ID type used by this repository.
 git_oid_t oidType(Pointer<git_repository> repo) {
-  return libgit2.git_repository_oid_type(repo);
+  return libgit2Runtime.bindings.git_repository_oid_type(repo);
 }
 
 /// Calculate the object id for a repository file.
@@ -666,7 +727,7 @@ Pointer<git_oid> hashFile({
     final out = calloc<git_oid>();
     final pathC = path.toChar(arena);
     final asPathC = asPath?.toChar(arena) ?? nullptr;
-    final error = libgit2.git_repository_hashfile(
+    final error = libgit2Runtime.bindings.git_repository_hashfile(
       out,
       repoPointer,
       pathC,
@@ -681,7 +742,7 @@ Pointer<git_oid> hashFile({
 
 /// Check if the repository is a linked work tree.
 bool isWorktree(Pointer<git_repository> repo) {
-  return libgit2.git_repository_is_worktree(repo) == 1;
+  return libgit2Runtime.bindings.git_repository_is_worktree(repo) == 1;
 }
 
 /// Get Git's prepared message.
@@ -693,10 +754,10 @@ bool isWorktree(Pointer<git_repository> repo) {
 String message(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_repository_message(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_message(out, repo);
     checkErrorAndThrow(error);
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -707,7 +768,7 @@ String message(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void removeMessage(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_message_remove(repo);
+  final error = libgit2Runtime.bindings.git_repository_message_remove(repo);
   checkErrorAndThrow(error);
 }
 
@@ -715,7 +776,7 @@ void removeMessage(Pointer<git_repository> repo) {
 ///
 /// Returns the current state of the repository (e.g., merge, revert, etc.).
 int state(Pointer<git_repository> repo) {
-  return libgit2.git_repository_state(repo);
+  return libgit2Runtime.bindings.git_repository_state(repo);
 }
 
 /// Clean up the repository's state.
@@ -725,7 +786,7 @@ int state(Pointer<git_repository> repo) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void stateCleanup(Pointer<git_repository> repo) {
-  final error = libgit2.git_repository_state_cleanup(repo);
+  final error = libgit2Runtime.bindings.git_repository_state_cleanup(repo);
   checkErrorAndThrow(error);
 }
 
@@ -766,7 +827,11 @@ List<Map<String, Object>> fetchHeadEntries(Pointer<git_repository> repo) {
   >(_fetchHeadCb, 0);
 
   _fetchHeadEntries.clear();
-  final error = libgit2.git_repository_fetchhead_foreach(repo, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_repository_fetchhead_foreach(
+    repo,
+    cb,
+    nullptr,
+  );
   if (error == git_error_code.GIT_ENOTFOUND.value) {
     return <Map<String, Object>>[];
   }
@@ -786,7 +851,11 @@ List<String> mergeHeadOids(Pointer<git_repository> repo) {
       );
 
   _mergeHeadOids.clear();
-  final error = libgit2.git_repository_mergehead_foreach(repo, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_repository_mergehead_foreach(
+    repo,
+    cb,
+    nullptr,
+  );
   if (error == git_error_code.GIT_ENOTFOUND.value) {
     return <String>[];
   }
@@ -806,7 +875,10 @@ List<String> mergeHeadOids(Pointer<git_repository> repo) {
 Pointer<git_config> configSnapshot(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<Pointer<git_config>>();
-    final error = libgit2.git_repository_config_snapshot(out, repo);
+    final error = libgit2Runtime.bindings.git_repository_config_snapshot(
+      out,
+      repo,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -819,7 +891,7 @@ void prune({
   required Pointer<git_remote> remotePointer,
   required Pointer<git_remote_callbacks> flags,
 }) {
-  final error = libgit2.git_remote_prune(remotePointer, flags);
+  final error = libgit2Runtime.bindings.git_remote_prune(remotePointer, flags);
   checkErrorAndThrow(error);
 }
 
@@ -827,7 +899,7 @@ void prune({
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void pruneRefs({required Pointer<git_remote> remotePointer}) {
-  final error = libgit2.git_remote_prune_refs(remotePointer);
+  final error = libgit2Runtime.bindings.git_remote_prune_refs(remotePointer);
   checkErrorAndThrow(error);
 }
 
@@ -835,7 +907,7 @@ void pruneRefs({required Pointer<git_remote> remotePointer}) {
 ///
 /// Throws a [LibGit2Error] if error occurred.
 void stop(Pointer<git_remote> remote) {
-  final error = libgit2.git_remote_stop(remote);
+  final error = libgit2Runtime.bindings.git_remote_stop(remote);
   checkErrorAndThrow(error);
 }
 
@@ -843,7 +915,7 @@ void stop(Pointer<git_remote> remote) {
 ///
 /// Returns the name of the remote or an empty string if the remote is anonymous.
 String name(Pointer<git_remote> remote) {
-  final result = libgit2.git_remote_name(remote);
+  final result = libgit2Runtime.bindings.git_remote_name(remote);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -851,26 +923,26 @@ String name(Pointer<git_remote> remote) {
 ///
 /// Returns the URL of the remote repository.
 String url(Pointer<git_remote> remote) =>
-    libgit2.git_remote_url(remote).toDartString();
+    libgit2Runtime.bindings.git_remote_url(remote).toDartString();
 
 /// Get the remote's url for pushing.
 ///
 /// Returns empty string if no special url for pushing is set.
 String pushUrl(Pointer<git_remote> remote) {
-  final result = libgit2.git_remote_pushurl(remote);
+  final result = libgit2Runtime.bindings.git_remote_pushurl(remote);
   return result == nullptr ? '' : result.toDartString();
 }
 
 /// Get the number of refspecs for a remote.
 int refspecCount(Pointer<git_remote> remote) =>
-    libgit2.git_remote_refspec_count(remote);
+    libgit2Runtime.bindings.git_remote_refspec_count(remote);
 
 /// Get a refspec from the remote at provided position.
 Pointer<git_refspec> getRefspec({
   required Pointer<git_remote> remotePointer,
   required int position,
-}) => libgit2.git_remote_get_refspec(remotePointer, position);
+}) => libgit2Runtime.bindings.git_remote_get_refspec(remotePointer, position);
 
 /// Get the statistics structure that is filled in by the fetch operation.
 Pointer<git_indexer_progress> stats(Pointer<git_remote> remote) =>
-    libgit2.git_remote_stats(remote);
+    libgit2Runtime.bindings.git_remote_stats(remote);

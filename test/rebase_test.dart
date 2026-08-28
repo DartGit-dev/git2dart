@@ -69,6 +69,7 @@ void main() {
 
       rebase.finish();
       expect(repo.index['.gitignore'], isA<IndexEntry>());
+      expect(() => rebase.finish(), throwsA(isA<LibGit2Error>()));
     });
 
     test('performs rebase without branch provided', () {

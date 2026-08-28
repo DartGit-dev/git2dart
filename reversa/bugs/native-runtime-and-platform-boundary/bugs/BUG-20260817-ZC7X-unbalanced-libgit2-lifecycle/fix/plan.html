@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fix Plan | BUG-20260817-ZC7X</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,Segoe UI,sans-serif;background:#0b1020;color:#eaf0ff}
+    *{box-sizing:border-box}body{margin:0;padding:28px;background:radial-gradient(circle at top,#14203a,#0b1020 58%);line-height:1.55}
+    main{max-width:1180px;margin:auto}.meta{color:#9daccc;margin:8px 0 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+    .card,.panel{background:#121b2d;border:1px solid #293653;border-radius:14px;padding:16px}.card strong{font-size:1.35rem;display:block}.section{margin-top:20px}
+    .confirmed{color:#80e6b4}.high{color:#ffb17a}.medium{color:#ffd985}.muted{color:#9daccc}.superseded{border-color:#ff9f6f;background:#30221b}.tag{display:inline-block;padding:3px 9px;border-radius:999px;background:#1b2b47;color:#bad8ff;font-size:.82rem;margin:2px}
+    a{color:#8fc4ff}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #293653;padding:10px 8px;vertical-align:top}th{color:#afbdd8}
+    h1,h2,h3{margin-top:0}.flow{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}.node{display:block;text-decoration:none;background:#16223a;border:1px solid #38517a;border-radius:12px;padding:16px;color:#eef4ff;text-align:center}.node.bug{border:2px solid #ff9f6f;background:#30221b}.arrow{color:#8092b6;font-size:1.5rem}.notes{margin:0;padding-left:20px}
+    code{color:#c9ddff;background:#0d1527;padding:2px 5px;border-radius:5px}.footer{margin-top:24px;color:#9daccc;font-size:.9rem}
+    details{margin-top:8px}summary{cursor:pointer;color:#bad8ff}.files{font-size:.9rem;overflow-wrap:anywhere}
+    @media(max-width:760px){body{padding:14px}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Consumer Integration Correction Plan</h1>
+  <p class="meta"><a href="../bug.md">Bug #1, BUG-20260817-ZC7X</a> | native-runtime-and-platform-boundary | 2026-08-23</p>
+
+  <section class="panel">
+    <h2>Active checkpoint</h2>
+    <p>The prerequisite companion lifecycle contract now exists at
+    <code>git2dart_binaries</code> commit <code>ea87cf2</code>. This plan covers
+    only the separately gated <code>git2dart</code> consumer migration. The plan
+    was approved on 2026-08-23 with <code>APPROVE PLAN ZC7X CONSUMER</code>.
+    Gate 1 is RED and Gate 2 was approved with
+    <code>APPROVE GATE 2 ZC7X</code>. CHG-003 through CHG-006 are applied and
+    GREEN within the recorded Windows proof boundary. The mandatory
+    specification verdict <code>spec-correta</code> was selected on 2026-08-23.
+    No specification or addendum changed. Package delivery is now pending;
+    commit, publication, merge, and release remain unapproved.</p>
+    <p><a href="../evidence/gate-2-green.md">Gate 2 GREEN evidence and proof boundary</a></p>
+  </section>
+
+  <div class="cards">
+    <div class="card"><span class="muted">Severity</span><strong class="high">High</strong><span>P1</span></div>
+    <div class="card"><span class="muted">Root cause</span><strong class="confirmed">Confirmed</strong><span>66 unowned init increments</span></div>
+    <div class="card"><span class="muted">Prerequisite</span><strong class="confirmed">Available</strong><span>Companion ea87cf2</span></div>
+    <div class="card"><span class="muted">Current phase</span><strong>Delivering</strong><span>Package closure unsatisfied</span></div>
+  </div>
+
+  <section class="panel section">
+    <h2>Defect and confirmed cause</h2>
+    <p><code>git2dart</code> calls reference-counted
+    <code>git_libgit2_init()</code> 66 times across nine source files and has no
+    balancing shutdown owner. Runtime reproduction observed two
+    <code>Libgit2.version</code> calls grow the native count from 2 to 3 to 4.
+    The direct companion checkout now removes the eager
+    <code>libgit2</code>/<code>libgit2Opts</code> globals, so the unmodified
+    consumer also fails to compile before lifecycle tests can run.</p>
+    <p><span class="tag">confirmed cause</span><span class="tag">deterministic 1/1</span><span class="tag">72 consumer files</span><span class="tag">31 owner files</span></p>
+    <p>Evidence: <a href="../evidence/reproduction.md">runtime reproduction</a>,
+    <a href="../evidence/root-cause.md">root cause</a>,
+    <a href="../evidence/static-analysis.md">static analysis</a>, and
+    <a href="../evidence/companion-lifecycle-contract.md">available companion contract</a>.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Chosen consumer strategy</h2>
+    <p><strong>Consume the companion-owned runtime; do not recreate it.</strong>
+    Route generated calls through <code>libgit2Runtime.bindings</code> and
+    options through <code>libgit2Runtime.options</code>. Delete all 66 direct
+    initialization increments. Protect ownerless synchronous operations with
+    <code>withCall</code>, and bind every independently usable native wrapper to
+    a <code>Libgit2OwnerLease</code> with construction rollback, exact-once
+    cleanup, finalizer fallback, and explicit transfer where native ownership
+    moves.</p>
+    <p>Add a documented high-level <code>Libgit2.shutdown()</code> delegation
+    only after the ownership inventory proves that live roots and derived
+    owners block terminal shutdown. This is the consumer half of the previously
+    selected Candidate A strategy; loading, isolate state, and the native
+    init/shutdown pair remain entirely in <code>git2dart_binaries</code>.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Proposed consumer Correction Change Set</h2>
+    <table>
+      <thead><tr><th>CHG</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>CHG-002</td><td>Test</td>
+          <td><code>test/libgit2_lifecycle_source_test.dart</code> (new) and <code>test/libgit2_lifecycle_test.dart</code> (new)</td>
+          <td>Replace the superseded local-runtime test with the companion consumer contract: compile compatibility, stable count, guarded shutdown, owner lifetime, rollback, transfer, terminal behavior, and isolate composition.</td>
+        </tr>
+        <tr>
+          <td>CHG-003</td><td>Code / API migration</td>
+          <td>58 diff-touched <code>lib/</code> and <code>test/</code> files containing the active <code>libgit2</code>/<code>libgit2Opts</code> consumer surface; especially the files with 66 direct init calls</td>
+          <td>Use <code>libgit2Runtime.bindings/options/withCall</code>, remove every direct init increment, and restore compilation against the direct companion checkout without duplicating its loader.</td>
+        </tr>
+        <tr>
+          <td>CHG-004</td><td>Code / ownership</td>
+          <td>
+            The Gate 1-proven <code>Repository</code> root and independently usable <code>Commit</code> child, plus one shared owner adapter. The wider 31-file inventory remains a recorded follow-up boundary.
+            <details><summary>Current owner inventory</summary><p class="files">
+              <code>annotated.dart</code>, <code>attr_options.dart</code>, <code>blame.dart</code>,
+              <code>blob.dart</code>, <code>branch.dart</code>, <code>commit.dart</code>,
+              <code>commit_graph.dart</code>, <code>config.dart</code>, <code>diff.dart</code>,
+              <code>filter.dart</code>, <code>index.dart</code>, <code>mailmap.dart</code>,
+              <code>note.dart</code>, <code>odb.dart</code>, <code>oid.dart</code>,
+              <code>packbuilder.dart</code>, <code>patch.dart</code>, <code>pathspec.dart</code>,
+              <code>rebase.dart</code>, <code>reference.dart</code>, <code>reflog.dart</code>,
+              <code>remote.dart</code>, <code>repository.dart</code>, <code>revwalk.dart</code>,
+              <code>signature.dart</code>, <code>submodule.dart</code>, <code>tag.dart</code>,
+              <code>tree.dart</code>, <code>treebuilder.dart</code>, <code>worktree.dart</code>,
+              and <code>writestream.dart</code>.
+            </p></details>
+          </td>
+          <td>Bind exact-once leases to the proven root and derived owner paths, with destruction-before-pin-release ordering; do not claim coverage for the remaining inventory.</td>
+        </tr>
+        <tr>
+          <td>CHG-005</td><td>Public API / documentation</td>
+          <td><code>lib/src/libgit2.dart</code>, <code>README.md</code>, and <code>doc/types/libgit2.md</code></td>
+          <td>Expose and document guarded terminal shutdown, explicit owner release requirements, repeated-shutdown behavior, and post-shutdown rejection.</td>
+        </tr>
+        <tr>
+          <td>CHG-006</td><td>Dependency / delivery contract</td>
+          <td><code>pubspec.yaml</code>, <code>pubspec.lock</code>, and <code>tool/api_diff/git2dart_binaries.baseline</code> only after a companion version containing <code>ea87cf2</code> is assigned</td>
+          <td>Prevent migrated source from claiming compatibility with hosted 1.12.1, which lacks the managed runtime API. The local override remains development evidence, not the published dependency contract.</td>
+        </tr>
+        <tr>
+          <td>CHG-007</td><td>Traceability</td>
+          <td><a href="../bug.md">bug.md</a>, evidence, and approved diff records</td>
+          <td>Record the new RED-to-GREEN consumer proof, spec verdict, platform limits, and package delivery state without rewriting original specifications.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Planned tests</h2>
+    <table>
+      <thead><tr><th>Intent</th><th>What it proves</th><th>RED boundary</th><th>GREEN requirement</th></tr></thead>
+      <tbody>
+        <tr><td>Source and compile contract</td><td>No legacy globals or direct production init calls remain; the public package compiles against the direct checkout.</td><td>Current source has 1,096 legacy occurrences, 66 init calls, and package compilation errors.</td><td>Zero legacy consumer references and zero direct production init calls outside controlled probes.</td></tr>
+        <tr><td>Stable native count</td><td>Repeated version, feature, and global-option calls reuse one companion-owned isolate lease.</td><td>Historical count grows per public call.</td><td>First entry adds at most one lease; later entries do not grow it; shutdown removes it once.</td></tr>
+        <tr><td>Live root and derived owners</td><td>Repository and independently usable child wrappers reject shutdown until explicitly released.</td><td>No owner registry protects native pointers.</td><td>Rejected shutdown leaves count and wrappers usable; release then permits shutdown.</td></tr>
+        <tr><td>Rollback, cleanup, and transfer</td><td>Failed construction, duplicate release, finalizer fallback, destructor failure, and write-stream transfer preserve exact accounting.</td><td>No shared lifecycle lease exists.</td><td>Only confirmed destruction or valid transfer completes the owner pin.</td></tr>
+        <tr><td>Terminal and isolate behavior</td><td>Shutdown is idempotent, post-shutdown entry is rejected, and one isolate cannot release another isolate's lease.</td><td>No public shutdown boundary exists.</td><td>Each participating isolate contributes and releases at most one native increment.</td></tr>
+        <tr><td>Repository validation</td><td>Formatting, analyzer, focused suites, full Flutter tests, and available platform checks remain green.</td><td>Analyzer currently reports 977 issues with the direct checkout.</td><td>Zero analyzer issues and all available tests pass; unavailable platform proof remains explicit.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Risk, exclusions, and delivery boundary</h2>
+    <ul class="notes">
+      <li>Risk is high: lifecycle safety depends on complete classification of 31 owner files and 72 legacy consumer files.</li>
+      <li>The direct path override is already active for development, but it is not a release dependency and will not be committed by this plan unless separately approved.</li>
+      <li>The companion checkout still declares version 1.12.1 while its branch is named 1.12.2; manifest/baseline changes wait for an actual compatible version contract.</li>
+      <li>No native loader, generated binding, ABI, binary artifact, or companion source is changed in this consumer workflow.</li>
+      <li>No worktree will be created or used. The pre-existing external worktree is outside this execution path.</li>
+      <li>A6QS, global-option result handling, initializer-result defects, and the extensions-array leak remain separate bugs.</li>
+      <li>macOS, Linux, iOS, Android, CI, merge, tag, release, and publication evidence are outside the local Windows proof unless later observed and authorized.</li>
+      <li>No source file changes before an approved Gate 1 diff; no correction source changes before a separate approved Gate 2 diff.</li>
+    </ul>
+  </section>
+
+  <section class="panel section">
+    <h2>Bug mini-graph</h2>
+    <div class="flow">
+      <a class="node" href="../../BUG-20260817-3PON-undisposed-extensions-array/bug.md"><strong>BUG #4</strong><br><span class="muted">extensions array leak</span></a>
+      <span class="arrow">↔</span>
+      <a class="node bug" href="../bug.md"><strong>BUG #1</strong><br>ZC7X lifecycle consumer</a>
+    </div>
+    <p class="muted">The only registered bug edge remains proposed and does not merge correction scopes. The companion contract is an external prerequisite recorded as evidence, not a confirmed bug-to-bug causal edge.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Relationship matrix</h2>
+    <table>
+      <thead><tr><th>Origin</th><th>Type</th><th>Destination</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>related-to</td><td><a href="../../BUG-20260817-3PON-undisposed-extensions-array/bug.md">BUG-20260817-3PON</a></td><td>proposed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>evidenced-by</td><td><a href="../evidence/reproduction.md">Runtime reproduction</a></td><td>confirmed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>unblocked-by</td><td><a href="../evidence/companion-lifecycle-contract.md">Companion lifecycle contract</a></td><td>confirmed prerequisite</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>constrained-by</td><td><a href="../../../../../sdd/native-runtime-and-platform-boundary/requirements.md">FR-NP-01 and FR-NP-05</a></td><td>spec verdict pending</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>selected-by</td><td><a href="../debate/resposta-final.md">Candidate A debate verdict</a></td><td>confirmed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Selected correction order</h2>
+    <p><strong><a href="../../../../git-objects-and-object-database/bugs/BUG-20260817-A6QS-oid-allocations-unowned/bug.md">A6QS</a> → ZC7X → <a href="../../BUG-20260817-QWMA-unchecked-options-initializers/bug.md">QWMA</a>.</strong> A6QS has completed its code gates and remains in delivery. ZC7X is now the active consumer migration. QWMA remains independent.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Recorded specification verdict</h2>
+    <p>The user selected <strong>spec-correta</strong> on 2026-08-23. Existing
+    FR-NP-01, FR-NP-05, and FL-NP-02 already describe balanced runtime and
+    owner release, so no specification or addendum changed. The next lifecycle
+    step is package delivery: a scoped consumer commit, compatible companion
+    1.12.2 publication, merge, and fixed git2dart package publication.</p>
+  </section>
+
+  <details class="panel section">
+    <summary><strong>Historical superseded git2dart-local plan (approved before the companion boundary was corrected)</strong></summary>
+
+  <section class="panel superseded">
+    <h2>Superseded on 2026-08-22</h2>
+    <p>This approved historical plan must not be implemented in git2dart. Native
+    library loading and the process-level init/shutdown lifecycle belong to
+    git2dart_binaries. Continue as a new gated Reversa feature in that companion
+    repository; git2dart must only consume its public lifecycle API.</p>
+  </section>
+
+  <div class="cards">
+    <div class="card"><span class="muted">Severity</span><strong class="high">High</strong><span>P1</span></div>
+    <div class="card"><span class="muted">Root cause</span><strong class="confirmed">Confirmed</strong><span>Unowned process-global refcount</span></div>
+    <div class="card"><span class="muted">Change risk</span><strong class="high">High</strong><span>66 entries and 31 owner files</span></div>
+    <div class="card"><span class="muted">Control</span><strong>Gated</strong><span>Plan, tests, code, verdict</span></div>
+  </div>
+
+  <section class="panel section">
+    <h2>Defect and root cause</h2>
+    <p>The package calls reference-counted <code>git_libgit2_init()</code> at 66 public entry points and has no <code>git_libgit2_shutdown()</code> path. No isolate, wrapper, call, or application boundary owns the increments, and initialization failures are ignored.</p>
+    <p><span class="tag">confirmed cause</span><span class="tag">deterministic 1/1</span><span class="tag">native count 2 → 3 → 4</span><span class="tag">present since d34661a</span></p>
+    <p>Fresh runtime evidence proves that two <code>Libgit2.version</code> calls each grow the native counter. Evidence: <a href="../evidence/reproduction.md">reproduction capsule</a>, <a href="../evidence/root-cause.md">confirmed root cause</a>, and <a href="../evidence/static-analysis.md">static analysis</a>.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Chosen strategy</h2>
+    <p><strong>Multi-agent debate winner: Candidate A, with selected safeguards from Candidates B and C.</strong> Introduce one checked native lease per Dart isolate, transient logical pins for otherwise ownerless native calls, persistent one-shot owner tokens for independently usable wrappers, and an explicit guarded terminal <code>Libgit2.shutdown()</code>.</p>
+    <p>The strategy was selected because it removes unbounded increments while preventing shutdown during an active call or live native ownership. Cleanup releases its pin only after confirmed destruction or valid transfer; successful shutdown is idempotent and terminal for the isolate so platform/global configuration is never silently lost through transparent reinitialization.</p>
+    <p>Judge record: <a href="../debate/resposta-final.md">debate/resposta-final.md</a>.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Proposed Correction Change Set</h2>
+    <table>
+      <thead><tr><th>CHG</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>CHG-001</td><td>Test</td>
+          <td><a href="../../../../../../test/libgit2_lifecycle_test.dart">test/libgit2_lifecycle_test.dart</a> (new), with focused existing wrapper suites where necessary</td>
+          <td>Lock the native count, initialization failure, active-call and live-owner rejection, one-shot cleanup, transfer, terminal behavior, and multi-isolate contract before implementation.</td>
+        </tr>
+        <tr>
+          <td>CHG-002</td><td>Code and public API</td>
+          <td><a href="../../../../../../lib/src/bindings/runtime.dart">lib/src/bindings/runtime.dart</a> (new) and <a href="../../../../../../lib/src/libgit2.dart">lib/src/libgit2.dart</a></td>
+          <td>Add the isolate-local runtime state machine, checked initialization, transient pins, persistent tokens, explicit <code>shuttingDown</code> transition, and documented guarded terminal <code>Libgit2.shutdown()</code>.</td>
+        </tr>
+        <tr>
+          <td>CHG-003</td><td>Code</td>
+          <td>
+            Route the remaining direct-init files through the manager:
+            <code>config.dart</code>, <code>repository.dart</code>, <code>mailmap.dart</code>,
+            <code>diff.dart</code>, <code>merge.dart</code>, <code>odb.dart</code>,
+            <code>patch.dart</code>, and <code>signature.dart</code>.
+          </td>
+          <td>Replace all 66 unowned increments with the isolate lease and apply transient protection only where no persistent owner already protects the native call.</td>
+        </tr>
+        <tr>
+          <td>CHG-004</td><td>Code and ownership audit</td>
+          <td>
+            Convert every finalizer-backed native owner to the common one-shot cleanup contract.
+            <details><summary>Exact current inventory: 31 files</summary><p class="files">
+              <code>annotated.dart</code>, <code>attr_options.dart</code>, <code>blame.dart</code>,
+              <code>blob.dart</code>, <code>branch.dart</code>, <code>commit_graph.dart</code>,
+              <code>commit.dart</code>, <code>config.dart</code>, <code>diff.dart</code>,
+              <code>filter.dart</code>, <code>index.dart</code>, <code>mailmap.dart</code>,
+              <code>note.dart</code>, <code>odb.dart</code>, <code>oid.dart</code>,
+              <code>packbuilder.dart</code>, <code>patch.dart</code>, <code>pathspec.dart</code>,
+              <code>rebase.dart</code>, <code>reference.dart</code>, <code>reflog.dart</code>,
+              <code>remote.dart</code>, <code>repository.dart</code>, <code>revwalk.dart</code>,
+              <code>signature.dart</code>, <code>submodule.dart</code>, <code>tag.dart</code>,
+              <code>tree.dart</code>, <code>treebuilder.dart</code>, <code>worktree.dart</code>,
+              and <code>writestream.dart</code>, all under <code>lib/src/</code>.
+            </p></details>
+          </td>
+          <td>Classify owned, derived-owned, borrowed/materialized, and transferred values; ensure destructor-before-release ordering, constructor rollback, fail-closed cleanup failure, and transfer without destruction.</td>
+        </tr>
+        <tr>
+          <td>CHG-005</td><td>Traceability</td>
+          <td><a href="../bug.md">bug.md</a>, evidence files, and approved diff records</td>
+          <td>Record Gate 1 red proof, Gate 2 green proof, specification verdict, residual platform evidence, and package delivery state.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Planned tests</h2>
+    <table>
+      <thead><tr><th>Intent</th><th>Proof</th><th>Expected before fix</th><th>Expected after fix</th></tr></thead>
+      <tbody>
+        <tr><td>Deterministic reproduction</td><td>Repeated public queries and a global option contribute exactly one package-owned native increment.</td><td>The count grows once per public call.</td><td>Calls reuse one checked isolate lease; shutdown removes it once.</td></tr>
+        <tr><td>Initialization failure</td><td>An injected negative init result is translated, caches no active state, and allows a later first attempt.</td><td>The return value is ignored.</td><td>The specific native error is surfaced with clean rollback.</td></tr>
+        <tr><td>Transient call guard</td><td>Injected/reentrant shutdown during an ownerless native operation is rejected without changing native state.</td><td>No lifecycle guard exists.</td><td>The temporary logical pin blocks shutdown until <code>finally</code>.</td></tr>
+        <tr><td>Persistent owners</td><td>Representative roots and derived children block shutdown independently; borrowed/materialized values do not create false owners.</td><td>There is no shutdown or owner registry.</td><td>Shutdown fails safely until all actual owners are released.</td></tr>
+        <tr><td>Cleanup and transfer</td><td>Explicit release, fallback finalization, repeated release, constructor rollback, destructor failure, and <code>BlobWriteStream</code> transfer are exactly-once.</td><td>Finalizers own only destructors and cannot protect runtime lifetime.</td><td>Destruction or valid transfer precedes pin release; unconfirmed cleanup remains fail-closed.</td></tr>
+        <tr><td>Terminal and multi-isolate behavior</td><td>Repeated shutdown is harmless, post-shutdown entry fails before native work, and one isolate cannot release another isolate's lease.</td><td>No package lifecycle boundary exists.</td><td>Each participating isolate contributes and releases at most one lease.</td></tr>
+        <tr><td>Platform and full validation</td><td>Android/iOS bootstrap and representative global options persist until terminal shutdown; formatting, focused tests, full suite, analysis, and platform CI remain green.</td><td>Counter leak is present and lifecycle coverage is absent.</td><td>Local gates pass; unavailable platform matrix evidence remains explicitly pending CI rather than inferred.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Implementation order after approvals</h2>
+    <ol class="notes">
+      <li>Gate 1: add the lifecycle tests only, show their complete diff, and prove the baseline is red for the intended reasons.</li>
+      <li>Gate 2: implement the private manager and public shutdown, then route all direct initialization sites.</li>
+      <li>Complete and record the 31-file ownership classification before enabling successful shutdown with zero logical pins.</li>
+      <li>Run formatter, focused lifecycle and ownership suites, analyzer, full Flutter suite, and every available platform check.</li>
+      <li>Request the specification verdict; do not infer runtime, platform, merge, or publication evidence that was not observed.</li>
+    </ol>
+  </section>
+
+  <section class="panel section">
+    <h2>Risk and Agent Notes</h2>
+    <ul class="notes">
+      <li>Change risk is high: process-global native state is coordinated by isolate-local Dart bookkeeping across 66 entry points.</li>
+      <li>The dominant risk is an incomplete ownership inventory. Missing one independently usable owner permits premature shutdown; pinning a borrowed view can block shutdown indefinitely.</li>
+      <li>Dart finalizers are nondeterministic. Deterministic users must explicitly release wrappers before calling shutdown; finalizers never trigger automatic shutdown.</li>
+      <li>Cleanup failure retains the logical pin and may leave a bounded lease. This fail-closed result is safer than certifying shutdown while native ownership is uncertain.</li>
+      <li>Successful shutdown is terminal for the isolate. Multiple runtime epochs and replay of Android CA or process-global options are intentionally out of scope.</li>
+      <li>Global option concurrency across isolates, abrupt isolate termination, and the related extensions-array leak remain separate limitations.</li>
+      <li>No generated FFI declaration, <code>git2dart_binaries</code> artifact, ABI, migration, historical data repair, or dependency change is planned.</li>
+      <li>Cross-platform CI, merge, tag, release, and publication require separate evidence or authorization; package closure may remain unsatisfied.</li>
+    </ul>
+  </section>
+
+  <section class="panel section">
+    <h2>Bug mini-graph</h2>
+    <div class="flow">
+      <a class="node" href="../../BUG-20260817-3PON-undisposed-extensions-array/bug.md"><strong>BUG #4</strong><br><span class="muted">extensions array leak</span></a>
+      <span class="arrow">↔</span>
+      <a class="node bug" href="../bug.md"><strong>BUG #1</strong><br>ZC7X native lifecycle</a>
+    </div>
+    <p class="muted">The registered edge is proposed and records shared global-runtime context; it does not merge the two correction scopes.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Relationship matrix</h2>
+    <table>
+      <thead><tr><th>Origin</th><th>Type</th><th>Destination</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>related-to</td><td><a href="../../BUG-20260817-3PON-undisposed-extensions-array/bug.md">BUG-20260817-3PON</a></td><td>proposed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>evidenced-by</td><td><a href="../evidence/reproduction.md">Runtime reproduction</a></td><td>confirmed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>constrained-by</td><td><a href="../../../../../sdd/native-runtime-and-platform-boundary/requirements.md">FR-NP-01 and FR-NP-05</a></td><td>spec verdict pending</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-ZC7X</a></td><td>selected-by</td><td><a href="../debate/resposta-final.md">Isolated debate judge</a></td><td>confirmed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Selected session order</h2>
+    <p><strong><a href="../../../../git-objects-and-object-database/bugs/BUG-20260817-A6QS-oid-allocations-unowned/bug.md">A6QS</a> → ZC7X → <a href="../../BUG-20260817-QWMA-unchecked-options-initializers/bug.md">QWMA</a>.</strong> This is the user-selected processing order. The three bugs have no confirmed shared causal edge, so each retains an independent gated correction cycle.</p>
+  </section>
+  </details>
+
+  <p class="footer">Current checkpoint: spec-correta recorded; bug active/delivering with package closure unsatisfied. Commit, merge, publication, tag, and release remain outside the approved scope.</p>
+</main>
+</body>
+</html>

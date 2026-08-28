@@ -1,4 +1,85 @@
 # Changelog
+## [0.5.5] - 2026-08-28
+### Features
+* Add `Libgit2.shutdown()` for deterministic, isolate-scoped native runtime
+  shutdown after live repository and commit owners are released.
+* Add explicit native-memory release for owned `Oid` and `IndexEntry` values.
+
+### Changed
+* Update `git2dart_binaries` to `>=1.13.0 <1.14.0` and migrate the native
+  adapter to its managed runtime, lifecycle, bindings, and options APIs.
+* Preserve the public integer option API while using ABI-correct native-width
+  types for mmap, pack-object, and cached-memory values.
+
+### Fixes
+* Correct native ownership for repositories, commits, OIDs, tree entries,
+  index entries, status performance data, and remote results to prevent leaks,
+  dangling pointers, double frees, and invalid frees.
+* Propagate libgit2 failures from global options, index persistence, repository
+  identity, rebase completion, and option initialization instead of silently
+  continuing with invalid output.
+* Release temporary option structures, buffers, callbacks, and credentials on
+  success and failure paths, and clear remote callback state after operations.
+
+#### Resolved Reversa defects
+
+##### Git objects and object database
+
+* `BUG-20260817-A6QS` — Manage owned OID allocations and safely copy borrowed OID pointers.
+* `BUG-20260817-E3LU` — Prevent invalid release of borrowed `TreeEntry` values.
+* `BUG-20260817-H7NP` — Encode `BlobWriteStream.writeString` input as UTF-8.
+* `BUG-20260817-K2RY` — Dispose libgit2 buffers after blob filtering.
+
+##### History and integration operations
+
+* `BUG-20260817-J9CU` — Propagate native failures from rebase finish and abort.
+* `BUG-20260817-P5DB` — Release native merge options on every exit.
+* `BUG-20260817-T8MW` — Pass `nullptr` for empty root-commit parent arrays.
+* `BUG-20260817-X4AE` — Dispose libgit2 commit buffers on success and failure.
+
+##### Native runtime and platform boundary
+
+* `BUG-20260817-3PON` — Release native string-array storage returned by the extensions getter.
+* `BUG-20260817-47ZS` — Release credential callback allocations after remote operations.
+* `BUG-20260817-CIKD` — Serialize callback-bearing remote operations and reject overlapping callback-state replacement.
+* `BUG-20260817-DQPX` — Propagate native failures from global libgit2 option APIs.
+* `BUG-20260817-O3B3` — Clear sensitive remote callback context after every operation.
+* `BUG-20260817-QWMA` — Validate every fallible native options initializer before structure use.
+* `BUG-20260817-ZC7X` — Balance libgit2 initialization leases with deterministic shutdown.
+
+##### References and remotes
+
+* `BUG-20260817-2TB4` — Release native OID storage used by reference name-to-ID lookup.
+* `BUG-20260817-3FWN` — Release fetch options and refspec allocations.
+* `BUG-20260817-BVMB` — Reject invalid refspec indexes instead of wrapping null pointers.
+* `BUG-20260817-VG7G` — Guarantee remote disconnect after advertisement listing.
+* `BUG-20260817-VGYQ` — Reject out-of-range reflog indexes instead of wrapping null entries.
+
+##### Repository lifecycle
+
+* `BUG-20260817-L8WX` — Propagate native repository identity lookup failures.
+* `BUG-20260817-N4FC` — Release native worktree handles created during listing.
+* `BUG-20260817-Q6JV` — Dispose native worktree lock-reason buffers.
+* `BUG-20260817-V9TR` — Copy status performance counters before arena-backed storage is released.
+
+##### Working tree and index
+
+* `BUG-20260817-6KRT` — Propagate native index read and write failures.
+* `BUG-20260817-8HNA` — Release checkout options used by stash apply and pop.
+* `BUG-20260817-M2VF` — Release temporary lookup objects during reference and commit checkout.
+* `BUG-20260817-R4PL` — Give mutable `IndexEntry` values independent owned path storage.
+* `BUG-20260817-Y7GX` — Release output OID buffers when index, stash, or diff operations fail.
+
+### CI
+* Add cross-platform build gates for Linux, macOS, Windows, and Android using
+  the validated Flutter toolchain.
+* Skip build, test, and publication jobs when the triggering commit message
+  contains the `[docs]` marker.
+
+### Documentation
+* Document deterministic runtime shutdown, explicit `Oid` and `IndexEntry`
+  ownership, and the `git2dart_binaries` 1.13 dependency baseline.
+
 ## [0.5.4] - 2026-07-21
 ### Features
 * Add `Libgit2.packMaxObjectSize` for controlling the maximum declared object

@@ -16,7 +16,7 @@ List<Map<String, Pointer>> list({
   return using((arena) {
     final notesRefC = notesRef.toChar(arena);
     final iterator = arena<Pointer<git_iterator>>();
-    final iteratorError = libgit2.git_note_iterator_new(
+    final iteratorError = libgit2Runtime.bindings.git_note_iterator_new(
       iterator,
       repoPointer,
       notesRefC,
@@ -29,10 +29,14 @@ List<Map<String, Pointer>> list({
     while (nextError >= 0) {
       final noteOid = arena<git_oid>();
       final annotatedOid = calloc<git_oid>();
-      nextError = libgit2.git_note_next(noteOid, annotatedOid, iterator.value);
+      nextError = libgit2Runtime.bindings.git_note_next(
+        noteOid,
+        annotatedOid,
+        iterator.value,
+      );
       if (nextError >= 0) {
         final out = arena<Pointer<git_note>>();
-        final error = libgit2.git_note_read(
+        final error = libgit2Runtime.bindings.git_note_read(
           out,
           repoPointer,
           notesRefC,
@@ -46,7 +50,7 @@ List<Map<String, Pointer>> list({
       }
     }
 
-    libgit2.git_note_iterator_free(iterator.value);
+    libgit2Runtime.bindings.git_note_iterator_free(iterator.value);
     return result;
   });
 }
@@ -62,7 +66,7 @@ Pointer<git_note> lookup({
   return using((arena) {
     final out = arena<Pointer<git_note>>();
     final notesRefC = notesRef.toChar(arena);
-    final error = libgit2.git_note_read(
+    final error = libgit2Runtime.bindings.git_note_read(
       out,
       repoPointer,
       notesRefC,
@@ -90,7 +94,7 @@ Pointer<git_oid> create({
     final notesRefC = notesRef.toChar(arena);
     final noteC = note.toChar(arena);
     final forceC = force ? 1 : 0;
-    final error = libgit2.git_note_create(
+    final error = libgit2Runtime.bindings.git_note_create(
       out,
       repoPointer,
       notesRefC,
@@ -117,7 +121,7 @@ void delete({
 }) {
   return using((arena) {
     final notesRefC = notesRef.toChar(arena);
-    final error = libgit2.git_note_remove(
+    final error = libgit2Runtime.bindings.git_note_remove(
       repoPointer,
       notesRefC,
       authorPointer,
@@ -129,23 +133,25 @@ void delete({
 }
 
 /// Get the note object's id.
-Pointer<git_oid> id(Pointer<git_note> note) => libgit2.git_note_id(note);
+Pointer<git_oid> id(Pointer<git_note> note) =>
+    libgit2Runtime.bindings.git_note_id(note);
 
 /// Get the note message.
 String message(Pointer<git_note> note) {
-  return libgit2.git_note_message(note).toDartString();
+  return libgit2Runtime.bindings.git_note_message(note).toDartString();
 }
 
 /// Get the note author.
 Pointer<git_signature> author(Pointer<git_note> note) =>
-    libgit2.git_note_author(note);
+    libgit2Runtime.bindings.git_note_author(note);
 
 /// Get the note committer.
 Pointer<git_signature> committer(Pointer<git_note> note) =>
-    libgit2.git_note_committer(note);
+    libgit2Runtime.bindings.git_note_committer(note);
 
 /// Free memory allocated for note object.
-void free(Pointer<git_note> note) => libgit2.git_note_free(note);
+void free(Pointer<git_note> note) =>
+    libgit2Runtime.bindings.git_note_free(note);
 
 /// Create an iterator over notes from a specific commit.
 ///
@@ -155,7 +161,10 @@ void free(Pointer<git_note> note) => libgit2.git_note_free(note);
 Pointer<git_note_iterator> commitIteratorNew(Pointer<git_commit> notesCommit) {
   return using((arena) {
     final out = arena<Pointer<git_note_iterator>>();
-    final error = libgit2.git_note_commit_iterator_new(out, notesCommit);
+    final error = libgit2Runtime.bindings.git_note_commit_iterator_new(
+      out,
+      notesCommit,
+    );
 
     checkErrorAndThrow(error);
 
@@ -174,7 +183,7 @@ Pointer<git_note> commitRead({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_note>>();
-    final error = libgit2.git_note_commit_read(
+    final error = libgit2Runtime.bindings.git_note_commit_read(
       out,
       repoPointer,
       notesCommitPointer,
@@ -204,7 +213,7 @@ List<Pointer<git_oid>> commitCreate({
     final blobOut = calloc<git_oid>();
     final noteC = note.toChar(arena);
     final allowC = allowOverwrite ? 1 : 0;
-    final error = libgit2.git_note_commit_create(
+    final error = libgit2Runtime.bindings.git_note_commit_create(
       commitOut,
       blobOut,
       repoPointer,
@@ -234,7 +243,7 @@ Pointer<git_oid> commitRemove({
 }) {
   return using((arena) {
     final out = calloc<git_oid>();
-    final error = libgit2.git_note_commit_remove(
+    final error = libgit2Runtime.bindings.git_note_commit_remove(
       out,
       repoPointer,
       notesCommitPointer,
@@ -253,7 +262,7 @@ Pointer<git_oid> commitRemove({
 String defaultRef(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_note_default_ref(out, repo);
+    final error = libgit2Runtime.bindings.git_note_default_ref(out, repo);
     checkErrorAndThrow(error);
     return out.ref.ptr.toDartString(length: out.ref.size);
   });
@@ -270,7 +279,7 @@ void foreach({
 }) {
   return using((arena) {
     final notesRefC = notesRef.toChar(arena);
-    final error = libgit2.git_note_foreach(
+    final error = libgit2Runtime.bindings.git_note_foreach(
       repoPointer,
       notesRefC,
       callback,

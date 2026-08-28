@@ -1,0 +1,21 @@
+diff --git a/test/remote_test.dart b/test/remote_test.dart
+index 7c3557c..401c664 100644
+--- a/test/remote_test.dart
++++ b/test/remote_test.dart
+@@ -239,6 +239,16 @@ void main() {
+       expect(refspec, equals(remote.getRefspec(0)));
+     });
+
++    test('throws when refspec index is out of bounds', () {
++      final remote = Remote.lookup(repo: repo, name: 'origin');
++
++      expect(() => remote.getRefspec(-1), throwsA(isA<Git2DartError>()));
++      expect(
++        () => remote.getRefspec(remote.refspecCount),
++        throwsA(isA<Git2DartError>()),
++      );
++    });
++
+     test(
+       'throws when trying to transform refspec with invalid reference name',
+       () {

@@ -31,14 +31,16 @@ Pointer<git_worktree> create({
     final pathC = path.toChar(arena);
 
     final opts = arena<git_worktree_add_options>();
-    libgit2.git_worktree_add_options_init(
-      opts,
-      GIT_WORKTREE_ADD_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_add_options_init(
+        opts,
+        GIT_WORKTREE_ADD_OPTIONS_VERSION,
+      ),
     );
 
     opts.ref.ref = refPointer ?? nullptr;
 
-    final error = libgit2.git_worktree_add(
+    final error = libgit2Runtime.bindings.git_worktree_add(
       out,
       repoPointer,
       nameC,
@@ -66,7 +68,11 @@ Pointer<git_worktree> lookup({
   return using((arena) {
     final out = arena<Pointer<git_worktree>>();
     final nameC = name.toChar(arena);
-    final error = libgit2.git_worktree_lookup(out, repoPointer, nameC);
+    final error = libgit2Runtime.bindings.git_worktree_lookup(
+      out,
+      repoPointer,
+      nameC,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -76,7 +82,10 @@ Pointer<git_worktree> lookup({
 Pointer<git_worktree> openFromRepository(Pointer<git_repository> repoPointer) {
   return using((arena) {
     final out = arena<Pointer<git_worktree>>();
-    final error = libgit2.git_worktree_open_from_repository(out, repoPointer);
+    final error = libgit2Runtime.bindings.git_worktree_open_from_repository(
+      out,
+      repoPointer,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -86,7 +95,10 @@ Pointer<git_worktree> openFromRepository(Pointer<git_repository> repoPointer) {
 Pointer<git_repository> repositoryFromWorktree(Pointer<git_worktree> wt) {
   return using((arena) {
     final out = arena<Pointer<git_repository>>();
-    final error = libgit2.git_repository_open_from_worktree(out, wt);
+    final error = libgit2Runtime.bindings.git_repository_open_from_worktree(
+      out,
+      wt,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -106,11 +118,13 @@ Pointer<git_repository> repositoryFromWorktree(Pointer<git_worktree> wt) {
 bool isPrunable(Pointer<git_worktree> wt) {
   return using((arena) {
     final opts = arena<git_worktree_prune_options>();
-    libgit2.git_worktree_prune_options_init(
-      opts,
-      GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_prune_options_init(
+        opts,
+        GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+      ),
     );
-    return libgit2.git_worktree_is_prunable(wt, opts) > 0;
+    return libgit2Runtime.bindings.git_worktree_is_prunable(wt, opts) > 0;
   });
 }
 
@@ -123,16 +137,21 @@ bool isPrunable(Pointer<git_worktree> wt) {
 void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
   using((arena) {
     final opts = arena<git_worktree_prune_options>();
-    libgit2.git_worktree_prune_options_init(
-      opts,
-      GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_worktree_prune_options_init(
+        opts,
+        GIT_WORKTREE_PRUNE_OPTIONS_VERSION,
+      ),
     );
 
     if (flags != null) {
       opts.ref.flags = flags;
     }
 
-    final error = libgit2.git_worktree_prune(worktreePointer, opts);
+    final error = libgit2Runtime.bindings.git_worktree_prune(
+      worktreePointer,
+      opts,
+    );
     checkErrorAndThrow(error);
   });
 }
@@ -148,7 +167,7 @@ void prune({required Pointer<git_worktree> worktreePointer, int? flags}) {
 List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
   return using((arena) {
     final out = arena<git_strarray>();
-    final error = libgit2.git_worktree_list(out, repo);
+    final error = libgit2Runtime.bindings.git_worktree_list(out, repo);
     checkErrorAndThrow(error);
 
     final result = <Pointer<git_worktree>>[];
@@ -162,7 +181,7 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
         continue;
       }
     }
-    libgit2.git_strarray_dispose(out);
+    libgit2Runtime.bindings.git_strarray_dispose(out);
     return result;
   });
 }
@@ -173,7 +192,7 @@ List<Pointer<git_worktree>> list(Pointer<git_repository> repo) {
 ///
 /// Returns the name of the worktree.
 String name(Pointer<git_worktree> wt) =>
-    libgit2.git_worktree_name(wt).toDartString();
+    libgit2Runtime.bindings.git_worktree_name(wt).toDartString();
 
 /// Gets the filesystem path of a worktree.
 ///
@@ -181,7 +200,7 @@ String name(Pointer<git_worktree> wt) =>
 ///
 /// Returns the filesystem path of the worktree.
 String path(Pointer<git_worktree> wt) =>
-    libgit2.git_worktree_path(wt).toDartString();
+    libgit2Runtime.bindings.git_worktree_path(wt).toDartString();
 
 /// Checks if a worktree is locked.
 ///
@@ -194,7 +213,11 @@ String path(Pointer<git_worktree> wt) =>
 bool isLocked(Pointer<git_worktree> wt) {
   return using((arena) {
     final reason = arena<git_buf>();
-    return libgit2.git_worktree_is_locked(reason, wt) == 1;
+    try {
+      return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
+    } finally {
+      libgit2Runtime.bindings.git_buf_dispose(reason);
+    }
   });
 }
 
@@ -207,7 +230,7 @@ bool isLocked(Pointer<git_worktree> wt) {
 void lock(Pointer<git_worktree> worktree, [String? reason]) {
   using((arena) {
     final reasonC = reason != null ? reason.toChar(arena) : nullptr;
-    final error = libgit2.git_worktree_lock(worktree, reasonC);
+    final error = libgit2Runtime.bindings.git_worktree_lock(worktree, reasonC);
     checkErrorAndThrow(error);
   });
 }
@@ -218,7 +241,7 @@ void lock(Pointer<git_worktree> worktree, [String? reason]) {
 ///
 /// Throws a [LibGit2Error] if an error occurs.
 void unlock(Pointer<git_worktree> worktree) {
-  final error = libgit2.git_worktree_unlock(worktree);
+  final error = libgit2Runtime.bindings.git_worktree_unlock(worktree);
   checkErrorAndThrow(error);
 }
 
@@ -231,7 +254,7 @@ void unlock(Pointer<git_worktree> worktree) {
 ///
 /// Returns true if the worktree is valid, false otherwise.
 bool isValid(Pointer<git_worktree> wt) =>
-    libgit2.git_worktree_validate(wt) == 0;
+    libgit2Runtime.bindings.git_worktree_validate(wt) == 0;
 
 /// Validates a worktree configuration.
 ///
@@ -239,11 +262,12 @@ bool isValid(Pointer<git_worktree> wt) =>
 ///
 /// Throws a [LibGit2Error] if the worktree is invalid.
 void validate(Pointer<git_worktree> worktree) {
-  final error = libgit2.git_worktree_validate(worktree);
+  final error = libgit2Runtime.bindings.git_worktree_validate(worktree);
   checkErrorAndThrow(error);
 }
 
 /// Frees a previously allocated worktree.
 ///
 /// [wt] is the worktree to free.
-void free(Pointer<git_worktree> wt) => libgit2.git_worktree_free(wt);
+void free(Pointer<git_worktree> wt) =>
+    libgit2Runtime.bindings.git_worktree_free(wt);

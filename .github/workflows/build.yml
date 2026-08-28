@@ -1,0 +1,150 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commit_filter:
+    name: Check commit tag
+    runs-on: ubuntu-latest
+    outputs:
+      run_ci: ${{ steps.commit_tag.outputs.run_ci }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Check for documentation-only commit
+        id: commit_tag
+        shell: bash
+        run: |
+          if git log -1 --pretty=%B | grep -Fiq '[docs]'; then
+            echo "run_ci=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping build jobs for a documentation-only commit."
+          else
+            echo "run_ci=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  quality:
+    name: Quality
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.2
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: |
+          dart format --output=none lib test tool
+          git diff --exit-code
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+  desktop-test:
+    name: Test (${{ matrix.name }})
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+          - name: macOS
+            os: macos-latest
+          - name: Windows
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux native dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpcre3 libssl-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.2
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test -j 1 --reporter expanded
+
+  android-test:
+    name: Test (Android)
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.2
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: Nexus 6
+          disable-animations: true
+          script: flutter test --reporter expanded
+
+  ios-test:
+    name: Test (iOS)
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.2
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests on an iOS simulator
+        shell: bash
+        run: |
+          IOS_DEVICE_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Shutdown/ {print $2; exit}')"
+          if [ -z "$IOS_DEVICE_ID" ]; then
+            echo "No available iOS simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          xcrun simctl boot "$IOS_DEVICE_ID" || true
+          xcrun simctl bootstatus "$IOS_DEVICE_ID" -b
+          flutter test -d "$IOS_DEVICE_ID" --reporter expanded

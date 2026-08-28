@@ -29,7 +29,11 @@ Pointer<git_describe_result> commit({
       showCommitOidAsFallback: showCommitOidAsFallback,
     );
 
-    final error = libgit2.git_describe_commit(out, commitPointer.cast(), opts);
+    final error = libgit2Runtime.bindings.git_describe_commit(
+      out,
+      commitPointer.cast(),
+      opts,
+    );
 
     checkErrorAndThrow(error);
 
@@ -63,7 +67,7 @@ Pointer<git_describe_result> workdir({
       showCommitOidAsFallback: showCommitOidAsFallback,
     );
 
-    final error = libgit2.git_describe_workdir(out, repo, opts);
+    final error = libgit2Runtime.bindings.git_describe_workdir(out, repo, opts);
 
     checkErrorAndThrow(error);
 
@@ -81,9 +85,11 @@ String format({
   return using((arena) {
     final out = arena<git_buf>();
     final opts = arena<git_describe_format_options>();
-    libgit2.git_describe_format_options_init(
-      opts,
-      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_describe_format_options_init(
+        opts,
+        GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+      ),
     );
 
     if (abbreviatedSize != null) {
@@ -96,11 +102,15 @@ String format({
       opts.ref.dirty_suffix = dirtySuffix.toChar(arena);
     }
 
-    final error = libgit2.git_describe_format(out, describeResultPointer, opts);
+    final error = libgit2Runtime.bindings.git_describe_format(
+      out,
+      describeResultPointer,
+      opts,
+    );
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });
@@ -108,7 +118,7 @@ String format({
 
 /// Free the describe result.
 void free(Pointer<git_describe_result> result) {
-  libgit2.git_describe_result_free(result);
+  libgit2Runtime.bindings.git_describe_result_free(result);
 }
 
 /// Initialize git_describe_options structure.
@@ -121,7 +131,12 @@ Pointer<git_describe_options> _initOpts({
   bool? showCommitOidAsFallback,
 }) {
   final opts = calloc<git_describe_options>();
-  libgit2.git_describe_options_init(opts, GIT_DESCRIBE_OPTIONS_VERSION);
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_describe_options_init(
+      opts,
+      GIT_DESCRIBE_OPTIONS_VERSION,
+    ),
+  );
 
   if (maxCandidatesTags != null) {
     opts.ref.max_candidates_tags = maxCandidatesTags;
@@ -172,9 +187,11 @@ Pointer<git_describe_format_options> initFormatOptions({
 }) {
   return using((arena) {
     final opts = arena<git_describe_format_options>();
-    libgit2.git_describe_format_options_init(
-      opts,
-      GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_describe_format_options_init(
+        opts,
+        GIT_DESCRIBE_FORMAT_OPTIONS_VERSION,
+      ),
     );
 
     if (abbreviatedSize != null) {
@@ -202,11 +219,15 @@ String formatString({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_describe_format(out, resultPointer, options);
+    final error = libgit2Runtime.bindings.git_describe_format(
+      out,
+      resultPointer,
+      options,
+    );
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });

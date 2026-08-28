@@ -176,10 +176,10 @@ class RefLogEntry extends Equatable {
   Signature get committer => Signature(bindings.entryCommiter(_entryPointer));
 
   /// New OID that the reference points to after this change.
-  Oid get newOid => Oid(bindings.entryOidNew(_entryPointer));
+  Oid get newOid => Oid.fromBorrowed(bindings.entryOidNew(_entryPointer));
 
   /// Old OID that the reference pointed to before this change.
-  Oid get oldOid => Oid(bindings.entryOidOld(_entryPointer));
+  Oid get oldOid => Oid.fromBorrowed(bindings.entryOidOld(_entryPointer));
 
   @override
   String toString() => 'RefLogEntry{message: $message, committer: $committer}';

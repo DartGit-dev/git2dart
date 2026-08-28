@@ -1,7 +1,7 @@
 import 'dart:ffi';
-
 import 'package:ffi/ffi.dart';
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:test/test.dart';
 
@@ -115,5 +115,101 @@ void main() {
         calloc.free(cert);
       }
     });
+
+    test('releases credential payload idempotently during reset', () {
+      using((arena) {
+        RemoteCallbacks.plug(
+          callbacksOptions: initCallbacks(arena).ref,
+          callbacks: const Callbacks(
+            credentials: UserPass(username: 'synthetic', password: 'synthetic'),
+          ),
+        );
+      });
+
+      RemoteCallbacks.reset();
+      expect(RemoteCallbacks.reset, returnsNormally);
+      expect(RemoteCallbacks.credentials, isNull);
+    });
+
+    test('returns a value and clears callback state after success', () {
+      final result = using(
+        (arena) => RemoteCallbacks.withCallbackState<int>(
+          callbacksOptions: initCallbacks(arena).ref,
+          callbacks: Callbacks(transferProgress: (_) {}),
+          operation: () {
+            RemoteCallbacks.remoteCbData = const RemoteCallback(
+              name: 'origin',
+              url: 'loopback.invalid',
+            );
+            RemoteCallbacks.repositoryCbData = const RepositoryCallback(
+              path: 'synthetic',
+            );
+            return 42;
+          },
+        ),
+      );
+
+      expect(result, 42);
+      expectRemoteCallbacksCleared();
+    });
+
+    test('preserves a synchronous Dart error and clears callback state', () {
+      final failure = StateError('synthetic operation failure');
+
+      expect(
+        () => using(
+          (arena) => RemoteCallbacks.withCallbackState<void>(
+            callbacksOptions: initCallbacks(arena).ref,
+            callbacks: const Callbacks(),
+            operation: () {
+              RemoteCallbacks.credentials = const UserPass(
+                username: 'synthetic-user',
+                password: 'synthetic-password',
+              );
+              throw failure;
+            },
+          ),
+        ),
+        throwsA(same(failure)),
+      );
+      expectRemoteCallbacksCleared();
+    });
+
+    test('clears state when a synchronous callback bridge throws', () {
+      final failure = StateError('synthetic bridge failure');
+
+      expect(
+        () => using(
+          (arena) => RemoteCallbacks.withCallbackState<int>(
+            callbacksOptions: initCallbacks(arena).ref,
+            callbacks: Callbacks(transferProgress: (_) => throw failure),
+            operation:
+                () => RemoteCallbacks.transferProgressCb(
+                  arena<git_indexer_progress>(),
+                  nullptr,
+                ),
+          ),
+        ),
+        throwsA(same(failure)),
+      );
+      expectRemoteCallbacksCleared();
+    });
+
+    test('allows callback state to be reset repeatedly', () {
+      RemoteCallbacks.reset();
+      expect(RemoteCallbacks.reset, returnsNormally);
+      expectRemoteCallbacksCleared();
+    });
   });
+}
+
+void expectRemoteCallbacksCleared() {
+  expect(RemoteCallbacks.transferProgress, isNull);
+  expect(RemoteCallbacks.sidebandProgress, isNull);
+  expect(RemoteCallbacks.updateTips, isNull);
+  expect(RemoteCallbacks.pushUpdateReference, isNull);
+  expect(RemoteCallbacks.certificateCheck, isNull);
+  expect(RemoteCallbacks.remoteCbData, isNull);
+  expect(RemoteCallbacks.repositoryCbData, isNull);
+  expect(RemoteCallbacks.credentials, isNull);
 }

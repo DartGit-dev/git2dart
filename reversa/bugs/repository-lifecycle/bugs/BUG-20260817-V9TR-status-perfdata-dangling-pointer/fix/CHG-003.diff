@@ -1,0 +1,61 @@
+diff --git a/reversa/sdd/addenda/bug-BUG-20260817-V9TR-v001.md b/reversa/sdd/addenda/bug-BUG-20260817-V9TR-v001.md
+new file mode 100644
+index 0000000..f324bd3
+--- /dev/null
++++ b/reversa/sdd/addenda/bug-BUG-20260817-V9TR-v001.md
+@@ -0,0 +1,55 @@
++# Bug Addendum v001: Status performance data ownership
++
++## Metadata
++
++- Bug: `BUG-20260817-V9TR`
++- Verdict: `spec-gap`
++- Addendum version: `v001`
++- Effective date: `2026-08-21`
++- Status: approved
++- Human decision: `spec-gap` selected in the Reversa fix workflow.
++
++## Target
++
++This additive specification extends the Repository Lifecycle status and native
++ownership contracts. No prior normative section defines the private status
++performance-data binding. The original specifications remain unchanged.
++
++## Delta
++
++There was no explicit contract for initializing `git_diff_perfdata`, exposing
++its counters to Dart, or preventing its call-scoped pointer from escaping an
++FFI Arena.
++
++## Normative Addition
++
++1. Before calling `git_status_list_get_perfdata`, the binding must set
++   `git_diff_perfdata.version` to `GIT_DIFF_PERFDATA_VERSION`.
++2. The native output allocation is call-scoped and must not escape the Arena
++   that allocated it.
++3. The binding must copy `stat_calls` and `oid_calculations` into an immutable
++   Dart value before the Arena is released.
++4. The binding return type must not expose `Pointer<git_diff_perfdata>`.
++5. Native errors must continue to use the existing typed error translation.
++
++## Acceptance Criteria
++
++- A valid status list returns non-negative `statCalls` and `oidCalculations`.
++- The return contract is a managed Dart value, not a raw native pointer.
++- Tests fail against the legacy pointer contract and pass after the managed
++  copy is introduced.
++- The repository test suite and static analysis remain green.
++
++## Evidence
++
++- [Reproduction](../../bugs/repository-lifecycle/bugs/BUG-20260817-V9TR-status-perfdata-dangling-pointer/evidence/reproduction.md)
++- [Red tests](../../bugs/repository-lifecycle/bugs/BUG-20260817-V9TR-status-perfdata-dangling-pointer/evidence/red-tests.md)
++- [Green tests](../../bugs/repository-lifecycle/bugs/BUG-20260817-V9TR-status-perfdata-dangling-pointer/evidence/green-tests.md)
++- [Regression-test change](../../bugs/repository-lifecycle/bugs/BUG-20260817-V9TR-status-perfdata-dangling-pointer/fix/CHG-001.diff)
++- [Production change](../../bugs/repository-lifecycle/bugs/BUG-20260817-V9TR-status-perfdata-dangling-pointer/fix/CHG-002.diff)
++
++## Approval
++
++Approved by the user on `2026-08-21` through the explicit `spec-gap` verdict.
++
++This addendum is versioned and immutable. A later change requires a new version.

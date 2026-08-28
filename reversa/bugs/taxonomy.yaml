@@ -1,0 +1,18 @@
+schema_version: 1
+areas:
+  - native-integration
+  - repository-operations
+modules:
+  - repository-lifecycle
+  - git-objects-and-object-database
+  - working-tree-and-index
+  - references-and-remotes
+  - history-and-integration-operations
+  - native-runtime-and-platform-boundary
+features:
+  - repository-lifecycle
+  - git-objects-and-object-database
+  - working-tree-and-index
+  - references-and-remotes
+  - history-and-integration-operations
+  - native-runtime-and-platform-boundary

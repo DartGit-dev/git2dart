@@ -129,9 +129,9 @@ class RevParse {
   /// such as `master..develop` or `HEAD~3..HEAD`.
   ///
   /// The returned [RevSpec] contains:
-  /// * [from] - The starting commit
-  /// * [to] - The ending commit (if specified)
-  /// * [flags] - The intent flags for the range
+  /// * [RevSpec.from] - The starting commit
+  /// * [RevSpec.to] - The ending commit (if specified)
+  /// * [RevSpec.flags] - The intent flags for the range
   ///
   /// Throws a [LibGit2Error] if error occurred while parsing the revision range.
   ///

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fix Plan | BUG-20260817-V9TR</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,Segoe UI,sans-serif;background:#0b1020;color:#eaf0ff}
+    *{box-sizing:border-box}body{margin:0;padding:28px;background:radial-gradient(circle at top,#14203a,#0b1020 58%);line-height:1.55}
+    main{max-width:1180px;margin:auto}.meta{color:#9daccc;margin:8px 0 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+    .card,.panel{background:#121b2d;border:1px solid #293653;border-radius:14px;padding:16px}.card strong{font-size:1.35rem;display:block}.section{margin-top:20px}
+    .confirmed{color:#80e6b4}.critical{color:#ff8f9b}.low{color:#94d4ff}.muted{color:#9daccc}.tag{display:inline-block;padding:3px 9px;border-radius:999px;background:#1b2b47;color:#bad8ff;font-size:.82rem;margin:2px}
+    a{color:#8fc4ff}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #293653;padding:10px 8px;vertical-align:top}th{color:#afbdd8}
+    h1,h2,h3{margin-top:0}.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center}.node{display:block;text-decoration:none;background:#16223a;border:1px solid #38517a;border-radius:12px;padding:16px;color:#eef4ff;text-align:center}.node.bug{border:2px solid #ff7f91;background:#301b2a}.arrow{color:#8092b6;font-size:1.5rem}.notes{margin:0;padding-left:20px}
+    code{color:#c9ddff;background:#0d1527;padding:2px 5px;border-radius:5px}.footer{margin-top:24px;color:#9daccc;font-size:.9rem}
+    @media(max-width:760px){body{padding:14px}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Correction Plan</h1>
+  <p class="meta"><a href="../bug.md">Bug #29, BUG-20260817-V9TR</a> | repository-lifecycle | 2026-08-21</p>
+
+  <div class="cards">
+    <div class="card"><span class="muted">Severity</span><strong class="critical">Critical</strong><span>P0</span></div>
+    <div class="card"><span class="muted">Root cause</span><strong class="confirmed">Confirmed</strong><span>Source and allocator contract</span></div>
+    <div class="card"><span class="muted">Change risk</span><strong class="low">Low</strong><span>Private, local, reversible</span></div>
+    <div class="card"><span class="muted">Control</span><strong>Gated</strong><span>Plan, tests, code, verdict</span></div>
+  </div>
+
+  <section class="panel section">
+    <h2>Defect and root cause</h2>
+    <p><code>listPerfdata</code> allocates <code>git_diff_perfdata</code> in an FFI Arena but leaves its required version field at zero. Libgit2 rejects the call before producing counters. Once initialized, the function still returns the allocation, and the installed FFI <code>using</code> implementation releases the Arena in <code>finally</code> before the caller receives it.</p>
+    <p><span class="tag">deterministic 1/1</span><span class="tag">six-step bisect</span><span class="tag">no current call sites</span></p>
+    <p>Evidence: <a href="../evidence/reproduction.md">reproduction capsule</a> and <a href="../evidence/static-analysis.md">static analysis</a>. The isolated bisect identifies <code>ca9e4a6810793028d245bc9a404f4d970e5ac8cd</code> as the first bad commit.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Chosen strategy</h2>
+    <p><strong>Bisect-confirmed direct correction.</strong> Initialize the native structure version, then copy both counters into an immutable Dart value before the Arena is released. This matches the established <code>DiffPerfData</code> pattern and removes the raw pointer from the return contract.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Proposed Correction Change Set</h2>
+    <table>
+      <thead><tr><th>CHG</th><th>Type</th><th>Artifact</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>CHG-01</td><td>Test</td><td><a href="../../../../../test/repository_test.dart">test/repository_test.dart</a></td><td>Add a type-contract test that rejects a raw native pointer and a runtime regression assertion that reads managed counter values after the binding returns.</td></tr>
+        <tr><td>CHG-02</td><td>Code</td><td><a href="../../../../../lib/src/bindings/status.dart">lib/src/bindings/status.dart</a></td><td>Set <code>GIT_DIFF_PERFDATA_VERSION</code>, then return an immutable <code>StatusPerfData</code> value containing copied counters.</td></tr>
+        <tr><td>CHG-03</td><td>Traceability</td><td><a href="../bug.md">bug.md</a> and <a href="../evidence/reproduction.md">evidence/reproduction.md</a></td><td>Record red and green evidence, approved diffs, spec verdict, and delivery state.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Planned tests</h2>
+    <table>
+      <thead><tr><th>Intent</th><th>Proof</th><th>Expected before fix</th><th>Expected after fix</th></tr></thead>
+      <tbody>
+        <tr><td>Reproduction</td><td>The static function contract must not return <code>Pointer&lt;git_diff_perfdata&gt;</code>.</td><td>Fails because the binding exposes the raw pointer type.</td><td>Passes with a managed Dart return type.</td></tr>
+        <tr><td>Regression</td><td>The returned <code>statCalls</code> and <code>oidCalculations</code> remain readable after the binding's Arena has exited.</td><td>Fails first because libgit2 rejects version zero, exposing the additional initialization defect.</td><td>Passes and both counters are non-negative integers.</td></tr>
+        <tr><td>Validation</td><td>Repository tests, formatter, analyzer, then the full Flutter suite.</td><td>Baseline repository suite is green but lacks this coverage.</td><td>All checks remain green.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel section">
+    <h2>Risk and Agent Notes</h2>
+    <ul class="notes">
+      <li>Risk is low because the helper is private and currently has no call sites.</li>
+      <li>The correction copies two integers and follows an existing managed-value pattern.</li>
+      <li>No public Repository API is added in this correction.</li>
+      <li>No allocator, libgit2 ABI, or generated binary declaration is changed.</li>
+      <li>No sanitizer crash is claimed. The proof boundary remains structural and contract-based.</li>
+      <li>The final specification verdict remains a mandatory user decision after the code is green.</li>
+      <li>The requested local commit is in scope. Push, tag, release, and publication are outside scope without explicit authorization, so package closure may remain unsatisfied.</li>
+    </ul>
+  </section>
+
+  <section class="panel section">
+    <h2>Bug graph</h2>
+    <div class="flow">
+      <a class="node" href="../evidence/reproduction.md"><strong>Evidence</strong><br><span class="muted">reproduction + bisect</span></a>
+      <span class="arrow">&#8594;</span>
+      <a class="node bug" href="../bug.md"><strong>BUG #29</strong><br>V9TR dangling pointer</a>
+      <span class="arrow">&#8594;</span>
+      <a class="node" href="../../../../../lib/src/bindings/status.dart"><strong>Correction</strong><br><span class="muted">managed value copy</span></a>
+    </div>
+    <p class="muted">No bug-to-bug relationships are registered for this issue. Its correction order is therefore independent.</p>
+  </section>
+
+  <section class="panel section">
+    <h2>Relation matrix</h2>
+    <table>
+      <thead><tr><th>Origin</th><th>Type</th><th>Destination</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><a href="../bug.md">BUG-20260817-V9TR</a></td><td>evidenced_by</td><td><a href="../evidence/reproduction.md">Reproduction capsule</a></td><td>confirmed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-V9TR</a></td><td>affects</td><td><a href="../../../../../lib/src/bindings/status.dart">status binding</a></td><td>confirmed</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-V9TR</a></td><td>will_be_verified_by</td><td><a href="../../../../../test/repository_test.dart">repository tests</a></td><td>planned</td></tr>
+        <tr><td><a href="../bug.md">BUG-20260817-V9TR</a></td><td>constrained_by</td><td><a href="../../../../../sdd/repository-lifecycle/design.md">repository lifecycle design</a></td><td>spec verdict pending</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="footer">Approval of this plan unlocks Gate 1 only. The test diff and code diff each require separate approval.</p>
+</main>
+</body>
+</html>

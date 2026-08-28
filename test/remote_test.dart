@@ -1,6 +1,9 @@
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart' show using;
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart/src/bindings/remote_callbacks.dart';
 import 'package:git2dart_binaries/git2dart_binaries.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -238,6 +241,16 @@ void main() {
       expect(refspec, equals(remote.getRefspec(0)));
     });
 
+    test('throws when refspec index is out of bounds', () {
+      final remote = Remote.lookup(repo: repo, name: 'origin');
+
+      expect(() => remote.getRefspec(-1), throwsA(isA<Git2DartError>()));
+      expect(
+        () => remote.getRefspec(remote.refspecCount),
+        throwsA(isA<Git2DartError>()),
+      );
+    });
+
     test(
       'throws when trying to transform refspec with invalid reference name',
       () {
@@ -310,6 +323,14 @@ void main() {
       expect(refs.first.oid.sha, '49322bb17d3acc9146f98c97d078513228bbf3c0');
       expect(refs.first.toString(), contains('RemoteReference{'));
       expect(refs.first, remote.ls().first);
+    });
+
+    test('lists a local remote without network access', () {
+      final remote = Remote.create(repo: repo, name: 'local', url: tmpDir.path);
+
+      final refs = remote.ls();
+      expect(refs, isNotEmpty);
+      expect(remote.ls(), hasLength(refs.length));
     });
 
     test("throws when trying to get remote repo's reference list with "
@@ -403,6 +424,68 @@ void main() {
 
       expect(() => remote.fetch(), throwsA(isA<LibGit2Error>()));
     });
+
+    test('clears callback state after repeated loopback fetch failures', () {
+      Remote.setUrl(
+        repo: repo,
+        remote: 'libgit2',
+        url: 'http://127.0.0.1:1/repository.git',
+      );
+      final remote = Remote.lookup(repo: repo, name: 'libgit2');
+      const callbacks = Callbacks(
+        credentials: UserPass(
+          username: 'synthetic-user',
+          password: 'synthetic-password',
+        ),
+      );
+
+      for (var attempt = 0; attempt < 3; attempt++) {
+        LibGit2Error? failure;
+        try {
+          remote.fetch(callbacks: callbacks);
+        } on LibGit2Error catch (error) {
+          failure = error;
+        }
+
+        try {
+          expect(failure, isNotNull);
+          expect(failure?.toString(), allOf(isNotNull, isNotEmpty));
+          expect(RemoteCallbacks.transferProgress, isNull);
+          expect(RemoteCallbacks.sidebandProgress, isNull);
+          expect(RemoteCallbacks.updateTips, isNull);
+          expect(RemoteCallbacks.pushUpdateReference, isNull);
+          expect(RemoteCallbacks.certificateCheck, isNull);
+          expect(RemoteCallbacks.remoteCbData, isNull);
+          expect(RemoteCallbacks.repositoryCbData, isNull);
+          expect(RemoteCallbacks.credentials, isNull);
+        } finally {
+          RemoteCallbacks.reset();
+        }
+      }
+    });
+
+    test(
+      'rejects overlapping callback operations before state is replaced',
+      () {
+        using((arena) {
+          final options = initCallbacks(arena);
+
+          expect(
+            () => RemoteCallbacks.withCallbackState<void>(
+              callbacksOptions: options.ref,
+              callbacks: const Callbacks(),
+              operation:
+                  () => RemoteCallbacks.withCallbackState<void>(
+                    callbacksOptions: options.ref,
+                    callbacks: const Callbacks(),
+                    operation: () {},
+                  ),
+            ),
+            throwsA(isA<StateError>()),
+          );
+        });
+      },
+    );
 
     test(
       tags: 'remote_fetch',

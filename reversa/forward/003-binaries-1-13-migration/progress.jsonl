@@ -1,0 +1,50 @@
+{"ts":"2026-08-26T08:47:59Z","action":"T001","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T002","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T003","status":"done","files":["test/libgit2_test.dart"]}
+{"ts":"2026-08-26T08:47:59Z","action":"T004","status":"done","files":["test/libgit2_option_error_test.dart"]}
+{"ts":"2026-08-26T08:47:59Z","action":"T005","status":"done","files":["test/platform_specific_test.dart"]}
+{"ts":"2026-08-26T08:47:59Z","action":"T006","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T007","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T008","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T009","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T010","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T011","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T012","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T013","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T022","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T023","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T024","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T025","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T026","status":"done","files":[]}
+{"ts":"2026-08-26T08:47:59Z","action":"T027","status":"done","files":["doc/api/"]}
+{"ts":"2026-08-26T08:47:59Z","action":"T014","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T001","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T002","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T003","status":"done","files":["test/libgit2_test.dart"]}
+{"ts":"2026-08-26T08:55:00Z","action":"T004","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T005","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T006","status":"done","files":["lib/src/libgit2.dart"]}
+{"ts":"2026-08-26T08:55:00Z","action":"T007","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T008","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T009","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T010","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T011","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T012","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T013","status":"done","files":[]}
+{"ts":"2026-08-26T08:55:00Z","action":"T014","status":"blocked","files":[],"reason":"Requires T027, but T027 is phase 5 and cannot run before phase 4 completes under the required phase order."}
+{"ts":"2026-08-26T09:05:00Z","action":"T022","status":"done","files":[]}
+{"ts":"2026-08-26T09:05:00Z","action":"T023","status":"done","files":[]}
+{"ts":"2026-08-26T09:05:00Z","action":"T024","status":"done","files":[]}
+{"ts":"2026-08-26T09:05:00Z","action":"T025","status":"done","files":[]}
+{"ts":"2026-08-26T09:05:00Z","action":"T026","status":"done","files":[]}
+{"ts":"2026-08-26T09:05:00Z","action":"T027","status":"done","files":["doc/api/"],"command":"dart doc","outcome":"success with 17 pre-existing unresolved-reference warnings and 0 errors"}
+{"ts":"2026-08-26T09:10:00Z","action":"T014","status":"corrected","files":[],"supersedes":"blocked","validation":"flutter pub get; dart format --set-exit-if-changed (12 planned Dart files); flutter analyze; flutter test -j 1 --reporter compact: 958 passed, 24 network-dependent skipped; git diff --check clean; scope contains no generated declarations, binaries, or overrides"}
+{"ts":"2026-08-26T09:10:00Z","action":"T015","status":"blocked","files":[],"reason":"No remote commit or workflow dispatch is authorized; existing CI cannot prove this unpushed local work on Linux."}
+{"ts":"2026-08-26T13:40:00Z","action":"T015","status":"corrected","files":[],"supersedes":"blocked","run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","job":"Test (Linux)","conclusion":"success"}
+{"ts":"2026-08-26T13:40:00Z","action":"T016","status":"done","files":[],"run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","job":"Test (macOS)","conclusion":"success"}
+{"ts":"2026-08-26T13:40:00Z","action":"T017","status":"done","files":[],"run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","job":"Test (Windows)","conclusion":"success"}
+{"ts":"2026-08-26T13:40:00Z","action":"T018","status":"done","files":[],"run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","job":"Test (Android)","conclusion":"success"}
+{"ts":"2026-08-26T13:40:00Z","action":"T019","status":"done","files":[],"run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","job":"Test (iOS)","conclusion":"success"}
+{"ts":"2026-08-26T13:40:00Z","action":"T020","status":"done","files":[],"build_run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619039","publish_run":"https://github.com/DartGit-dev/git2dart/actions/runs/32974619046","commit":"9b47c0aaba67168ea74d671f9dee47418d10ad65","evidence":"Build Quality and Linux/macOS/Windows/Android/iOS jobs completed success; Publish workflow completed success (publish job skipped)."}
+{"ts":"2026-08-26T13:40:00Z","action":"T021","status":"done","files":[],"baseline":"tool/api_diff/git2dart_binaries.baseline","evidence":"Baseline preserved without regeneration; migration evidence is limited to reviewed hand-written runtime boundary and the successful CI runs for commit 9b47c0aaba67168ea74d671f9dee47418d10ad65."}
+{"ts":"2026-08-27T00:00:00+07:00","action":"DEPLOYMENT","status":"done","deployment":"successful","evidence_source":"USER-CONFIRMED","independent_verification":false,"scope":"Feature 003 is treated as successfully deployed at the user's direction; this status replaces the earlier no-publication inference without claiming independent package-registry verification."}

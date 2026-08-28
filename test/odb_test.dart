@@ -128,19 +128,38 @@ void main() {
       );
     });
 
-    test('throws when trying to write with invalid object type', () {
-      expect(
-        () => repo.odb.write(type: GitObject.any, data: 'testing'),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
+    test(
+      'accepts only concrete object types for write and hash operations',
+      () {
+        const validTypes = {
+          GitObject.commit,
+          GitObject.tree,
+          GitObject.blob,
+          GitObject.tag,
+        };
+        final file = File(p.join(repo.workdir, 'object_type_validation'))
+          ..writeAsStringSync('data');
 
-    test('throws when trying to hash with invalid object type', () {
-      expect(
-        () => Odb.hash(type: GitObject.any, data: 'testing'),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
+        for (final type in GitObject.values) {
+          void operation() {
+            repo.odb.write(type: type, data: 'data');
+            repo.odb.writeDirect(type: type, data: 'data');
+            Odb.hash(type: type, data: 'data');
+            Odb.hashFile(type: type, path: file.path);
+          }
+
+          if (validTypes.contains(type)) {
+            expect(
+              operation,
+              returnsNormally,
+              reason: '$type should be accepted',
+            );
+          } else {
+            expect(operation, throwsA(isA<ArgumentError>()));
+          }
+        }
+      },
+    );
 
     test('throws when trying to write alternate odb to disk', () {
       final odb = Odb.create();

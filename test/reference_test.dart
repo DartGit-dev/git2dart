@@ -27,6 +27,128 @@ void main() {
   });
 
   group('Reference', () {
+    test('accepts valid reference names before reaching native code', () {
+      const validNames = [
+        'HEAD',
+        'ORIG_HEAD',
+        'refs/heads/main',
+        'refs/tags/v1.0',
+        'refs/remotes/origin/main',
+      ];
+
+      for (final name in validNames) {
+        expect(
+          () => Reference.lookup(repo: Repository(nullptr), name: name),
+          throwsA(isA<LibGit2Error>()),
+          reason: '$name should pass local validation',
+        );
+      }
+    });
+
+    test('rejects invalid names before every native reference operation', () {
+      const invalidNames = [
+        'refs/heads/main..next',
+        'refs/heads/main@{next',
+        'refs/heads/main name',
+        'refs/heads/main\x7f',
+        'refs//heads/main',
+        'refs/heads/.main',
+        'refs/heads/main.lock',
+      ];
+      final invalidRepo = Repository(nullptr);
+      final invalidOid = Oid(nullptr);
+
+      for (final name in invalidNames) {
+        expect(
+          () => Reference.create(
+            repo: invalidRepo,
+            name: name,
+            target: invalidOid,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.createMatching(
+            repo: invalidRepo,
+            name: name,
+            target: invalidOid,
+            currentTarget: invalidOid,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.lookup(repo: invalidRepo, name: name),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.delete(repo: invalidRepo, name: name),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.remove(repo: invalidRepo, name: name),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.rename(
+            repo: invalidRepo,
+            oldName: name,
+            newName: 'refs/heads/main',
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.rename(
+            repo: invalidRepo,
+            oldName: 'refs/heads/main',
+            newName: name,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.setTarget(
+            repo: invalidRepo,
+            name: name,
+            target: invalidOid,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.setTarget(
+            repo: invalidRepo,
+            name: 'refs/heads/main',
+            target: name,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.ensureLog(repo: invalidRepo, refName: name),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.nameToId(repo: invalidRepo, refName: name),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.createMatching(
+            repo: invalidRepo,
+            name: 'refs/heads/main',
+            target: name,
+            currentTarget: 'refs/heads/main',
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          () => Reference.createMatching(
+            repo: invalidRepo,
+            name: 'refs/heads/main',
+            target: 'refs/heads/main',
+            currentTarget: name,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      }
+    });
+
     test('returns a list', () {
       expect(Reference.list(repo), [
         'refs/heads/feature',
@@ -232,7 +354,7 @@ void main() {
             name: 'refs/tags/invalid',
             target: '78b',
           ),
-          throwsA(isA<LibGit2Error>()),
+          throwsA(isA<ArgumentError>()),
         );
 
         expect(
@@ -252,7 +374,7 @@ void main() {
             name: 'refs/tags/invalid~',
             target: repo[lastCommit],
           ),
-          throwsA(isA<LibGit2Error>()),
+          throwsA(isA<ArgumentError>()),
         );
       });
 
@@ -382,7 +504,7 @@ void main() {
             name: 'refs/tags/invalid~',
             target: 'refs/heads/master',
           ),
-          throwsA(isA<LibGit2Error>()),
+          throwsA(isA<ArgumentError>()),
         );
       });
 
@@ -539,7 +661,7 @@ void main() {
             name: 'HEAD',
             target: 'refs/heads/invalid~',
           ),
-          throwsA(isA<LibGit2Error>()),
+          throwsA(isA<ArgumentError>()),
         );
 
         expect(
@@ -577,7 +699,7 @@ void main() {
             oldName: 'refs/tags/v0.1',
             newName: 'refs/tags/invalid~',
           ),
-          throwsA(isA<LibGit2Error>()),
+          throwsA(isA<ArgumentError>()),
         );
       });
 

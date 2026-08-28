@@ -25,7 +25,7 @@ Pointer<git_annotated_commit> lookup({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_annotated_commit>>();
-    final error = libgit2.git_annotated_commit_lookup(
+    final error = libgit2Runtime.bindings.git_annotated_commit_lookup(
       out,
       repoPointer,
       oidPointer,
@@ -49,7 +49,7 @@ Pointer<git_annotated_commit> fromRef({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_annotated_commit>>();
-    final error = libgit2.git_annotated_commit_from_ref(
+    final error = libgit2Runtime.bindings.git_annotated_commit_from_ref(
       out,
       repoPointer,
       referencePointer,
@@ -74,7 +74,7 @@ Pointer<git_annotated_commit> fromRevSpec({
   return using((arena) {
     final out = arena<Pointer<git_annotated_commit>>();
     final revspecC = revspec.toChar(arena);
-    final error = libgit2.git_annotated_commit_from_revspec(
+    final error = libgit2Runtime.bindings.git_annotated_commit_from_revspec(
       out,
       repoPointer,
       revspecC,
@@ -102,7 +102,7 @@ Pointer<git_annotated_commit> fromFetchHead({
     final out = arena<Pointer<git_annotated_commit>>();
     final branchNameC = branchName.toChar(arena);
     final remoteUrlC = remoteUrl.toChar(arena);
-    final error = libgit2.git_annotated_commit_from_fetchhead(
+    final error = libgit2Runtime.bindings.git_annotated_commit_from_fetchhead(
       out,
       repoPointer,
       branchNameC,
@@ -133,13 +133,13 @@ Pointer<git_annotated_commit> fromHead(Pointer<git_repository> repoPointer) {
 ///
 /// Returns a pointer to the OID of the commit.
 Pointer<git_oid> oid(Pointer<git_annotated_commit> commit) =>
-    libgit2.git_annotated_commit_id(commit);
+    libgit2Runtime.bindings.git_annotated_commit_id(commit);
 
 /// Gets the reference name that the given annotated commit refers to.
 ///
 /// Returns an empty string if no reference name is associated with the commit.
 String refName(Pointer<git_annotated_commit> commit) {
-  final result = libgit2.git_annotated_commit_ref(commit);
+  final result = libgit2Runtime.bindings.git_annotated_commit_ref(commit);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -147,5 +147,5 @@ String refName(Pointer<git_annotated_commit> commit) {
 ///
 /// This should be called when the annotated commit is no longer needed.
 void free(Pointer<git_annotated_commit> commit) {
-  libgit2.git_annotated_commit_free(commit);
+  libgit2Runtime.bindings.git_annotated_commit_free(commit);
 }

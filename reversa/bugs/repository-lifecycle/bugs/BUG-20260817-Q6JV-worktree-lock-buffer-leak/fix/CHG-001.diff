@@ -1,0 +1,15 @@
+diff --git a/lib/src/bindings/worktree.dart b/lib/src/bindings/worktree.dart
+--- a/lib/src/bindings/worktree.dart
++++ b/lib/src/bindings/worktree.dart
+@@ -207,7 +207,11 @@ String path(Pointer<git_worktree> wt) =>
+ bool isLocked(Pointer<git_worktree> wt) {
+   return using((arena) {
+     final reason = arena<git_buf>();
+-    return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
++    try {
++      return libgit2Runtime.bindings.git_worktree_is_locked(reason, wt) == 1;
++    } finally {
++      libgit2Runtime.bindings.git_buf_dispose(reason);
++    }
+   });
+ }

@@ -1,0 +1,97 @@
+{
+  "overlays": [
+    {
+      "id": "ov_file:F:/git2dart_binaries/.agents/skills/reversa/SKILL.md_1787413167928",
+      "target": "file:F:/git2dart_binaries/.agents/skills/reversa/SKILL.md",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-22T15:39:27.928625500Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart_binaries/.reversa/_fork_update_source/lib/commands/update.js_1787413170721",
+      "target": "file:F:/git2dart_binaries/.reversa/_fork_update_source/lib/commands/update.js",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-22T15:39:30.721462500Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/.agents/skills/reversa-forward_1787413171791",
+      "target": "file:F:/git2dart/.agents/skills/reversa-forward",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-22T15:39:31.791842400Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/bug.md_1787548194786",
+      "target": "file:F:/git2dart/reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/bug.md",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-24T05:09:54.786632600Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/lib/src_1787728283830",
+      "target": "file:F:/git2dart/lib/src",
+      "operation": {
+        "type": "set_view",
+        "map": null
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": {
+        "agent": "mcp"
+      },
+      "created_at": "2026-08-26T07:11:23.830170600Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/.agents/skills/reversa-debugger-review/SKILL.md_1787820135008",
+      "target": "file:F:/git2dart/.agents/skills/reversa-debugger-review/SKILL.md",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-27T08:42:15.008893900Z",
+      "stale": false
+    },
+    {
+      "id": "ov_file:F:/git2dart/reversa/forward/003-binaries-1-13-migration/audit/cross-check.md_1787820138064",
+      "target": "file:F:/git2dart/reversa/forward/003-binaries-1-13-migration/audit/cross-check.md",
+      "operation": {
+        "type": "exclude",
+        "reason": "evicted via dashboard"
+      },
+      "scope": "project",
+      "before_hash": "",
+      "author": "user",
+      "created_at": "2026-08-27T08:42:18.064114700Z",
+      "stale": false
+    }
+  ]
+}

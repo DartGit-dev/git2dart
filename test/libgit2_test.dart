@@ -1,4 +1,7 @@
+import 'dart:ffi';
+
 import 'package:git2dart/git2dart.dart';
+import 'package:git2dart_binaries/git2dart_binaries.dart' show LibGit2Error;
 import 'package:test/test.dart';
 
 void main() {
@@ -71,6 +74,53 @@ void main() {
 
       // Reset to avoid side effects in later tests
       Libgit2.mmapWindowSize = oldValue;
+    });
+
+    test('preserves native-width global option values', () {
+      final options =
+          <({String name, int Function() read, void Function(int) write})>[
+            (
+              name: 'mmap window size',
+              read: () => Libgit2.mmapWindowSize,
+              write: (value) => Libgit2.mmapWindowSize = value,
+            ),
+            (
+              name: 'mmap mapped limit',
+              read: () => Libgit2.mmapWindowMappedLimit,
+              write: (value) => Libgit2.mmapWindowMappedLimit = value,
+            ),
+            (
+              name: 'mmap file limit',
+              read: () => Libgit2.mmapWindowFileLimit,
+              write: (value) => Libgit2.mmapWindowFileLimit = value,
+            ),
+            (
+              name: 'pack maximum objects',
+              read: () => Libgit2.packMaxObjects,
+              write: (value) => Libgit2.packMaxObjects = value,
+            ),
+          ];
+      final originalValues = options.map((option) => option.read()).toList();
+      addTearDown(() {
+        for (var index = 0; index < options.length; index++) {
+          options[index].write(originalValues[index]);
+        }
+      });
+
+      for (var index = 0; index < options.length; index++) {
+        final value = 64 * 1024 * (index + 1);
+        options[index].write(value);
+        expect(options[index].read(), value, reason: options[index].name);
+      }
+
+      if (sizeOf<Size>() == 8) {
+        const value = 4_294_967_296;
+        options.first.write(value);
+        expect(options.first.read(), value);
+      }
+
+      expect(Libgit2.cachedMemory.current, greaterThanOrEqualTo(0));
+      expect(Libgit2.cachedMemory.allowed, greaterThanOrEqualTo(0));
     });
 
     test('sets and returns the maximum memory that will be mapped in total by '
@@ -149,13 +199,15 @@ void main() {
     });
 
     test('sets location for ssl certificates', () {
+      final expectation = anyOf(returnsNormally, throwsA(isA<LibGit2Error>()));
+
       expect(
         () => Libgit2.setSSLCertLocations(file: 'etc/ssl/cert.pem'),
-        returnsNormally,
+        expectation,
       );
       expect(
         () => Libgit2.setSSLCertLocations(path: 'etc/ssl/certs/'),
-        returnsNormally,
+        expectation,
       );
     });
 

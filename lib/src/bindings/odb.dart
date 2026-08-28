@@ -21,7 +21,7 @@ Pointer<git_odb> create({git_oid_t oidType = git_oid_t.GIT_OID_SHA1}) {
     opts.ref.version = GIT_ODB_OPTIONS_VERSION;
     opts.ref.oid_typeAsInt = oidType.value;
 
-    final error = libgit2.git_odb_new(out, opts);
+    final error = libgit2Runtime.bindings.git_odb_new(out, opts);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -41,7 +41,7 @@ Pointer<git_odb> open({
     opts.ref.version = GIT_ODB_OPTIONS_VERSION;
     opts.ref.oid_typeAsInt = oidType.value;
 
-    final error = libgit2.git_odb_open(out, pathC, opts);
+    final error = libgit2Runtime.bindings.git_odb_open(out, pathC, opts);
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -62,13 +62,13 @@ void addDiskAlternate({
 }) {
   return using((arena) {
     final pathC = path.toChar(arena);
-    libgit2.git_odb_add_disk_alternate(odbPointer, pathC);
+    libgit2Runtime.bindings.git_odb_add_disk_alternate(odbPointer, pathC);
   });
 }
 
 /// Return the number of ODB backends.
 int backendCount(Pointer<git_odb> odbPointer) {
-  return libgit2.git_odb_num_backends(odbPointer);
+  return libgit2Runtime.bindings.git_odb_num_backends(odbPointer);
 }
 
 /// Get an ODB backend by position.
@@ -78,7 +78,11 @@ Pointer<git_odb_backend> getBackend({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_odb_backend>>();
-    final error = libgit2.git_odb_get_backend(out, odbPointer, position);
+    final error = libgit2Runtime.bindings.git_odb_get_backend(
+      out,
+      odbPointer,
+      position,
+    );
     checkErrorAndThrow(error);
     return out.value;
   });
@@ -94,7 +98,7 @@ Pointer<git_oid> existsPrefix({
   required int length,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_odb_exists_prefix(
+  final error = libgit2Runtime.bindings.git_odb_exists_prefix(
     out,
     odbPointer,
     shortOidPointer,
@@ -109,7 +113,8 @@ bool exists({
   required Pointer<git_odb> odbPointer,
   required Pointer<git_oid> oidPointer,
 }) {
-  return libgit2.git_odb_exists(odbPointer, oidPointer) == 1 || false;
+  return libgit2Runtime.bindings.git_odb_exists(odbPointer, oidPointer) == 1 ||
+      false;
 }
 
 /// Determine if the given object can be found in the object database using
@@ -119,7 +124,12 @@ bool existsExt({
   required Pointer<git_oid> oidPointer,
   required int flags,
 }) {
-  return libgit2.git_odb_exists_ext(odbPointer, oidPointer, flags) == 1 ||
+  return libgit2Runtime.bindings.git_odb_exists_ext(
+            odbPointer,
+            oidPointer,
+            flags,
+          ) ==
+          1 ||
       false;
 }
 
@@ -144,7 +154,7 @@ List<Oid> objects(Pointer<git_odb> odb) {
         _forEachCb,
         except,
       );
-  final error = libgit2.git_odb_foreach(odb, cb, nullptr);
+  final error = libgit2Runtime.bindings.git_odb_foreach(odb, cb, nullptr);
   checkErrorAndThrow(error);
 
   final result = _objects.toList(growable: false);
@@ -160,13 +170,17 @@ void expandIds({
   required Pointer<git_odb_expand_id> idsPointer,
   required int count,
 }) {
-  final error = libgit2.git_odb_expand_ids(odbPointer, idsPointer, count);
+  final error = libgit2Runtime.bindings.git_odb_expand_ids(
+    odbPointer,
+    idsPointer,
+    count,
+  );
   checkErrorAndThrow(error);
 }
 
 /// Refresh the object database to load newly added files.
 void refresh(Pointer<git_odb> odbPointer) {
-  final error = libgit2.git_odb_refresh(odbPointer);
+  final error = libgit2Runtime.bindings.git_odb_refresh(odbPointer);
   checkErrorAndThrow(error);
 }
 
@@ -182,7 +196,11 @@ Pointer<git_odb_object> read({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_odb_object>>();
-    final error = libgit2.git_odb_read(out, odbPointer, oidPointer);
+    final error = libgit2Runtime.bindings.git_odb_read(
+      out,
+      odbPointer,
+      oidPointer,
+    );
 
     checkErrorAndThrow(error);
 
@@ -200,7 +218,7 @@ Pointer<git_odb_object> readPrefix({
 }) {
   return using((arena) {
     final out = arena<Pointer<git_odb_object>>();
-    final error = libgit2.git_odb_read_prefix(
+    final error = libgit2Runtime.bindings.git_odb_read_prefix(
       out,
       odbPointer,
       shortOidPointer,
@@ -215,12 +233,12 @@ Pointer<git_odb_object> readPrefix({
 ///
 /// This is the OID from which the object was read from.
 Pointer<git_oid> objectId(Pointer<git_odb_object> object) {
-  return libgit2.git_odb_object_id(object);
+  return libgit2Runtime.bindings.git_odb_object_id(object);
 }
 
 /// Return the type of an ODB object.
 git_object_t objectType(Pointer<git_odb_object> object) {
-  return libgit2.git_odb_object_type(object);
+  return libgit2Runtime.bindings.git_odb_object_type(object);
 }
 
 /// Return the data of an ODB object.
@@ -228,14 +246,17 @@ git_object_t objectType(Pointer<git_odb_object> object) {
 /// This is the uncompressed, raw data as read from the ODB, without the
 /// leading header.
 String objectData(Pointer<git_odb_object> object) {
-  return libgit2.git_odb_object_data(object).cast<Utf8>().toDartString();
+  return libgit2Runtime.bindings
+      .git_odb_object_data(object)
+      .cast<Utf8>()
+      .toDartString();
 }
 
 /// Return the data of an ODB object as bytes.
 Uint8List objectDataBytes(Pointer<git_odb_object> object) {
-  final size = libgit2.git_odb_object_size(object);
+  final size = libgit2Runtime.bindings.git_odb_object_size(object);
   if (size == 0) return Uint8List(0);
-  final data = libgit2
+  final data = libgit2Runtime.bindings
       .git_odb_object_data(object)
       .cast<Uint8>()
       .asTypedList(size);
@@ -247,7 +268,7 @@ Uint8List objectDataBytes(Pointer<git_odb_object> object) {
 /// This is the real size of the `data` buffer, not the actual size of the
 /// object.
 int objectSize(Pointer<git_odb_object> object) {
-  return libgit2.git_odb_object_size(object);
+  return libgit2Runtime.bindings.git_odb_object_size(object);
 }
 
 /// Read the header of an object from the database without reading its data.
@@ -261,7 +282,7 @@ Map<String, Object> readHeader({
   return using((arena) {
     final lenOut = arena<Size>();
     final typeOut = arena<Int>();
-    final error = libgit2.git_odb_read_header(
+    final error = libgit2Runtime.bindings.git_odb_read_header(
       lenOut,
       typeOut,
       odbPointer,
@@ -285,7 +306,7 @@ Pointer<git_oid> write({
 }) {
   return using((arena) {
     final stream = arena<Pointer<git_odb_stream>>();
-    final streamError = libgit2.git_odb_open_wstream(
+    final streamError = libgit2Runtime.bindings.git_odb_open_wstream(
       stream,
       odbPointer,
       data.length,
@@ -294,13 +315,20 @@ Pointer<git_oid> write({
     checkErrorAndThrow(streamError);
 
     final bufferC = data.toChar(arena);
-    libgit2.git_odb_stream_write(stream.value, bufferC, data.length);
+    libgit2Runtime.bindings.git_odb_stream_write(
+      stream.value,
+      bufferC,
+      data.length,
+    );
 
     final out = calloc<git_oid>();
-    final error = libgit2.git_odb_stream_finalize_write(out, stream.value);
+    final error = libgit2Runtime.bindings.git_odb_stream_finalize_write(
+      out,
+      stream.value,
+    );
     checkErrorAndThrow(error);
 
-    libgit2.git_odb_stream_free(stream.value);
+    libgit2Runtime.bindings.git_odb_stream_free(stream.value);
     return out;
   });
 }
@@ -318,7 +346,7 @@ Pointer<git_oid> writeDirect({
     final bytes = utf8.encode(data);
     final buffer = arena<Uint8>(bytes.length);
     buffer.asTypedList(bytes.length).setAll(0, bytes);
-    final error = libgit2.git_odb_write(
+    final error = libgit2Runtime.bindings.git_odb_write(
       out,
       odbPointer,
       buffer.cast<Void>(),
@@ -343,7 +371,7 @@ Pointer<git_oid> hash({
     final bytes = utf8.encode(data);
     final buffer = arena<Uint8>(bytes.length);
     buffer.asTypedList(bytes.length).setAll(0, bytes);
-    final error = libgit2.git_odb_hash(
+    final error = libgit2Runtime.bindings.git_odb_hash(
       out,
       buffer.cast<Void>(),
       bytes.length,
@@ -366,7 +394,12 @@ Pointer<git_oid> hashFile({
   return using((arena) {
     final out = calloc<git_oid>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_odb_hashfile(out, pathC, type, oidType);
+    final error = libgit2Runtime.bindings.git_odb_hashfile(
+      out,
+      pathC,
+      type,
+      oidType,
+    );
     checkErrorAndThrow(error);
     return out;
   });
@@ -378,19 +411,19 @@ Pointer<git_oid> hashFile({
 Pointer<git_odb_object> duplicateObject(Pointer<git_odb_object> source) {
   return using((arena) {
     final out = arena<Pointer<git_odb_object>>();
-    final error = libgit2.git_odb_object_dup(out, source);
+    final error = libgit2Runtime.bindings.git_odb_object_dup(out, source);
     checkErrorAndThrow(error);
     return out.value;
   });
 }
 
 /// Close an open object database.
-void free(Pointer<git_odb> db) => libgit2.git_odb_free(db);
+void free(Pointer<git_odb> db) => libgit2Runtime.bindings.git_odb_free(db);
 
 /// Close an ODB object.
 ///
 /// This method must always be called once a odb object is no longer needed,
 /// otherwise memory will leak.
 void freeObject(Pointer<git_odb_object> object) {
-  libgit2.git_odb_object_free(object);
+  libgit2Runtime.bindings.git_odb_object_free(object);
 }

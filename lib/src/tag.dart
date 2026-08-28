@@ -66,7 +66,7 @@ class Tag extends Equatable {
   Pointer<git_tag> get pointer => _tagPointer;
 
   /// Gets the [Oid] of the tag.
-  Oid get oid => Oid(bindings.id(_tagPointer));
+  Oid get oid => Oid.fromBorrowed(bindings.id(_tagPointer));
 
   /// Gets the name of the tag.
   String get name => bindings.name(_tagPointer);
@@ -84,7 +84,7 @@ class Tag extends Equatable {
   }
 
   /// Gets the [Oid] of the tagged object.
-  Oid get targetOid => Oid(bindings.targetOid(_tagPointer));
+  Oid get targetOid => Oid.fromBorrowed(bindings.targetOid(_tagPointer));
 
   /// Gets the tagged object.
   ///

@@ -26,7 +26,7 @@ Pointer<git_diff> indexToIndex({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_index_to_index(
+    final error = libgit2Runtime.bindings.git_diff_index_to_index(
       out,
       repoPointer,
       oldIndexPointer,
@@ -57,7 +57,7 @@ Pointer<git_diff> indexToWorkdir({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_index_to_workdir(
+    final error = libgit2Runtime.bindings.git_diff_index_to_workdir(
       out,
       repoPointer,
       indexPointer,
@@ -88,7 +88,7 @@ Pointer<git_diff> treeToIndex({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_tree_to_index(
+    final error = libgit2Runtime.bindings.git_diff_tree_to_index(
       out,
       repoPointer,
       treePointer ?? nullptr,
@@ -121,7 +121,7 @@ Pointer<git_diff> treeToWorkdir({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_tree_to_workdir(
+    final error = libgit2Runtime.bindings.git_diff_tree_to_workdir(
       out,
       repoPointer,
       treePointer ?? nullptr,
@@ -158,7 +158,7 @@ Pointer<git_diff> treeToWorkdirWithIndex({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_tree_to_workdir_with_index(
+    final error = libgit2Runtime.bindings.git_diff_tree_to_workdir_with_index(
       out,
       repoPointer,
       treePointer ?? nullptr,
@@ -191,7 +191,7 @@ Pointer<git_diff> treeToTree({
       interhunkLines: interhunkLines,
     );
 
-    final error = libgit2.git_diff_tree_to_tree(
+    final error = libgit2Runtime.bindings.git_diff_tree_to_tree(
       out,
       repoPointer,
       oldTreePointer ?? nullptr,
@@ -205,19 +205,20 @@ Pointer<git_diff> treeToTree({
 }
 
 /// Query how many diff records are there in a diff.
-int length(Pointer<git_diff> diff) => libgit2.git_diff_num_deltas(diff);
+int length(Pointer<git_diff> diff) =>
+    libgit2Runtime.bindings.git_diff_num_deltas(diff);
 
 /// Query how many diff records have [type].
 int lengthOfType({
   required Pointer<git_diff> diffPointer,
   required git_delta_t type,
 }) {
-  return libgit2.git_diff_num_deltas_of_type(diffPointer, type);
+  return libgit2Runtime.bindings.git_diff_num_deltas_of_type(diffPointer, type);
 }
 
 /// Return whether deltas are sorted case-insensitively.
 bool isSortedICase(Pointer<git_diff> diff) {
-  return libgit2.git_diff_is_sorted_icase(diff) == 1;
+  return libgit2Runtime.bindings.git_diff_is_sorted_icase(diff) == 1;
 }
 
 /// Merge one diff into another.
@@ -229,7 +230,10 @@ void merge({
   required Pointer<git_diff> diffPointer,
   required Pointer<git_diff> fromDiffPointer,
 }) {
-  final error = libgit2.git_diff_merge(diffPointer, fromDiffPointer);
+  final error = libgit2Runtime.bindings.git_diff_merge(
+    diffPointer,
+    fromDiffPointer,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -257,7 +261,7 @@ Pointer<git_diff> parse(
     opts.ref.version = GIT_DIFF_PARSE_OPTIONS_VERSION;
     opts.ref.oid_typeAsInt = oidType.value;
 
-    final error = libgit2.git_diff_from_buffer(
+    final error = libgit2Runtime.bindings.git_diff_from_buffer(
       out,
       contentC,
       content.length,
@@ -282,7 +286,10 @@ void findSimilar({
   required Pointer<git_diff> diffPointer,
   required Pointer<git_diff_find_options> options,
 }) {
-  final error = libgit2.git_diff_find_similar(diffPointer, options);
+  final error = libgit2Runtime.bindings.git_diff_find_similar(
+    diffPointer,
+    options,
+  );
   checkErrorAndThrow(error);
 }
 
@@ -302,18 +309,37 @@ Pointer<git_oid> patchOid(
   Pointer<git_diff_patchid_options>? options,
 }) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_diff_patchid(out, diff, options ?? nullptr);
+  try {
+    final error = libgit2Runtime.bindings.git_diff_patchid(
+      out,
+      diff,
+      options ?? nullptr,
+    );
 
-  checkErrorAndThrow(error);
+    checkErrorAndThrow(error);
 
-  return out;
+    return out;
+  } catch (_) {
+    calloc.free(out);
+    rethrow;
+  }
 }
 
 /// Allocate and initialize `git_diff_patchid_options` structure.
 Pointer<git_diff_patchid_options> initPatchIdOptions() {
   final opts = calloc<git_diff_patchid_options>();
-  libgit2.git_diff_patchid_options_init(opts, GIT_DIFF_PATCHID_OPTIONS_VERSION);
-  return opts;
+  try {
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_diff_patchid_options_init(
+        opts,
+        GIT_DIFF_PATCHID_OPTIONS_VERSION,
+      ),
+    );
+    return opts;
+  } catch (_) {
+    calloc.free(opts);
+    rethrow;
+  }
 }
 
 /// Return the diff delta for an entry in the diff list.
@@ -321,7 +347,7 @@ Pointer<git_diff_delta> getDeltaByIndex({
   required Pointer<git_diff> diffPointer,
   required int index,
 }) {
-  return libgit2.git_diff_get_delta(diffPointer, index);
+  return libgit2Runtime.bindings.git_diff_get_delta(diffPointer, index);
 }
 
 /// Look up the single character abbreviation for a delta status code.
@@ -331,7 +357,9 @@ Pointer<git_diff_delta> getDeltaByIndex({
 /// function converts a [GitDelta] value into these letters for your own
 /// purposes. [GitDelta.untracked] will return a space (i.e. ' ').
 String statusChar(git_delta_t status) {
-  return String.fromCharCode(libgit2.git_diff_status_char(status));
+  return String.fromCharCode(
+    libgit2Runtime.bindings.git_diff_status_char(status),
+  );
 }
 
 /// Accumulate diff statistics for all patches. The returned diff stats must be
@@ -341,7 +369,7 @@ String statusChar(git_delta_t status) {
 Pointer<git_diff_stats> stats(Pointer<git_diff> diff) {
   return using((arena) {
     final out = arena<Pointer<git_diff_stats>>();
-    final error = libgit2.git_diff_get_stats(out, diff);
+    final error = libgit2Runtime.bindings.git_diff_get_stats(out, diff);
 
     checkErrorAndThrow(error);
 
@@ -354,7 +382,7 @@ DiffPerfData perfData(Pointer<git_diff> diff) {
   return using((arena) {
     final out = arena<git_diff_perfdata>();
     out.ref.version = GIT_DIFF_PERFDATA_VERSION;
-    final error = libgit2.git_diff_get_perfdata(out, diff);
+    final error = libgit2Runtime.bindings.git_diff_get_perfdata(out, diff);
 
     checkErrorAndThrow(error);
 
@@ -367,15 +395,15 @@ DiffPerfData perfData(Pointer<git_diff> diff) {
 
 /// Get the total number of insertions in a diff.
 int statsInsertions(Pointer<git_diff_stats> stats) =>
-    libgit2.git_diff_stats_insertions(stats);
+    libgit2Runtime.bindings.git_diff_stats_insertions(stats);
 
 /// Get the total number of deletions in a diff.
 int statsDeletions(Pointer<git_diff_stats> stats) =>
-    libgit2.git_diff_stats_deletions(stats);
+    libgit2Runtime.bindings.git_diff_stats_deletions(stats);
 
 /// Get the total number of files changed in a diff.
 int statsFilesChanged(Pointer<git_diff_stats> stats) =>
-    libgit2.git_diff_stats_files_changed(stats);
+    libgit2Runtime.bindings.git_diff_stats_files_changed(stats);
 
 /// Print diff statistics.
 ///
@@ -387,7 +415,7 @@ String statsPrint({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_diff_stats_to_buf(
+    final error = libgit2Runtime.bindings.git_diff_stats_to_buf(
       out,
       statsPointer,
       format,
@@ -396,7 +424,7 @@ String statsPrint({
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });
@@ -406,7 +434,7 @@ String statsPrint({
 String addToBuf(Pointer<git_diff> diff) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_diff_to_buf(
+    final error = libgit2Runtime.bindings.git_diff_to_buf(
       out,
       diff,
       git_diff_format_t.GIT_DIFF_FORMAT_PATCH,
@@ -418,7 +446,7 @@ String addToBuf(Pointer<git_diff> diff) {
             ? ''
             : out.ref.ptr.toDartString(length: out.ref.size);
 
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
     return result;
   });
 }
@@ -503,7 +531,7 @@ String print(Pointer<git_diff> diff) {
   final cb = _lineCallback();
 
   _printedDiffLines.clear();
-  final error = libgit2.git_diff_print(
+  final error = libgit2Runtime.bindings.git_diff_print(
     diff,
     git_diff_format_t.GIT_DIFF_FORMAT_PATCH,
     cb,
@@ -537,7 +565,7 @@ Map<String, Object> foreach(Pointer<git_diff> diff) {
   _foreachLineOrigins.clear();
   _printedDiffLines.clear();
 
-  final error = libgit2.git_diff_foreach(
+  final error = libgit2Runtime.bindings.git_diff_foreach(
     diff,
     fileCb,
     nullptr,
@@ -603,7 +631,7 @@ String _runDirectDiff({
 
   int error;
   if (oldBuffer != null || oldBlobPointer == null) {
-    error = libgit2.git_diff_buffers(
+    error = libgit2Runtime.bindings.git_diff_buffers(
       oldBufferC.cast(),
       oldBuffer?.length ?? 0,
       oldAsPathC,
@@ -618,7 +646,7 @@ String _runDirectDiff({
       nullptr,
     );
   } else if (newBlobPointer != null) {
-    error = libgit2.git_diff_blobs(
+    error = libgit2Runtime.bindings.git_diff_blobs(
       oldBlobPointer,
       oldAsPathC,
       newBlobPointer,
@@ -631,7 +659,7 @@ String _runDirectDiff({
       nullptr,
     );
   } else {
-    error = libgit2.git_diff_blob_to_buffer(
+    error = libgit2Runtime.bindings.git_diff_blob_to_buffer(
       oldBlobPointer,
       oldAsPathC,
       newBufferC,
@@ -757,7 +785,7 @@ bool apply({
 }) {
   return using((arena) {
     final opts = arena<git_apply_options>();
-    final error = libgit2.git_apply_options_init(
+    final error = libgit2Runtime.bindings.git_apply_options_init(
       opts,
       GIT_APPLY_OPTIONS_VERSION,
     );
@@ -778,7 +806,7 @@ bool apply({
       opts.ref.hunk_cb = callback;
     }
 
-    final errorApply = libgit2.git_apply(
+    final errorApply = libgit2Runtime.bindings.git_apply(
       repoPointer,
       diffPointer,
       location,
@@ -789,7 +817,7 @@ bool apply({
       return true;
     }
 
-    return check ? false : throw LibGit2Error(libgit2.git_error_last());
+    return check ? false : throwLastError();
   });
 }
 
@@ -806,7 +834,12 @@ Pointer<git_index> applyToTree({
   return using((arena) {
     final out = arena<Pointer<git_index>>();
     final opts = arena<git_apply_options>();
-    libgit2.git_apply_options_init(opts, GIT_APPLY_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_apply_options_init(
+        opts,
+        GIT_APPLY_OPTIONS_VERSION,
+      ),
+    );
 
     Pointer<Int32> payload = nullptr;
     if (hunkIndex != null) {
@@ -819,7 +852,7 @@ Pointer<git_index> applyToTree({
       opts.ref.hunk_cb = callback;
     }
 
-    final error = libgit2.git_apply_to_tree(
+    final error = libgit2Runtime.bindings.git_apply_to_tree(
       out,
       repoPointer,
       treePointer,
@@ -835,10 +868,11 @@ Pointer<git_index> applyToTree({
 
 /// Free a previously allocated diff stats.
 void freeStats(Pointer<git_diff_stats> stats) =>
-    libgit2.git_diff_stats_free(stats);
+    libgit2Runtime.bindings.git_diff_stats_free(stats);
 
 /// Free a previously allocated diff.
-void free(Pointer<git_diff> diff) => libgit2.git_diff_free(diff);
+void free(Pointer<git_diff> diff) =>
+    libgit2Runtime.bindings.git_diff_free(diff);
 
 /// Diff performance counters.
 class DiffPerfData {
@@ -859,7 +893,12 @@ Pointer<git_diff_options> _diffOptionsInit({
   required int interhunkLines,
 }) {
   final opts = arena<git_diff_options>();
-  libgit2.git_diff_options_init(opts, GIT_DIFF_OPTIONS_VERSION);
+  checkErrorAndThrow(
+    libgit2Runtime.bindings.git_diff_options_init(
+      opts,
+      GIT_DIFF_OPTIONS_VERSION,
+    ),
+  );
 
   opts.ref.flags = flags;
   opts.ref.context_lines = contextLines;
@@ -878,13 +917,13 @@ Pointer<git_diff_options> _diffOptionsInit({
 // }) {
 //   return using((arena) {
 //     final out = arena<git_buf>();
-//     final error = libgit2.git_email_create_from_diff(out, diff, patch_idx, patch_count, commit_id, summary, body, author, opts)
+//     final error = libgit2Runtime.bindings.git_email_create_from_diff(out, diff, patch_idx, patch_count, commit_id, summary, body, author, opts)
 
 //     git_diff_format_email(out, diffPointer, options);
 //     checkErrorAndThrow(error);
 
 //     final result = out.ref.ptr.toDartString(length: out.ref.size);
-//     libgit2.git_buf_dispose(out);
+//     libgit2Runtime.bindings.git_buf_dispose(out);
 
 //     return result;
 //   });

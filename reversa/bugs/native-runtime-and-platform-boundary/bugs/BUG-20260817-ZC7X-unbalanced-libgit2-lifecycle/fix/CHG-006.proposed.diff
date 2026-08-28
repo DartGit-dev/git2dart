@@ -1,0 +1,20 @@
+diff --git a/pubspec.yaml b/pubspec.yaml
+index bc0fb82..7ad98a7 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -13,7 +13,7 @@ dependencies:
+   flutter:
+     sdk: flutter
+
+-  git2dart_binaries: ">=1.12.1 <1.13.0"
++  git2dart_binaries: ">=1.12.2 <1.13.0"
+
+   meta: ^1.8.0
+   path: ^1.8.1
+diff --git a/tool/api_diff/git2dart_binaries.baseline b/tool/api_diff/git2dart_binaries.baseline
+index f8f4f03..6b89d58 100644
+--- a/tool/api_diff/git2dart_binaries.baseline
++++ b/tool/api_diff/git2dart_binaries.baseline
+@@ -1 +1 @@
+-1.12.1
++1.12.2

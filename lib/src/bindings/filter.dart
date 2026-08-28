@@ -17,7 +17,7 @@ String applyToData({
   return using((arena) {
     final out = arena<git_buf>();
     final bufferC = buffer.toChar(arena);
-    final error = libgit2.git_filter_list_apply_to_buffer(
+    final error = libgit2Runtime.bindings.git_filter_list_apply_to_buffer(
       out,
       filterListPointer,
       bufferC,
@@ -27,7 +27,7 @@ String applyToData({
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });
@@ -46,7 +46,7 @@ String applyToFile({
   return using((arena) {
     final out = arena<git_buf>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_filter_list_apply_to_file(
+    final error = libgit2Runtime.bindings.git_filter_list_apply_to_file(
       out,
       filterListPointer,
       repoPointer,
@@ -56,7 +56,7 @@ String applyToFile({
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });
@@ -73,7 +73,7 @@ String applyToBlob({
 }) {
   return using((arena) {
     final out = arena<git_buf>();
-    final error = libgit2.git_filter_list_apply_to_blob(
+    final error = libgit2Runtime.bindings.git_filter_list_apply_to_blob(
       out,
       filterListPointer,
       blobPointer,
@@ -82,7 +82,7 @@ String applyToBlob({
     checkErrorAndThrow(error);
 
     final result = out.ref.ptr.toDartString(length: out.ref.size);
-    libgit2.git_buf_dispose(out);
+    libgit2Runtime.bindings.git_buf_dispose(out);
 
     return result;
   });
@@ -99,7 +99,7 @@ Pointer<git_filter_list> load({
   return using((arena) {
     final out = arena<Pointer<git_filter_list>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_filter_list_load(
+    final error = libgit2Runtime.bindings.git_filter_list_load(
       out,
       repoPointer,
       blobPointer ?? nullptr,
@@ -123,7 +123,7 @@ Pointer<git_filter_list> loadExt({
   return using((arena) {
     final out = arena<Pointer<git_filter_list>>();
     final pathC = path.toChar(arena);
-    final error = libgit2.git_filter_list_load_ext(
+    final error = libgit2Runtime.bindings.git_filter_list_load_ext(
       out,
       repoPointer,
       blobPointer ?? nullptr,
@@ -143,11 +143,14 @@ bool contains({
 }) {
   return using((arena) {
     final nameC = name.toChar(arena);
-    final result = libgit2.git_filter_list_contains(filterListPointer, nameC);
+    final result = libgit2Runtime.bindings.git_filter_list_contains(
+      filterListPointer,
+      nameC,
+    );
     return result == 1;
   });
 }
 
 /// Free a filter list.
 void free(Pointer<git_filter_list> filterList) =>
-    libgit2.git_filter_list_free(filterList);
+    libgit2Runtime.bindings.git_filter_list_free(filterList);

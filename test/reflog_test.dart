@@ -32,6 +32,12 @@ void main() {
       expect(reflog.length, 4);
     });
 
+    test('returns an empty reflog when a reference has no log', () {
+      final tag = Reference.lookup(repo: repo, name: 'refs/tags/v0.1');
+
+      expect(RefLog(tag), isEmpty);
+    });
+
     test('returns the log message', () {
       expect(reflog[0].message, "commit: add subdirectory file");
     });
@@ -45,6 +51,11 @@ void main() {
     test('returns new and old oids of entry', () {
       expect(reflog[0].newOid.sha, '821ed6e80627b8769d170a293862f9fc60825226');
       expect(reflog.last.oldOid.sha, '0' * 40);
+    });
+
+    test('throws when looking up an entry at an invalid index', () {
+      expect(() => reflog[-1], throwsA(isA<Git2DartError>()));
+      expect(() => reflog[reflog.length], throwsA(isA<Git2DartError>()));
     });
 
     test('deletes the reflog of provided reference', () {

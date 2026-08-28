@@ -1,0 +1,32 @@
+diff --git a/test/remote_test.dart b/test/remote_test.dart
+--- a/test/remote_test.dart
++++ b/test/remote_test.dart
+@@ -442,6 +442,25 @@ void main() {
+           RemoteCallbacks.reset();
+         }
+       }
+     });
++
++    test('owns fetch temporary allocations through the active arena', () {
++      final source = File('lib/src/bindings/remote.dart').readAsStringSync();
++      final start = source.indexOf('void fetch({');
++      final end = source.indexOf('/// Perform a push.', start);
++      final fetchSource = source.substring(start, end);
++
++      expect(start, isNonNegative);
++      expect(end, greaterThan(start));
++      expect(fetchSource, contains('arena<git_strarray>()'));
++      expect(fetchSource, contains('arena<Pointer<Char>>(refspecs.length)'));
++      expect(fetchSource, contains('arena<git_fetch_options>()'));
++      expect(fetchSource, isNot(contains('calloc<git_strarray>()')));
++      expect(
++        fetchSource,
++        isNot(contains('calloc<Pointer<Char>>(refspecs.length)')),
++      );
++      expect(fetchSource, isNot(contains('calloc<git_fetch_options>()')));
++    });
+
+     test(
+       tags: 'remote_fetch',
+
+---

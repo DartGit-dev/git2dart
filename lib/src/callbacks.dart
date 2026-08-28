@@ -73,15 +73,15 @@ class Callbacks {
   /// Callback for reference update notifications.
   ///
   /// Reports changes to references with:
-  /// * [refname] - Name of the reference being updated
-  /// * [old] - Previous OID of the reference
-  /// * [newOne] - New OID of the reference
+  /// * `refname` - Name of the reference being updated
+  /// * `old` - Previous OID of the reference
+  /// * `newOne` - New OID of the reference
   final void Function(String refname, Oid old, Oid newOne)? updateTips;
 
   /// Callback for push operation status updates.
   ///
   /// Provides information about the status of push operations:
-  /// * [refname] - Name of the reference being pushed
-  /// * [message] - Status message from the remote
+  /// * `refname` - Name of the reference being pushed
+  /// * `message` - Status message from the remote
   final void Function(String refname, String message)? pushUpdateReference;
 }

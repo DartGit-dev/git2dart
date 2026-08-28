@@ -5,15 +5,18 @@ description: Compare public API declarations between git2dart_binaries versions 
 
 # Check git2dart_binaries API
 
-Use the repository's comparison tool to emit an API diff directly to the
-agent's command output, then connect declaration changes to git2dart code.
+Use the repository's comparison tool, then connect declaration changes to
+git2dart code. Keep the complete diff out of the conversation: it is an
+intermediate artifact, not the result.
 
 ## Compare versions
 
 Prefer explicit versions when the user provides them:
 
 ```shell
-dart run tool/compare_git2dart_binaries_api.dart --old <old-version> --new <new-version>
+dart run tool/compare_git2dart_binaries_api.dart \
+  --old <old-version> --new <new-version> \
+  --output <temporary-report-path>
 ```
 
 Run without version arguments only when the user requests the default workflow.
@@ -21,9 +24,19 @@ That mode compares the version in
 `tool/api_diff/git2dart_binaries.baseline` with the version in `pubspec.lock`.
 
 Accept paths and complete `pub://` or `git://` package references as supported
-by the project tool. Do not pass `--output` during normal skill use: consume the
-CLI diff directly. Use `--output <path>` only when the user explicitly requests
-a persistent Markdown file.
+by the project tool.
+
+For every comparison, write the Markdown report to a unique temporary file
+outside tracked source (for example, under `.dart_tool/`). Do not stream the
+CLI report into agent context. Inspect the report locally and return only the
+change counts, changed declaration names, and the small sections relevant to
+consumers found in `git2dart`. Delete the temporary report after the result is
+derived. Preserve it or copy it to a user-requested path only when the user
+explicitly requests a persistent Markdown file.
+
+If local inspection needs more detail, progressively widen it: start with
+report headings and declaration identifiers, then read only the sections for
+changed symbols with actual consumers. Never load or echo the whole report.
 
 If a requested published version does not exist, report that clearly. Do not
 substitute another version without user direction.
@@ -40,7 +53,9 @@ Capture and summarize:
 
 Treat the tool's severity as a signal that still requires engineering judgment.
 For every changed FFI symbol, search `lib/src/bindings/`, `lib/src/`, and `test/`
-with `rg` to identify concrete consumers.
+to identify concrete consumers. Search first for exact changed identifiers;
+expand the query only when that finds no consumer. Return paths and symbol names,
+not full matching files.
 
 ## Validate an upgrade
 
@@ -70,7 +85,9 @@ behavior changes. For an upgrade decision, also inspect the
 
 ## Return the result
 
-List the important changes from command output and identify any validation not
-performed. If no changes are found, say specifically that no public Dart API
-changes were detected rather than claiming that the package versions are fully
-equivalent. Do not create or link a report file unless the user requested one.
+Return a compact result: versions compared; breaking and non-breaking counts;
+changed declarations with concrete consumers; recommended action; validation not
+performed. List individual declarations only when breaking or consumed. If no
+changes are found, say specifically that no public Dart API changes were
+detected rather than claiming that the package versions are fully equivalent.
+Do not create or link a report file unless the user requested one.

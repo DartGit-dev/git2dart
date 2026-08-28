@@ -112,7 +112,7 @@ void main() {
       Stash.create(repo: repo, stasher: stasher);
 
       expect(
-        () => Stash.apply(repo: repo, index: 10),
+        () => Stash.apply(repo: repo, index: 10, paths: ['file']),
         throwsA(isA<LibGit2Error>()),
       );
     });
@@ -183,7 +183,7 @@ void main() {
       Stash.create(repo: repo, stasher: stasher);
 
       expect(
-        () => Stash.pop(repo: repo, index: 10),
+        () => Stash.pop(repo: repo, index: 10, paths: ['file']),
         throwsA(isA<LibGit2Error>()),
       );
     });

@@ -1,0 +1,26 @@
+diff --git a/test/callbacks_test.dart b/test/callbacks_test.dart
+--- a/test/callbacks_test.dart
++++ b/test/callbacks_test.dart
+@@ -145,3 +145,20 @@ void main() {
+     });
++
++    test('owns credential error messages through callback arenas', () {
++      final source =
++          File('lib/src/bindings/remote_callbacks.dart').readAsStringSync();
++      final start = source.indexOf('static int credentialsCb(');
++      final end = source.indexOf('/// Plugs provided callbacks', start);
++      final callbackSource = source.substring(start, end);
++
++      expect(start, isNonNegative);
++      expect(end, greaterThan(start));
++      expect(callbackSource, contains('using((arena)'));
++      expect(
++        RegExp(r'\.toChar\(arena\)').allMatches(callbackSource),
++        hasLength(2),
++      );
++      expect(callbackSource, isNot(contains('.toCharAlloc()')));
++    });
+
+     test('releases credential payload idempotently during reset', () {
+
+---

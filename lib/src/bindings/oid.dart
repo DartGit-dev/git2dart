@@ -25,7 +25,12 @@ Pointer<git_oid> fromStrN(
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstrn(out, hexC, hex.length, type);
+    final error = libgit2Runtime.bindings.git_oid_fromstrn(
+      out,
+      hexC,
+      hex.length,
+      type,
+    );
     checkErrorAndThrow(error);
 
     return out;
@@ -54,7 +59,7 @@ Pointer<git_oid> fromSHA(
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstr(out, hexC, type);
+    final error = libgit2Runtime.bindings.git_oid_fromstr(out, hexC, type);
     checkErrorAndThrow(error);
 
     return out;
@@ -70,7 +75,7 @@ Pointer<git_oid> fromStrP(
     final out = calloc<git_oid>();
     final hexC = hex.toChar(arena);
 
-    final error = libgit2.git_oid_fromstrp(out, hexC, type);
+    final error = libgit2Runtime.bindings.git_oid_fromstrp(out, hexC, type);
     checkErrorAndThrow(error);
 
     return out;
@@ -105,7 +110,7 @@ Pointer<git_oid> fromRaw(
       rawC[i] = raw[i];
     }
 
-    libgit2.git_oid_fromraw(out, rawC, type);
+    libgit2Runtime.bindings.git_oid_fromraw(out, rawC, type);
     return out;
   });
 }
@@ -128,7 +133,7 @@ String toSHA(Pointer<git_oid> id) {
             ? GIT_OID_SHA256_HEXSIZE
             : GIT_OID_SHA1_HEXSIZE;
     final out = arena<Char>(length);
-    libgit2.git_oid_fmt(out, id);
+    libgit2Runtime.bindings.git_oid_fmt(out, id);
     return out.toDartString(length: length);
   });
 }
@@ -137,7 +142,7 @@ String toSHA(Pointer<git_oid> id) {
 String toStrN({required Pointer<git_oid> id, required int length}) {
   return using((arena) {
     final out = arena<Char>(length);
-    final error = libgit2.git_oid_nfmt(out, length, id);
+    final error = libgit2Runtime.bindings.git_oid_nfmt(out, length, id);
 
     checkErrorAndThrow(error);
     return out.toDartString(length: length);
@@ -148,14 +153,14 @@ String toStrN({required Pointer<git_oid> id, required int length}) {
 String toStr({required Pointer<git_oid> id, required int length}) {
   return using((arena) {
     final out = arena<Char>(length);
-    libgit2.git_oid_tostr(out, length, id);
+    libgit2Runtime.bindings.git_oid_tostr(out, length, id);
     return out.toDartString();
   });
 }
 
 /// Format [id] with libgit2's thread-local storage.
 String toStrS(Pointer<git_oid> id) {
-  final result = libgit2.git_oid_tostr_s(id);
+  final result = libgit2Runtime.bindings.git_oid_tostr_s(id);
   return result == nullptr ? '' : result.toDartString();
 }
 
@@ -180,7 +185,7 @@ int compare({
   required Pointer<git_oid> aPointer,
   required Pointer<git_oid> bPointer,
 }) {
-  return libgit2.git_oid_cmp(aPointer, bPointer);
+  return libgit2Runtime.bindings.git_oid_cmp(aPointer, bPointer);
 }
 
 /// Create a copy of an oid structure.
@@ -197,19 +202,22 @@ int compare({
 /// ```
 Pointer<git_oid> copy(Pointer<git_oid> src) {
   final out = calloc<git_oid>();
-  final error = libgit2.git_oid_cpy(out, src);
+  final error = libgit2Runtime.bindings.git_oid_cpy(out, src);
 
   checkErrorAndThrow(error);
 
   return out;
 }
 
+/// Release memory allocated for an OID.
+void free(Pointer<git_oid> oid) => calloc.free(oid);
+
 /// Check two oid structures for equality.
 bool equal({
   required Pointer<git_oid> aPointer,
   required Pointer<git_oid> bPointer,
 }) {
-  return libgit2.git_oid_equal(aPointer, bPointer) == 1;
+  return libgit2Runtime.bindings.git_oid_equal(aPointer, bPointer) == 1;
 }
 
 /// Compare the first [length] hexadecimal characters of two oid structures.
@@ -218,14 +226,14 @@ int ncmp({
   required Pointer<git_oid> bPointer,
   required int length,
 }) {
-  return libgit2.git_oid_ncmp(aPointer, bPointer, length);
+  return libgit2Runtime.bindings.git_oid_ncmp(aPointer, bPointer, length);
 }
 
 /// Compare [id] to a hexadecimal object id string.
 int strcmp({required Pointer<git_oid> id, required String hex}) {
   return using((arena) {
     final hexC = hex.toChar(arena);
-    return libgit2.git_oid_strcmp(id, hexC);
+    return libgit2Runtime.bindings.git_oid_strcmp(id, hexC);
   });
 }
 
@@ -233,12 +241,13 @@ int strcmp({required Pointer<git_oid> id, required String hex}) {
 bool streq({required Pointer<git_oid> id, required String hex}) {
   return using((arena) {
     final hexC = hex.toChar(arena);
-    return libgit2.git_oid_streq(id, hexC) == 0;
+    return libgit2Runtime.bindings.git_oid_streq(id, hexC) == 0;
   });
 }
 
 /// Check if an oid is all zeros.
-bool isZero(Pointer<git_oid> id) => libgit2.git_oid_is_zero(id) == 1;
+bool isZero(Pointer<git_oid> id) =>
+    libgit2Runtime.bindings.git_oid_is_zero(id) == 1;
 
 /// Convert an oid into its loose-object path string (e.g. `aa/bb...`).
 String pathFormat(Pointer<git_oid> id) {
@@ -248,7 +257,7 @@ String pathFormat(Pointer<git_oid> id) {
             ? GIT_OID_SHA256_HEXSIZE + 1
             : GIT_OID_SHA1_HEXSIZE + 1;
     final out = arena<Char>(length + 1);
-    libgit2.git_oid_pathfmt(out, id);
+    libgit2Runtime.bindings.git_oid_pathfmt(out, id);
     return out.toDartString(length: length);
   });
 }
@@ -256,7 +265,7 @@ String pathFormat(Pointer<git_oid> id) {
 /// Create an OID shortener. The returned pointer must be freed with
 /// [shortenFree].
 Pointer<git_oid_shorten> shortenNew(int minLength) {
-  final result = libgit2.git_oid_shorten_new(minLength);
+  final result = libgit2Runtime.bindings.git_oid_shorten_new(minLength);
   if (result == nullptr) {
     throw StateError('Unable to allocate git_oid_shorten');
   }
@@ -270,7 +279,10 @@ int shortenAdd({
 }) {
   return using((arena) {
     final hexC = hex.toChar(arena);
-    final result = libgit2.git_oid_shorten_add(shortenerPointer, hexC);
+    final result = libgit2Runtime.bindings.git_oid_shorten_add(
+      shortenerPointer,
+      hexC,
+    );
     checkErrorAndThrow(result);
     return result;
   });
@@ -278,5 +290,5 @@ int shortenAdd({
 
 /// Free an OID shortener.
 void shortenFree(Pointer<git_oid_shorten> shortener) {
-  libgit2.git_oid_shorten_free(shortener);
+  libgit2Runtime.bindings.git_oid_shorten_free(shortener);
 }

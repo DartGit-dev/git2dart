@@ -25,7 +25,12 @@ Pointer<git_blame> file({
     final out = arena<Pointer<git_blame>>();
     final pathC = path.toChar(arena);
     final options = arena<git_blame_options>();
-    libgit2.git_blame_options_init(options, GIT_BLAME_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_blame_options_init(
+        options,
+        GIT_BLAME_OPTIONS_VERSION,
+      ),
+    );
 
     options.ref.flags = flags;
 
@@ -49,7 +54,12 @@ Pointer<git_blame> file({
       options.ref.max_line = maxLine;
     }
 
-    final error = libgit2.git_blame_file(out, repoPointer, pathC, options);
+    final error = libgit2Runtime.bindings.git_blame_file(
+      out,
+      repoPointer,
+      pathC,
+      options,
+    );
 
     checkErrorAndThrow(error);
 
@@ -71,7 +81,7 @@ Pointer<git_blame> buffer({
     final out = arena<Pointer<git_blame>>();
     final bufferC = buffer.toChar(arena);
 
-    final error = libgit2.git_blame_buffer(
+    final error = libgit2Runtime.bindings.git_blame_buffer(
       out,
       ref ?? nullptr,
       bufferC,
@@ -105,7 +115,12 @@ Pointer<git_blame> fileFromBuffer({
     final pathC = path.toChar(arena);
     final bufferC = contents.toChar(arena);
     final options = arena<git_blame_options>();
-    libgit2.git_blame_options_init(options, GIT_BLAME_OPTIONS_VERSION);
+    checkErrorAndThrow(
+      libgit2Runtime.bindings.git_blame_options_init(
+        options,
+        GIT_BLAME_OPTIONS_VERSION,
+      ),
+    );
 
     options.ref.flags = flags;
 
@@ -129,7 +144,7 @@ Pointer<git_blame> fileFromBuffer({
       options.ref.max_line = maxLine;
     }
 
-    final error = libgit2.git_blame_file_from_buffer(
+    final error = libgit2Runtime.bindings.git_blame_file_from_buffer(
       out,
       repoPointer,
       pathC,
@@ -145,12 +160,12 @@ Pointer<git_blame> fileFromBuffer({
 
 /// Gets the number of hunks that exist in the blame structure.
 int hunkCount(Pointer<git_blame> blame) {
-  return libgit2.git_blame_get_hunk_count(blame);
+  return libgit2Runtime.bindings.git_blame_get_hunk_count(blame);
 }
 
 /// Gets the number of hunks using libgit2's legacy blame API name.
 int hunkCountLegacy(Pointer<git_blame> blame) {
-  return libgit2.git_blame_hunkcount(blame);
+  return libgit2Runtime.bindings.git_blame_hunkcount(blame);
 }
 
 /// Get the hunk that contains the given line number.
@@ -162,7 +177,10 @@ Pointer<git_blame_hunk> getHunkByline({
   required Pointer<git_blame> blamePointer,
   required int lineno,
 }) {
-  final result = libgit2.git_blame_get_hunk_byline(blamePointer, lineno);
+  final result = libgit2Runtime.bindings.git_blame_get_hunk_byline(
+    blamePointer,
+    lineno,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Line number out of bounds');
@@ -177,7 +195,10 @@ Pointer<git_blame_hunk> getHunkBylineLegacy({
   required Pointer<git_blame> blamePointer,
   required int lineno,
 }) {
-  final result = libgit2.git_blame_hunk_byline(blamePointer, lineno);
+  final result = libgit2Runtime.bindings.git_blame_hunk_byline(
+    blamePointer,
+    lineno,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Line number out of bounds');
@@ -195,7 +216,10 @@ Pointer<git_blame_hunk> getHunkByIndex({
   required Pointer<git_blame> blamePointer,
   required int index,
 }) {
-  final result = libgit2.git_blame_get_hunk_byindex(blamePointer, index);
+  final result = libgit2Runtime.bindings.git_blame_get_hunk_byindex(
+    blamePointer,
+    index,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Index out of bounds');
@@ -209,7 +233,10 @@ Pointer<git_blame_hunk> getHunkByIndexLegacy({
   required Pointer<git_blame> blamePointer,
   required int index,
 }) {
-  final result = libgit2.git_blame_hunk_byindex(blamePointer, index);
+  final result = libgit2Runtime.bindings.git_blame_hunk_byindex(
+    blamePointer,
+    index,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Index out of bounds');
@@ -220,7 +247,7 @@ Pointer<git_blame_hunk> getHunkByIndexLegacy({
 
 /// Gets the number of lines that exist in the blame structure.
 int lineCount(Pointer<git_blame> blame) {
-  return libgit2.git_blame_linecount(blame);
+  return libgit2Runtime.bindings.git_blame_linecount(blame);
 }
 
 /// Get the information about the line at the given index.
@@ -230,7 +257,10 @@ Pointer<git_blame_line> lineByIndex({
   required Pointer<git_blame> blamePointer,
   required int index,
 }) {
-  final result = libgit2.git_blame_line_byindex(blamePointer, index);
+  final result = libgit2Runtime.bindings.git_blame_line_byindex(
+    blamePointer,
+    index,
+  );
 
   if (result == nullptr) {
     throw Git2DartError('Index out of bounds');
@@ -240,4 +270,5 @@ Pointer<git_blame_line> lineByIndex({
 }
 
 /// Free memory allocated for blame object.
-void free(Pointer<git_blame> blame) => libgit2.git_blame_free(blame);
+void free(Pointer<git_blame> blame) =>
+    libgit2Runtime.bindings.git_blame_free(blame);

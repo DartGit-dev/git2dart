@@ -138,8 +138,6 @@ class Patch extends Equatable {
     int contextLines = 3,
     int interhunkLines = 0,
   }) {
-    libgit2.git_libgit2_init();
-
     _patchPointer = bindings.fromBuffers(
       oldBuffer: oldBuffer,
       oldAsPath: oldBufferPath,

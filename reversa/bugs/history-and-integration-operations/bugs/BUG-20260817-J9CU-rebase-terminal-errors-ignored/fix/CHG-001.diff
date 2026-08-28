@@ -1,0 +1,12 @@
+diff --git a/test/rebase_test.dart b/test/rebase_test.dart
+index 661f371..c3d2563 100644
+--- a/test/rebase_test.dart
++++ b/test/rebase_test.dart
+@@ -69,6 +69,7 @@ void main() {
+
+       rebase.finish();
+       expect(repo.index['.gitignore'], isA<IndexEntry>());
++      expect(() => rebase.finish(), throwsA(isA<LibGit2Error>()));
+     });
+
+     test('performs rebase without branch provided', () {
