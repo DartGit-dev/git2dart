@@ -22,6 +22,9 @@ print(oid.sha);
 print(oid.toStrS());
 print(oid.toStrN(7));
 print(oid.equalsHex('78b8bf123e3952c970ae5c1ce0a3ea1d1336f6e8'));
+
+oid.free();
+sameOid.free();
 ```
 
 Valid input must be hexadecimal and 4 to 64 characters long. Invalid format
@@ -55,13 +58,33 @@ if (oldOid < newOid) {
 
 `toString()` includes the SHA value for diagnostics.
 
+### Native ownership
+
+Each `Oid` owns an independent native copy, including values obtained from
+repositories, references, commits, trees, and other parent objects. Releasing
+the parent does not invalidate the `Oid`:
+
+```dart
+final reference = repo.head;
+final target = reference.target;
+reference.free();
+
+print(target.sha);
+target.free();
+```
+
+A finalizer provides a fallback, but long-running applications should call
+`free()` exactly once when an `Oid` is no longer needed. Do not read or compare
+the value after it has been released.
+
 ## Important Options
 
 Use full hashes for durable storage and `OidShortener` only for display-friendly unique prefixes.
 
 ## Lifecycle and Errors
 
-`Oid` values are lightweight object identifiers. `OidShortener` owns a native shortener and should be released with `free()` when no longer needed.
+`Oid` and `OidShortener` own native allocations. Release each instance with
+`free()` when it is no longer needed; do not use an instance after release.
 
 ## See Also
 

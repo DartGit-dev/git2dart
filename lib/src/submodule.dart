@@ -26,7 +26,7 @@ class Submodule extends Equatable {
   ///
   /// [path] is the path at which the submodule should be created.
   ///
-  /// [useGitLink] determines if workdir should contain a gitlink to the repo in `.git/modules`
+  /// [useGitlink] determines if workdir should contain a gitlink to the repo in `.git/modules`
   /// vs. repo directly in workdir. Default is true.
   ///
   /// [callbacks] is the combination of callback functions from [Callbacks]

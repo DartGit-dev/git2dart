@@ -32,7 +32,7 @@ class Oid extends Equatable {
   /// Initializes a new instance by parsing a possibly shortened hexadecimal
   /// object id.
   ///
-  /// Missing trailing digits are zero-filled by libgit2Runtime.bindings.
+  /// Missing trailing digits are zero-filled by libgit2.
   Oid.fromSHAParse(String sha) {
     if (!sha.isValidSHA1() && !sha.isValidSHA256()) {
       throw ArgumentError.value(

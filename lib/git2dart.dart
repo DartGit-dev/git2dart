@@ -1,4 +1,4 @@
-/// Dart bindings to libgit2Runtime.bindings.
+/// Dart bindings to libgit2.
 library;
 
 export 'src/annotated.dart';

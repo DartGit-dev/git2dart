@@ -37,7 +37,7 @@ class Libgit2 {
   /// Get the features that libgit2 was compiled with.
   ///
   /// Returns a set of [GitFeature] values indicating which features
-  /// are available in this build of libgit2Runtime.bindings.
+  /// are available in this build of libgit2.
   static Set<GitFeature> get features {
     final featuresInt = libgit2Runtime.bindings.git_libgit2_features();
     return GitFeature.values

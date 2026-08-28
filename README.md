@@ -30,7 +30,7 @@ Add git2dart to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  git2dart: ^0.5.2
+  git2dart: ^0.5.5
 ```
 
 Install dependencies:
@@ -142,7 +142,7 @@ Minimum SDK versions:
 - Dart SDK `>=3.7.2 <4.0.0`
 - Flutter `>=3.29.3`
 
-Version `0.5.4` depends on `git2dart_binaries >=1.12.1 <1.13.0`. The companion
+Version `0.5.5` depends on `git2dart_binaries >=1.13.0 <1.14.0`. The companion
 package provides prebuilt libgit2 artifacts and generated FFI bindings, so
 normal git2dart development does not regenerate bindings in this repository.
 

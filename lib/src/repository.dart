@@ -171,8 +171,8 @@ class Repository extends Equatable {
   /// Clones a remote repository at provided [url] into [localPath].
   ///
   /// By default this creates its repository and initial remote to match git's
-  /// defaults. You can use the [remote] and [repository] options to customize
-  /// how these are created.
+  /// defaults. Use [remoteCallback] and [repositoryCallback] to customize how
+  /// these are created.
   ///
   /// [url] is the remote repository to clone.
   ///
@@ -440,7 +440,7 @@ class Repository extends Equatable {
   /// into a normal repository, capable of performing all the common workdir
   /// operations (checkout, status, index manipulation, etc).
   ///
-  /// [updateGitLink] if set creates/updates gitlink in workdir and sets config
+  /// [updateGitlink] if set creates/updates gitlink in workdir and sets config
   /// "core.worktree" (if workdir is not the parent of the ".git" directory)
   ///
   /// Throws a [LibGit2Error] if error occured.

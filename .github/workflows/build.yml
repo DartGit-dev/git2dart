@@ -13,8 +13,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  commit_filter:
+    name: Check commit tag
+    runs-on: ubuntu-latest
+    outputs:
+      run_ci: ${{ steps.commit_tag.outputs.run_ci }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Check for documentation-only commit
+        id: commit_tag
+        shell: bash
+        run: |
+          if git log -1 --pretty=%B | grep -Fiq '[docs]'; then
+            echo "run_ci=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping build jobs for a documentation-only commit."
+          else
+            echo "run_ci=true" >> "$GITHUB_OUTPUT"
+          fi
+
   quality:
     name: Quality
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +61,8 @@ jobs:
 
   desktop-test:
     name: Test (${{ matrix.name }})
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -70,6 +96,8 @@ jobs:
 
   android-test:
     name: Test (Android)
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,6 +121,8 @@ jobs:
 
   ios-test:
     name: Test (iOS)
+    needs: commit_filter
+    if: ${{ needs.commit_filter.outputs.run_ci == 'true' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
