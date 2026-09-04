@@ -10,3 +10,4 @@
 {"ts":"2026-08-24T05:15:49.9781174Z","action":"A-009","status":"corrected","files":[]}
 {"ts":"2026-08-24T05:15:49.9781174Z","action":"A-009","status":"done","files":[]}
 {"ts":"2026-08-24T05:15:49.9781174Z","action":"A-010","status":"done","files":["reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/evidence/reproduce_invalid_free.dart","reversa/bugs/git-objects-and-object-database/bugs/BUG-20260817-E3LU-tree-entry-invalid-free/evidence/reproduce_invalid_free_test.dart","reversa/bugs/native-runtime-and-platform-boundary/bugs/BUG-20260817-ZC7X-unbalanced-libgit2-lifecycle/evidence/reproduction_test.dart"]}
+{"ts":"2026-08-29T00:00:00+07:00","action":"DEPLOYMENT","status":"done","deployment":"successful","evidence_source":"USER-CONFIRMED","independent_verification":false,"scope":"Feature 002 is treated as successfully delivered at the user's direction; the delivery changed Reversa evidence programs only."}

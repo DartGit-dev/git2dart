@@ -1,4 +1,12 @@
 # Changelog
+## [0.5.6] - 2026-09-04
+### Changed
+- Upgraded `git2dart_binaries` to the 1.14.x companion range, resolving 1.14.0 with bundled libgit2 1.9.7 on the validated Windows x64 host.
+- Confirmed that the 1.13.0-to-1.14.0 comparison detected no public Dart declaration changes.
+
+### Testing
+- Updated the libgit2-version expectation to the directly observed bundled 1.9.7 runtime value.
+
 ## [0.5.5] - 2026-08-28
 ### Features
 * Add `Libgit2.shutdown()` for deterministic, isolate-scoped native runtime
