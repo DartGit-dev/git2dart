@@ -35,6 +35,12 @@
 
 This document records local release-candidate evidence only. No remote workflow was triggered or observed, no tag was created, and no package was published.
 
+## Candidate and hosted-validation boundary
+
+- Local candidate commit: `f55e816` (`chore: prepare 0.5.6 release candidate`).
+- T014 is blocked pending explicit authorization to push this candidate. No Build workflow was triggered or observed, so Quality, Linux, macOS, Windows, Android, and iOS remain individually unproven.
+- The available local portions of T015 and T016 are complete: the matrix names every unrun hosted target and keeps API comparison, local validation, package dry-run, publication, and live HTTPS/SSH as distinct evidence scopes. T015 and T016 remain unchecked because their T014 dependency has not run.
+
 ## Corrected local-gate finding
 
 The initial full Windows x64 suite exposed a concrete post-upgrade expectation mismatch: `Libgit2 returns up to date version of libgit2` expected `1.9.6`, while the bundled 1.14.0 runtime reported `1.9.7`. With explicit authorization, the single assertion was corrected to `1.9.7`; the full candidate gate then passed.
