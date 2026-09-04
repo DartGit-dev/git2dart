@@ -12,3 +12,4 @@
 {"ts":"2026-08-24T04:50:23.6339710Z","action":"A-008","status":"failed","files":[]}
 {"ts":"2026-08-24T05:21:02.6631447Z","action":"A-008","status":"corrected","files":["lib/src/odb.dart","lib/src/reference.dart","test/odb_test.dart","test/reference_test.dart"]}
 {"ts":"2026-08-24T05:21:02.6631447Z","action":"A-008","status":"done","files":["lib/src/odb.dart","lib/src/reference.dart","test/odb_test.dart","test/reference_test.dart"]}
+{"ts":"2026-08-29T00:00:00+07:00","action":"DEPLOYMENT","status":"done","deployment":"successful","evidence_source":"USER-CONFIRMED","independent_verification":false,"scope":"Feature 001 is treated as successfully delivered at the user's direction; the existing addendum remains the sync record."}

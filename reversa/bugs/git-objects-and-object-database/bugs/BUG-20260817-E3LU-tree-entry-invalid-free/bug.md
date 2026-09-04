@@ -3,8 +3,8 @@ schema_version: 1
 id: BUG-20260817-E3LU
 display_number: 23
 title: Borrowed TreeEntry values expose an invalid native free operation
-status: active
-phase: delivering
+status: resolved
+phase: closed
 severity: critical
 priority: P0
 created: 2026-08-17
@@ -71,11 +71,11 @@ delivery:
   pull_request: null
   merge: "contained by local 0.5.5 and origin/0.5.5; no pull request record"
   local_audit: "evidence/current-head-audit.md"
-  publication: pending
+  publication: "USER-CONFIRMED on 2026-08-29; package registry not independently verified"
 versions:
-  fixed_in: null
+  fixed_in: "0.5.5"
 backports: []
-closure: {policy: package, satisfied: false}
+closure: {policy: package, satisfied: true}
 resolution_kind: fixed
 ---
 

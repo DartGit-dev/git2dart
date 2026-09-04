@@ -9,16 +9,5 @@
     "requirements",
     "plan"
   ],
-  "paused-features": [
-    {
-      "feature-dir": "reversa/forward/001-strict-git-validation",
-      "feature-id": "001",
-      "short-name": "strict-git-validation",
-      "started-at": "2026-08-24T11:12:49.2379027+07:00",
-      "current-stage": "requirements",
-      "stages-completed": [],
-      "paused-at": "2026-08-26T14:00:42.8548518+07:00",
-      "paused-from-stage": "plan"
-    }
-  ]
+  "paused-features": []
 }
