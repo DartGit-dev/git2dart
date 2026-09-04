@@ -21,12 +21,12 @@
 | Adapter/static surface | Resolved declarations, static facade inspection, and analyzer diagnostics | No mismatch observed; no source or test repair justified | `PlatformSpecific` facade and `Libgit2` adapter remain compatible by local static/test evidence; not target runtime proof. |
 | Local candidate gate | `dart format . --set-exit-if-changed`; `flutter analyze --fatal-infos`; `flutter test -j 1 --reporter expanded` | Passed | Format: 158 files, 0 changed. Analyze: no issues. Test: 956 passed, 24 skipped. Host-scoped Windows x64 evidence only. |
 | Package dry-run | `dart pub publish --dry-run` | Passed | Package assembly and pub validation only; not publication. |
-| Hosted Quality | Not run | Unproven | Requires explicit push authorization. |
-| Hosted Linux | Not run | Unproven | Requires explicit push authorization. |
-| Hosted macOS | Not run | Unproven | Requires explicit push authorization. |
-| Hosted Windows | Not run | Unproven | Requires explicit push authorization. |
-| Hosted Android | Not run | Unproven | Requires explicit push authorization. |
-| Hosted iOS | Not run | Unproven | Requires explicit push authorization. |
+| Hosted Quality | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878469) | Passed | Build run 33859005017 for candidate `a9681c7`. |
+| Hosted Linux | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878475) | Passed | Build run 33859005017 for candidate `a9681c7`. |
+| Hosted macOS | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878528) | Passed | Build run 33859005017 for candidate `a9681c7`. |
+| Hosted Windows | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878448) | Passed | Build run 33859005017 for candidate `a9681c7`. |
+| Hosted Android | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878420) | Passed | Build run 33859005017 for candidate `a9681c7`. |
+| Hosted iOS | [success](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017/job/100978878360) | Passed | Build run 33859005017 for candidate `a9681c7`. |
 | Publication | Not run | Unproven | Requires explicit maintainer authorization. |
 | Live HTTPS behavior | Not run | Unproven | No live transport observation in this candidate. |
 | Live SSH behavior | Not run | Unproven | No live transport observation in this candidate. |
@@ -38,8 +38,9 @@ This document records local release-candidate evidence only. No remote workflow 
 ## Candidate and hosted-validation boundary
 
 - Local candidate commit: `f55e816` (`chore: prepare 0.5.6 release candidate`).
-- T014 is blocked pending explicit authorization to push this candidate. No Build workflow was triggered or observed, so Quality, Linux, macOS, Windows, Android, and iOS remain individually unproven.
-- The available local portions of T015 and T016 are complete: the matrix names every unrun hosted target and keeps API comparison, local validation, package dry-run, publication, and live HTTPS/SSH as distinct evidence scopes. T015 and T016 remain unchecked because their T014 dependency has not run.
+- The authorized push created `origin/0.5.6` at `a9681c755ddebfdcd23157b41d1095c0bbe10a8f`, with the local branch tracking it.
+- Build workflow [33859005017](https://github.com/DartGit-dev/git2dart/actions/runs/33859005017) completed successfully for that candidate: Quality, Linux, macOS, Windows, Android, and iOS all passed.
+- This matrix proves only the named hosted workflow jobs for the candidate. The declaration comparison remains API-scoped; native ABI, package artifact provenance beyond the observed workflow, actual publication, and live HTTPS/SSH behavior remain unproven.
 
 ## Corrected local-gate finding
 
